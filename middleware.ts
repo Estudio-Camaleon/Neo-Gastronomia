@@ -29,19 +29,21 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getSession();
   const { pathname } = request.nextUrl;
 
-  // 1. Proteger rutas /admin
-  if (pathname.startsWith("/admin")) {
-    if (!session) {
-      // Evitar bucle si ya estamos en /login
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
+  // 1. Definir rutas protegidas (dashboard)
+  // Ahora protegemos todo lo que vive en el grupo (dashboard)
+  const isDashboardRoute =
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/productos") ||
+    pathname.startsWith("/configuracion");
+
+  // 2. Lógica de protección
+  if (isDashboardRoute && !session) {
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // 2. Rutas de Auth: Si hay sesión, evitar bucle y mandar a /admin
-  if (pathname === "/login" || pathname === "/registro") {
-    if (session) {
-      return NextResponse.redirect(new URL("/admin", request.url));
-    }
+  // 3. Rutas de Auth: Si ya está logueado, no dejarlo volver a entrar
+  if ((pathname === "/login" || pathname === "/registro") && session) {
+    return NextResponse.redirect(new URL("/admin", request.url));
   }
 
   return response;

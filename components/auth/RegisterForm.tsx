@@ -2,95 +2,90 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
-import Link from "next/link"; // Importación necesaria
-import { z } from "zod";
-
-const registerSchema = z.object({
-  email: z.string().email("Correo electrónico inválido"),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
-});
 
 export function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+  const [isSent, setIsSent] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-
-    const result = registerSchema.safeParse({ email, password });
-    if (!result.success) {
-      const fieldErrors = result.error.flatten().fieldErrors;
-      const firstError =
-        Object.values(fieldErrors)[0]?.[0] || "Error de validación";
-      setError(firstError);
-      return;
-    }
-
     setLoading(true);
 
     const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        // Esto redirige al usuario al panel de administración tras confirmar su correo
+        emailRedirectTo: `${window.location.origin}/admin`,
+      },
     });
 
     if (error) {
-      setError(error.message);
-      setLoading(false);
+      alert(error.message);
     } else {
-      router.push("/admin");
-      router.refresh();
-      setLoading(false);
+      setIsSent(true);
     }
-    
+    setLoading(false);
   };
-  
+
+  // Estado de éxito: mensaje personalizado
+  if (isSent) {
+    return (
+      <div className="bg-blue-50 p-8 rounded-2xl text-center border border-blue-100 animate-in fade-in duration-500">
+        <h2 className="text-2xl font-bold text-blue-900 mb-3">
+          ¡Casi listo! 🚀
+        </h2>
+        <p className="text-blue-700 leading-relaxed">
+          Hemos enviado un enlace de confirmación a <strong>{email}</strong>.
+          <br />
+          <br />
+          Por favor, revisa tu bandeja de entrada (y tu carpeta de spam) para
+          activar tu cuenta y comenzar a administrar tu negocio.
+        </p>
+      </div>
+    );
+  }
+
+  // Formulario de registro
   return (
-    <form onSubmit={handleSubmit} className="w-full space-y-4">
+    <form onSubmit={handleRegister} className="space-y-4">
       <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Correo electrónico
+        </label>
         <input
           type="email"
-          placeholder="Correo electrónico"
-          className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 transition-all"
+          required
           value={email}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setEmail(e.target.value)
-          }
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+          placeholder="tu@negocio.com"
         />
       </div>
+
       <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Contraseña
+        </label>
         <input
           type="password"
-          placeholder="Contraseña"
-          className="w-full p-3 bg-gray-200 border border-gray-200 rounded-xl outline-none focus:border-blue-500 transition-all"
+          required
           value={password}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setPassword(e.target.value)
-          }
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+          placeholder="••••••••"
         />
       </div>
 
-      {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-
       <button
-        type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 text-white p-3 rounded-xl font-bold hover:bg-blue-700 disabled:bg-gray-400 transition-all"
+        type="submit"
+        className="w-full bg-blue-600 text-white p-3 rounded-xl font-bold hover:bg-blue-700 transition-all disabled:opacity-50 mt-2"
       >
-        {loading ? "Registrando..." : "Crear cuenta"}
+        {loading ? "Creando cuenta..." : "Crear mi cuenta"}
       </button>
-
-      {/* Navegación al Login */}
-      <p className="text-center text-sm text-gray-500 mt-4">
-        ¿Ya tienes cuenta?{" "}
-        <Link href="/login" className="text-blue-600 font-bold hover:underline">
-          Inicia sesión
-        </Link>
-      </p>
     </form>
   );
 }
