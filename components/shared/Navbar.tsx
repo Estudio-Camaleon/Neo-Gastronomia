@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { ThemeSwitcher } from "@/components/shared/ThemeSwitcher";
+import { useTheme } from "@/components/providers/ThemeProvider";
 
 interface NavbarProps {
   showLinks?: boolean;

@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
-import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-
+import { Moon, Sun, Monitor } from "lucide-react"; // Importamos íconos para el switch
+import { useTheme } from "@/components/providers/ThemeProvider";
 interface SidebarProps {
   slug?: string;
   negocioNombre?: string;
@@ -15,10 +15,9 @@ interface SidebarProps {
 export function Sidebar({ slug, negocioNombre, stats }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { theme } = useTheme();
+  const { theme, setTheme } = useTheme(); // Extraemos setTheme
   const [mounted, setMounted] = useState(false);
 
-  // useEffect asegura que el cliente ya cargó y conoce el tema actual
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -46,11 +45,9 @@ export function Sidebar({ slug, negocioNombre, stats }: SidebarProps) {
         >
           <img
             src={
-              // Si no ha montado, o el tema es oscuro, usamos logo blanco.
-              // Si es claro, usamos logo negro.
-              mounted && theme === "light"
-                ? "/icons/neo_logo_negro.svg"
-                : "/icons/neo_logo_blanco.svg"
+              mounted && theme === "dark"
+                ? "/icons/neo_logo_blanco.svg"
+                : "/icons/neo_logo_negro.svg"
             }
             alt="Logo NEO"
             className="h-8 w-auto transition-opacity duration-300"
@@ -101,8 +98,34 @@ export function Sidebar({ slug, negocioNombre, stats }: SidebarProps) {
         })}
       </nav>
 
-      {/* Footer: Catálogo + SignOut */}
+      {/* Footer: Theme Switcher + Catálogo + SignOut */}
       <div className="mt-auto space-y-4 pt-6 border-t border-border dark:border-border-dark">
+        {/* THEME SWITCHER INTEGRADO */}
+        <div className="flex items-center justify-between bg-bg-main dark:bg-bg-darker p-1 rounded-2xl border border-border dark:border-border-dark">
+          <button
+            onClick={() => setTheme("light")}
+            className={`flex-1 flex justify-center py-2 rounded-xl transition-all ${
+              mounted && theme === "light"
+                ? "bg-white dark:bg-surface-dark shadow-sm text-primary"
+                : "text-text-muted hover:text-text-primary"
+            }`}
+            title="Modo Claro"
+          >
+            <Sun size={16} strokeWidth={mounted && theme === "light" ? 3 : 2} />
+          </button>
+          <button
+            onClick={() => setTheme("dark")}
+            className={`flex-1 flex justify-center py-2 rounded-xl transition-all ${
+              mounted && theme === "dark"
+                ? "bg-white dark:bg-surface-dark shadow-sm text-primary"
+                : "text-text-muted hover:text-text-primary"
+            }`}
+            title="Modo Oscuro"
+          >
+            <Moon size={16} strokeWidth={mounted && theme === "dark" ? 3 : 2} />
+          </button>
+        </div>
+
         {slug && (
           <div className="p-3 bg-primary/5 rounded-xl border border-primary/10">
             <p className="text-[10px] uppercase tracking-widest text-primary/70 font-black mb-1">

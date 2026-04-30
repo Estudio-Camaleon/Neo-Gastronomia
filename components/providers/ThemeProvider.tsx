@@ -1,18 +1,41 @@
-// components/providers/ThemeProvider.tsx
 "use client";
 
-import * as React from "react";
-import { ThemeProvider as NextThemesProvider } from "next-themes";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
-export function ThemeProvider({ children, ...props }: any) {
+// 1. Creamos el contexto para NEO
+const ThemeContext = createContext({
+  theme: "light",
+  setTheme: (theme: string) => {},
+});
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setThemeState] = useState("light");
+
+  // Al montar, leemos la preferencia guardada
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("neo-theme") || "light";
+    setThemeState(savedTheme);
+    document.documentElement.classList.toggle("dark", savedTheme === "dark");
+  }, []);
+
+  const setTheme = (newTheme: string) => {
+    setThemeState(newTheme);
+    localStorage.setItem("neo-theme", newTheme);
+
+    // Aplicamos o quitamos la clase .dark al HTML
+    if (newTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  };
+
   return (
-    <NextThemesProvider
-      attribute="class"
-      defaultTheme="light"
-      enableSystem={false}
-      {...props}
-    >
+    <ThemeContext.Provider value={{ theme, setTheme }}>
       {children}
-    </NextThemesProvider>
+    </ThemeContext.Provider>
   );
 }
+
+// Hook personalizado para usar en el Sidebar
+export const useTheme = () => useContext(ThemeContext);

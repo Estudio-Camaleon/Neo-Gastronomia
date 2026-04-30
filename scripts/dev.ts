@@ -10,7 +10,7 @@ console.clear();
 
 // Banner de identidad de NEO / Estudio Camaleon
 const banner = `
-\x1b[31m   _  _________ 
+\x1b[32m   _  _________ 
   / |/ / __/ __ \\
  /    / _// /_/ /
 /_/|_/___/\\____/  \x1b[0m \x1b[90mDEVELOPMENT ENGINE v1.0\x1b[0m
@@ -77,7 +77,7 @@ child.stderr?.on("data", (data: Buffer) => {
 child.on("close", (code) => {
   if (code !== 0) {
     console.log(
-      `\n\x1b[31m  ✖ El proceso terminó con el código: ${code}\x1b[0m`,
+      `\n\x1b[32m  ✖ El proceso terminó con el código: ${code}\x1b[0m`,
     );
   }
 });

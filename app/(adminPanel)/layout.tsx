@@ -1,10 +1,10 @@
-// app/(adminPanel)/layout.tsx
 import { Sidebar } from "@/components/adminPanel/Sidebar";
 import { ErrorModal } from "@/components/adminPanel/ErrorModal";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
-export default async function adminPanelLayout({
+export default async function AdminPanelLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -29,7 +29,7 @@ export default async function adminPanelLayout({
         action={
           <Link
             href="/crear-negocio"
-            className="block w-full py-3 bg-primary text-text-primary dark:text-text-inverse font-bold rounded-xl hover:bg-primary-hover transition-all"
+            className="block w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all text-center"
           >
             Crear mi negocio ahora
           </Link>
@@ -38,15 +38,17 @@ export default async function adminPanelLayout({
     );
   }
 
-  // Si todo está bien, renderizamos el adminPanel normalmente
+  // LIMPIEZA: Quitamos las props que ya no existen en nuestro ThemeProvider personalizado
   return (
-    <div className="flex min-h-screen bg-bg-main dark:bg-bg-darker">
-      <Sidebar
-        slug={negocio.slug}
-        negocioNombre={negocio.nombre}
-        stats={{ totalProductos: 0, totalPedidos: 0 }} // Puedes agregar la lógica de conteo aquí también
-      />
-      <main className="flex-1 overflow-y-auto">{children}</main>
-    </div>
+    <ThemeProvider>
+      <div className="flex min-h-screen bg-bg-main dark:bg-bg-dark text-text-primary dark:text-text-inverse transition-colors duration-300">
+        <Sidebar
+          slug={negocio.slug}
+          negocioNombre={negocio.nombre}
+          stats={{ totalProductos: 0, totalPedidos: 0 }}
+        />
+        <main className="flex-1 overflow-y-auto">{children}</main>
+      </div>
+    </ThemeProvider>
   );
 }
