@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import { Montserrat } from "next/font/google"; // Importamos Montserrat
+import { Montserrat } from "next/font/google";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import "./globals.css";
 
-// Configuramos Montserrat con los pesos que más vas a usar (400 regular, 700 bold, 900 black)
 const montserrat = Montserrat({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "900"],
-  variable: "--font-montserrat",
+  variable: "--font-montserrat", // Esta variable es la que usamos en tailwind.config
 });
 
 export const metadata: Metadata = {
@@ -23,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body
-        className={`${montserrat.className} antialiased bg-bg-main dark:bg-bg-darker text-text-primary transition-colors duration-300`}
+        className={`${montserrat.variable} ${montserrat.className} antialiased`}
       >
         <ThemeProvider
           attribute="class"

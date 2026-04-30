@@ -1,64 +1,69 @@
-import Image from "next/image";
+"use client";
 
-interface MenuCardProps {
-  nombre: string;
-  descripcion?: string;
-  precio: number;
-  imagenUrl?: string;
-}
+import { Plus, Minus } from "lucide-react";
+import { useCartStore } from "./store/useCartStore";
 
-export function MenuCard({
-  nombre,
-  descripcion,
-  precio,
-  imagenUrl,
-}: MenuCardProps) {
+export function MenuCard({ id, nombre, descripcion, precio, imagen_url }: any) {
+  const { items, addItem, updateQuantity } = useCartStore();
+
+  // Buscamos si este producto ya está en el carrito
+  const itemEnCarrito = items.find((i) => i.id === id);
+
   return (
-    <div className="bg-surface dark:bg-surface-dark p-4 rounded-2xl border border-border dark:border-border-dark shadow-sm flex gap-4 items-center hover:border-primary transition-all">
-      {/* Imagen optimizada con next/image */}
-      {imagenUrl ? (
-        <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 relative">
-          <Image src={imagenUrl} alt={nombre} fill className="object-cover" />
-        </div>
-      ) : (
-        <div className="w-20 h-20 rounded-xl bg-bg-main dark:bg-bg-darker flex items-center justify-center flex-shrink-0">
-          <span className="text-text-muted text-xs">Sin img</span>
-        </div>
-      )}
-
-      {/* Detalles del producto */}
-      <div className="flex-1 min-w-0">
-        <h3 className="font-bold text-text-primary dark:text-text-inverse truncate">
-          {nombre}
-        </h3>
-        {descripcion && (
-          <p className="text-sm text-text-secondary mt-1 line-clamp-2">
-            {descripcion}
-          </p>
-        )}
-        <p className="font-bold text-primary mt-2">${precio.toFixed(2)}</p>
+    <div className="flex gap-4 p-3 bg-white rounded-[2rem] border border-black/5 shadow-sm hover:shadow-md transition-all group overflow-hidden">
+      <div className="w-24 h-24 rounded-2xl overflow-hidden bg-gray-50 flex-shrink-0">
+        <img
+          src={imagen_url || "/placeholder-food.png"}
+          alt={nombre}
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+        />
       </div>
 
-      {/* Botón de acción */}
-      <button
-        className="bg-bg-main dark:bg-bg-darker hover:bg-primary text-text-primary dark:text-text-inverse p-3 rounded-full transition-all border border-border dark:border-border-dark"
-        aria-label={`Añadir ${nombre} al pedido`}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 4v16m8-8H4"
-          />
-        </svg>
-      </button>
+      <div className="flex-1 flex flex-col justify-between py-1">
+        <div>
+          <h3 className="font-bold text-[var(--text-public)] text-sm leading-tight">
+            {nombre}
+          </h3>
+          <p className="text-[10px] text-gray-400 line-clamp-2 mt-1 leading-relaxed">
+            {descripcion}
+          </p>
+        </div>
+
+        <div className="flex justify-between items-center mt-2">
+          <span className="font-black text-lg text-[var(--text-public)] tracking-tight">
+            ${precio}
+          </span>
+
+          <div className="flex items-center gap-1">
+            {itemEnCarrito ? (
+              <div className="flex items-center bg-gray-100 rounded-2xl p-1 gap-3 border border-black/5 animate-in fade-in zoom-in duration-300">
+                <button
+                  onClick={() => updateQuantity(id, -1)}
+                  className="w-7 h-7 flex items-center justify-center font-bold text-gray-500 hover:text-black transition-colors"
+                >
+                  <Minus size={14} />
+                </button>
+                <span className="font-black text-xs min-w-[12px] text-center">
+                  {itemEnCarrito.cantidad}
+                </span>
+                <button
+                  onClick={() => updateQuantity(id, 1)}
+                  className="w-7 h-7 flex items-center justify-center font-bold text-[var(--brand-color)] hover:brightness-75 transition-all"
+                >
+                  <Plus size={14} />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => addItem({ id, nombre, precio })}
+                className="bg-[var(--brand-color)] text-white w-9 h-9 rounded-2xl flex items-center justify-center shadow-lg shadow-[var(--brand-color)]/20 active:scale-90 transition-all"
+              >
+                <Plus size={18} strokeWidth={3} />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
