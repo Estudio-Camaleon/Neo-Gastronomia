@@ -8,7 +8,7 @@ export default function PublicLayout({
 }) {
   return (
     <>
-      <Navbar />
+      <Navbar showLinks={false} showActions={false} />
       <main>{children}</main>
       <Footer />
     </>

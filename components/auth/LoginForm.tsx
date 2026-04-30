@@ -4,10 +4,9 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
-import Link from "next/link";
 
 const loginSchema = z.object({
-  email: z.string().email("Correo inválido"),
+  email: z.string().email("Ingresa un correo válido"),
   password: z.string().min(1, "La contraseña es obligatoria"),
 });
 
@@ -22,74 +21,100 @@ export function LoginForm() {
     e.preventDefault();
     setError("");
 
-    // Validación de Zod
     const result = loginSchema.safeParse({ email, password });
-
     if (!result.success) {
-      const errorMessage =
-        result.error.issues[0]?.message || "Error en los datos ingresados";
-      setError(errorMessage);
-      setLoading(false);
+      setError(result.error.issues[0]?.message || "Datos inválidos");
       return;
     }
 
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      setError(error.message);
+      if (signInError) {
+        setError(
+          signInError.message === "Invalid login credentials"
+            ? "Correo o contraseña incorrectos"
+            : signInError.message,
+        );
+      } else {
+        router.push("/pedidos");
+        router.refresh();
+      }
+    } catch (err) {
+      setError("Ocurrió un error inesperado");
+    } finally {
       setLoading(false);
-    } else {
-      // Éxito: refrescamos el router para actualizar la sesión
-      router.push("/admin");
-      router.refresh();
     }
   };
 
   return (
     <form onSubmit={handleLogin} className="w-full space-y-4">
-      <div>
+      {/* Campo Email */}
+      <div className="space-y-1.5">
+        <label className="block text-xs font-black uppercase tracking-widest text-text-muted ml-1">
+          Correo Electrónico
+        </label>
         <input
           type="email"
-          placeholder="Correo electrónico"
-          className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 transition-all"
+          placeholder="tu@ejemplo.com"
+          className="w-full p-4 bg-white dark:bg-bg-darker border border-border dark:border-border-dark rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-text-primary placeholder:text-text-muted font-medium"
           value={email}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setEmail(e.target.value)
-          }
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={loading}
+          required
         />
       </div>
-      <div>
+
+      {/* Campo Password */}
+      <div className="space-y-1.5">
+        <div className="flex justify-between items-center px-1">
+          <label className="block text-xs font-black uppercase tracking-widest text-text-muted">
+            Contraseña
+          </label>
+          <button
+            type="button"
+            className="text-[10px] font-bold text-primary hover:underline"
+          >
+            ¿Olvidaste tu contraseña?
+          </button>
+        </div>
         <input
           type="password"
-          placeholder="Contraseña"
-          className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 transition-all"
+          placeholder="••••••••"
+          className="w-full p-4 bg-white dark:bg-bg-darker border border-border dark:border-border-dark rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-text-primary placeholder:text-text-muted font-medium"
           value={password}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setPassword(e.target.value)
-          }
+          onChange={(e) => setPassword(e.target.value)}
+          disabled={loading}
+          required
         />
       </div>
 
-      {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+      {/* Mensajes de Error */}
+      {error && (
+        <div className="flex items-center gap-2 text-error text-xs font-bold bg-error/10 p-4 rounded-xl border border-error/20 animate-in fade-in zoom-in duration-300">
+          <span>⚠️</span> {error}
+        </div>
+      )}
 
+      {/* Botón de Acción */}
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 text-white p-3 rounded-xl font-bold hover:bg-blue-700 disabled:bg-gray-400 transition-all"
+        className="w-full bg-primary text-white p-4 rounded-2xl font-black transition-all shadow-lg shadow-primary/20 active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2"
       >
-        {loading ? "Accediendo..." : "Iniciar Sesión"}
+        {loading ? (
+          <>
+            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            Accediendo...
+          </>
+        ) : (
+          "Iniciar Sesión"
+        )}
       </button>
-      <p className="text-center text-sm text-gray-500 mt-4">
-  ¿No tienes cuenta?{' '}
-  <Link href="/registro" className="text-blue-600 font-bold hover:underline">
-    Regístrate aquí
-  </Link>
-</p>
     </form>
-    
   );
 }

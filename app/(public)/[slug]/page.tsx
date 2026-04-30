@@ -1,68 +1,51 @@
-import { supabase } from "@/lib/supabase/client";
-import { MenuCard } from "@/components/menu/MenuCard";
+// app/[slug]/page.tsx
+import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
+import { Navbar } from "@/components/shared/Navbar";
+import { MenuCard } from "@/components/menu/MenuCard";
+// Importaremos el CategoryFilter cuando agreguemos la lógica de filtros
 
-interface Producto {
-  id: string;
-  nombre: string;
-  descripcion: string | null;
-  precio: number;
-  categoria: string;
-  imagen_url: string | null;
-  disponible: boolean;
-}
-
-interface PageProps {
-  params: Promise<{ slug: string }>;
-}
-
-export default async function MenuPublico({ params }: PageProps) {
+export default async function PublicMenuPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const supabase = await createClient();
   const { slug } = await params;
 
-  // 1. Buscamos el negocio por el slug
+  // 1. Obtener datos del negocio
   const { data: negocio } = await supabase
     .from("negocios")
-    .select("id, nombre")
+    .select("*, productos(*)")
     .eq("slug", slug)
     .single();
 
-  if (!negocio) {
-    notFound();
-  }
-
-  // 2. Buscamos los productos del negocio
-  // Agregamos 'as Producto[]' para decirle a TS exactamente qué es
-  const { data } = await supabase
-    .from("productos")
-    .select("*")
-    .eq("negocio_id", negocio.id)
-    .eq("disponible", true);
-
-  const productos: Producto[] = data || [];
+  if (!negocio) notFound();
 
   return (
-    <main className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-          {negocio.nombre}
-        </h1>
+    <main className="min-h-screen bg-bg-main dark:bg-bg-darker">
+      <div className="max-w-3xl mx-auto px-6 py-12">
+        {/* Header del negocio */}
+        <header className="mb-12 text-center">
+          <h1 className="text-4xl font-black text-text-primary dark:text-text-inverse mb-4">
+            {negocio.nombre}
+          </h1>
+          <p className="text-text-secondary">
+            {negocio.whatsapp ? "Haz tu pedido por WhatsApp" : ""}
+          </p>
+        </header>
 
+        {/* Lista de productos */}
         <div className="space-y-4">
-          {productos.length > 0 ? (
-            productos.map((prod: Producto) => (
-              <MenuCard
-                key={prod.id}
-                nombre={prod.nombre}
-                descripcion={prod.descripcion || undefined}
-                precio={prod.precio}
-                imagenUrl={prod.imagen_url || undefined}
-              />
-            ))
-          ) : (
-            <p className="text-center text-gray-500">
-              No hay productos disponibles en este momento.
-            </p>
-          )}
+          {negocio.productos.map((prod: any) => (
+            <MenuCard
+              key={prod.id}
+              nombre={prod.nombre}
+              descripcion={prod.descripcion}
+              precio={prod.precio}
+              imagenUrl={prod.imagen_url}
+            />
+          ))}
         </div>
       </div>
     </main>

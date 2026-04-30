@@ -1,28 +1,82 @@
+"use client";
+
 import Link from "next/link";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
+import { ThemeSwitcher } from "@/components/shared/ThemeSwitcher";
 
-export function Navbar() {
+interface NavbarProps {
+  showLinks?: boolean;
+  showActions?: boolean;
+}
+
+export function Navbar({ showLinks = true, showActions = true }: NavbarProps) {
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
-    <nav className="w-full py-6 px-6 flex justify-between items-center bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100">
-      <Link
-        href="/login" // Next.js encontrará automáticamente tu app/(auth)/login/page.tsx
-        className="text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors"
-      >
-        Iniciar sesión
-      </Link>
+    <nav className="sticky top-0 z-50 bg-bg-main dark:bg-bg-darker/80 backdrop-blur-md border-b border-border dark:border-border-dark transition-colors duration-300">
+      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        {/* Logo */}
+        <Link
+          href="/"
+          className="text-2xl font-black text-primary tracking-tighter"
+        >
+          <img
+            src={
+              mounted && theme === "light"
+                ? "/icons/neo_logo_negro.svg"
+                : "/icons/neo_logo_blanco.svg"
+            }
+            alt="NEO Logo"
+            className="h-10 w-auto"
+          />
+        </Link>
 
-      <div className="flex gap-4">
-        <Link
-          href="/login"
-          className="text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors"
-        >
-          Iniciar sesión
-        </Link>
-        <Link
-          href="/registro"
-          className="text-sm font-bold bg-gray-900 text-white px-5 py-2 rounded-xl hover:bg-gray-800 transition-all"
-        >
-          Registrarse
-        </Link>
+        {/* Links */}
+        {showLinks && (
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-text-secondary">
+            <Link
+              href="#inicio"
+              className="hover:text-primary transition-colors"
+            >
+              Inicio
+            </Link>
+            <Link
+              href="#productos"
+              className="hover:text-primary transition-colors"
+            >
+              Productos
+            </Link>
+            <Link
+              href="#precios"
+              className="hover:text-primary transition-colors"
+            >
+              Precios
+            </Link>
+            <Link
+              href="#pedidos"
+              className="hover:text-primary transition-colors"
+            >
+              Pedidos
+            </Link>
+          </div>
+        )}
+
+        {showActions && (
+          <div className="flex items-center gap-4">
+            <Link
+              href="/login"
+              className="px-5 py-2.5 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary-hover transition-all shadow-lg shadow-primary/10 active:scale-95"
+            >
+              Iniciar sesión
+            </Link>
+          </div>
+        )}
       </div>
     </nav>
   );
