@@ -16,7 +16,7 @@ git clone <tu-url-del-repositorio>
 
 # Entrar a la carpeta
 
-cd neo-landing
+cd neo-app
 
 # Instalar dependencias
 
@@ -48,12 +48,12 @@ CSS: Estamos utilizando Tailwind CSS. Si agregas componentes nuevos, mantén la 
 
 ## Estructura Actual de Carpetas
 
-neo-landing/
+neo-app/
 ├── app/
 │ ├── (auth)/ # Rutas de autenticación (Login/Registro)
 │ │ ├── login/page.tsx
 │ │ └── registro/page.tsx
-│ ├── (dashboard)/ # Rutas privadas (Admin, Productos, Config)
+│ ├── (adminPanel)/ # Rutas privadas (Admin, Productos, Config)
 │ │ ├── admin/
 │ │ │ ├── loading.tsx
 │ │ │ └── page.tsx # Server Component (usa lib/supabase/server)
@@ -71,7 +71,7 @@ neo-landing/
 │ └── page.tsx # Landing Page principal
 ├── components/
 │ ├── auth/ # Formularios de acceso
-│ ├── dashboard/ # Componentes del panel (Sidebar, Tablas, Forms)
+│ ├── adminPanel/ # Componentes del panel (Sidebar, Tablas, Forms)
 │ ├── menu/ # Componentes de la vista pública
 │ └── shared/ # Navbar/Footer globales
 ├── lib/
@@ -100,7 +100,7 @@ Estilos: Tailwind CSS - Framework de utilidades para un diseño rápido, respons
 
 Middleware: Implementado para proteger rutas privadas (/admin, /productos, /configuracion) asegurando que solo usuarios autenticados tengan acceso.
 
-Route Groups: Estructura de carpetas ((auth), (dashboard), (public)) para organizar el proyecto sin afectar la estructura de URLs.
+Route Groups: Estructura de carpetas ((auth), (adminPanel), (public)) para organizar el proyecto sin afectar la estructura de URLs.
 
 3. Arquitectura del Cliente vs. Servidor
    Para evitar conflictos de sesión y optimizar la carga, se separaron las responsabilidades:

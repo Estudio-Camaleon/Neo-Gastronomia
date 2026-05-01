@@ -29,21 +29,20 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getSession();
   const { pathname } = request.nextUrl;
 
-  // 1. Definir rutas protegidas (dashboard)
-  // Ahora protegemos todo lo que vive en el grupo (dashboard)
-  const isDashboardRoute =
-    pathname.startsWith("/admin") ||
-    pathname.startsWith("/productos") ||
-    pathname.startsWith("/configuracion");
+  // 1. Protección automática para todo lo que empiece por / (adminPanel)
+  // Nota: Como tus rutas son /pedidos, /productos, etc.,
+  // simplemente comprobamos si NO es una ruta pública.
+  const isPublicRoute =
+    pathname === "/login" || pathname === "/registro" || pathname === "/";
 
-  // 2. Lógica de protección
-  if (isDashboardRoute && !session) {
+  // Si no es pública y no hay sesión, al login
+  if (!isPublicRoute && !session) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // 3. Rutas de Auth: Si ya está logueado, no dejarlo volver a entrar
+  // 2. Si ya está logueado y va a login/registro, enviarlo al adminPanel (root)
   if ((pathname === "/login" || pathname === "/registro") && session) {
-    return NextResponse.redirect(new URL("/admin", request.url));
+    return NextResponse.redirect(new URL("/pedidos", request.url));
   }
 
   return response;

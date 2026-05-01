@@ -1,12 +1,90 @@
 @import "tailwindcss";
 
-:root {
-  --theme-background: #17190c;
-  --theme-surface: #35590a;
-  --theme-border: #5f8310;
-  --theme-text: #ffffff;
-  --theme-text-muted: #748c58;
-  --theme-primary: #9db71c;
-  --theme-secondary: #2c4406;
-  --theme-accent: #fcfdf9;
+@custom-variant dark (&:where(.dark, .dark *));
+@theme {
+  /* === PRIMARY (VERDE BASE) === */
+  --color-primary: #1c7a42;
+  --color-primary-hover: #145a30;
+  --color-primary-active: #0f4023;
+  --color-primary-light: #34a35f;
+  --color-primary-soft: #c8ebd7;
+
+  /* === BACKGROUNDS === */
+  --color-bg-main: #f5f7f6;
+  --color-bg-alt: #ecf8f1;
+  --color-bg-dark: #0d1410;
+  --color-bg-darker: #131f18;
+
+  /* === SURFACES (cards, panels) === */
+  --color-surface: #ffffff;
+  --color-surface-dark: #16221b;
+  --color-surface-muted: #f1f4f3;
+  /* === BORDERS === */
+  --color-border: #dce1df;
+  --color-border-dark: #2a372f;
+  --color-border-strong: #bfc7c3;
+
+  /* === TEXT === */
+  --color-text-primary: #282d2a;
+  --color-text-secondary: #78827d;
+  --color-text-muted: #a0a8a4;
+  --color-text-inverse: #ffffff;
+
+  /* === STATUS COLORS === */
+  --color-success: #28a745;
+  --color-success-soft: #d4edda;
+  --color-warning: #ff9f43;
+  --color-warning-soft: #fff3cd;
+  --color-error: #dc3545;
+  --color-error-soft: #f8d7da;
+  --color-info: #17a2b8;
+  --color-info-soft: #d1ecf1;
+}
+
+@layer base {
+  :root {
+    /* Mapeo para Modo Claro */
+    --background: var(--color-bg-main);
+    --foreground: var(--color-text-primary);
+    --surface: var(--color-surface);
+    --border: var(--color-border);
+  }
+
+  .dark {
+    /* Mapeo para Modo Oscuro */
+    --background: var(--color-bg-dark);
+    --foreground: var(--color-text-inverse);
+    --surface: var(--color-surface-dark);
+    --border: var(--color-border-dark);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+  }
+}
+
+@layer utilities {
+  /* Clases adaptativas que cambian solas según el tema */
+  .bg-adaptive {
+    background-color: var(--background);
+  }
+  .bg-surface-adaptive {
+    background-color: var(--surface);
+  }
+  .text-adaptive {
+    color: var(--foreground);
+  }
+  .border-adaptive {
+    border-color: var(--border);
+  }
+}
+@font-face {
+  font-family: "Receiptional Receipt";
+  src: url("/fonts/receiptional_receipt.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
 }

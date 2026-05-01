@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
+import { Montserrat } from "next/font/google";
 import "./globals.css";
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "900"],
+  variable: "--font-montserrat",
+});
 
 export const metadata: Metadata = {
   title: "NEO | Gestión de Catálogos",
@@ -12,8 +19,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
-      <body className="bg-gray-50 text-gray-900 antialiased">
+    <html lang="es" suppressHydrationWarning>
+      <body
+        className={`${montserrat.variable} ${montserrat.className} antialiased`}
+      >
+        {/* CRÍTICO: Aquí debe ir children para que la app funcione */}
         {children}
       </body>
     </html>

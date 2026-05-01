@@ -1,23 +1,16 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  // Esta línea es la que hace que el botón funcione
+  darkMode: "class",
   content: [
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {
-      colors: {
-        primary: "var(--theme-primary)",
-        surface: "var(--theme-surface)",
-        background: "var(--theme-background)",
-        border: "var(--theme-border)",
-        text: "var(--theme-text)",
-        "text-muted": "var(--theme-text-muted)",
-      },
-    },
+    extend: {},
   },
   plugins: [],
 };
-
 export default config;
