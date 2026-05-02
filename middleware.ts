@@ -1,3 +1,4 @@
+// middleware.ts
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -17,6 +18,9 @@ export async function middleware(request: NextRequest) {
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
             request.cookies.set(name, value);
+            response = NextResponse.next({
+              request: { headers: request.headers },
+            });
             response.cookies.set(name, value, options);
           });
         },
@@ -24,24 +28,28 @@ export async function middleware(request: NextRequest) {
     },
   );
 
+  // IMPORTANTE: getUser() es el que refresca el token automáticamente
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const { pathname } = request.nextUrl;
 
-  // 1. Protección automática para todo lo que empiece por / (adminPanel)
-  // Nota: Como tus rutas son /pedidos, /productos, etc.,
-  // simplemente comprobamos si NO es una ruta pública.
+  // Rutas públicas (Incluimos el slug dinámico si lo tenés)
+  // Ajusté esto para que no bloquee las páginas de los locales
   const isPublicRoute =
-    pathname === "/login" || pathname === "/registro" || pathname === "/";
+    pathname === "/login" ||
+    pathname === "/registro" ||
+    pathname === "/" ||
+    pathname.startsWith("/api/"); // Opcional: permitir APIs
 
-  // Si no es pública y no hay sesión, al login
-  if (!isPublicRoute && !session) {
+  // 1. Si no hay usuario y no es ruta pública -> al login
+  if (!isPublicRoute && !user) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // 2. Si ya está logueado y va a login/registro, enviarlo al adminPanel (root)
-  if ((pathname === "/login" || pathname === "/registro") && session) {
+  // 2. Si ya hay usuario y va a login/registro -> a pedidos
+  if ((pathname === "/login" || pathname === "/registro") && user) {
     return NextResponse.redirect(new URL("/pedidos", request.url));
   }
 

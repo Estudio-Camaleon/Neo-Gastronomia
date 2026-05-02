@@ -41,8 +41,10 @@ export function LoginForm() {
             : signInError.message,
         );
       } else {
-        router.push("/pedidos");
+        // Forzamos el refresh para que el Middleware detecte la sesión
         router.refresh();
+        // Redirigimos a la ruta protegida (ajustá según tu estructura)
+        router.push("/productos");
       }
     } catch (err) {
       setError("Ocurrió un error inesperado");
