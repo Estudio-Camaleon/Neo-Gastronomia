@@ -1,23 +1,27 @@
-import { format } from "date-fns";
-import { toZonedTime } from "date-fns-tz";
-
 export function estaAbierto(horarios: any): boolean {
-  // 1. Si horarios es null o undefined, permitimos la venta por defecto
-  // (O podés retornar false si preferís que esté cerrado por defecto)
-  if (!horarios) return true;
+  if (!horarios) return false;
 
-  const zonaHoraria = "America/Argentina/Buenos_Aires";
-  const ahora = toZonedTime(new Date(), zonaHoraria);
+  const ahora = new Date();
+  const diasSemana = [
+    "domingo",
+    "lunes",
+    "martes",
+    "miercoles",
+    "jueves",
+    "viernes",
+    "sabado",
+  ];
+  const diaActual = diasSemana[ahora.getDay()];
+  const horarioHoy = horarios[diaActual];
 
-  const diaSemana = ahora.getDay(); // 0-6
-  const horaActual = format(ahora, "HH:mm");
+  if (!horarioHoy) return false;
 
-  // 2. Acceso seguro a la propiedad
-  const horarioHoy = horarios[diaSemana.toString()] || horarios[diaSemana];
+  const [horaInicio, minInicio] = horarioHoy.inicio.split(":").map(Number);
+  const [horaFin, minFin] = horarioHoy.fin.split(":").map(Number);
 
-  if (!horarioHoy || horarioHoy.cerrado_todo_dia) {
-    return false;
-  }
+  const ahoraEnMinutos = ahora.getHours() * 60 + ahora.getMinutes();
+  const inicioEnMinutos = horaInicio * 60 + minInicio;
+  const finEnMinutos = horaFin * 60 + minFin;
 
-  return horaActual >= horarioHoy.abierto && horaActual <= horarioHoy.cerrado;
+  return ahoraEnMinutos >= inicioEnMinutos && ahoraEnMinutos <= finEnMinutos;
 }

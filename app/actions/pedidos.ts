@@ -4,40 +4,85 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 /**
- * Registra un nuevo pedido en la base de datos.
- * @param negocioId UUID del negocio
- * @param datosPedido Objeto con info del cliente, total e items (JSONB)
+ * Actualiza el estado de un pedido (ej: de 'pendiente' a 'preparando').
+ * Valida que el usuario autenticado sea el dueño del negocio asociado al pedido.
  */
-export async function crearPedido(negocioId: string, datosPedido: any) {
+export async function actualizarEstadoPedido(
+  pedidoId: string,
+  nuevoEstado: string,
+) {
   const supabase = await createClient();
 
-  // Insertamos en la tabla 'pedidos'
-  // Nota: Estamos guardando los items como un campo JSONB para mayor agilidad
-  const { data, error } = await supabase
-    .from("pedidos")
-    .insert([
-      {
-        negocio_id: negocioId,
-        cliente_nombre: datosPedido.nombre,
-        cliente_whatsapp: datosPedido.whatsapp || null,
-        direccion_entrega: datosPedido.direccion,
-        total: datosPedido.total,
-        items: datosPedido.items, // Array de productos del CartContext
-        metodo_pago: datosPedido.metodoPago || "Efectivo",
-        estado: "pendiente",
-        notas: datosPedido.notas || null,
-      },
-    ])
-    .select()
-    .single();
+  // 1. Obtener el usuario actual
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return {
+      success: false,
+      error: "No autorizado. Inicie sesión nuevamente.",
+    };
+  }
+
+  try {
+    // 2. Verificación de seguridad:
+    // Aseguramos que el pedido pertenece a un negocio del usuario actual
+    const { data: pedido, error: fetchError } = await supabase
+      .from("pedidos")
+      .select("negocio_id, negocios!inner(user_id)")
+      .eq("id", pedidoId)
+      .single();
+
+    if (fetchError || !pedido) {
+      return { success: false, error: "Pedido no encontrado." };
+    }
+
+    // @ts-ignore - Accedemos a la relación negocios vinculada por el inner join
+    if (pedido.negocios.user_id !== user.id) {
+      return { success: false, error: "No tienes permisos sobre este pedido." };
+    }
+
+    // 3. Ejecutar la actualización
+    const { error: updateError } = await supabase
+      .from("pedidos")
+      .update({
+        estado: nuevoEstado.toLowerCase(),
+      })
+      .eq("id", pedidoId);
+
+    if (updateError) throw updateError;
+
+    // 4. Revalidar la ruta para actualizar el radar y el historial
+    revalidatePath("/(adminPanel)/pedidos");
+
+    return {
+      success: true,
+      mensaje: `Pedido marcado como ${nuevoEstado.toUpperCase()}`,
+    };
+  } catch (err: any) {
+    console.error("Critical Order Error:", err.message);
+    return {
+      success: false,
+      error: "Error interno al procesar el cambio de estado.",
+    };
+  }
+}
+
+/**
+ * Elimina o cancela un pedido del registro (Solo si el flujo de negocio lo permite).
+ * Generalmente se prefiere cambiar el estado a 'cancelado', pero incluimos
+ * la función por si necesitas una purga administrativa.
+ */
+export async function eliminarPedido(pedidoId: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("pedidos").delete().eq("id", pedidoId);
 
   if (error) {
-    console.error("Error Supabase:", error.message);
     return { success: false, error: error.message };
   }
 
-  // Refrescamos la ruta del admin para que el nuevo pedido aparezca vía SSR o Realtime
   revalidatePath("/(adminPanel)/pedidos");
-
-  return { success: true, data };
+  return { success: true };
 }
