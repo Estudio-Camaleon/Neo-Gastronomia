@@ -16,37 +16,40 @@ export function RegisterForm() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return; // Evita doble clic accidental
+
     setLoading(true);
     setErrorMsg("");
 
-    // 1. Registro en Supabase Auth con Metadata
-    // Enviamos 'nombre_negocio' para que el Trigger de SQL lo use al crear la fila en public.negocios
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/productos`,
-        data: {
-          nombre_negocio: nombreNegocio,
+    try {
+      // 1. Registro en Supabase Auth
+      // Usamos metadata para que el Trigger de SQL cree el negocio atómicamente
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          // Cambiamos a URL absoluta segura
+          emailRedirectTo: `${window.location.origin}/pedidos`,
+          data: {
+            nombre_negocio: nombreNegocio,
+          },
         },
-      },
-    });
+      });
 
-    if (error) {
-      setErrorMsg(error.message);
+      if (error) throw error;
+
+      // 2. Éxito: Limpieza de estado
+      setIsSent(true);
+    } catch (error: any) {
+      setErrorMsg(error.message || "Error al intentar crear la cuenta.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    // 2. Éxito: Mostramos la vista de confirmación
-    setIsSent(true);
-    setLoading(false);
   };
 
-  // VISTA DE ÉXITO: Email enviado
   if (isSent) {
     return (
-      <div className="bg-primary/5 p-10 rounded-[2.5rem] text-center border border-primary/20 animate-in fade-in zoom-in duration-500 shadow-inner">
+      <div className="bg-primary/5 p-10 rounded-super text-center border border-primary/20 animate-in fade-in zoom-in duration-500 shadow-inner">
         <div className="w-20 h-20 bg-primary text-white rounded-full flex items-center justify-center mx-auto mb-8 text-3xl shadow-lg shadow-primary/30 animate-bounce">
           <Rocket size={32} strokeWidth={2.5} />
         </div>
@@ -111,6 +114,7 @@ export function RegisterForm() {
           </label>
           <input
             required
+            autoComplete="new-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -121,7 +125,6 @@ export function RegisterForm() {
         </div>
       </div>
 
-      {/* Error Feedback */}
       {errorMsg && (
         <div className="flex items-center gap-3 text-error text-[11px] font-black uppercase bg-error/10 p-4 rounded-2xl border-2 border-error/20 animate-in slide-in-from-top-2 italic">
           <AlertCircle size={18} />
@@ -129,12 +132,11 @@ export function RegisterForm() {
         </div>
       )}
 
-      {/* Submit Button */}
       <div className="pt-2">
         <button
           disabled={loading}
           type="submit"
-          className="w-full bg-primary hover:bg-primary-hover text-white p-5 rounded-[2rem] font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-primary/20 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
+          className="w-full bg-primary hover:bg-primary-hover text-white p-5 rounded-neo font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-primary/20 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
         >
           {loading ? (
             <>
@@ -149,8 +151,11 @@ export function RegisterForm() {
 
       <p className="text-[9px] text-center text-text-muted px-8 leading-relaxed uppercase font-bold tracking-widest">
         Al unirte, aceptas los{" "}
-        <span className="text-primary underline">Términos</span> y la{" "}
-        <span className="text-primary underline">Política de Privacidad</span>{" "}
+        <span className="text-primary underline cursor-pointer">Términos</span>{" "}
+        y la{" "}
+        <span className="text-primary underline cursor-pointer">
+          Política de Privacidad
+        </span>{" "}
         de NEO.
       </p>
     </form>
