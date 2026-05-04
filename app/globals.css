@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  /* === PRIMARY (VERDE BASE) === */
+  /* === PRIMARY (NEO GREEN) === */
   --color-primary: #1c7a42;
   --color-primary-hover: #145a30;
   --color-primary-active: #0f4023;
@@ -15,10 +16,11 @@
   --color-bg-dark: #0d1410;
   --color-bg-darker: #131f18;
 
-  /* === SURFACES (cards, panels) === */
+  /* === SURFACES === */
   --color-surface: #ffffff;
   --color-surface-dark: #16221b;
   --color-surface-muted: #f1f4f3;
+
   /* === BORDERS === */
   --color-border: #dce1df;
   --color-border-dark: #2a372f;
@@ -30,20 +32,22 @@
   --color-text-muted: #a0a8a4;
   --color-text-inverse: #ffffff;
 
-  /* === STATUS COLORS === */
+  /* === STATUS === */
   --color-success: #28a745;
-  --color-success-soft: #d4edda;
-  --color-warning: #ff9f43;
-  --color-warning-soft: #fff3cd;
   --color-error: #dc3545;
-  --color-error-soft: #f8d7da;
-  --color-info: #17a2b8;
-  --color-info-soft: #d1ecf1;
+  --color-warning: #ff9f43;
+
+  /* === NEO GEOMETRY === */
+  --radius-neo: 18px;
+  --radius-super: 32px;
+
+  /* === ANIMATIONS === */
+  --animate-spin-slow: spin 8s linear infinite;
+  --animate-shimmer: shimmer 2s infinite;
 }
 
 @layer base {
   :root {
-    /* Mapeo para Modo Claro */
     --background: var(--color-bg-main);
     --foreground: var(--color-text-primary);
     --surface: var(--color-surface);
@@ -51,7 +55,6 @@
   }
 
   .dark {
-    /* Mapeo para Modo Oscuro */
     --background: var(--color-bg-dark);
     --foreground: var(--color-text-inverse);
     --surface: var(--color-surface-dark);
@@ -61,14 +64,25 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
-    transition:
-      background-color 0.3s ease,
-      color 0.3s ease;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
+    @apply antialiased;
+  }
+
+  /* Scrollbar Estilo NEO */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border-strong/20 rounded-full hover:bg-primary/50 transition-colors;
   }
 }
 
 @layer utilities {
-  /* Clases adaptativas que cambian solas según el tema */
   .bg-adaptive {
     background-color: var(--background);
   }
@@ -81,10 +95,25 @@
   .border-adaptive {
     border-color: var(--border);
   }
+
+  @keyframes shimmer {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  .animate-shimmer {
+    animation: var(--animate-shimmer);
+  }
 }
+
 @font-face {
   font-family: "Receiptional Receipt";
   src: url("/fonts/receiptional_receipt.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }

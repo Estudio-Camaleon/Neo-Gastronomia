@@ -4,18 +4,18 @@ import { PublicNavbar } from "@/components/menu/PublicNavbar";
 import { MenuCard } from "@/components/menu/MenuCard";
 import { PublicCart } from "@/components/menu/PublicCart";
 import { CartFloatingButton } from "@/components/menu/CartFloatingButton";
-import { estaAbierto } from "@/lib/utils/horarios"; // Importamos nuestra lógica
+import { estaAbierto } from "@/lib/utils/horarios";
 
 export default async function PublicMenuPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>; // Next.js 15: params es una Promesa
 }) {
-  const supabase = await createClient();
   const { slug } = await params;
+  const supabase = await createClient();
 
-  // 1. Consulta optimizada con JOIN a categorías
-  const { data: negocio } = await supabase
+  // 1. Consulta blindada: Traemos negocio y sus productos con categoría
+  const { data: negocio, error } = await supabase
     .from("negocios")
     .select(
       `
@@ -29,35 +29,35 @@ export default async function PublicMenuPage({
     .eq("slug", slug)
     .single();
 
-  if (!negocio) notFound();
+  // Si no hay negocio o el slug está mal, 404 de una
+  if (error || !negocio) notFound();
 
-  // 2. Lógica de Horarios en tiempo real
+  // 2. Lógica de Apertura (Server Side)
   const localAbierto = estaAbierto(negocio.horarios);
 
-  // 3. Agrupar productos por el nombre real de la categoría (Normalizada)
-  const productosPorCategoria = negocio.productos?.reduce(
-    (acc: any, prod: any) => {
-      // Usamos el nombre de la tabla relacionada 'categorias'
-      const cat = prod.categorias?.nombre || "Menú Principal";
+  // 3. Agrupación y filtrado (Solo productos con disponible: true)
+  const productosPorCategoria = negocio.productos
+    ?.filter((p: any) => p.disponible) // SEGURIDAD: Solo lo que hay en stock
+    .reduce((acc: any, prod: any) => {
+      const cat = prod.categorias?.nombre || "Nuestras Joyas";
       if (!acc[cat]) acc[cat] = [];
       acc[cat].push(prod);
       return acc;
-    },
-    {},
-  );
+    }, {});
 
   const categorias = Object.keys(productosPorCategoria || {});
 
+  // 4. Inyección de Branding NEO
   const brandStyles = {
-    "--brand-color": negocio.color_primario || "#E60000",
-    "--bg-public": negocio.color_fondo || "#FFFFFF",
-    "--text-public": negocio.color_texto || "#1A1A1A",
+    "--brand-color": negocio.color_primario || "#1c7a42",
+    "--bg-public": negocio.color_fondo || "#f5f7f6",
+    "--text-public": negocio.color_texto || "#282d2a",
   } as React.CSSProperties;
 
   return (
     <main
       style={brandStyles}
-      className="min-h-screen bg-[var(--bg-public)] font-montserrat pb-32"
+      className="min-h-screen bg-[var(--bg-public)] pb-32 selection:bg-primary selection:text-white"
     >
       <PublicNavbar
         logo={negocio.logo_url}
@@ -65,65 +65,74 @@ export default async function PublicMenuPage({
         horarios={negocio.horarios}
       />
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex flex-col lg:flex-row gap-12 items-start">
-          <div className="flex-1 w-full">
-            <header className="mb-12 text-center lg:text-left">
-              <h1 className="text-5xl font-black text-[var(--text-public)] tracking-tighter italic uppercase">
+      <div className="max-w-6xl mx-auto px-4 py-12 md:py-20">
+        <div className="flex flex-col lg:flex-row gap-16 items-start">
+          <div className="flex-1 w-full space-y-20">
+            {/* Header de Impacto */}
+            <header className="text-center lg:text-left space-y-6">
+              <h1 className="text-6xl md:text-8xl font-black text-[var(--text-public)] tracking-[calc(-0.05em)] italic uppercase leading-none">
                 {negocio.nombre}
               </h1>
 
-              {/* Status de Horario Dinámico */}
               <div
-                className={`mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full font-black uppercase tracking-[0.15em] text-[10px] ${
+                className={`inline-flex items-center gap-3 px-6 py-2 rounded-full font-black uppercase tracking-[0.2em] text-[10px] border-2 transition-all duration-500 ${
                   localAbierto
-                    ? "bg-emerald-500/10 text-emerald-600"
-                    : "bg-red-500/10 text-red-600"
+                    ? "bg-emerald-500/5 text-emerald-600 border-emerald-500/20"
+                    : "bg-error/5 text-error border-error/20 opacity-70"
                 }`}
               >
                 <span
-                  className={`w-2 h-2 rounded-full ${localAbierto ? "bg-emerald-500 animate-pulse" : "bg-red-500"}`}
+                  className={`w-2.5 h-2.5 rounded-full ${localAbierto ? "bg-emerald-500 animate-pulse" : "bg-error"}`}
                 />
-                {localAbierto
-                  ? "Abierto ahora · Pedí por WhatsApp"
-                  : "Local cerrado · Consultá horarios"}
+                {localAbierto ? "Servicio Activo" : "Local fuera de horario"}
               </div>
             </header>
 
-            {/* Renderizado de Categorías Normalizadas */}
-            <div className="space-y-16">
-              {categorias.map((cat) => (
-                <section key={cat}>
-                  <h2 className="text-xl font-black text-[var(--text-public)] uppercase tracking-[0.2em] mb-8 flex items-center gap-4">
-                    <span className="w-10 h-[3px] bg-[var(--brand-color)]" />
-                    {cat}
-                  </h2>
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
-                    {productosPorCategoria[cat].map((prod: any) => (
-                      <MenuCard
-                        key={prod.id}
-                        {...prod}
-                        id={prod.id}
-                        // Deshabilitamos si el local está cerrado (Opcional según UX)
-                        isClosed={!localAbierto}
-                      />
-                    ))}
-                  </div>
-                </section>
-              ))}
+            {/* Categorías & Menú */}
+            <div className="space-y-24">
+              {categorias.length > 0 ? (
+                categorias.map((cat) => (
+                  <section
+                    key={cat}
+                    className="animate-in fade-in slide-in-from-bottom-8 duration-700"
+                  >
+                    <h2 className="text-2xl font-black text-[var(--text-public)] uppercase tracking-[0.25em] mb-10 flex items-center gap-6 italic">
+                      <span className="w-12 h-[4px] bg-[var(--brand-color)] rounded-full" />
+                      {cat}
+                    </h2>
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-1">
+                      {productosPorCategoria[cat].map((prod: any) => (
+                        <MenuCard
+                          key={prod.id}
+                          {...prod}
+                          isClosed={!localAbierto}
+                          brandColor="var(--brand-color)"
+                        />
+                      ))}
+                    </div>
+                  </section>
+                ))
+              ) : (
+                <div className="py-20 text-center border-2 border-dashed border-border rounded-super">
+                  <p className="text-text-muted font-black uppercase italic tracking-widest">
+                    El menú está siendo actualizado...
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Carrito Lateral (Desktop) */}
-          <div className="hidden lg:block sticky top-28">
-            <PublicCart isClosed={!localAbierto} />
-          </div>
+          {/* Carrito Lateral (Desktop) - NEO STICKY */}
+          <aside className="hidden lg:block sticky top-32 w-[380px] animate-in fade-in zoom-in-95 duration-500">
+            <div className="bg-white dark:bg-bg-darker rounded-super border-2 border-border dark:border-border-dark p-1 shadow-2xl shadow-primary/5">
+              <PublicCart isClosed={!localAbierto} negocioId={negocio.id} />
+            </div>
+          </aside>
         </div>
       </div>
 
-      {/* El botón flotante también recibe el estado de apertura */}
       <CartFloatingButton
-        whatsapp={negocio.whatsapp}
+        whatsapp={negocio.telefono_whatsapp}
         disabled={!localAbierto}
       />
     </main>
