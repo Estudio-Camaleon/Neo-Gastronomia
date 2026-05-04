@@ -1,19 +1,28 @@
 "use client";
 
-import { useEffect } from "react";
-import { createClient } from "@/lib/supabase/client"; // Ahora sí coincide
+import { useEffect, useMemo } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export function RealtimeOrders({ negocioId }: { negocioId: string }) {
-  // 1. Creamos el cliente dentro del componente
   const supabase = createClient();
+  const router = useRouter();
+
+  // Pre-cargamos el audio para evitar latencia al sonar
+  const notificationAudio = useMemo(() => {
+    if (typeof window !== "undefined") {
+      return new Audio("/sounds/notification.mp3");
+    }
+    return null;
+  }, []);
 
   useEffect(() => {
     if (!negocioId) return;
 
-    // 2. Escuchamos cambios en la tabla 'pedidos'
+    // 1. Suscripción al canal específico del negocio
     const canal = supabase
-      .channel("pedidos-en-vivo")
+      .channel(`realtime-pedidos-${negocioId}`)
       .on(
         "postgres_changes",
         {
@@ -23,37 +32,51 @@ export function RealtimeOrders({ negocioId }: { negocioId: string }) {
           filter: `negocio_id=eq.${negocioId}`,
         },
         (payload: any) => {
-          // Ponemos 'any' para que no marque rojo en payload.new
-          console.log("¡Nuevo pedido detectado!", payload);
+          // 2. Feedback sonoro agresivo (estilo NEO)
+          if (notificationAudio) {
+            notificationAudio.currentTime = 0; // Reinicia si ya estaba sonando
+            notificationAudio.play().catch(() => {
+              console.warn(
+                "Navegador bloqueó audio. Se requiere interacción previa.",
+              );
+            });
+          }
 
-          // 3. Ejecutar sonido de notificación
-          const audio = new Audio("/sounds/notification.mp3");
-          audio
-            .play()
-            .catch(() =>
-              console.log(
-                "Audio bloqueado por el navegador. Haz clic en la página.",
-              ),
-            );
-
-          // 4. Notificación visual con Sonner
-          toast.success("¡ORDEN RECIBIDA! 🔔", {
-            description: `Cliente: ${payload.new.cliente_nombre} - Total: $${payload.new.total}`,
-            duration: 8000,
+          // 3. Notificación visual con Sonner (Diseño Premium)
+          toast.success("¡ORDEN ENTRANTE! 🚀", {
+            description: (
+              <div className="flex flex-col gap-1">
+                <span className="font-black uppercase tracking-tight italic">
+                  {payload.new.cliente_nombre}
+                </span>
+                <span className="text-[10px] font-bold text-primary">
+                  TOTAL: ${Number(payload.new.total).toLocaleString("es-AR")}
+                </span>
+              </div>
+            ),
+            duration: 10000,
+            action: {
+              label: "VER AHORA",
+              onClick: () => router.refresh(),
+            },
           });
 
-          // 5. Refrescar la pantalla para mostrar el pedido en la lista
-          setTimeout(() => {
-            window.location.reload();
-          }, 1500);
+          // 4. Actualización silenciosa de datos (Sin recargar la página)
+          // Esto dispara el re-renderizado de los Server Components en PedidosPage
+          router.refresh();
         },
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          console.log(`📡 Radar NEO activo para negocio: ${negocioId}`);
+        }
+      });
 
+    // Limpieza de canal al desmontar para evitar fugas de memoria
     return () => {
       supabase.removeChannel(canal);
     };
-  }, [negocioId, supabase]);
+  }, [negocioId, supabase, router, notificationAudio]);
 
   return null;
 }

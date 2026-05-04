@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useOptimistic, useTransition } from "react";
-import { updateProductAvailability } from "@/app/admin/productos/actions"; // Debemos crear esta Server Action
+import { updateProductAvailability } from "@/app/actions/productos"; // Debemos crear esta Server Action
 import { toast } from "sonner";
 import { Loader2, Edit3, CircleDot } from "lucide-react";
 
