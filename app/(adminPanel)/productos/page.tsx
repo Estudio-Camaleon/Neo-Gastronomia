@@ -3,9 +3,9 @@ import { redirect } from "next/navigation";
 import { Package } from "lucide-react";
 
 // Componentes de la sección
-import { ProductoForm } from "@/components/adminPanel/ProductoForm";
-import { CategoriaManager } from "@/components/adminPanel/CategoriaManager";
-import { ProductTable } from "@/components/adminPanel/ProductTable";
+import { ProductoForm } from "@/components/adminPanel/productos/ProductoForm";
+import { CategoriaManager } from "@/components/adminPanel/productos/CategoriaManager";
+import { ProductTable } from "@/components/adminPanel/productos/ProductTable";
 
 /**
  * Panel de Gestión de Inventario NEO.

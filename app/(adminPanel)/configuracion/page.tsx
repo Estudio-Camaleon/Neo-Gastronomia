@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Settings, ShieldCheck, Activity } from "lucide-react";
 // Importación nombrada para evitar errores de exportación por defecto
-import { ConfigForm } from "@/components/adminPanel/ConfigForm";
+import { ConfigForm } from "@/components/adminPanel/configuracion/ConfigForm";
 
 /**
  * Página de Configuración del Panel de Administración.

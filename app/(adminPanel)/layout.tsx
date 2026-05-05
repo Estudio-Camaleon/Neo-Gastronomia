@@ -1,5 +1,5 @@
-import { Sidebar } from "@/components/adminPanel/Sidebar";
-import { ErrorModal } from "@/components/adminPanel/ErrorModal";
+import { Sidebar } from "@/components/adminPanel/layout/Sidebar";
+import { ErrorModal } from "@/components/adminPanel/configuracion/ErrorModal";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";

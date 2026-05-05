@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Radio, History, LayoutDashboard } from "lucide-react";
-import { PedidosRadar } from "@/components/adminPanel/PedidosRadar";
-import { TestOrderButton } from "@/components/adminPanel/TestOrderButton";
+import { PedidosRadar } from "@/components/adminPanel/pedidos/PedidosRadar";
+import { TestOrderButton } from "@/components/adminPanel/pedidos/TestOrderButton";
 
 /**
  * Panel de Control de Pedidos NEO.
