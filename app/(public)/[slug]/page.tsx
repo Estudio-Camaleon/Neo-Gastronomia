@@ -1,9 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import Image from "next/image"; // Importamos el componente de optimización
+import Image from "next/image";
 import { MenuContent } from "@/components/menu/MenuContent";
 
-// Definimos interfaces locales estrictas para liquidar los tipos 'any'
+// Interfaces estrictas locales alineadas perfectamente con los componentes hijos
 interface Producto {
   id: string;
   nombre: string;
@@ -16,6 +16,7 @@ interface Producto {
 interface CategoriaConProductos {
   id: string;
   nombre: string;
+  slug: string; // Incluido para emparejar con la interfaz de MenuContent
   productos: Producto[];
 }
 
@@ -30,7 +31,7 @@ export default async function PublicMenuPage({ params }: PublicMenuPageProps) {
   const { slug } = await params;
   const supabase = await createClient();
 
-  // 1. Obtención de datos del negocio (Ahora con las columnas de branding en producción)
+  // 1. Obtención de datos del negocio (Con las columnas de branding en producción)
   const { data: negocio, error: negocioError } = await supabase
     .from("negocios")
     .select("id, nombre, logo_url, banner_url, descripcion, slug")
@@ -66,14 +67,16 @@ export default async function PublicMenuPage({ params }: PublicMenuPageProps) {
     .order("nombre", { ascending: true });
 
   // 3. Procesamiento de datos con Tipado Estricto
-  // Filtramos productos no disponibles y removemos categorías vacías sin usar 'any'
+  // Desestructuramos explícitamente para inyectar el 'slug' requerido por MenuContent
   const menuData: CategoriaConProductos[] =
-    (categorias as unknown as CategoriaConProductos[])
-      ?.map((cat) => ({
-        ...cat,
-        productos: cat.productos.filter((p: Producto) => p.disponible),
+    (categorias as any)
+      ?.map((cat: any) => ({
+        id: cat.id,
+        nombre: cat.nombre,
+        slug: cat.slug || "", // Seteamos fallback seguro para cumplir el contrato del componente
+        productos: (cat.productos || []).filter((p: Producto) => p.disponible),
       }))
-      .filter((cat) => cat.productos.length > 0) || [];
+      .filter((cat: CategoriaConProductos) => cat.productos.length > 0) || [];
 
   return (
     <div className="min-h-screen bg-bg-main dark:bg-bg-dark selection:bg-primary">
