@@ -6,11 +6,10 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Save, Loader2, CheckCircle2 } from "lucide-react";
 
-// Importación unificada apuntando a la subcarpeta local de secciones
 import { BrandingSection } from "./sections/BrandingSection";
 import { GeneralInfoSection } from "./sections/GeneralInfoSection";
 import { CatalogDesignSection } from "./sections/CatalogDesignSection";
-import { ScheduleEditor } from "./editors/ScheduleEditor"; // Corregido a ruta relativa local
+import { ScheduleEditor } from "./editors/ScheduleEditor";
 
 interface HorarioDia {
   inicio: string;
@@ -21,12 +20,13 @@ interface ScheduleData {
   [dayId: string]: HorarioDia | undefined;
 }
 
-interface NegocioInitialData {
+export interface NegocioInitialData {
+  id: string;
   nombre: string;
   slug: string;
   whatsapp: string;
   direccion: string;
-  color_primario: string;
+  color_primary: string; // Cambiado a inglés según esquema SQL unificado
   logo_url: string;
   banner_url: string;
   horarios: Record<string, unknown>;
@@ -42,7 +42,7 @@ interface FormState {
   slug: string;
   whatsapp: string;
   direccion: string;
-  color_primario: string;
+  color_primary: string; // Sincronizado
   logo_url: string;
   banner_url: string;
   horarios: ScheduleData;
@@ -59,7 +59,7 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
     slug: initialData?.slug || "",
     whatsapp: initialData?.whatsapp || "",
     direccion: initialData?.direccion || "",
-    color_primario: initialData?.color_primario || "#000000",
+    color_primary: initialData?.color_primary || "#10b981", // Hecho verde camaleón por defecto
     logo_url: initialData?.logo_url || "",
     banner_url: initialData?.banner_url || "",
     horarios: (initialData?.horarios as ScheduleData) || {},
@@ -125,7 +125,7 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
           slug: formData.slug.trim().toLowerCase(),
           whatsapp: formData.whatsapp.trim(),
           direccion: formData.direccion.trim(),
-          color_primario: formData.color_primario,
+          color_primary: formData.color_primary, // Enviando a la columna renombrada
           logo_url: formData.logo_url,
           banner_url: formData.banner_url,
           horarios: formData.horarios,
@@ -186,7 +186,7 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
 
       {/* 4. SECCIÓN DISEÑO DE CATÁLOGO */}
       <CatalogDesignSection
-        colorPrimario={formData.color_primario}
+        colorPrimary={formData.color_primary}
         onChange={handleChange}
       />
 

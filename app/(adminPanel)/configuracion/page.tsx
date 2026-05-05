@@ -1,7 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Settings, ShieldCheck, Activity } from "lucide-react";
-import { ConfigForm } from "@/components/adminPanel/configuracion/ConfigForm";
+import {
+  ConfigForm,
+  type NegocioInitialData,
+} from "@/components/adminPanel/configuracion/ConfigForm";
 
 /**
  * Página de Configuración del Panel de Administración.
@@ -19,10 +22,22 @@ export default async function ConfiguracionPage() {
     redirect("/login");
   }
 
-  // 2. Obtener los datos actuales del negocio vinculados al usuario
+  // 2. Obtener los datos actuales del negocio vinculados al usuario de manera tipada
   const { data: negocio, error } = await supabase
     .from("negocios")
-    .select("*")
+    .select(
+      `
+      id,
+      nombre,
+      slug,
+      whatsapp,
+      direccion,
+      color_primary,
+      logo_url,
+      banner_url,
+      horarios
+    `,
+    )
     .eq("user_id", user.id)
     .single();
 
@@ -35,7 +50,7 @@ export default async function ConfiguracionPage() {
       {/* Encabezado Principal */}
       <header className="space-y-2">
         <div className="flex items-center gap-2">
-          <Settings className="text-primary w-5 h-5 animate-spin-slow" />
+          <Settings className="text-primary w-5 h-5" />
           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary italic">
             Neo Control Center
           </span>
@@ -48,9 +63,11 @@ export default async function ConfiguracionPage() {
         </p>
       </header>
 
-      {/* Formulario Orquestador Client-Side */}
-      {/* Administra subcomponentes atómicos, estados multimedia y grilla horaria */}
-      <ConfigForm initialData={negocio || null} userId={user.id} />
+      {/* Formulario Orquestador Client-Side sin descalces de contratos de datos */}
+      <ConfigForm
+        initialData={(negocio as unknown as NegocioInitialData) || null}
+        userId={user.id}
+      />
 
       {/* Footer Técnico Estilo NEO */}
       <footer className="pt-10 border-t-2 border-dashed border-border dark:border-border-dark flex flex-col md:flex-row justify-between items-center gap-4 opacity-40 transition-colors">

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { crearCategoria, eliminarCategoria } from "@/app/actions/categorias";
 import { createClient } from "@/lib/supabase/client";
 import { Tag, Plus, Trash2, Loader2, Hash, X } from "lucide-react";
 import { toast } from "sonner";
+import { RealtimeChannel } from "@supabase/supabase-js";
 
 interface CategoriaBase {
   id: string;
@@ -15,7 +16,7 @@ interface CategoriaBase {
 
 interface CategoriaManagerProps {
   negocioId: string;
-  onClose: () => void; // Lógica de desmonte integrada
+  onClose: () => void;
 }
 
 export function CategoriaManager({
@@ -28,8 +29,8 @@ export function CategoriaManager({
   const [loadingList, setLoadingList] = useState(true);
   const supabase = createClient();
 
-  // Traer las categorías asociadas al local
-  const cargarCategorias = async () => {
+  // Traer las categorías asociadas al local (Estable con useCallback)
+  const cargarCategorias = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("categorias")
@@ -44,20 +45,24 @@ export function CategoriaManager({
     } finally {
       setLoadingList(false);
     }
-  };
+  }, [supabase, negocioId]);
 
-  // Suscripción Realtime para actualizar la burbujas al instante
-  // Suscripción Realtime para actualizar las burbujas al instante
+  // Suscripción Realtime para actualizar las burbujas al instante sin renders en cascada
   useEffect(() => {
-    cargarCategorias();
+    // Encapsulamiento seguro para evitar ejecuciones asíncronas directas en el hilo de montaje
+    const inicializarComponente = async () => {
+      await cargarCategorias();
+    };
 
-    const canal = supabase
+    inicializarComponente();
+
+    const canal: RealtimeChannel = supabase
       .channel(`realtime-categorias-${negocioId}`)
       .on(
-        "postgres_changes" as any, // Solución al error en rojo del tipado de Supabase
+        "postgres_changes",
         {
           event: "*",
-          schema: "public", // Corregido: de 'scheme' a 'schema'
+          schema: "public",
           table: "categorias",
           filter: `negocio_id=eq.${negocioId}`,
         },
@@ -70,7 +75,7 @@ export function CategoriaManager({
     return () => {
       supabase.removeChannel(canal);
     };
-  }, [negocioId]);
+  }, [cargarCategorias, supabase, negocioId]);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,8 +124,8 @@ export function CategoriaManager({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-60 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-bg-darker w-full max-w-lg rounded-super border-2 border-border dark:border-border-dark shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-60 flex items-center justify-center p-4 font-sans">
+      <div className="bg-white dark:bg-bg-darker w-full max-w-lg rounded-super border-2 border-border dark:border-border-dark shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 transition-colors">
         {/* Cabecera del Modal */}
         <div className="p-6 flex justify-between items-center border-b-2 border-border dark:border-border-dark">
           <div className="flex items-center gap-3">
@@ -184,7 +189,7 @@ export function CategoriaManager({
                 <span>Sincronizando secciones...</span>
               </div>
             ) : (
-              <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-1">
+              <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-1 scrollbar-thin">
                 {categorias.map((cat) => (
                   <div
                     key={cat.id}
@@ -194,6 +199,7 @@ export function CategoriaManager({
                       {cat.nombre}
                     </span>
                     <button
+                      key={`remove-${cat.id}`}
                       type="button"
                       onClick={() => handleRemove(cat.id, cat.nombre)}
                       className="md:opacity-0 group-hover:opacity-100 p-1 text-text-muted hover:text-error transition-all"

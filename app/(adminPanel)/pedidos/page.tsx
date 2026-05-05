@@ -1,9 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Radio, History, LayoutDashboard } from "lucide-react";
-import { PedidosRadar } from "@/components/adminPanel/pedidos/PedidosRadar";
+import {
+  PedidosRadar,
+  type PedidoData,
+} from "@/components/adminPanel/pedidos/PedidosRadar"; // Importamos el tipo real aquí
 import { TestOrderButton } from "@/components/adminPanel/pedidos/monitoring/TestOrderButton";
-import { RealtimeOrders } from "@/components/adminPanel/pedidos/monitoring/RealtimeOrders"; // Motor acústico integrado
+import { RealtimeOrders } from "@/components/adminPanel/pedidos/monitoring/RealtimeOrders";
 
 /**
  * Panel de Control de Pedidos NEO.
@@ -32,20 +35,32 @@ export default async function PedidosPage() {
     .from("pedidos")
     .select(
       `
-      *,
-      pedido_items (*)
+      id,
+      estado,
+      cliente_nombre,
+      metodo_pago,
+      total,
+      cliente_whatsapp,
+      es_delivery,
+      direccion_entrega,
+      notas,
+      pedido_items (
+        id,
+        cantidad,
+        nombre_producto,
+        precio_unitario
+      )
     `,
     )
     .eq("negocio_id", negocio.id)
     .order("created_at", { ascending: false })
     .limit(50);
 
-  // Parseo controlado para garantizar consistencia con las interfaces tipadas del Radar
-  const listaPedidos = (pedidosIniciales || []) as any[];
+  // Parseo limpio acoplado al tipo oficial del Radar sin usar 'any'
+  const listaPedidos = (pedidosIniciales || []) as unknown as PedidoData[];
 
   return (
     <div className="p-6 md:p-10 space-y-10 min-h-screen pb-32 max-w-7xl mx-auto font-sans relative">
-      {/* Inyección invisible del Listener Acústico y Notificaciones Sonner Globales */}
       <RealtimeOrders negocioId={negocio.id} />
 
       {/* Cabecera Táctica del Dashboard */}
@@ -68,12 +83,11 @@ export default async function PedidosPage() {
 
         {/* Acciones Rápidas y Tarjetas de Estadísticas en Lote */}
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
-          {/* Botón Inyector de Pedidos de Simulación */}
           <TestOrderButton negocioId={negocio.id} />
 
           <div className="flex gap-4 w-full sm:w-auto">
             {/* Stat 1: Órdenes Activas en Cocina / Espera */}
-            <div className="bg-white dark:bg-bg-darker border-2 border-border dark:border-border-dark p-4 rounded-neo flex items-center gap-4 shadow-sm flex-1 sm:flex-initial min-w-[120px]">
+            <div className="bg-white dark:bg-bg-darker border-2 border-border dark:border-border-dark p-4 rounded-neo flex items-center gap-4 shadow-sm flex-1 sm:flex-initial min-w-[120px] transition-colors">
               <div className="p-2 bg-amber-500/10 rounded-full text-amber-500">
                 <Radio className="animate-pulse" size={18} />
               </div>
@@ -85,15 +99,17 @@ export default async function PedidosPage() {
                   {
                     listaPedidos.filter(
                       (p) =>
-                        p.estado === "pendiente" || p.estado === "preparando",
+                        p.estado === "pendiente" ||
+                        p.estado === "preparando" ||
+                        p.estado === "preparacion",
                     ).length
                   }
                 </p>
               </div>
             </div>
 
-            {/* Stat 2: Historial Técnico del Día (Carga Parcial) */}
-            <div className="bg-white dark:bg-bg-darker border-2 border-border dark:border-border-dark p-4 rounded-neo flex items-center gap-4 shadow-sm flex-1 sm:flex-initial min-w-[120px]">
+            {/* Stat 2: Historial Técnico del Día */}
+            <div className="bg-white dark:bg-bg-darker border-2 border-border dark:border-border-dark p-4 rounded-neo flex items-center gap-4 shadow-sm flex-1 sm:flex-initial min-w-[120px] transition-colors">
               <div className="p-2 bg-emerald-500/10 rounded-full text-emerald-500">
                 <History size={18} />
               </div>
@@ -110,8 +126,8 @@ export default async function PedidosPage() {
         </div>
       </header>
 
-      {/* El Radar: Canvas Interactivo Principal */}
-      <main className="animate-in fade-in duration-700 delay-200">
+      {/* El Radar: Canvas Interactivo Principal sin errores de tipo */}
+      <main className="animate-in fade-in duration-700 delay-200 relative z-10">
         <PedidosRadar initialPedidos={listaPedidos} negocioId={negocio.id} />
       </main>
 

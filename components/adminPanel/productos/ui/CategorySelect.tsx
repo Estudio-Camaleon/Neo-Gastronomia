@@ -9,7 +9,7 @@ interface Categoria {
 }
 
 interface CategorySelectProps {
-  negocioId?: string; // Filtrado seguro opcional por local comercial
+  negocioId?: string;
   selectedId?: string;
   onChange: (id: string) => void;
 }
@@ -31,7 +31,6 @@ export function CategorySelect({
           .select("id, nombre")
           .order("nombre", { ascending: true });
 
-        // Si se provee el contexto del negocio, aislamos el alcance de los datos
         if (negocioId) {
           consulta = consulta.eq("negocio_id", negocioId);
         }
@@ -48,12 +47,11 @@ export function CategorySelect({
     }
 
     cargarCategorias();
-    // Limpiamos la matriz de dependencias para evitar bucles ociosos de renderizado
-  }, [negocioId]);
+  }, [negocioId, supabase]); // Agregado 'supabase' para blindar contra advertencias de dependencias
 
   return (
     <div className="flex flex-col gap-1.5 font-sans">
-      <label className="text-[10px] uppercase font-black text-text-muted tracking-widest ml-1">
+      <label className="text-[10px] uppercase font-black text-text-muted tracking-widest ml-1 select-none">
         Categoría
       </label>
       <div className="relative w-full">

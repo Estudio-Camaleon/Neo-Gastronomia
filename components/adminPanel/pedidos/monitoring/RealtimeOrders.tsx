@@ -4,7 +4,10 @@ import { useEffect, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import type { RealtimePostgresInsertPayload } from "@supabase/supabase-js";
+import type {
+  RealtimeChannel,
+  RealtimePostgresChangesPayload,
+} from "@supabase/supabase-js";
 
 // Interfaz estricta para garantizar un payload seguro y tipado
 interface NuevoPedidoRecord {
@@ -35,18 +38,22 @@ export function RealtimeOrders({ negocioId }: RealtimeOrdersProps) {
   useEffect(() => {
     if (!negocioId) return;
 
-    // 1. Registro del canal dedicado para alertas transaccionales
-    const canal = supabase
+    // 1. Registro del canal dedicado para alertas transaccionales usando tipo estricto de canal
+    const canal: RealtimeChannel = supabase
       .channel(`realtime-pedidos-${negocioId}`)
       .on(
-        "postgres_changes" as any, // Cast seguro para silenciar la validación de firmas de la API
+        "postgres_changes", // Removido casting 'as any'
         {
           event: "INSERT",
           schema: "public",
           table: "pedidos",
           filter: `negocio_id=eq.${negocioId}`,
         },
-        (payload: RealtimePostgresInsertPayload<NuevoPedidoRecord>) => {
+        (payload: RealtimePostgresChangesPayload<NuevoPedidoRecord>) => {
+          // Extraemos de forma segura el registro inyectado por Postgres
+          const newRecord = payload.new as NuevoPedidoRecord;
+          if (!newRecord) return;
+
           // 2. Feedback sonoro instantáneo estilo NEO
           if (notificationAudio) {
             notificationAudio.currentTime = 0; // Reinicia el puntero si ya estaba reproduciéndose
@@ -62,10 +69,10 @@ export function RealtimeOrders({ negocioId }: RealtimeOrdersProps) {
             description: (
               <div className="flex flex-col gap-1 font-sans">
                 <span className="font-black uppercase tracking-tight italic text-text-primary">
-                  {payload.new.cliente_nombre}
+                  {newRecord.cliente_nombre}
                 </span>
                 <span className="text-[10px] font-black text-primary font-mono">
-                  TOTAL: ${Number(payload.new.total).toLocaleString("es-AR")}
+                  TOTAL: ${Number(newRecord.total).toLocaleString("es-AR")}
                 </span>
               </div>
             ),
@@ -92,8 +99,7 @@ export function RealtimeOrders({ negocioId }: RealtimeOrdersProps) {
     return () => {
       supabase.removeChannel(canal);
     };
-    // Saneamos removiendo 'supabase' para blindar contra re-suscripciones parasitarias en caliente
-  }, [negocioId, router, notificationAudio]);
+  }, [negocioId, router, notificationAudio, supabase]); // Agregado 'supabase' para corregir react-hooks/exhaustive-deps
 
   return null;
 }

@@ -11,6 +11,10 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // UNIFICADO: Mapeo de la variable de branding dinámico para locales
+        custom: {
+          DEFAULT: "var(--custom-primary)",
+        },
         // Definimos los colores que usamos en LoginForm y RegisterForm
         primary: {
           DEFAULT: "#ff8000", // Tu naranja principal
@@ -30,28 +34,28 @@ const config: Config = {
         },
         error: {
           DEFAULT: "#ef4444",
-        }
+        },
       },
       borderRadius: {
         // Aquí "oficializamos" los bordes redondeados de NEO
-        'neo': '2rem',
-        'super': '2.5rem',
+        neo: "2rem",
+        super: "2.5rem",
       },
       animation: {
         // Animaciones que usamos en los mensajes de éxito/error
-        'in': 'fadeIn 0.5s ease-out',
-        'zoom': 'zoomIn 0.3s ease-out',
+        in: "fadeIn 0.5s ease-out",
+        zoom: "zoomIn 0.3s ease-out",
       },
       keyframes: {
         fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
         },
         zoomIn: {
-          '0%': { transform: 'scale(0.95)', opacity: '0' },
-          '100%': { transform: 'scale(1)', opacity: '1' },
-        }
-      }
+          "0%": { transform: "scale(0.95)", opacity: "0" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+      },
     },
   },
   plugins: [],

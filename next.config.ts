@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 
-  // Eliminamos la clave 'turbopack' de experimental para limpiar el warning
+  // Dejamos el objeto vacío o removemos la sección si no tenés otras funciones experimentales activas
   experimental: {},
 
   images: {
@@ -20,6 +20,7 @@ const nextConfig: NextConfig = {
   },
 
   compiler: {
+    // Limpia los logs en el cliente al compilar para producción
     removeConsole: process.env.NODE_ENV === "production",
   },
 };

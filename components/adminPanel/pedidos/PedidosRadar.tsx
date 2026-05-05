@@ -2,22 +2,31 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { PedidoCard } from "./ui/PedidoCard"; // Ruta relativa unificada hacia la subcarpeta ui
+import { PedidoCard } from "./ui/PedidoCard";
 import { Radio, Loader2, Inbox } from "lucide-react";
+import {
+  RealtimePostgresChangesPayload,
+  RealtimeChannel,
+} from "@supabase/supabase-js";
 
-// Tipamos exactamente igual que en PedidoCard para garantizar la consistencia en el mapeo
-interface PedidoItem {
+export interface PedidoItem {
   id: string;
   cantidad: number;
   nombre_producto: string;
   precio_unitario: number;
 }
 
-interface PedidoData {
+export interface PedidoData {
   id: string;
-  estado: "pendiente" | "preparando" | "enviado" | "entregado" | "cancelado";
+  estado:
+    | "pendiente"
+    | "preparando"
+    | "preparacion"
+    | "enviado"
+    | "entregado"
+    | "cancelado";
   cliente_nombre: string;
-  metodo_pago: string;
+  metodo_pago?: string | null;
   total: number | string;
   cliente_whatsapp: string;
   es_delivery: boolean;
@@ -37,21 +46,22 @@ export function PedidosRadar({ initialPedidos, negocioId }: PedidosRadarProps) {
   const supabase = createClient();
 
   useEffect(() => {
-    const channel = supabase
+    const channel: RealtimeChannel = supabase
       .channel(`radar-pedidos-${negocioId}`)
       .on(
-        "postgres_changes" as any, // Solución definitiva al error en rojo del tipado de la API
+        "postgres_changes",
         {
-          event: "INSERT", // Escuchamos específicamente inserciones de nuevas comandas
+          event: "INSERT",
           schema: "public",
           table: "pedidos",
           filter: `negocio_id=eq.${negocioId}`,
         },
-        async (payload) => {
+        async (
+          payload: RealtimePostgresChangesPayload<Record<string, unknown>>,
+        ) => {
           console.log("¡Nuevo pedido detectado en NEO!", payload);
           setIsSyncing(true);
 
-          // Fetch de los datos frescos incluyendo los items relacionales de forma atómica
           const { data } = await supabase
             .from("pedidos")
             .select("*, pedido_items(*)")
@@ -70,17 +80,20 @@ export function PedidosRadar({ initialPedidos, negocioId }: PedidosRadarProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-    // Quitamos 'supabase' de la matriz de control para blindar contra re-suscripciones ociosas
-  }, [negocioId]);
+  }, [supabase, negocioId]);
 
+  // CORREGIDO: Filtramos incluyendo "preparacion" para que coincida con la hidratación del servidor
   const pendientes = pedidos.filter(
-    (p) => p.estado === "pendiente" || p.estado === "preparando",
+    (p) =>
+      p.estado === "pendiente" ||
+      p.estado === "preparando" ||
+      p.estado === "preparacion",
   );
 
   return (
-    <div className="space-y-8 font-sans">
+    <div className="space-y-8 font-sans text-text-primary dark:text-text-inverse">
       {/* Indicador de Estado del Radar Estilo Ticket */}
-      <div className="flex items-center justify-between bg-bg-main dark:bg-bg-darker/50 p-4 rounded-neo border-2 border-border dark:border-border-dark border-dashed transition-colors">
+      <div className="flex items-center justify-between bg-bg-main dark:bg-bg-darker/50 p-4 rounded-neo border-2 border-border dark:border-border-dark border-dashed transition-colors select-none">
         <div className="flex items-center gap-3">
           <div className="relative">
             <Radio className="text-primary animate-pulse" size={20} />
@@ -113,7 +126,7 @@ export function PedidosRadar({ initialPedidos, negocioId }: PedidosRadarProps) {
           ))}
         </div>
       ) : (
-        <div className="py-24 flex flex-col items-center justify-center text-center space-y-4 border-2 border-dashed border-border dark:border-border-dark rounded-super bg-gray-50/50 dark:bg-white/5 transition-colors">
+        <div className="py-24 flex flex-col items-center justify-center text-center space-y-4 border-2 border-dashed border-border dark:border-border-dark rounded-super bg-gray-50/50 dark:bg-white/5 transition-colors select-none">
           <div className="p-6 bg-white dark:bg-bg-darker rounded-full shadow-xl border-2 border-border dark:border-border-dark">
             <Inbox className="text-border dark:text-border-dark" size={48} />
           </div>

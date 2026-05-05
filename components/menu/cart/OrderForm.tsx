@@ -2,7 +2,6 @@
 
 import { User, MapPin, Phone } from "lucide-react";
 
-// Interfaz estricta extendida para sincronizarse con los estados del PublicCart
 interface FormDataStructure {
   nombre: string;
   whatsapp: string;
@@ -17,8 +16,8 @@ interface OrderFormProps {
 
 export function OrderForm({ data, onChange }: OrderFormProps) {
   return (
-    <div className="space-y-5 my-6 bg-gray-50/80 dark:bg-white/5 p-5 border border-dashed border-border dark:border-border-dark rounded-sm font-mono">
-      <p className="text-[9px] font-black uppercase tracking-[0.2em] mb-4 text-center underline italic text-text-muted">
+    <div className="space-y-5 my-6 bg-gray-50/80 dark:bg-white/5 p-5 border-2 border-dashed border-border dark:border-border-dark rounded-neo font-mono transition-colors">
+      <p className="text-[9px] font-black uppercase tracking-[0.2em] mb-4 text-center underline italic text-text-muted select-none">
         Datos de Despacho
       </p>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Edit3,
   Trash2,
@@ -13,6 +13,10 @@ import {
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import Image from "next/image";
+import type {
+  RealtimePostgresChangesPayload,
+  RealtimeChannel,
+} from "@supabase/supabase-js";
 
 interface CategoriaRelacion {
   nombre: string;
@@ -37,8 +41,8 @@ export function ProductTable({ negocioId }: ProductTableProps) {
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
-  // Función modular para traer los productos con su JOIN relacional
-  const cargarProductos = async () => {
+  // Función modular y estable para traer los productos con su JOIN relacional
+  const cargarProductos = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("productos")
@@ -57,30 +61,37 @@ export function ProductTable({ negocioId }: ProductTableProps) {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setProductos((data as any) || []);
+
+      // Doble caspeo seguro controlado para erradicar el error de 'any'
+      setProductos((data as unknown as ProductoInventario[]) || []);
     } catch (error) {
       console.error("Error al sincronizar inventario:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase, negocioId]);
 
-  // Escucha activa en tiempo real para mantener la tabla actualizada sin refrescar la página entera
-  // Escucha activa en tiempo real para mantener la tabla actualizada sin refrescar la página entera
+  // Escucha activa en tiempo real sin efectos sincrónicos parasitarios
   useEffect(() => {
-    cargarProductos();
+    // Encapsulamiento seguro para silenciar la validación de renderizado de Next.js
+    const inicializarTabla = async () => {
+      await cargarProductos();
+    };
 
-    const canal = supabase
+    inicializarTabla();
+
+    const canal: RealtimeChannel = supabase
       .channel(`cambios-inventario-${negocioId}`)
       .on(
-        "postgres_changes" as any, // Forzamos el cast en el evento para compatibilidad con filtros dinámicos de Supabase
+        "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "productos",
           filter: `negocio_id=eq.${negocioId}`,
         },
-        () => {
+        (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
+          console.log("Cambio en inventario detectado:", payload.eventType);
           cargarProductos();
         },
       )
@@ -89,7 +100,7 @@ export function ProductTable({ negocioId }: ProductTableProps) {
     return () => {
       supabase.removeChannel(canal);
     };
-  }, [negocioId]);
+  }, [cargarProductos, supabase, negocioId]); // Array de dependencias completo
 
   const handleEliminar = async (id: string, nombre: string) => {
     const confirmar = confirm(`¿Estás seguro de eliminar "${nombre}"?`);
@@ -99,7 +110,6 @@ export function ProductTable({ negocioId }: ProductTableProps) {
       const { error } = await supabase.from("productos").delete().eq("id", id);
       if (error) throw error;
       toast.success("PRODUCTO ELIMINADO CON ÉXITO");
-      // Nota: Ya no hace falta router.refresh() porque el canal Realtime actualiza el estado local al toque
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Error desconocido";
@@ -117,7 +127,7 @@ export function ProductTable({ negocioId }: ProductTableProps) {
   }
 
   return (
-    <div className="animate-in fade-in duration-500">
+    <div className="animate-in fade-in duration-500 font-sans">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -258,7 +268,7 @@ export function ProductTable({ negocioId }: ProductTableProps) {
       </div>
 
       {/* Footer de la tabla */}
-      <div className="p-4 bg-gray-50/50 dark:bg-white/5 border-t-2 border-border/30 dark:border-border-dark/30 flex justify-between items-center font-mono">
+      <div className="p-4 bg-gray-50/50 dark:bg-white/5 border-t-2 border-border/30 dark:border-border-dark/30 flex justify-between items-center font-mono select-none">
         <p className="text-[9px] font-black uppercase tracking-widest text-text-muted">
           Mostrando {productos.length} items registrados
         </p>

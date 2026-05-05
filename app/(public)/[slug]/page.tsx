@@ -1,9 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { MenuContent } from "@/components/menu/MenuContent";
+import { MenuWrapper } from "@/components/menu/MenuWrapper";
 
-// Interfaces estrictas locales alineadas perfectamente con los componentes hijos
+// 1. Interfaces estrictas locales alineadas con los componentes hijos
 interface Producto {
   id: string;
   nombre: string;
@@ -16,7 +16,15 @@ interface Producto {
 interface CategoriaConProductos {
   id: string;
   nombre: string;
-  slug: string; // Incluido para emparejar con la interfaz de MenuContent
+  slug: string;
+  productos: Producto[];
+}
+
+// Interfaz que representa el contrato exacto de la consulta relacional con Supabase
+interface SupabaseCategoriaRow {
+  id: string;
+  nombre: string;
+  slug: string | null;
   productos: Producto[];
 }
 
@@ -25,16 +33,18 @@ interface PublicMenuPageProps {
 }
 
 /**
- * Página Principal del Menú Público - Versión Estable y Saneada.
+ * Página Principal del Menú Público - Versión Estable sin 'any'.
  */
 export default async function PublicMenuPage({ params }: PublicMenuPageProps) {
   const { slug } = await params;
   const supabase = await createClient();
 
-  // 1. Obtención de datos del negocio (Con las columnas de branding en producción)
+  // 1. Obtención de datos del negocio (Incluyendo color_primary para el branding dinámico)
   const { data: negocio, error: negocioError } = await supabase
     .from("negocios")
-    .select("id, nombre, logo_url, banner_url, descripcion, slug")
+    .select(
+      "id, nombre, logo_url, banner_url, descripcion, slug, color_primary",
+    )
     .eq("slug", slug)
     .single();
 
@@ -53,6 +63,7 @@ export default async function PublicMenuPage({ params }: PublicMenuPageProps) {
       `
       id,
       nombre,
+      slug,
       productos (
         id,
         nombre,
@@ -66,20 +77,21 @@ export default async function PublicMenuPage({ params }: PublicMenuPageProps) {
     .eq("negocio_id", negocio.id)
     .order("nombre", { ascending: true });
 
-  // 3. Procesamiento de datos con Tipado Estricto
-  // Desestructuramos explícitamente para inyectar el 'slug' requerido por MenuContent
-  const menuData: CategoriaConProductos[] =
-    (categorias as any)
-      ?.map((cat: any) => ({
-        id: cat.id,
-        nombre: cat.nombre,
-        slug: cat.slug || "", // Seteamos fallback seguro para cumplir el contrato del componente
-        productos: (cat.productos || []).filter((p: Producto) => p.disponible),
-      }))
-      .filter((cat: CategoriaConProductos) => cat.productos.length > 0) || [];
+  // 3. Procesamiento seguro usando un doble caspeo controlado (unknown -> FilaSupabase) para erradicar el error de 'any'
+  const rawCategorias = (categorias || []) as unknown as SupabaseCategoriaRow[];
+
+  const menuData: CategoriaConProductos[] = rawCategorias
+    .map((cat) => ({
+      id: cat.id,
+      nombre: cat.nombre,
+      slug: cat.slug || "",
+      // Filtramos en el servidor para mandar al cliente únicamente los ítems que estén marcados como disponibles
+      productos: (cat.productos || []).filter((p) => p.disponible),
+    }))
+    .filter((cat) => cat.productos.length > 0);
 
   return (
-    <div className="min-h-screen bg-bg-main dark:bg-bg-dark selection:bg-primary">
+    <div className="min-h-screen bg-bg-main dark:bg-bg-dark selection:bg-primary relative">
       {/* Header Neo-Brutalista con Banner Dinámico */}
       <header className="relative h-48 md:h-64 bg-black flex flex-col items-center justify-center overflow-hidden border-b-4 border-primary">
         {negocio.banner_url ? (
@@ -91,7 +103,6 @@ export default async function PublicMenuPage({ params }: PublicMenuPageProps) {
             className="object-cover opacity-50"
           />
         ) : (
-          /* Fondo de reserva si el local no cargó una portada aún */
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-black to-black opacity-60" />
         )}
 
@@ -130,22 +141,26 @@ export default async function PublicMenuPage({ params }: PublicMenuPageProps) {
         </div>
       </header>
 
-      {/* Contenido Principal: Listado de Productos y Carrito */}
-      <main className="max-w-5xl mx-auto px-4 py-12">
-        <MenuContent negocioId={negocio.id} categorias={menuData} />
+      {/* Contenido Principal Responsivo con inyección de datos limpia */}
+      <main className="max-w-7xl mx-auto px-4 py-12 relative z-10">
+        <MenuWrapper
+          negocioId={negocio.id}
+          categorias={menuData}
+          colorConfig={negocio.color_primary || "#10b981"}
+        />
       </main>
 
-      {/* Footer con Identidad NEO */}
-      <footer className="py-20 border-t border-border/30 flex flex-col items-center justify-center opacity-30 select-none">
+      {/* Footer Técnico */}
+      <footer className="py-20 border-t border-border/30 dark:border-border-dark/30 flex flex-col items-center justify-center opacity-30 select-none">
         <p className="text-[9px] font-black uppercase tracking-[0.5em] mb-2 text-text-muted">
           Plataforma de gestión
         </p>
-        <h2 className="text-4xl font-black italic tracking-tighter text-text-primary">
+        <h2 className="text-4xl font-black italic tracking-tighter text-text-primary dark:text-text-inverse">
           NEO
         </h2>
       </footer>
 
-      {/* Capa de textura sutil para el acabado visual */}
+      {/* Capa de textura sutil de grano */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.02] z-[100] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
     </div>
   );

@@ -3,12 +3,12 @@
 import { Palette } from "lucide-react";
 
 interface CatalogDesignSectionProps {
-  colorPrimario: string;
+  colorPrimary: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export function CatalogDesignSection({
-  colorPrimario,
+  colorPrimary,
   onChange,
 }: CatalogDesignSectionProps) {
   return (
@@ -31,8 +31,8 @@ export function CatalogDesignSection({
           <div className="relative">
             <input
               type="color"
-              name="color_primario"
-              value={colorPrimario}
+              name="color_primary"
+              value={colorPrimary}
               onChange={onChange}
               className="w-16 h-16 rounded-full border-4 border-white dark:border-bg-dark shadow-xl cursor-pointer appearance-none bg-transparent"
               title="Seleccionar color de acento"
@@ -42,7 +42,7 @@ export function CatalogDesignSection({
           <div className="space-y-1.5">
             {/* Código Hexadecimal con soporte Dark Mode */}
             <span className="font-mono text-xs font-black uppercase bg-bg-main dark:bg-bg-dark text-text-primary dark:text-text-inverse px-4 py-2 rounded-neo border-2 border-border dark:border-border-dark shadow-sm">
-              {colorPrimario}
+              {colorPrimary}
             </span>
             <p className="text-[9px] font-bold text-text-muted uppercase italic mt-3 leading-tight max-w-xs">
               Este tono se aplicará a botones, insignias y elementos
