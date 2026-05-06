@@ -59,7 +59,7 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
     slug: initialData?.slug || "",
     whatsapp: initialData?.whatsapp || "",
     direccion: initialData?.direccion || "",
-    color_primary: initialData?.color_primary || "#10b981",
+    color_primary: initialData?.color_primary || "#1c7a42", // Ajustado por defecto al verde base
     logo_url: initialData?.logo_url || "",
     banner_url: initialData?.banner_url || "",
     horarios: (initialData?.horarios as ScheduleData) || {},
@@ -119,9 +119,18 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Control de seguridad si no cargaron los datos iniciales
+    if (!initialData?.id) {
+      return toast.error("ERROR DE REFERENCIA", {
+        description: "No se encontró el ID único del negocio para actualizar.",
+      });
+    }
+
     setIsPending(true);
 
     try {
+      // CORREGIDO: Removido 'count' y la opción exacta para limpiar el warning del linter
       const { error } = await supabase
         .from("negocios")
         .update({
@@ -135,7 +144,7 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
           horarios: formData.horarios,
           updated_at: new Date().toISOString(),
         })
-        .eq("user_id", userId);
+        .eq("id", initialData.id);
 
       if (error) throw error;
 
@@ -144,6 +153,7 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
         icon: <CheckCircle2 className="text-green-500" />,
       });
 
+      // Refrescamos la ruta para que limpie estados y actualice Server Components
       router.refresh();
     } catch (error) {
       const errorMessage =
@@ -185,8 +195,6 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
         />
       </section>
 
-      {/* 4. SECCIÓN DISEÑO DE CATÁLOGO */}
-      {/* CORREGIDO: Removido el tipo 'any' mediante inferencia segura y firmas de tipos de unión */}
       <CatalogDesignSection
         colorPrimary={formData.color_primary}
         onChange={(e: React.ChangeEvent<HTMLInputElement> | string) => {
