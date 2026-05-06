@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import { MenuWrapper } from "@/components/menu/MenuWrapper";
 
-// 1. Interfaces estrictas locales alineadas con los componentes hijos
 interface Producto {
   id: string;
   nombre: string;
@@ -20,7 +19,6 @@ interface CategoriaConProductos {
   productos: Producto[];
 }
 
-// Interfaz que representa el contrato exacto de la consulta relacional con Supabase
 interface SupabaseCategoriaRow {
   id: string;
   nombre: string;
@@ -32,14 +30,11 @@ interface PublicMenuPageProps {
   params: Promise<{ slug: string }>;
 }
 
-/**
- * Página Principal del Menú Público - Versión Estable sin 'any'.
- */
 export default async function PublicMenuPage({ params }: PublicMenuPageProps) {
   const { slug } = await params;
   const supabase = await createClient();
 
-  // 1. Obtención de datos del negocio (Incluyendo color_primary para el branding dinámico)
+  // 1. Obtención de datos del negocio (Incluyendo color_primary)
   const { data: negocio, error: negocioError } = await supabase
     .from("negocios")
     .select(
@@ -77,7 +72,6 @@ export default async function PublicMenuPage({ params }: PublicMenuPageProps) {
     .eq("negocio_id", negocio.id)
     .order("nombre", { ascending: true });
 
-  // 3. Procesamiento seguro usando un doble caspeo controlado (unknown -> FilaSupabase) para erradicar el error de 'any'
   const rawCategorias = (categorias || []) as unknown as SupabaseCategoriaRow[];
 
   const menuData: CategoriaConProductos[] = rawCategorias
@@ -85,15 +79,20 @@ export default async function PublicMenuPage({ params }: PublicMenuPageProps) {
       id: cat.id,
       nombre: cat.nombre,
       slug: cat.slug || "",
-      // Filtramos en el servidor para mandar al cliente únicamente los ítems que estén marcados como disponibles
       productos: (cat.productos || []).filter((p) => p.disponible),
     }))
     .filter((cat) => cat.productos.length > 0);
 
+  const finalColor = negocio.color_primary || "#ff8000";
+
   return (
-    <div className="min-h-screen bg-bg-main dark:bg-bg-dark selection:bg-primary relative">
-      {/* Header Neo-Brutalista con Banner Dinámico */}
-      <header className="relative h-48 md:h-64 bg-black flex flex-col items-center justify-center overflow-hidden border-b-4 border-primary">
+    // Inyectamos la variable CSS también en el contenedor raíz del Server Component
+    <div
+      style={{ "--custom-brand-color": finalColor } as React.CSSProperties}
+      className="min-h-screen bg-bg-main dark:bg-bg-dark selection:bg-custom relative font-sans"
+    >
+      {/* Header Neo-Brutalista - MODIFICADO: Cambiado border-primary por border-custom */}
+      <header className="relative h-48 md:h-64 bg-black flex flex-col items-center justify-center overflow-hidden border-b-4 border-custom">
         {negocio.banner_url ? (
           <Image
             src={negocio.banner_url}
@@ -103,7 +102,8 @@ export default async function PublicMenuPage({ params }: PublicMenuPageProps) {
             className="object-cover opacity-50"
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-black to-black opacity-60" />
+          // MODIFICADO: Gradiente adaptado al color dinámico custom
+          <div className="absolute inset-0 bg-gradient-to-br from-custom/20 via-black to-black opacity-60" />
         )}
 
         <div className="relative z-10 text-center px-4 flex flex-col items-center">
@@ -131,22 +131,23 @@ export default async function PublicMenuPage({ params }: PublicMenuPageProps) {
             </p>
           )}
 
+          {/* MODIFICADO: Elementos estéticos con text-custom y bg-custom */}
           <div className="mt-3 flex items-center gap-2">
-            <span className="h-[2px] w-8 bg-primary rounded-full" />
-            <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] italic">
+            <span className="h-[2px] w-8 bg-custom rounded-full" />
+            <span className="text-[10px] font-black text-custom uppercase tracking-[0.3em] italic">
               Menu Digital
             </span>
-            <span className="h-[2px] w-8 bg-primary rounded-full" />
+            <span className="h-[2px] w-8 bg-custom rounded-full" />
           </div>
         </div>
       </header>
 
-      {/* Contenido Principal Responsivo con inyección de datos limpia */}
+      {/* Contenido Principal Responsivo */}
       <main className="max-w-7xl mx-auto px-4 py-12 relative z-10">
         <MenuWrapper
           negocioId={negocio.id}
           categorias={menuData}
-          colorConfig={negocio.color_primary || "#10b981"}
+          colorConfig={finalColor}
         />
       </main>
 
@@ -160,7 +161,6 @@ export default async function PublicMenuPage({ params }: PublicMenuPageProps) {
         </h2>
       </footer>
 
-      {/* Capa de textura sutil de grano */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.02] z-[100] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
     </div>
   );

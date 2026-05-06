@@ -3,6 +3,9 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  /* === BRANDING DINÁMICO (Mapeado nativo para el catálogo público) === */
+  --color-custom: var(--custom-brand-color, #1c7a42);
+
   /* === PRIMARY (NEO GREEN) === */
   --color-primary: #1c7a42;
   --color-primary-hover: #145a30;

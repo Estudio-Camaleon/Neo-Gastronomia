@@ -11,13 +11,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // UNIFICADO: Mapeo de la variable de branding dinámico para locales
-        custom: {
-          DEFAULT: "var(--custom-primary)",
-        },
+        // CORREGIDO: Mapeo plano directo apuntando a la variable CSS exacta del Layout público
+        // Incluye un fallback naranja (#ff8000) por si el operador no definió color aún
+        custom: "var(--custom-brand-color, #ff8000)",
+
         // Definimos los colores que usamos en LoginForm y RegisterForm
         primary: {
-          DEFAULT: "#ff8000", // Tu naranja principal
+          DEFAULT: "#ff8000", // Tu naranja principal original
           hover: "#e67300",
         },
         bg: {

@@ -26,7 +26,7 @@ export interface NegocioInitialData {
   slug: string;
   whatsapp: string;
   direccion: string;
-  color_primary: string; // Cambiado a inglés según esquema SQL unificado
+  color_primary: string;
   logo_url: string;
   banner_url: string;
   horarios: Record<string, unknown>;
@@ -42,7 +42,7 @@ interface FormState {
   slug: string;
   whatsapp: string;
   direccion: string;
-  color_primary: string; // Sincronizado
+  color_primary: string;
   logo_url: string;
   banner_url: string;
   horarios: ScheduleData;
@@ -59,7 +59,7 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
     slug: initialData?.slug || "",
     whatsapp: initialData?.whatsapp || "",
     direccion: initialData?.direccion || "",
-    color_primary: initialData?.color_primary || "#10b981", // Hecho verde camaleón por defecto
+    color_primary: initialData?.color_primary || "#10b981",
     logo_url: initialData?.logo_url || "",
     banner_url: initialData?.banner_url || "",
     horarios: (initialData?.horarios as ScheduleData) || {},
@@ -68,6 +68,10 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleColorChange = (nuevoColor: string) => {
+    setFormData((prev) => ({ ...prev, color_primary: nuevoColor }));
   };
 
   const handleImageUpload = async (
@@ -125,7 +129,7 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
           slug: formData.slug.trim().toLowerCase(),
           whatsapp: formData.whatsapp.trim(),
           direccion: formData.direccion.trim(),
-          color_primary: formData.color_primary, // Enviando a la columna renombrada
+          color_primary: formData.color_primary,
           logo_url: formData.logo_url,
           banner_url: formData.banner_url,
           horarios: formData.horarios,
@@ -157,7 +161,6 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
       onSubmit={handleSubmit}
       className="grid gap-10 animate-in fade-in duration-700 font-sans"
     >
-      {/* 1. SECCIÓN BRANDING & MEDIA */}
       <BrandingSection
         logoUrl={formData.logo_url}
         bannerUrl={formData.banner_url}
@@ -165,7 +168,6 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
         onImageUpload={handleImageUpload}
       />
 
-      {/* 2. SECCIÓN INFORMACIÓN GENERAL */}
       <GeneralInfoSection
         nombre={formData.nombre}
         slug={formData.slug}
@@ -174,7 +176,6 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
         onChange={handleChange}
       />
 
-      {/* 3. SECCIÓN HORARIOS OPERATIVOS */}
       <section className="bg-white dark:bg-bg-darker border-2 border-border dark:border-border-dark rounded-super p-8 shadow-sm transition-colors">
         <ScheduleEditor
           schedule={formData.horarios}
@@ -185,17 +186,23 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
       </section>
 
       {/* 4. SECCIÓN DISEÑO DE CATÁLOGO */}
+      {/* CORREGIDO: Removido el tipo 'any' mediante inferencia segura y firmas de tipos de unión */}
       <CatalogDesignSection
         colorPrimary={formData.color_primary}
-        onChange={handleChange}
+        onChange={(e: React.ChangeEvent<HTMLInputElement> | string) => {
+          if (typeof e === "string") {
+            handleColorChange(e);
+          } else if (e && e.target) {
+            handleColorChange(e.target.value);
+          }
+        }}
       />
 
-      {/* BOTÓN DE GUARDADO FLOTANTE */}
       <div className="sticky bottom-10 z-50 flex justify-end">
         <button
           type="submit"
           disabled={isPending}
-          className="group relative flex items-center gap-4 bg-primary text-white px-14 py-6 rounded-full shadow-2xl shadow-primary/40 font-black uppercase tracking-[0.2em] border-4 border-white dark:border-bg-dark hover:scale-105 active:scale-95 transition-all disabled:opacity-70 select-none text-xs border-t border-white/10"
+          className="group relative flex items-center gap-4 bg-primary text-white px-14 py-6 rounded-full shadow-2xl shadow-primary/40 font-black uppercase tracking-[0.2em] border-4 border-white dark:border-bg-dark hover:scale-105 active:scale-95 transition-all disabled:opacity-70 select-none text-xs border-t border-white/10 cursor-pointer"
         >
           {isPending ? (
             <Loader2 className="animate-spin" size={20} />

@@ -1,162 +1,186 @@
 "use client";
 
-import { useState } from "react";
 import { useCartStore } from "../store/useCartStore";
-import { createClient } from "@/lib/supabase/client";
-import { ShoppingBag, X, Send, Loader2 } from "lucide-react";
+import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, X } from "lucide-react";
 import { toast } from "sonner";
+import { useState } from "react";
 import { OrderForm } from "./OrderForm";
-import { CartItem } from "./CartItem"; // Importación requerida para pintar las líneas interactivas
 
 interface PublicCartProps {
   negocioId: string;
-  isDrawer?: boolean;     
-  onCloseDrawer?: () => void; 
+  isDrawer?: boolean;
+  onCloseDrawer?: () => void;
 }
 
-export function PublicCart({ negocioId, isDrawer = false, onCloseDrawer }: PublicCartProps) {
-  const [loading, setLoading] = useState(false);
-  const cart = useCartStore((state) => state.cart);
-  const clearCart = useCartStore((state) => state.clearCart);
+export function PublicCart({
+  negocioId,
+  isDrawer = false,
+  onCloseDrawer,
+}: PublicCartProps) {
+  const { cart, addItem, removeItem, clearCart } = useCartStore(
+    (state) => state,
+  );
+  const [showOrderForm, setShowOrderForm] = useState(false);
 
-  const [form, setForm] = useState({
-    nombre: "",
-    whatsapp: "",
-    delivery: false,
-    direccion: "",
-  });
+  const totalImporte = cart.reduce(
+    (acc, item) => acc + item.precio * item.cantidad,
+    0,
+  );
+  const totalItems = cart.reduce((acc, item) => acc + item.cantidad, 0);
 
-  const supabase = createClient();
-  const total = cart.reduce((acc, i) => acc + i.precio * i.cantidad, 0);
-
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+  const handleVaciar = () => {
+    clearCart();
+    toast.success("CARRITO VACIADO", {
+      description: "Se eliminaron todos los productos de tu pedido.",
+    });
+    if (isDrawer && onCloseDrawer) onCloseDrawer();
   };
 
-  const enviarPedido = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (cart.length === 0) return;
-    setLoading(true);
-
-    try {
-      const { data: pedido, error: pErr } = await supabase
-        .from("pedidos")
-        .insert([
-          {
-            negocio_id: negocioId,
-            cliente_nombre: form.nombre.toUpperCase().trim(),
-            cliente_whatsapp: form.whatsapp.trim(),
-            total,
-            es_delivery: form.delivery,
-            direccion_entrega: form.delivery
-              ? form.direccion.toUpperCase().trim()
-              : "RETIRO EN LOCAL",
-            estado: "pendiente",
-          },
-        ])
-        .select()
-        .single();
-
-      if (pErr) throw pErr;
-
-      const { error: iErr } = await supabase.from("pedido_items").insert(
-        cart.map((i) => ({
-          pedido_id: pedido.id,
-          producto_id: i.id,
-          nombre_producto: i.nombre,
-          precio_unitario: i.precio,
-          cantidad: i.cantidad,
-        }))
-      );
-
-      if (iErr) throw iErr;
-
-      toast.success("¡PEDIDO ENVIADO A LA COCINA! 🍔");
-      clearCart();
-      if (onCloseDrawer) onCloseDrawer();
-    } catch (error) {
-      console.error("Error al procesar orden:", error);
-      toast.error("Error al despachar el pedido");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Si el carrito está vacío en la columna fija de Escritorio, muestra un UNICO placeholder limpio
-  if (cart.length === 0 && !isDrawer) {
-    return (
-      <div className="py-16 text-center space-y-3 font-sans animate-in fade-in duration-300 select-none">
-        <div className="w-12 h-12 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center mx-auto text-text-muted opacity-40">
-          <ShoppingBag size={20} />
+  // CORREGIDO: Cambiado de componente funcional estático a función de render regular para silenciar a ESLint
+  const renderCartContent = () => (
+    <div className="flex flex-col h-full justify-between flex-1">
+      {cart.length === 0 ? (
+        <div className="flex flex-col items-center justify-center text-center py-16 px-4 flex-1 select-none animate-in fade-in duration-300">
+          <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-full border-2 border-dashed border-border dark:border-border-dark mb-4 text-text-muted/60">
+            <ShoppingBag size={40} strokeWidth={1.5} />
+          </div>
+          <h4 className="font-black uppercase italic text-sm tracking-tight text-text-primary dark:text-text-inverse">
+            Tu pedido está vacío
+          </h4>
+          <p className="text-text-secondary dark:text-text-muted text-xs font-medium max-w-[200px] mt-1 leading-normal">
+            Explorá nuestro catálogo y sumá tus productos favoritos.
+          </p>
         </div>
-        <p className="text-[10px] font-black uppercase text-text-muted italic tracking-wider">
-          El carrito está vacío
-        </p>
+      ) : !showOrderForm ? (
+        <div className="flex flex-col flex-1 justify-between h-full">
+          <div className="divide-y-2 divide-dashed divide-border/60 dark:divide-border-dark/60 overflow-y-auto max-h-[350px] lg:max-h-[500px] pr-1 mt-2">
+            {cart.map((item) => (
+              <div
+                key={item.id}
+                className="py-4 flex items-center justify-between gap-2 animate-in fade-in duration-200"
+              >
+                <div className="space-y-0.5 flex-1">
+                  <p className="font-black uppercase italic text-xs tracking-tight text-text-primary dark:text-text-inverse line-clamp-1">
+                    {item.nombre}
+                  </p>
+                  <p className="font-mono text-xs font-black text-text-muted">
+                    $
+                    {(item.precio * item.cantidad).toLocaleString("es-AR", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-1 bg-gray-50 dark:bg-white/5 border-2 border-border dark:border-border-dark rounded-xl p-1 select-none">
+                  <button
+                    type="button"
+                    onClick={() => removeItem(item.id)}
+                    className="p-1.5 rounded-lg text-text-secondary dark:text-text-muted hover:bg-gray-200 dark:hover:bg-white/10 active:scale-90 transition-all cursor-pointer"
+                  >
+                    <Minus size={12} strokeWidth={3} />
+                  </button>
+                  <span className="font-mono font-black text-xs px-2 min-w-[20px] text-center text-text-primary dark:text-text-inverse">
+                    {item.cantidad}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => addItem({ ...item, cantidad: 1 })}
+                    className="p-1.5 rounded-lg text-text-secondary dark:text-text-muted hover:bg-gray-200 dark:hover:bg-white/10 active:scale-90 transition-all cursor-pointer"
+                  >
+                    <Plus size={12} strokeWidth={3} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="pt-4 border-t-2 border-border dark:border-border-dark space-y-4 mt-4 bg-white dark:bg-bg-darker">
+            <div className="flex items-end justify-between font-mono select-none">
+              <div>
+                <p className="text-[9px] font-black uppercase text-text-muted tracking-widest leading-none">
+                  TOTAL ESTIMADO
+                </p>
+                <p className="font-black text-2xl tracking-tighter text-text-primary dark:text-text-inverse mt-0.5">
+                  $
+                  {totalImporte.toLocaleString("es-AR", {
+                    minimumFractionDigits: 2,
+                  })}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleVaciar}
+                className="flex items-center gap-1.5 text-[10px] font-black uppercase text-error hover:underline tracking-wider py-1 cursor-pointer"
+              >
+                <Trash2 size={12} /> VACIAR
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowOrderForm(true)}
+              className="w-full bg-custom text-white py-4 rounded-xl font-black uppercase italic text-[11px] tracking-[0.2em] flex items-center justify-center gap-2 hover:opacity-95 transition-all active:scale-98 shadow-md shadow-custom/10 cursor-pointer border-t border-white/10"
+            >
+              COMPLETAR PEDIDO <ArrowRight size={14} strokeWidth={3} />
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="animate-in slide-in-from-right-4 duration-300 flex-1 flex flex-col justify-between h-full">
+          <OrderForm
+            negocioId={negocioId}
+            cart={cart}
+            total={totalImporte}
+            onBack={() => setShowOrderForm(false)}
+            onSuccess={() => {
+              clearCart();
+              if (isDrawer && onCloseDrawer) onCloseDrawer();
+            }}
+          />
+        </div>
+      )}
+    </div>
+  );
+
+  /* RENDERIZADO CONDICIONAL DE ARQUITECTURA (DRAWER VS INLINE) */
+  if (isDrawer) {
+    return (
+      <div className="fixed inset-0 z-50 flex justify-end font-sans">
+        <div
+          className="absolute inset-0 bg-black/40 backdrop-blur-xs animate-in fade-in duration-300"
+          onClick={onCloseDrawer}
+        />
+
+        <div className="relative w-full max-w-md h-full bg-white dark:bg-bg-darker border-l-4 border-border dark:border-border-dark p-6 shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300">
+          <div className="flex items-center justify-between border-b-2 border-border dark:border-border-dark pb-3 select-none mb-2">
+            <h3 className="font-black uppercase italic tracking-tight text-sm text-text-primary dark:text-text-inverse flex items-center gap-2">
+              Tu Pedido 🛒
+              {totalItems > 0 && (
+                <span className="bg-custom/10 text-custom border border-custom/20 font-mono text-[9px] font-black px-2.5 py-0.5 rounded-full">
+                  {totalItems} ítems
+                </span>
+              )}
+            </h3>
+            <button
+              type="button"
+              onClick={onCloseDrawer}
+              className="p-1 rounded-lg text-text-secondary dark:text-text-muted hover:bg-gray-100 dark:hover:bg-white/5 active:scale-90 transition-all cursor-pointer border border-transparent hover:border-border/60"
+            >
+              <X size={16} strokeWidth={3} />
+            </button>
+          </div>
+
+          {/* CORREGIDO: Llamado como función normal, no como tag JSX */}
+          {renderCartContent()}
+        </div>
       </div>
     );
   }
 
-  // Si es drawer móvil y está vacío, no renderiza nada en pantalla
-  if (cart.length === 0 && isDrawer) return null;
-
   return (
-    <div className="flex flex-col h-full font-sans">
-      
-      {/* Cabecera condicional solo para Modal Móvil */}
-      {isDrawer && (
-        <div className="flex justify-between items-center mb-6 border-b-2 pb-4 border-border dark:border-border-dark">
-          <h2 className="text-2xl font-black italic uppercase tracking-tighter text-text-primary dark:text-text-inverse">
-            Tu Carrito
-          </h2>
-          <button
-            type="button"
-            onClick={onCloseDrawer}
-            className="text-text-primary dark:text-text-inverse p-1 hover:opacity-70 transition-opacity"
-          >
-            <X size={28} />
-          </button>
-        </div>
-      )}
-
-      {/* Listado de Productos usando CartItem de Zustand */}
-      <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin max-h-[280px] lg:max-h-none divide-y-2 divide-dashed divide-border/30 dark:divide-border-dark/30">
-        {cart.map((item, index) => (
-          <div key={item.id} className={index > 0 ? "pt-3" : ""}>
-            <CartItem item={item} />
-          </div>
-        ))}
-      </div>
-
-      {/* Caja de Totales */}
-      <div className="pt-4 mt-4 border-t-2 border-border dark:border-border-dark flex justify-between items-end">
-        <span className="text-[10px] font-black uppercase tracking-widest text-text-muted italic">Total Estimado</span>
-        <span className="text-2xl font-black font-mono italic text-text-primary dark:text-text-inverse tracking-tighter">
-          ${total.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
-        </span>
-      </div>
-
-      {/* Formulario y Botón de Despacho */}
-      <form onSubmit={enviarPedido} className="mt-4 pt-4 border-t border-dashed border-border/60 dark:border-border-dark/60">
-        <OrderForm data={form} onChange={handleFormChange} />
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-black text-white dark:bg-primary dark:text-white py-4 rounded-neo font-black italic uppercase text-[11px] tracking-[0.2em] flex justify-center items-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50 shadow-md border-t border-white/10 mt-4"
-        >
-          {loading ? (
-            <Loader2 className="animate-spin" size={16} />
-          ) : (
-            <>
-              <Send size={14} /> PEDIR POR WHATSAPP
-            </>
-          )}
-        </button>
-      </form>
+    <div className="w-full h-full flex flex-col font-sans">
+      {/* CORREGIDO: Llamado como función normal */}
+      {renderCartContent()}
     </div>
   );
 }

@@ -1,67 +1,46 @@
 "use client";
 
-import { ShoppingBag } from "lucide-react";
 import { useCartStore } from "../store/useCartStore";
+import { ShoppingBag } from "lucide-react";
 
 interface CartFloatingButtonProps {
-  disabled?: boolean;
-  onClick: () => void; // Recibe la acción reactiva de apertura directamente desde el layout superior
+  onClick: () => void;
 }
 
-export function CartFloatingButton({
-  disabled,
-  onClick,
-}: CartFloatingButtonProps) {
-  // Selectores reactivos directo desde Zustand
+export function CartFloatingButton({ onClick }: CartFloatingButtonProps) {
   const cart = useCartStore((state) => state.cart);
 
-  // Reducción eficiente del estado global
+  // Calculamos la cantidad total de productos en el carrito en tiempo real
   const totalItems = cart.reduce((acc, item) => acc + item.cantidad, 0);
-  const totalPrice = cart.reduce(
-    (acc, item) => acc + item.precio * item.cantidad,
-    0,
-  );
 
-  // Si no hay elementos o el local está cerrado/deshabilitado, no interrumpe la navegación
-  if (totalItems === 0 || disabled) return null;
+  // Si no hay productos en el pedido, mantenemos el botón oculto para no estorbar la navegación inicial
+  if (totalItems === 0) return null;
 
   return (
-    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[60] w-full px-6 md:hidden animate-in fade-in slide-in-from-bottom-6 duration-500 font-sans">
+    <div className="fixed bottom-6 right-6 z-40 font-sans md:right-8 md:bottom-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
       <button
         type="button"
         onClick={onClick}
-        className="w-full bg-black text-white dark:bg-primary h-16 rounded-neo shadow-[0_20px_50px_rgba(0,0,0,0.4)] flex items-center justify-between px-6 active:scale-[0.98] transition-all border-t border-white/20 group select-none"
+        // Explicación de Clases:
+        // bg-custom y border-custom muerden la variable de la base de datos de Tailwind v4.
+        // Agregamos un borde inferior negro grueso (border-b-4 border-black) para darle el toque Neo-Brutalista definitivo.
+        className="relative flex items-center justify-center gap-3 bg-custom text-white p-5 rounded-2xl border-2 border-black border-b-6 shadow-xl hover:-translate-y-1 active:translate-y-0.5 active:border-b-2 transition-all cursor-pointer select-none group"
       >
-        {/* Lado Izquierdo: Contador e Identificadores */}
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <ShoppingBag
-              size={24}
-              className="group-hover:rotate-12 transition-transform"
-            />
-            <span className="absolute -top-2.5 -right-2.5 bg-primary dark:bg-black text-white text-[9px] font-black w-5.5 h-5.5 rounded-full flex items-center justify-center border-2 border-black dark:border-primary animate-bounce font-mono">
-              {totalItems}
-            </span>
-          </div>
-          <div className="flex flex-col items-start leading-none">
-            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary dark:text-black mb-1">
-              Check-out
-            </span>
-            <span className="text-xs font-black uppercase italic tracking-tight">
-              Ver mi pedido
-            </span>
-          </div>
-        </div>
+        {/* Ícono de bolsa con micro-rotación al hacer hover */}
+        <ShoppingBag
+          size={20}
+          strokeWidth={2.5}
+          className="group-hover:rotate-12 transition-transform duration-300"
+        />
 
-        {/* Lado Derecho: Precio Acumulado */}
-        <div className="flex flex-col items-end leading-none">
-          <span className="text-[8px] font-bold uppercase opacity-50 mb-1">
-            Subtotal
-          </span>
-          <span className="font-black text-lg italic tracking-tight font-mono">
-            ${totalPrice.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
-          </span>
-        </div>
+        <span className="font-black uppercase italic text-xs tracking-wider">
+          Ver mi Pedido
+        </span>
+
+        {/* Burbuja Flotante con el Contador de Ítems */}
+        <span className="absolute -top-2 -right-2 bg-black text-white dark:bg-white dark:text-black border-2 border-black text-[10px] font-black font-mono h-6 w-6 rounded-full flex items-center justify-center shadow-md animate-in zoom-in duration-300">
+          {totalItems}
+        </span>
       </button>
     </div>
   );

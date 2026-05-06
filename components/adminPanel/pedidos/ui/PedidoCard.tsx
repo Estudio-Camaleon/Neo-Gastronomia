@@ -5,12 +5,11 @@ import { actualizarEstadoPedido } from "@/app/actions/pedidos";
 import {
   MapPin,
   Phone,
-  MessageSquare,
   Check,
   ChevronRight,
   Loader2,
   ExternalLink,
-} from "lucide-react";
+} from "lucide-react"; // MessageSquare removido con éxito
 import { toast } from "sonner";
 
 interface PedidoItem {
@@ -35,7 +34,7 @@ interface PedidoData {
   cliente_whatsapp: string;
   es_delivery: boolean;
   direccion_entrega?: string | null;
-  notes?: string | null;
+  notas?: string | null; // Sincronizado a 'notas'
   pedido_items: PedidoItem[];
 }
 
@@ -46,7 +45,6 @@ interface PedidoCardProps {
 export function PedidoCard({ pedido }: PedidoCardProps) {
   const [isPending, setIsPending] = useState(false);
 
-  // Sistema de generación y despacho de plantillas de texto inteligentes
   const dispararMensajeWhatsApp = (estadoDestino: PedidoData["estado"]) => {
     const telefonoLimpio = pedido.cliente_whatsapp?.replace(/\D/g, "");
     if (!telefonoLimpio) return;
@@ -62,12 +60,11 @@ export function PedidoCard({ pedido }: PedidoCardProps) {
         mensaje = `¡Buenas noticias *${pedido.cliente_nombre}*! Tu pedido ya salió de la cocina y va en camino con el repartidor. 🛵 ¡Prepará la mesa!`;
         break;
       case "entregado":
-        // Si venía de preparación (Take Away) y salta directo a entregado, le avisa que retire
         if (pedido.estado === "preparando" || pedido.estado === "preparacion") {
           mensaje = `¡Hola *${pedido.cliente_nombre}*! Tu pedido ya está listo para retirar en el local. 🛍️ ¡Te esperamos!`;
           break;
         }
-        return; // El cierre de entrega regular de delivery no dispara mensaje automatizado
+        return;
       case "cancelado":
         mensaje = `Hola *${pedido.cliente_nombre}*, lamentablemente tuvimos que cancelar tu pedido en esta ocasión. 🙏 Disculpá las molestias ocasionadas. Quedamos a tu disposición.`;
         break;
@@ -85,8 +82,6 @@ export function PedidoCard({ pedido }: PedidoCardProps) {
       const res = await actualizarEstadoPedido(pedido.id, nuevoEstado);
       if (res.success) {
         toast.success(`ESTADO ACTUALIZADO: ${nuevoEstado.toUpperCase()}`);
-
-        // Ejecutamos el disparador semiautomático una vez impactado el cambio en Supabase
         dispararMensajeWhatsApp(nuevoEstado);
       } else {
         toast.error("Error al actualizar estado", { description: res.error });
@@ -114,7 +109,6 @@ export function PedidoCard({ pedido }: PedidoCardProps) {
 
   return (
     <div className="bg-white dark:bg-bg-darker border-2 border-border dark:border-border-dark rounded-super overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-all animate-in fade-in zoom-in-95 font-sans h-full">
-      {/* Encabezado del Ticket de Comanda */}
       <div
         className={`p-4 border-b-2 flex justify-between items-center transition-colors ${statusColors[pedido.estado] || "border-border dark:border-border-dark"}`}
       >
@@ -139,7 +133,6 @@ export function PedidoCard({ pedido }: PedidoCardProps) {
         </div>
       </div>
 
-      {/* Listado de Productos Requeridos */}
       <div className="p-5 space-y-4 flex-1 flex flex-col justify-between">
         <div className="space-y-2">
           {pedido.pedido_items?.map((item: PedidoItem) => (
@@ -161,7 +154,6 @@ export function PedidoCard({ pedido }: PedidoCardProps) {
           ))}
         </div>
 
-        {/* Detalles de Despacho y Contacto Directo */}
         <div className="pt-4 border-t-2 border-dashed border-border dark:border-border-dark space-y-3 mt-4">
           <a
             href={`https://wa.me/${pedido.cliente_whatsapp?.replace(/\D/g, "")}`}
@@ -192,9 +184,7 @@ export function PedidoCard({ pedido }: PedidoCardProps) {
         </div>
       </div>
 
-      {/* Botonera de Acciones Tácticas del Operador */}
       <div className="p-4 bg-gray-50 dark:bg-white/5 border-t-2 border-border dark:border-border-dark grid grid-cols-2 gap-2 select-none">
-        {/* Estado 1: Pendiente */}
         {pedido.estado === "pendiente" && (
           <button
             type="button"
@@ -212,7 +202,6 @@ export function PedidoCard({ pedido }: PedidoCardProps) {
           </button>
         )}
 
-        {/* Estado 2: Preparando en Cocina */}
         {(pedido.estado === "preparando" ||
           pedido.estado === "preparacion") && (
           <button
@@ -234,7 +223,6 @@ export function PedidoCard({ pedido }: PedidoCardProps) {
           </button>
         )}
 
-        {/* Estado 3: En viaje */}
         {pedido.estado === "enviado" && (
           <button
             type="button"
@@ -252,7 +240,6 @@ export function PedidoCard({ pedido }: PedidoCardProps) {
           </button>
         )}
 
-        {/* Botón de Cancelación Rápida Perimetral */}
         {pedido.estado !== "entregado" && pedido.estado !== "cancelado" && (
           <button
             type="button"

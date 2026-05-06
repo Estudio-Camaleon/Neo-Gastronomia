@@ -113,7 +113,7 @@ export default function LoginPage() {
             >
               <div className="relative h-5 w-5 group-hover:rotate-12 transition-transform duration-300">
                 <Image
-                  src="https://www.google.com/favicon.ico"
+                  src="/icons/google.svg" // <-- Ruta estática local libre de bloqueos
                   alt="Google"
                   fill
                   sizes="20px"
