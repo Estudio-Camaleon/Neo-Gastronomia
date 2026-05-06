@@ -28,14 +28,14 @@ interface PedidoData {
     | "preparacion"
     | "enviado"
     | "entregado"
-    | "cancelado"; // Sincronizado con "preparacion"
+    | "cancelado";
   cliente_nombre: string;
   metodo_pago?: string | null;
   total: number | string;
   cliente_whatsapp: string;
   es_delivery: boolean;
   direccion_entrega?: string | null;
-  notas?: string | null;
+  notes?: string | null;
   pedido_items: PedidoItem[];
 }
 
@@ -46,12 +46,48 @@ interface PedidoCardProps {
 export function PedidoCard({ pedido }: PedidoCardProps) {
   const [isPending, setIsPending] = useState(false);
 
+  // Sistema de generación y despacho de plantillas de texto inteligentes
+  const dispararMensajeWhatsApp = (estadoDestino: PedidoData["estado"]) => {
+    const telefonoLimpio = pedido.cliente_whatsapp?.replace(/\D/g, "");
+    if (!telefonoLimpio) return;
+
+    let mensaje = "";
+
+    switch (estadoDestino) {
+      case "preparando":
+      case "preparacion":
+        mensaje = `¡Hola *${pedido.cliente_nombre}*! Tu pedido ya fue aceptado y entró a la cocina. 🍳 Te avisamos cuando esté listo. ¡Muchas gracias por elegirnos!`;
+        break;
+      case "enviado":
+        mensaje = `¡Buenas noticias *${pedido.cliente_nombre}*! Tu pedido ya salió de la cocina y va en camino con el repartidor. 🛵 ¡Prepará la mesa!`;
+        break;
+      case "entregado":
+        // Si venía de preparación (Take Away) y salta directo a entregado, le avisa que retire
+        if (pedido.estado === "preparando" || pedido.estado === "preparacion") {
+          mensaje = `¡Hola *${pedido.cliente_nombre}*! Tu pedido ya está listo para retirar en el local. 🛍️ ¡Te esperamos!`;
+          break;
+        }
+        return; // El cierre de entrega regular de delivery no dispara mensaje automatizado
+      case "cancelado":
+        mensaje = `Hola *${pedido.cliente_nombre}*, lamentablemente tuvimos que cancelar tu pedido en esta ocasión. 🙏 Disculpá las molestias ocasionadas. Quedamos a tu disposición.`;
+        break;
+      default:
+        return;
+    }
+
+    const url = `https://wa.me/${telefonoLimpio}?text=${encodeURIComponent(mensaje)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
   const handleEstado = async (nuevoEstado: PedidoData["estado"]) => {
     setIsPending(true);
     try {
       const res = await actualizarEstadoPedido(pedido.id, nuevoEstado);
       if (res.success) {
         toast.success(`ESTADO ACTUALIZADO: ${nuevoEstado.toUpperCase()}`);
+
+        // Ejecutamos el disparador semiautomático una vez impactado el cambio en Supabase
+        dispararMensajeWhatsApp(nuevoEstado);
       } else {
         toast.error("Error al actualizar estado", { description: res.error });
       }
@@ -62,7 +98,6 @@ export function PedidoCard({ pedido }: PedidoCardProps) {
     }
   };
 
-  // Paleta indexada estricta adaptada a la estética Neo-Brutalista (Admite ambas variantes por seguridad)
   const statusColors: Record<PedidoData["estado"], string> = {
     pendiente:
       "border-amber-500 text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-500/10",
@@ -128,7 +163,6 @@ export function PedidoCard({ pedido }: PedidoCardProps) {
 
         {/* Detalles de Despacho y Contacto Directo */}
         <div className="pt-4 border-t-2 border-dashed border-border dark:border-border-dark space-y-3 mt-4">
-          {/* Enlace Seguro a WhatsApp */}
           <a
             href={`https://wa.me/${pedido.cliente_whatsapp?.replace(/\D/g, "")}`}
             target="_blank"
@@ -143,7 +177,6 @@ export function PedidoCard({ pedido }: PedidoCardProps) {
             />
           </a>
 
-          {/* Dirección Condicional */}
           {pedido.es_delivery && pedido.direccion_entrega && (
             <div className="flex items-start gap-2 text-[10px] font-black text-text-muted dark:text-text-muted/80 uppercase italic">
               <MapPin size={12} className="text-primary mt-0.5 shrink-0" />
@@ -151,11 +184,9 @@ export function PedidoCard({ pedido }: PedidoCardProps) {
             </div>
           )}
 
-          {/* Notas del Cliente */}
-          {pedido.notas && (
-            <div className="flex items-start gap-2 p-3 bg-gray-50 dark:bg-white/5 rounded-neo text-[10px] font-bold text-text-muted italic border border-border/50 dark:border-border-dark/50">
-              <MessageSquare size={12} className="shrink-0 text-primary" />
-              <span>&quot;{pedido.notas}&quot;</span>
+          {pedido.direccion_entrega && !pedido.es_delivery && (
+            <div className="flex items-start gap-2 text-[10px] font-black text-text-muted dark:text-text-muted/80 uppercase italic">
+              <span className="text-primary font-black">🛍️ TAKE AWAY</span>
             </div>
           )}
         </div>
@@ -167,9 +198,9 @@ export function PedidoCard({ pedido }: PedidoCardProps) {
         {pedido.estado === "pendiente" && (
           <button
             type="button"
-            onClick={() => handleEstado("preparacion")} // Cambiado a la firma unificada 'preparacion'
+            onClick={() => handleEstado("preparacion")}
             disabled={isPending}
-            className="col-span-2 bg-black text-white dark:bg-primary py-4 rounded-neo font-black uppercase italic text-[11px] tracking-[0.2em] flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95 disabled:opacity-50 border-t border-white/10"
+            className="col-span-2 bg-black text-white dark:bg-primary py-4 rounded-neo font-black uppercase italic text-[11px] tracking-[0.2em] flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95 disabled:opacity-50 border-t border-white/10 cursor-pointer"
           >
             {isPending ? (
               <Loader2 className="animate-spin" size={16} />
@@ -181,7 +212,7 @@ export function PedidoCard({ pedido }: PedidoCardProps) {
           </button>
         )}
 
-        {/* Estado 2: Preparando en Cocina (Captura tanto 'preparando' como 'preparacion') */}
+        {/* Estado 2: Preparando en Cocina */}
         {(pedido.estado === "preparando" ||
           pedido.estado === "preparacion") && (
           <button
@@ -190,7 +221,7 @@ export function PedidoCard({ pedido }: PedidoCardProps) {
               handleEstado(pedido.es_delivery ? "enviado" : "entregado")
             }
             disabled={isPending}
-            className="col-span-2 bg-primary text-white py-4 rounded-neo font-black uppercase italic text-[11px] tracking-[0.2em] flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95 disabled:opacity-50 border-t border-white/10"
+            className="col-span-2 bg-primary text-white py-4 rounded-neo font-black uppercase italic text-[11px] tracking-[0.2em] flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95 disabled:opacity-50 border-t border-white/10 cursor-pointer"
           >
             {isPending ? (
               <Loader2 className="animate-spin" size={16} />
@@ -209,7 +240,7 @@ export function PedidoCard({ pedido }: PedidoCardProps) {
             type="button"
             onClick={() => handleEstado("entregado")}
             disabled={isPending}
-            className="col-span-2 bg-emerald-600 text-white py-4 rounded-neo font-black uppercase italic text-[11px] tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all active:scale-95 disabled:opacity-50 border-t border-white/10"
+            className="col-span-2 bg-emerald-600 text-white py-4 rounded-neo font-black uppercase italic text-[11px] tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all active:scale-95 disabled:opacity-50 border-t border-white/10 cursor-pointer"
           >
             {isPending ? (
               <Loader2 className="animate-spin" size={16} />
@@ -227,7 +258,7 @@ export function PedidoCard({ pedido }: PedidoCardProps) {
             type="button"
             onClick={() => handleEstado("cancelado")}
             disabled={isPending}
-            className="col-span-2 mt-1 py-2 text-[10px] font-black uppercase text-error hover:underline transition-all disabled:opacity-30 tokens-none"
+            className="col-span-2 mt-1 py-2 text-[10px] font-black uppercase text-error hover:underline transition-all disabled:opacity-30 cursor-pointer"
           >
             RECHAZAR PEDIDO
           </button>
