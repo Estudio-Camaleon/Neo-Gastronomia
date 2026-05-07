@@ -12,6 +12,8 @@ interface PublicCartProps {
   onCloseDrawer?: () => void;
 }
 
+
+
 export function PublicCart({
   negocioId,
   isDrawer = false,
@@ -36,7 +38,6 @@ export function PublicCart({
     if (isDrawer && onCloseDrawer) onCloseDrawer();
   };
 
-  // CORREGIDO: Cambiado de componente funcional estático a función de render regular para silenciar a ESLint
   const renderCartContent = () => (
     <div className="flex flex-col h-full justify-between flex-1">
       {cart.length === 0 ? (
@@ -59,10 +60,19 @@ export function PublicCart({
                 key={item.id}
                 className="py-4 flex items-center justify-between gap-2 animate-in fade-in duration-200"
               >
-                <div className="space-y-0.5 flex-1">
+                <div className="space-y-0.5 flex-1 pr-2">
                   <p className="font-black uppercase italic text-xs tracking-tight text-text-primary dark:text-text-inverse line-clamp-1">
                     {item.nombre}
                   </p>
+
+                  {/* --- NUEVO: RENDERIZADO DE DETALLES (EXTRAS / VARIANTES) --- */}
+                  {item.detalles && (
+                    <p className="text-[10px] leading-tight font-medium text-text-secondary dark:text-text-muted line-clamp-2 pb-0.5">
+                      {item.detalles}
+                    </p>
+                  )}
+                  {/* -------------------------------------------------------- */}
+
                   <p className="font-mono text-xs font-black text-text-muted">
                     $
                     {(item.precio * item.cantidad).toLocaleString("es-AR", {
@@ -71,7 +81,7 @@ export function PublicCart({
                   </p>
                 </div>
 
-                <div className="flex items-center gap-1 bg-gray-50 dark:bg-white/5 border-2 border-border dark:border-border-dark rounded-xl p-1 select-none">
+                <div className="flex items-center gap-1 bg-gray-50 dark:bg-white/5 border-2 border-border dark:border-border-dark rounded-xl p-1 select-none shrink-0">
                   <button
                     type="button"
                     onClick={() => removeItem(item.id)}
@@ -94,6 +104,7 @@ export function PublicCart({
             ))}
           </div>
 
+          {/* TOTAL Y ACCIONES INFERIORES */}
           <div className="pt-4 border-t-2 border-border dark:border-border-dark space-y-4 mt-4 bg-white dark:bg-bg-darker">
             <div className="flex items-end justify-between font-mono select-none">
               <div>
@@ -142,7 +153,6 @@ export function PublicCart({
     </div>
   );
 
-  /* RENDERIZADO CONDICIONAL DE ARQUITECTURA (DRAWER VS INLINE) */
   if (isDrawer) {
     return (
       <div className="fixed inset-0 z-50 flex justify-end font-sans">
@@ -170,7 +180,6 @@ export function PublicCart({
             </button>
           </div>
 
-          {/* CORREGIDO: Llamado como función normal, no como tag JSX */}
           {renderCartContent()}
         </div>
       </div>
@@ -179,7 +188,6 @@ export function PublicCart({
 
   return (
     <div className="w-full h-full flex flex-col font-sans">
-      {/* CORREGIDO: Llamado como función normal */}
       {renderCartContent()}
     </div>
   );

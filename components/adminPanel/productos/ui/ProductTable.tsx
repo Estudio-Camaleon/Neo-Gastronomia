@@ -13,8 +13,8 @@ import {
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import Image from "next/image";
+import { IngredientBadge } from "./IngredientBadge"; // 🚀 Importación del nuevo Badge
 import type {
-  RealtimePostgresChangesPayload,
   RealtimeChannel,
 } from "@supabase/supabase-js";
 
@@ -22,6 +22,8 @@ interface CategoriaRelacion {
   nombre: string;
 }
 
+// 1. En los imports de arriba, quita 'RealtimePostgresChangesPayload'
+// 2. En la interface ProductoInventario, cambia configuracion:
 interface ProductoInventario {
   id: string;
   nombre: string;
@@ -29,6 +31,7 @@ interface ProductoInventario {
   precio: number | string;
   imagen_url: string | null;
   disponible: boolean;
+  configuracion: { grupos_opciones?: Array<Record<string, unknown>> } | null;
   categorias: CategoriaRelacion | null;
 }
 
@@ -54,6 +57,7 @@ export function ProductTable({ negocioId }: ProductTableProps) {
           precio,
           imagen_url,
           disponible,
+          configuracion,
           categorias ( nombre )
         `,
         )
@@ -62,7 +66,7 @@ export function ProductTable({ negocioId }: ProductTableProps) {
 
       if (error) throw error;
 
-      // Doble caspeo seguro controlado para erradicar el error de 'any'
+      // Doble casteo seguro controlado para erradicar el error de 'any'
       setProductos((data as unknown as ProductoInventario[]) || []);
     } catch (error) {
       console.error("Error al sincronizar inventario:", error);
@@ -71,9 +75,8 @@ export function ProductTable({ negocioId }: ProductTableProps) {
     }
   }, [supabase, negocioId]);
 
-  // Escucha activa en tiempo real sin efectos sincrónicos parasitarios
+  // Escucha activa en tiempo real
   useEffect(() => {
-    // Encapsulamiento seguro para silenciar la validación de renderizado de Next.js
     const inicializarTabla = async () => {
       await cargarProductos();
     };
@@ -90,8 +93,7 @@ export function ProductTable({ negocioId }: ProductTableProps) {
           table: "productos",
           filter: `negocio_id=eq.${negocioId}`,
         },
-        (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
-          console.log("Cambio en inventario detectado:", payload.eventType);
+        () => {
           cargarProductos();
         },
       )
@@ -100,7 +102,7 @@ export function ProductTable({ negocioId }: ProductTableProps) {
     return () => {
       supabase.removeChannel(canal);
     };
-  }, [cargarProductos, supabase, negocioId]); // Array de dependencias completo
+  }, [cargarProductos, supabase, negocioId]);
 
   const handleEliminar = async (id: string, nombre: string) => {
     const confirmar = confirm(`¿Estás seguro de eliminar "${nombre}"?`);
@@ -139,7 +141,7 @@ export function ProductTable({ negocioId }: ProductTableProps) {
                 Categoría
               </th>
               <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">
-                Precio
+                Precio Base
               </th>
               <th className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">
                 Estado
@@ -155,7 +157,7 @@ export function ProductTable({ negocioId }: ProductTableProps) {
                 key={prod.id}
                 className="group hover:bg-primary/5 dark:hover:bg-primary/5 transition-colors"
               >
-                {/* INFO PRINCIPAL */}
+                {/* INFO PRINCIPAL CON BADGE DE INGREDIENTES */}
                 <td className="p-6">
                   <div className="flex items-center gap-4">
                     <div className="relative w-14 h-14 shrink-0 rounded-xl overflow-hidden border-2 border-border dark:border-border-dark group-hover:border-primary transition-colors bg-bg-main dark:bg-bg-dark flex items-center justify-center">
@@ -175,11 +177,15 @@ export function ProductTable({ negocioId }: ProductTableProps) {
                       )}
                     </div>
                     <div className="space-y-1">
-                      <p className="font-black uppercase italic text-sm leading-tight tracking-tighter text-text-primary dark:text-text-inverse">
-                        {prod.nombre}
-                      </p>
+                      <div className="flex flex-col gap-1.5">
+                        <p className="font-black uppercase italic text-sm leading-tight tracking-tighter text-text-primary dark:text-text-inverse">
+                          {prod.nombre}
+                        </p>
+                        {/* 🚀 Inyección del Badge de Ingredientes */}
+                        <IngredientBadge configuracion={prod.configuracion} />
+                      </div>
                       <p className="text-[10px] font-bold text-text-muted line-clamp-1 max-w-[200px]">
-                        {prod.descripcion || "Sin descripción técnica añadida"}
+                        {prod.descripcion || "Sin descripción técnica"}
                       </p>
                     </div>
                   </div>
@@ -203,7 +209,7 @@ export function ProductTable({ negocioId }: ProductTableProps) {
                   </span>
                 </td>
 
-                {/* ESTADO DISPONIBLE */}
+                {/* ESTADO */}
                 <td className="p-6">
                   {prod.disponible ? (
                     <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
@@ -246,38 +252,19 @@ export function ProductTable({ negocioId }: ProductTableProps) {
             ))}
           </tbody>
         </table>
-
-        {productos.length === 0 && (
-          <div className="py-32 flex flex-col items-center justify-center text-center space-y-4">
-            <div className="p-6 bg-gray-50 dark:bg-white/5 rounded-full border-2 border-dashed border-border dark:border-border-dark">
-              <Package
-                size={40}
-                className="text-border dark:text-border-dark"
-              />
-            </div>
-            <div className="space-y-1">
-              <p className="font-black uppercase italic tracking-tighter text-text-muted">
-                No se detectaron productos en el radar
-              </p>
-              <p className="text-[9px] font-bold uppercase tracking-widest text-text-muted opacity-50">
-                Inicia la carga desde el formulario superior
-              </p>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Footer de la tabla */}
       <div className="p-4 bg-gray-50/50 dark:bg-white/5 border-t-2 border-border/30 dark:border-border-dark/30 flex justify-between items-center font-mono select-none">
         <p className="text-[9px] font-black uppercase tracking-widest text-text-muted">
-          Mostrando {productos.length} items registrados
+          Sincronizados: {productos.length} registros
         </p>
         <div className="flex gap-2">
           <button
             type="button"
             className="text-[9px] font-black uppercase tracking-widest text-primary flex items-center gap-1 hover:underline"
           >
-            Exportar CSV <ExternalLink size={10} />
+            Exportar Catálogo <ExternalLink size={10} />
           </button>
         </div>
       </div>

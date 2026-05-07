@@ -1,11 +1,12 @@
 import { create } from "zustand";
 
 // Interfaz para representar un ítem individual dentro del carrito de compras
-export interface CartItem {
+interface CartItem {
   id: string;
   nombre: string;
   precio: number;
   cantidad: number;
+  detalles?: string; // <--- ¡ESTO ES LO QUE FALTA AGREGAR!
 }
 
 // Contrato de la API de estado global del carrito gerenciado por Zustand

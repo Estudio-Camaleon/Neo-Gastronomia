@@ -1,144 +1,112 @@
 "use client";
 
-import { useState } from "react";
-import { CategorySelect } from "../ui/CategorySelect"; // Ruta relativa ajustada quirúrgicamente
-import { guardarProducto } from "@/app/actions/productos";
-import { toast } from "sonner";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { X, Loader2 } from "lucide-react";
+import { ProductoForm } from "../forms/ProductoForm";
+
+// 1. Tipamos las Categorías
+interface Categoria {
+  id: string;
+  nombre: string;
+}
+
+// 2. Tipamos el Producto
+interface ProductoData {
+  id: string;
+  nombre: string;
+  descripcion: string | null;
+  precio: string | number;
+  imagen_url: string | null;
+  categoria_id: string | null;
+  disponible: boolean;
+  configuracion?: {
+    variantes?: Array<{ nombre: string; precio: number | string }>;
+    grupo_extras?: Array<{
+      id: string;
+      titulo: string;
+      requerido: boolean;
+      multiple: boolean;
+      items: Array<{ id: string; nombre: string; precio: number | string }>;
+    }>;
+  } | null;
+}
 
 interface ProductModalProps {
   negocioId: string;
   onClose: () => void;
+  productoAEditar?: ProductoData | null;
 }
 
-export function ProductModal({ negocioId, onClose }: ProductModalProps) {
-  const [loading, setLoading] = useState(false);
-  const [categoriaId, setCategoriaId] = useState("");
+export function ProductModal({
+  negocioId,
+  onClose,
+  productoAEditar = null,
+}: ProductModalProps) {
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [loadingCats, setLoadingCats] = useState(true);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (loading) return;
+  // Buscamos las categorías y manejamos el scroll del body
+  useEffect(() => {
+    const fetchCategorias = async () => {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("categorias")
+        .select("id, nombre")
+        .eq("negocio_id", negocioId);
 
-    if (!categoriaId) {
-      toast.error("Por favor, selecciona una categoría.");
-      return;
-    }
+      if (data) setCategorias(data);
+      setLoadingCats(false);
+    };
+    fetchCategorias();
 
-    setLoading(true);
-
-    try {
-      const formData = new FormData(e.currentTarget);
-
-      // Armamos el objeto con las claves exactas sanitizadas
-      const data = {
-        nombre: (formData.get("nombre") as string).trim(),
-        precio: formData.get("precio") as string,
-        descripcion: (formData.get("descripcion") as string)?.trim() || null,
-        imagen_url: null, // Inicialización controlada sin foto
-        categoria_id: categoriaId,
-        disponible: true,
-      };
-
-      const res = await guardarProducto(negocioId, data);
-
-      if (res.success) {
-        toast.success("¡Producto creado con éxito! 🍔");
-        onClose();
-      } else {
-        toast.error(`Error: ${res.error}`);
-      }
-    } catch {
-      toast.error("Ocurrió un error inesperado al conectar con el servidor.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    // UX Pro: Bloqueamos el scroll del fondo mientras el modal está abierto
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [negocioId]);
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-60 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-bg-darker w-full max-w-md rounded-super border-2 border-border dark:border-border-dark shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        {/* Cabecera del Modal */}
-        <div className="p-6 flex justify-between items-center border-b-2 border-border dark:border-border-dark">
-          <h2 className="text-xl font-black text-text-primary dark:text-text-inverse uppercase tracking-tighter italic">
-            Nuevo Producto
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 text-text-primary dark:text-text-inverse hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors"
-          >
-            <X size={20} />
-          </button>
-        </div>
+    // Backdrop: En mobile se alinea abajo (items-end), en PC al centro (items-center)
+    <div className="fixed inset-0 z-[9999] flex items-end md:items-center justify-center bg-black/70 sm:p-4 transition-all">
+      {/* Contenedor Principal (Responsive):
+        - Mobile: Ocupa el 100% del ancho, sube desde abajo (bottom sheet).
+        - Desktop: max-w-5xl (más ancho para las 3 columnas), centrado.
+      */}
+      <div className="relative w-full max-w-5xl max-h-[95vh] md:max-h-[90vh] flex flex-col animate-in slide-in-from-bottom-full md:slide-in-from-bottom-8 md:zoom-in-95 duration-300">
+        {/* Botón de cierre fijo:
+          Se queda siempre visible aunque scrollees el formulario.
+          En desktop sale un poco hacia afuera, en mobile queda adentro.
+        */}
+        <button
+          onClick={onClose}
+          className="absolute z-50 top-4 right-4 md:-top-5 md:-right-5 p-2 md:p-3 bg-error text-white rounded-full border-2 md:border-4 border-black hover:scale-110 hover:rotate-90 active:scale-95 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center"
+          aria-label="Cerrar"
+        >
+          <X size={24} strokeWidth={3} />
+        </button>
 
-        {/* Cuerpo del Formulario */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          <div className="space-y-1.5">
-            <label className="text-[10px] uppercase font-black text-text-muted tracking-widest ml-1">
-              Nombre del Producto
-            </label>
-            <input
-              required
-              name="nombre"
-              type="text"
-              disabled={loading}
-              placeholder="Ej: Burger Triple Cheddar"
-              className="w-full bg-gray-50 dark:bg-black/20 border-2 border-border dark:border-border-dark p-3 rounded-xl focus:border-primary text-text-primary dark:text-text-inverse outline-none transition-all font-bold placeholder:font-normal uppercase text-sm"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-[10px] uppercase font-black text-text-muted tracking-widest ml-1">
-                Precio ($)
-              </label>
-              <input
-                required
-                name="precio"
-                type="number"
-                step="any"
-                disabled={loading}
-                placeholder="0.00"
-                className="w-full bg-gray-50 dark:bg-black/20 border-2 border-border dark:border-border-dark p-3 rounded-xl focus:border-primary text-text-primary dark:text-text-inverse outline-none transition-all font-bold text-sm font-mono"
-              />
+        {/* Área Scrolleable del Formulario:
+          Solo esta parte scrollea, manteniendo el botón X en su lugar.
+        */}
+        <div className="w-full h-full overflow-y-auto bg-transparent rounded-t-[32px] md:rounded-[32px] pb-10 md:pb-0">
+          {loadingCats ? (
+            <div className="bg-white dark:bg-bg-darker p-20 w-full rounded-t-[32px] md:rounded-[32px] flex flex-col justify-center items-center h-[50vh] md:h-64 border-t-4 md:border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+              <Loader2 className="animate-spin text-primary mb-4" size={48} />
+              <p className="text-[10px] font-black uppercase tracking-widest text-text-muted italic">
+                Cargando sistema...
+              </p>
             </div>
-
-            {/* Inyección segura del selector restringido al contexto del local */}
-            <CategorySelect
+          ) : (
+            <ProductoForm
               negocioId={negocioId}
-              selectedId={categoriaId}
-              onChange={setCategoriaId}
+              categorias={categorias}
+              initialData={productoAEditar}
+              onSuccess={onClose}
             />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-[10px] uppercase font-black text-text-muted tracking-widest ml-1">
-              Descripción (Opcional)
-            </label>
-            <textarea
-              name="descripcion"
-              rows={2}
-              disabled={loading}
-              placeholder="Detalla los ingredientes..."
-              className="w-full bg-gray-50 dark:bg-black/20 border-2 border-border dark:border-border-dark p-3 rounded-xl focus:border-primary text-text-primary dark:text-text-inverse outline-none transition-all font-medium text-sm"
-            />
-          </div>
-
-          <button
-            disabled={loading}
-            type="submit"
-            className="w-full bg-primary hover:opacity-90 text-white p-4 rounded-neo font-black uppercase tracking-widest shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 border-t border-white/10"
-          >
-            {loading ? (
-              <>
-                <Loader2 size={18} className="animate-spin" />
-                Sincronizando...
-              </>
-            ) : (
-              "Crear Producto 🚀"
-            )}
-          </button>
-        </form>
+          )}
+        </div>
       </div>
     </div>
   );
