@@ -46,13 +46,6 @@ export function MenuUnifiedView({
   const finalColor =
     !colorConfig || colorConfig === "#000000" ? "#1c7a42" : colorConfig;
 
-  // 🔍 LOG EN CLIENTE 2: Layout Unificado
-  console.log("=== 🛠️ CLIENT LOG: MENU UNIFIED VIEW ===");
-  console.log("colorConfig recibido en la vista:", colorConfig);
-  console.log("finalColor calculado en la vista:", finalColor);
-  console.log("Categoría activa actual:", activeCategory);
-  console.log("=========================================");
-
   return (
     <div
       style={{ "--custom-brand-color": finalColor } as React.CSSProperties}

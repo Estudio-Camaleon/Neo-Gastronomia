@@ -33,11 +33,6 @@ export function MenuWrapper({
   const finalColor =
     !colorConfig || colorConfig === "#000000" ? "#1c7a42" : colorConfig;
 
-  // 🔍 LOG EN CLIENTE 1: Wrapper Maatriz
-  console.log("=== 🚀 CLIENT LOG: MENU WRAPPER ===");
-  console.log("Color prop recibido del Server:", colorConfig);
-  console.log("Color final procesado en Wrapper:", finalColor);
-  console.log("====================================");
 
   return (
     <div
