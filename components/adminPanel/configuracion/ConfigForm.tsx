@@ -11,7 +11,9 @@ import { GeneralInfoSection } from "./sections/GeneralInfoSection";
 import { CatalogDesignSection } from "./sections/CatalogDesignSection";
 import { ScheduleEditor } from "./editors/ScheduleEditor";
 
+// --- INTERFACES UNIFICADAS PARA EL FORMULARIO ---
 interface HorarioDia {
+  activo?: boolean; // Agregado por seguridad si tu editor lo usa
   inicio: string;
   fin: string;
 }
@@ -59,10 +61,10 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
     slug: initialData?.slug || "",
     whatsapp: initialData?.whatsapp || "",
     direccion: initialData?.direccion || "",
-    color_primary: initialData?.color_primary || "#1c7a42", // Ajustado por defecto al verde base
+    color_primary: initialData?.color_primary || "#1c7a42",
     logo_url: initialData?.logo_url || "",
     banner_url: initialData?.banner_url || "",
-    horarios: (initialData?.horarios as ScheduleData) || {},
+    horarios: (initialData?.horarios as unknown as ScheduleData) || {},
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -105,13 +107,12 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
 
       setFormData((prev) => ({ ...prev, [field]: publicUrl }));
       toast.success("IMAGEN CARGADA", {
-        description:
-          "Se ha actualizado la vista previa. No olvides guardar los cambios.",
+        description: "Previsualización lista. Recordá guardar para aplicar.",
       });
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Error desconocido";
-      toast.error("ERROR DE ALMACENAMIENTO", { description: errorMessage });
+      toast.error("ERROR DE STORAGE", { description: errorMessage });
     } finally {
       setUploading(null);
     }
@@ -120,17 +121,15 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Control de seguridad si no cargaron los datos iniciales
     if (!initialData?.id) {
       return toast.error("ERROR DE REFERENCIA", {
-        description: "No se encontró el ID único del negocio para actualizar.",
+        description: "No se encontró el ID del negocio.",
       });
     }
 
     setIsPending(true);
 
     try {
-      // CORREGIDO: Removido 'count' y la opción exacta para limpiar el warning del linter
       const { error } = await supabase
         .from("negocios")
         .update({
@@ -148,19 +147,15 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
 
       if (error) throw error;
 
-      toast.success("DATOS SINCRONIZADOS", {
-        description: "La configuración ha sido actualizada correctamente.",
+      toast.success("CONFIGURACIÓN ACTUALIZADA", {
         icon: <CheckCircle2 className="text-green-500" />,
       });
 
-      // Refrescamos la ruta para que limpie estados y actualice Server Components
       router.refresh();
     } catch (error) {
       const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Error al conectar con la base de datos.";
-      toast.error("ERROR DE ACTUALIZACIÓN", { description: errorMessage });
+        error instanceof Error ? error.message : "Error de base de datos.";
+      toast.error("ERROR AL GUARDAR", { description: errorMessage });
     } finally {
       setIsPending(false);
     }
@@ -169,7 +164,7 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="grid gap-10 animate-in fade-in duration-700 font-sans"
+      className="grid gap-10 animate-in fade-in duration-700 font-sans max-w-5xl mx-auto pb-20"
     >
       <BrandingSection
         logoUrl={formData.logo_url}
@@ -186,11 +181,21 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
         onChange={handleChange}
       />
 
-      <section className="bg-white dark:bg-bg-darker border-2 border-border dark:border-border-dark rounded-super p-8 shadow-sm transition-colors">
+      <section className="bg-white dark:bg-bg-darker border-4 border-black rounded-[2rem] p-6 md:p-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all">
+        <h3 className="text-xl font-black uppercase italic mb-6 tracking-tighter">
+          Horarios de Atención
+        </h3>
+        {/* 
+          CORRECCIÓN DEL TYPE ERROR: 
+          Casteamos el retorno del onChange para asegurar compatibilidad en el build 
+        */}
         <ScheduleEditor
           schedule={formData.horarios}
           onChange={(newSchedule) =>
-            setFormData((prev) => ({ ...prev, horarios: newSchedule }))
+            setFormData((prev) => ({
+              ...prev,
+              horarios: newSchedule as unknown as ScheduleData,
+            }))
           }
         />
       </section>
@@ -206,18 +211,19 @@ export function ConfigForm({ initialData, userId }: ConfigFormProps) {
         }}
       />
 
+      {/* Botón Flotante con Estilo NEO */}
       <div className="sticky bottom-10 z-50 flex justify-end">
         <button
           type="submit"
           disabled={isPending}
-          className="group relative flex items-center gap-4 bg-primary text-white px-14 py-6 rounded-full shadow-2xl shadow-primary/40 font-black uppercase tracking-[0.2em] border-4 border-white dark:border-bg-dark hover:scale-105 active:scale-95 transition-all disabled:opacity-70 select-none text-xs border-t border-white/10 cursor-pointer"
+          className="group flex items-center gap-4 bg-primary text-black px-12 py-5 rounded-full border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] active:scale-95 transition-all disabled:opacity-70 font-black uppercase italic tracking-widest text-sm"
         >
           {isPending ? (
             <Loader2 className="animate-spin" size={20} />
           ) : (
             <Save size={20} />
           )}
-          <span>{isPending ? "SINCRONIZANDO..." : "ACTUALIZAR NEGOCIO"}</span>
+          <span>{isPending ? "Sincronizando..." : "Guardar Cambios"}</span>
         </button>
       </div>
     </form>
