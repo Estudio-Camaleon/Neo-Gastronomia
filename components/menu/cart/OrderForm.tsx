@@ -1,15 +1,36 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowLeft, Check, Loader2 } from "lucide-react";
+import { useState, ComponentPropsWithoutRef } from "react";
+import { ArrowLeft, Check, Loader2, Truck } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+
+// Importamos tus componentes NEO
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+
+// Definimos el Textarea con tipos estrictos para el Linter
+const Textarea = ({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"textarea">) => (
+  <textarea
+    className={cn(
+      "flex min-h-[80px] w-full bg-white dark:bg-zinc-900 px-4 py-3 text-sm font-bold transition-all border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] placeholder:text-gray-400 focus-visible:outline-none focus-visible:translate-x-[2px] focus-visible:translate-y-[2px] focus-visible:shadow-none focus-visible:border-custom disabled:opacity-50 resize-none",
+      className,
+    )}
+    {...props}
+  />
+);
 
 interface CartItem {
   id: string;
   nombre: string;
   precio: number;
   cantidad: number;
+  detalles?: string;
 }
 
 interface OrderFormProps {
@@ -18,6 +39,10 @@ interface OrderFormProps {
   total: number;
   onBack: () => void;
   onSuccess: () => void;
+  config: {
+    moneda_simbolo?: string;
+    costo_envio?: number;
+  };
 }
 
 interface FormState {
@@ -32,9 +57,10 @@ interface FormState {
 export function OrderForm({
   negocioId,
   cart,
-  total,
+  total: subtotal,
   onBack,
   onSuccess,
+  config,
 }: OrderFormProps) {
   const supabase = createClient();
   const [isPending, setIsPending] = useState(false);
@@ -47,6 +73,10 @@ export function OrderForm({
     notas: "",
   });
 
+  const costoEnvioActual = form.esDelivery ? config.costo_envio || 0 : 0;
+  const totalFinal = subtotal + costoEnvioActual;
+  const simbolo = config.moneda_simbolo || "$";
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
@@ -54,62 +84,50 @@ export function OrderForm({
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Función encargada de estructurar el mensaje de texto para WhatsApp
   const dispararWhatsApp = (negocioWhatsapp: string, pedidoId: string) => {
     const numeroLimpio = negocioWhatsapp.replace(/\D/g, "");
     if (!numeroLimpio) return;
 
-    const encabezado = `*🆕 NUEVO PEDIDO EN NEO (#${pedidoId.slice(0, 6).toUpperCase()})*\n`;
-    const datosCliente = `\n👤 *Cliente:* ${form.nombre}\n📱 *WhatsApp:* ${form.whatsapp}\n🛵 *Entrega:* ${form.esDelivery ? `Delivery\n📍 *Dirección:* ${form.direccion}` : "Retiro en el local (Take Away)"}\n💳 *Pago:* ${form.metodoPago.toUpperCase()}\n`;
+    const encabezado = `*🆕 NUEVO PEDIDO (#${pedidoId.slice(0, 6).toUpperCase()})*\n`;
 
-    let itemsTexto = `\n📦 *DETALLE DEL PEDIDO:*\n`;
+    const datosCliente =
+      [
+        `👤 *Cliente:* ${form.nombre}`,
+        `📱 *WhatsApp:* ${form.whatsapp}`,
+        `🛵 *Entrega:* ${form.esDelivery ? `DELIVERY\n📍 *Dirección:* ${form.direccion}` : "RETIRO EN LOCAL"}`,
+        `💳 *Pago:* ${form.metodoPago.toUpperCase()}`,
+      ].join("\n") + "\n";
+
+    let itemsTexto = `\n📦 *DETALLE:* \n`;
     cart.forEach((item) => {
-      itemsTexto += `• ${item.cantidad}x ${item.nombre.toUpperCase()} - $${(item.precio * item.cantidad).toLocaleString("es-AR")}\n`;
+      itemsTexto += `• ${item.cantidad}x ${item.nombre.toUpperCase()} ${item.detalles ? `(_${item.detalles}_)` : ""} - ${simbolo}${(item.precio * item.cantidad).toLocaleString("es-AR")}\n`;
     });
 
-    const notasTexto = form.notas.trim() ? `\n📝 *Notas:* ${form.notas}\n` : "";
-    const totalTexto = `\n💰 *TOTAL A PAGAR: $${total.toLocaleString("es-AR", { minimumFractionDigits: 2 })}*`;
+    const mensajeCompleto = `${encabezado}${datosCliente}${itemsTexto}\n---\n*Subtotal:* ${simbolo}${subtotal.toLocaleString("es-AR")}\n${form.esDelivery ? `*Envío:* ${simbolo}${costoEnvioActual.toLocaleString("es-AR")}\n` : ""}💰 *TOTAL: ${simbolo}${totalFinal.toLocaleString("es-AR", { minimumFractionDigits: 2 })}*\n\n📝 *Notas:* ${form.notas || "Sin notas"}\n\n_Enviado desde NEO_`;
 
-    const mensajeCompleto = `${encabezado}${datosCliente}${itemsTexto}${notasTexto}${totalTexto}`;
-
-    const url = `https://wa.me/${numeroLimpio}?text=${encodeURIComponent(mensajeCompleto)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+    window.open(
+      `https://wa.me/${numeroLimpio}?text=${encodeURIComponent(mensajeCompleto)}`,
+      "_blank",
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Validaciones de seguridad iniciales
-    if (!form.nombre.trim() || !form.whatsapp.trim()) {
-      return toast.error("CAMPOS INCOMPLETOS", {
-        description: "Por favor ingresá tu nombre y un celular de contacto.",
-      });
-    }
-
-    if (form.esDelivery && !form.direccion.trim()) {
-      return toast.error("DIRECCIÓN VACÍA", {
-        description:
-          "Al seleccionar Delivery, es obligatorio indicar el domicilio de entrega.",
-      });
-    }
+    if (!form.nombre.trim() || !form.whatsapp.trim())
+      return toast.error("CAMPOS INCOMPLETOS");
+    if (form.esDelivery && !form.direccion.trim())
+      return toast.error("DIRECCIÓN REQUERIDA");
 
     setIsPending(true);
-
     try {
-      // 1. Buscamos el número de WhatsApp del negocio para el redireccionamiento posterior
       const { data: negocio } = await supabase
         .from("negocios")
         .select("whatsapp")
         .eq("id", negocioId)
         .single();
+      if (!negocio?.whatsapp)
+        throw new Error("Comercio sin WhatsApp configurado.");
 
-      if (!negocio?.whatsapp) {
-        throw new Error(
-          "El comercio no tiene un WhatsApp configurado en el sistema.",
-        );
-      }
-
-      // 2. Insertamos el pedido de forma limpia en la tabla de Supabase
       const { data: nuevoPedido, error: pedidoError } = await supabase
         .from("pedidos")
         .insert({
@@ -119,7 +137,7 @@ export function OrderForm({
           es_delivery: form.esDelivery,
           direccion_entrega: form.esDelivery ? form.direccion.trim() : null,
           metodo_pago: form.metodoPago,
-          total: total,
+          total: totalFinal,
           estado: "pendiente",
           notas: form.notas.trim() || null,
         })
@@ -128,7 +146,6 @@ export function OrderForm({
 
       if (pedidoError) throw pedidoError;
 
-      // 3. Insertamos el desglose de ítems del carrito en la tabla relacional de la base de datos
       const itemsParaInsertar = cart.map((item) => ({
         pedido_id: nuevoPedido.id,
         producto_id: item.id,
@@ -137,23 +154,15 @@ export function OrderForm({
         precio_unitario: item.precio,
       }));
 
-      const { error: itemsError } = await supabase
-        .from("pedido_items")
-        .insert(itemsParaInsertar);
+      await supabase.from("pedido_items").insert(itemsParaInsertar);
 
-      if (itemsError) throw itemsError;
-
-      // 4. Éxito total: Notificamos, abrimos la API de WhatsApp y limpiamos el store
-      toast.success("PEDIDO ENVIADO CON ÉXITO", {
-        description: "Tu orden fue registrada. Redirigiendo a la mensajería...",
-      });
-
+      toast.success("ORDEN REGISTRADA");
       dispararWhatsApp(negocio.whatsapp, nuevoPedido.id);
       onSuccess();
-    } catch (error) {
-      const msg =
-        error instanceof Error ? error.message : "Error al procesar la orden.";
-      toast.error("ERROR AL PROCESAR PEDIDO", { description: msg });
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Error desconocido";
+      toast.error("ERROR", { description: message });
     } finally {
       setIsPending(false);
     }
@@ -162,167 +171,143 @@ export function OrderForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col h-full justify-between space-y-4 text-text-primary dark:text-text-inverse"
+      className="flex flex-col h-full justify-between space-y-4"
     >
-      <div className="space-y-4 overflow-y-auto max-h-[380px] lg:max-h-[500px] pr-1">
-        {/* Botón de Retorno */}
-        <button
+      <div className="space-y-4 overflow-y-auto max-h-[450px] pr-2 custom-scrollbar">
+        <Button
+          variant="ghost"
+          size="sm"
           type="button"
           onClick={onBack}
-          className="flex items-center gap-1.5 text-[10px] font-black uppercase text-text-muted hover:text-text-primary dark:hover:text-text-inverse tracking-wider cursor-pointer py-1"
+          className="gap-2"
         >
-          <ArrowLeft size={12} strokeWidth={3} /> Volver al listado
-        </button>
+          <ArrowLeft size={12} strokeWidth={3} /> VOLVER AL LISTADO
+        </Button>
 
-        {/* Campo: Nombre */}
-        <div className="space-y-1">
-          <label className="text-[10px] font-black uppercase tracking-wider text-text-muted">
-            Tu Nombre *
-          </label>
-          <input
-            type="text"
-            name="nombre"
-            required
-            value={form.nombre}
-            onChange={handleInputChange}
-            placeholder="Ej. Juan Pérez"
-            className="w-full px-4 py-3 rounded-xl border-2 border-border dark:border-border-dark bg-transparent text-xs font-bold outline-hidden focus:border-custom transition-all"
-          />
-        </div>
-
-        {/* Campo: WhatsApp de Contacto */}
-        <div className="space-y-1">
-          <label className="text-[10px] font-black uppercase tracking-wider text-text-muted">
-            Número de WhatsApp *
-          </label>
-          <input
-            type="tel"
-            name="whatsapp"
-            required
-            value={form.whatsapp}
-            onChange={handleInputChange}
-            placeholder="Ej. 3816554433"
-            className="w-full px-4 py-3 rounded-xl border-2 border-border dark:border-border-dark bg-transparent text-xs font-bold outline-hidden focus:border-custom transition-all"
-          />
-        </div>
-
-        {/* Selector Táctico: Tipo de Entrega (Delivery vs Take Away) */}
-        <div className="space-y-1">
-          <label className="text-[10px] font-black uppercase tracking-wider text-text-muted">
-            Forma de Entrega
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() =>
-                setForm((prev) => ({ ...prev, esDelivery: false }))
-              }
-              className={`py-3 rounded-xl border-2 text-xs font-black uppercase italic tracking-tight cursor-pointer transition-all ${
-                !form.esDelivery
-                  ? "bg-custom border-custom text-white shadow-sm"
-                  : "bg-transparent border-border dark:border-border-dark text-text-secondary hover:border-custom/30"
-              }`}
-            >
-              TAKE AWAY 🛍️
-            </button>
-            <button
-              type="button"
-              onClick={() => setForm((prev) => ({ ...prev, esDelivery: true }))}
-              className={`py-3 rounded-xl border-2 text-xs font-black uppercase italic tracking-tight cursor-pointer transition-all ${
-                form.esDelivery
-                  ? "bg-custom border-custom text-white shadow-sm"
-                  : "bg-transparent border-border dark:border-border-dark text-text-secondary hover:border-custom/30"
-              }`}
-            >
-              DELIVERY 🛵
-            </button>
-          </div>
-        </div>
-
-        {/* Campo Condicional: Dirección de Entrega */}
-        {form.esDelivery && (
-          <div className="space-y-1 animate-in slide-in-from-top-2 duration-200">
-            <label className="text-[10px] font-black uppercase tracking-wider text-text-muted">
-              Dirección de Envío *
-            </label>
-            <input
-              type="text"
-              name="direccion"
-              required={form.esDelivery}
-              value={form.direccion}
+        <div className="grid gap-4">
+          <div className="space-y-2">
+            <Label>Tu Nombre</Label>
+            <Input
+              name="nombre"
+              required
+              value={form.nombre}
               onChange={handleInputChange}
-              placeholder="Calle, Número, Barrio o departamento"
-              className="w-full px-4 py-3 rounded-xl border-2 border-error/40 focus:border-custom dark:border-border-dark bg-transparent text-xs font-bold outline-hidden transition-all"
+              placeholder="Ej: Juan Pérez"
             />
           </div>
-        )}
-
-        {/* Selector Táctico: Método de Pago */}
-        <div className="space-y-1">
-          <label className="text-[10px] font-black uppercase tracking-wider text-text-muted">
-            Método de Pago
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() =>
-                setForm((prev) => ({ ...prev, metodoPago: "efectivo" }))
-              }
-              className={`py-3 rounded-xl border-2 text-xs font-black uppercase italic tracking-tight cursor-pointer transition-all ${
-                form.metodoPago === "efectivo"
-                  ? "bg-custom border-custom text-white shadow-sm"
-                  : "bg-transparent border-border dark:border-border-dark text-text-secondary hover:border-custom/30"
-              }`}
-            >
-              EFECTIVO 💵
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                setForm((prev) => ({ ...prev, metodoPago: "transferencia" }))
-              }
-              className={`py-3 rounded-xl border-2 text-xs font-black uppercase italic tracking-tight cursor-pointer transition-all ${
-                form.metodoPago === "transferencia"
-                  ? "bg-custom border-custom text-white shadow-sm"
-                  : "bg-transparent border-border dark:border-border-dark text-text-secondary hover:border-custom/30"
-              }`}
-            >
-              TRANSFERENCIA 💳
-            </button>
+          <div className="space-y-2">
+            <Label>WhatsApp de Contacto</Label>
+            <Input
+              name="whatsapp"
+              type="tel"
+              required
+              value={form.whatsapp}
+              onChange={handleInputChange}
+              placeholder="Ej: 381..."
+            />
           </div>
         </div>
 
-        {/* Campo Opcional: Notas Adicionales */}
-        <div className="space-y-1">
-          <label className="text-[10px] font-black uppercase tracking-wider text-text-muted">
-            Notas para el Local (Opcional)
-          </label>
-          <textarea
+        <div className="space-y-3">
+          <Label>Forma de Entrega</Label>
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              type="button"
+              variant={!form.esDelivery ? "default" : "outline"}
+              onClick={() => setForm((p) => ({ ...p, esDelivery: false }))}
+            >
+              TAKE AWAY 🛍️
+            </Button>
+            <Button
+              type="button"
+              variant={form.esDelivery ? "default" : "outline"}
+              onClick={() => setForm((p) => ({ ...p, esDelivery: true }))}
+            >
+              DELIVERY 🛵
+            </Button>
+          </div>
+
+          {form.esDelivery && (
+            <div className="p-4 border-4 border-black border-dashed bg-custom/5 space-y-3 animate-in zoom-in-95">
+              <div className="flex justify-between items-center">
+                <Label className="flex items-center gap-2 text-custom">
+                  <Truck size={14} /> Costo de Envío
+                </Label>
+                <span className="font-black italic text-sm">
+                  {simbolo}
+                  {config.costo_envio?.toLocaleString("es-AR")}
+                </span>
+              </div>
+              <Input
+                name="direccion"
+                placeholder="Calle, Nro, Barrio..."
+                required
+                value={form.direccion}
+                onChange={handleInputChange}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-3">
+          <Label>Método de Pago</Label>
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              type="button"
+              variant={form.metodoPago === "efectivo" ? "default" : "outline"}
+              onClick={() => setForm((p) => ({ ...p, metodoPago: "efectivo" }))}
+            >
+              EFECTIVO 💵
+            </Button>
+            <Button
+              type="button"
+              variant={
+                form.metodoPago === "transferencia" ? "default" : "outline"
+              }
+              onClick={() =>
+                setForm((p) => ({ ...p, metodoPago: "transferencia" }))
+              }
+            >
+              TRANSFERENCIA 💳
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Notas Adicionales (Opcional)</Label>
+          <Textarea
             name="notas"
-            rows={2}
             value={form.notas}
             onChange={handleInputChange}
-            placeholder="Ej. Sacar la cebolla, traer cambio de $5.000, etc."
-            className="w-full px-4 py-3 rounded-xl border-2 border-border dark:border-border-dark bg-transparent text-xs font-bold outline-hidden focus:border-custom transition-all resize-none"
+            placeholder="Ej: Sin cebolla, traer cambio..."
           />
         </div>
       </div>
 
-      {/* Botón de Confirmación y Cierre de Formulario */}
-      <div className="pt-4 border-t-2 border-border dark:border-border-dark bg-white dark:bg-bg-darker">
-        <button
+      <div className="pt-4 border-t-4 border-black space-y-3 bg-white dark:bg-bg-darker">
+        <div className="flex justify-between items-end px-1">
+          <span className="text-[10px] font-black text-text-muted uppercase tracking-widest italic">
+            Total a pagar
+          </span>
+          <span className="text-2xl font-black italic tracking-tighter">
+            {simbolo}
+            {totalFinal.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+          </span>
+        </div>
+        <Button
           type="submit"
           disabled={isPending}
-          className="w-full bg-custom text-white py-4 rounded-xl font-black uppercase italic text-[11px] tracking-[0.2em] flex items-center justify-center gap-2 hover:opacity-95 transition-all active:scale-98 shadow-md shadow-custom/10 cursor-pointer border-t border-white/10"
+          className="w-full h-16 text-sm"
         >
           {isPending ? (
-            <Loader2 className="animate-spin" size={14} />
+            <Loader2 className="animate-spin" />
           ) : (
             <>
-              CONFIRMAR Y ENVIAR <Check size={14} strokeWidth={3} />
+              CONFIRMAR Y ENVIAR{" "}
+              <Check className="ml-2" size={18} strokeWidth={3} />
             </>
           )}
-        </button>
+        </Button>
       </div>
     </form>
   );

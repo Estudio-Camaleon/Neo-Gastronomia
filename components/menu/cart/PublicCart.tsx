@@ -1,7 +1,15 @@
 "use client";
 
 import { useCartStore } from "../store/useCartStore";
-import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, X } from "lucide-react";
+import {
+  Trash2,
+  Plus,
+  Minus,
+  ShoppingBag,
+  ArrowRight,
+  X,
+  AlertCircle,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import { OrderForm } from "./OrderForm";
@@ -10,25 +18,35 @@ interface PublicCartProps {
   negocioId: string;
   isDrawer?: boolean;
   onCloseDrawer?: () => void;
+  // Agregamos la config como prop
+  config?: {
+    moneda_simbolo?: string;
+    pedido_minimo?: number;
+    costo_envio?: number;
+  };
 }
-
-
 
 export function PublicCart({
   negocioId,
   isDrawer = false,
   onCloseDrawer,
+  config = { moneda_simbolo: "$", pedido_minimo: 0, costo_envio: 0 }, // Defaults seguros
 }: PublicCartProps) {
   const { cart, addItem, removeItem, clearCart } = useCartStore(
     (state) => state,
   );
   const [showOrderForm, setShowOrderForm] = useState(false);
 
-  const totalImporte = cart.reduce(
+  const subtotal = cart.reduce(
     (acc, item) => acc + item.precio * item.cantidad,
     0,
   );
+
   const totalItems = cart.reduce((acc, item) => acc + item.cantidad, 0);
+
+  // Validación de pedido mínimo
+  const faltaParaMinimo = (config.pedido_minimo || 0) - subtotal;
+  const esPedidoValido = subtotal >= (config.pedido_minimo || 0);
 
   const handleVaciar = () => {
     clearCart();
@@ -64,17 +82,13 @@ export function PublicCart({
                   <p className="font-black uppercase italic text-xs tracking-tight text-text-primary dark:text-text-inverse line-clamp-1">
                     {item.nombre}
                   </p>
-
-                  {/* --- NUEVO: RENDERIZADO DE DETALLES (EXTRAS / VARIANTES) --- */}
                   {item.detalles && (
                     <p className="text-[10px] leading-tight font-medium text-text-secondary dark:text-text-muted line-clamp-2 pb-0.5">
                       {item.detalles}
                     </p>
                   )}
-                  {/* -------------------------------------------------------- */}
-
                   <p className="font-mono text-xs font-black text-text-muted">
-                    $
+                    {config.moneda_simbolo}
                     {(item.precio * item.cantidad).toLocaleString("es-AR", {
                       minimumFractionDigits: 2,
                     })}
@@ -106,14 +120,25 @@ export function PublicCart({
 
           {/* TOTAL Y ACCIONES INFERIORES */}
           <div className="pt-4 border-t-2 border-border dark:border-border-dark space-y-4 mt-4 bg-white dark:bg-bg-darker">
+            {/* Alerta de Pedido Mínimo */}
+            {!esPedidoValido && (
+              <div className="flex items-center gap-2 p-3 bg-error/10 border-2 border-error text-error rounded-xl animate-pulse">
+                <AlertCircle size={16} />
+                <p className="text-[10px] font-black uppercase italic">
+                  Te faltan {config.moneda_simbolo}
+                  {faltaParaMinimo.toLocaleString()} para el pedido mínimo
+                </p>
+              </div>
+            )}
+
             <div className="flex items-end justify-between font-mono select-none">
               <div>
                 <p className="text-[9px] font-black uppercase text-text-muted tracking-widest leading-none">
-                  TOTAL ESTIMADO
+                  SUBTOTAL
                 </p>
                 <p className="font-black text-2xl tracking-tighter text-text-primary dark:text-text-inverse mt-0.5">
-                  $
-                  {totalImporte.toLocaleString("es-AR", {
+                  {config.moneda_simbolo}
+                  {subtotal.toLocaleString("es-AR", {
                     minimumFractionDigits: 2,
                   })}
                 </p>
@@ -129,8 +154,13 @@ export function PublicCart({
 
             <button
               type="button"
+              disabled={!esPedidoValido}
               onClick={() => setShowOrderForm(true)}
-              className="w-full bg-custom text-white py-4 rounded-xl font-black uppercase italic text-[11px] tracking-[0.2em] flex items-center justify-center gap-2 hover:opacity-95 transition-all active:scale-98 shadow-md shadow-custom/10 cursor-pointer border-t border-white/10"
+              className={`w-full py-4 rounded-xl font-black uppercase italic text-[11px] tracking-[0.2em] flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer border-t border-white/10 ${
+                esPedidoValido
+                  ? "bg-custom text-white hover:opacity-95 active:scale-98 shadow-custom/10"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed opacity-50"
+              }`}
             >
               COMPLETAR PEDIDO <ArrowRight size={14} strokeWidth={3} />
             </button>
@@ -141,7 +171,8 @@ export function PublicCart({
           <OrderForm
             negocioId={negocioId}
             cart={cart}
-            total={totalImporte}
+            total={subtotal}
+            config={config} // Pasamos la config al form para el cálculo de envío
             onBack={() => setShowOrderForm(false)}
             onSuccess={() => {
               clearCart();
@@ -153,6 +184,7 @@ export function PublicCart({
     </div>
   );
 
+  // ... (Mismo render del Drawer que ya tenías)
   if (isDrawer) {
     return (
       <div className="fixed inset-0 z-50 flex justify-end font-sans">

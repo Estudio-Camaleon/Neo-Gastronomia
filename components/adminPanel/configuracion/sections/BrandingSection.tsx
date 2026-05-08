@@ -8,8 +8,8 @@ interface BrandingSectionProps {
   bannerUrl: string;
   uploading: string | null;
   onImageUpload: (
-    e: React.ChangeEvent<HTMLInputElement>,
-    field: "logo_url" | "banner_url",
+    _e: React.ChangeEvent<HTMLInputElement>,
+    _field: "logo_url" | "banner_url",
   ) => void;
 }
 

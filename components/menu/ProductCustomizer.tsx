@@ -56,13 +56,11 @@ export default function ProductCustomizer({
   const [notas, setNotas] = useState("");
 
   // --- SOLUCIÓN DE RENDIMIENTO: Render-Phase State Update ---
-  // Guardamos el estado anterior para saber si el modal pasó de cerrado a abierto
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
 
   if (isOpen !== prevIsOpen) {
     setPrevIsOpen(isOpen);
     if (isOpen && product) {
-      // El modal se acaba de abrir: Reseteamos los campos instantáneamente
       setCantidad(1);
       setNotas("");
       setSelectedExtras({});
@@ -73,11 +71,9 @@ export default function ProductCustomizer({
       }
     }
   }
-  // ----------------------------------------------------------
 
   if (!isOpen || !product) return null;
 
-  // Calculamos el precio total al vuelo
   const calcularPrecioTotal = () => {
     const base = selectedVariant ? selectedVariant.precio : product.precio_base;
     let extrasTotal = 0;
@@ -157,6 +153,7 @@ export default function ProductCustomizer({
         <button
           onClick={onClose}
           className="absolute top-4 right-4 z-10 bg-white border-2 border-black p-1 hover:bg-gray-200 transition-colors"
+          aria-label="Cerrar"
         >
           <X size={24} />
         </button>
@@ -189,16 +186,20 @@ export default function ProductCustomizer({
                 Seleccioná una opción
               </h3>
               <div className="grid gap-3">
-                {product.variantes.map((variante, idx) => (
+                {product.variantes.map((variante, _idx) => (
                   <label
-                    key={idx}
-                    className={`flex items-center justify-between p-3 border-2 border-black cursor-pointer transition-colors ${selectedVariant?.nombre === variante.nombre ? "bg-custom text-black" : "bg-white hover:bg-gray-50"}`}
+                    key={`${variante.nombre}-${_idx}`}
+                    className={`flex items-center justify-between p-3 border-2 border-black cursor-pointer transition-colors ${
+                      selectedVariant?.nombre === variante.nombre
+                        ? "bg-custom text-black"
+                        : "bg-white hover:bg-gray-50"
+                    }`}
                   >
                     <div className="flex items-center gap-3">
                       <input
                         type="radio"
                         name="variante"
-                        className="w-5 h-5 accent-black"
+                        className="w-5 h-5 accent-black cursor-pointer"
                         checked={selectedVariant?.nombre === variante.nombre}
                         onChange={() => setSelectedVariant(variante)}
                       />
@@ -216,22 +217,22 @@ export default function ProductCustomizer({
               <div className="flex items-baseline justify-between border-b-2 border-black pb-1">
                 <h3 className="font-bold uppercase">{grupo.titulo}</h3>
                 {grupo.requerido && (
-                  <span className="text-xs font-bold bg-black text-white px-2 py-0.5">
+                  <span className="text-[10px] font-black bg-black text-white px-2 py-0.5 tracking-widest uppercase">
                     Obligatorio
                   </span>
                 )}
               </div>
-              <div className="grid gap-2">
+              <div className="grid gap-1">
                 {grupo.items.map((item) => (
                   <label
                     key={item.id}
-                    className="flex items-center justify-between p-2 hover:bg-gray-100 cursor-pointer"
+                    className="flex items-center justify-between p-2 hover:bg-gray-100 cursor-pointer group"
                   >
                     <div className="flex items-center gap-3">
                       <input
                         type={grupo.multiple ? "checkbox" : "radio"}
                         name={grupo.id}
-                        className="w-5 h-5 accent-black"
+                        className="w-5 h-5 accent-black cursor-pointer"
                         checked={(selectedExtras[grupo.id] || []).includes(
                           item.id,
                         )}
@@ -239,10 +240,12 @@ export default function ProductCustomizer({
                           handleExtraToggle(grupo.id, item.id, grupo.multiple)
                         }
                       />
-                      <span className="font-medium">{item.nombre}</span>
+                      <span className="font-medium group-hover:font-bold transition-all">
+                        {item.nombre}
+                      </span>
                     </div>
                     {item.precio > 0 && (
-                      <span className="font-bold text-gray-600">
+                      <span className="font-bold text-gray-500">
                         +${item.precio}
                       </span>
                     )}
@@ -258,7 +261,7 @@ export default function ProductCustomizer({
             </h3>
             <textarea
               placeholder="Ej: Sin aderezos, la hamburguesa bien cocida..."
-              className="w-full border-2 border-black p-3 resize-none focus:outline-none focus:ring-2 focus:ring-black"
+              className="w-full border-2 border-black p-3 resize-none focus:outline-none focus:bg-gray-50 font-medium"
               rows={3}
               value={notas}
               onChange={(e) => setNotas(e.target.value)}
@@ -271,7 +274,8 @@ export default function ProductCustomizer({
             <div className="flex items-center border-2 border-black bg-white">
               <button
                 onClick={() => setCantidad(Math.max(1, cantidad - 1))}
-                className="p-3 hover:bg-gray-200 transition-colors"
+                className="p-3 hover:bg-gray-200 transition-colors border-r-2 border-black"
+                aria-label="Disminuir"
               >
                 <Minus size={20} />
               </button>
@@ -280,13 +284,16 @@ export default function ProductCustomizer({
               </span>
               <button
                 onClick={() => setCantidad(cantidad + 1)}
-                className="p-3 hover:bg-gray-200 transition-colors"
+                className="p-3 hover:bg-gray-200 transition-colors border-l-2 border-black"
+                aria-label="Aumentar"
               >
                 <Plus size={20} />
               </button>
             </div>
             <div className="text-right">
-              <p className="text-sm font-bold text-gray-500 uppercase">Total</p>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                Subtotal
+              </p>
               <p className="text-2xl font-black">
                 ${precioTotal.toLocaleString()}
               </p>
@@ -295,7 +302,7 @@ export default function ProductCustomizer({
 
           <button
             onClick={handleAddToCart}
-            className="w-full bg-custom border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px] transition-all py-4 font-black uppercase text-lg flex items-center justify-center gap-2"
+            className="w-full bg-custom border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[4px] active:translate-y-[4px] transition-all py-4 font-black uppercase text-lg flex items-center justify-center gap-2"
           >
             <ShoppingBag size={24} />
             Agregar al Carrito

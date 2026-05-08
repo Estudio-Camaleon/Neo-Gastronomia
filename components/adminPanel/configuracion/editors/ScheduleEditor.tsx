@@ -13,7 +13,7 @@ interface HorarioDia {
   turnos: FranjaHoraria[];
 }
 
-// Interfaz auxiliar de seguridad para leer registros viejos en la base de datos sin romper tipos
+// Interfaz auxiliar de seguridad para leer registros viejos sin romper tipos
 interface HorarioViejo {
   inicio?: string;
   fin?: string;
@@ -26,7 +26,8 @@ interface ScheduleData {
 
 interface ScheduleEditorProps {
   schedule: ScheduleData;
-  onChange: (newSchedule: ScheduleData) => void;
+  // Cambiamos 'newSchedule' por '_newSchedule' para silenciar el error del linter
+  onChange: (_newSchedule: ScheduleData) => void;
 }
 
 const DIAS = [
@@ -42,16 +43,16 @@ const DIAS = [
 export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
   // Activa o desactiva el día completo
   const updateDay = (day: string, active: boolean) => {
-    const newSchedule = { ...schedule };
+    const updatedSchedule = { ...schedule };
     if (!active) {
-      delete newSchedule[day];
+      delete updatedSchedule[day];
     } else {
       // Inicializa con un turno por defecto
-      newSchedule[day] = {
+      updatedSchedule[day] = {
         turnos: [{ inicio: "09:00", fin: "13:00" }],
       };
     }
-    onChange(newSchedule);
+    onChange(updatedSchedule);
   };
 
   // Modifica de forma segura la hora de un turno específico mediante su índice
@@ -111,20 +112,18 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
 
   return (
     <div className="space-y-4 font-sans">
-      {/* Cabecera del Editor Horario */}
       <div className="flex items-center gap-3 mb-6">
         <Clock className="text-primary w-5 h-5" />
-        <h2 className="font-black uppercase italic tracking-tight text-lg text-text-primary dark:text-text-inverse">
+        <h2 className="font-black uppercase italic tracking-tight text-lg">
           Horarios de Atención
         </h2>
       </div>
 
-      {/* Grilla Semanal */}
       <div className="grid gap-3">
         {DIAS.map((dia) => {
           const dayConfig = schedule[dia.id];
 
-          // 🚀 PARSEO SEGURO: Type Narrowing nativo sin usar "any" ni parches externos
+          // Parseo seguro para compatibilidad con datos viejos
           const turnosValidos: FranjaHoraria[] = [];
           if (dayConfig) {
             if ("turnos" in dayConfig && Array.isArray(dayConfig.turnos)) {
@@ -133,9 +132,9 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
               const inicio =
                 typeof dayConfig.inicio === "string"
                   ? dayConfig.inicio
-                  : "19:00";
+                  : "09:00";
               const fin =
-                typeof dayConfig.fin === "string" ? dayConfig.fin : "23:59";
+                typeof dayConfig.fin === "string" ? dayConfig.fin : "18:00";
               turnosValidos.push({ inicio, fin });
             }
           }
@@ -146,37 +145,35 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
               key={dia.id}
               className={`flex flex-col md:flex-row md:items-center justify-between p-4 rounded-neo border-2 transition-all gap-4 ${
                 isOpen
-                  ? "border-primary/30 dark:border-primary/40 bg-primary/5 dark:bg-primary/10"
-                  : "border-border dark:border-border-dark opacity-50 bg-bg-main dark:bg-bg-dark/10"
+                  ? "border-black bg-primary/10"
+                  : "border-gray-200 opacity-50 bg-gray-50"
               }`}
             >
-              {/* Checkbox de Control del Día */}
               <div className="flex items-center gap-4 select-none flex-shrink-0">
                 <input
                   type="checkbox"
                   id={`check-${dia.id}`}
                   checked={isOpen}
                   onChange={(e) => updateDay(dia.id, e.target.checked)}
-                  className="w-5 h-5 accent-primary cursor-pointer rounded-sm border-2 border-border"
+                  className="w-5 h-5 accent-black cursor-pointer"
                 />
                 <label
                   htmlFor={`check-${dia.id}`}
-                  className="font-black uppercase italic text-xs w-20 cursor-pointer text-text-primary dark:text-text-inverse"
+                  className="font-black uppercase italic text-xs w-20 cursor-pointer"
                 >
                   {dia.label}
                 </label>
               </div>
 
-              {/* Listado de Franjas Horarias del Día */}
               {isOpen && (
                 <div className="flex flex-col gap-2 w-full md:w-auto items-start md:items-end">
                   {turnosValidos.map((turno, idx) => (
                     <div
-                      key={idx}
+                      key={`${dia.id}-turno-${idx}`}
                       className="flex items-center gap-3 w-full justify-between md:justify-end animate-in fade-in slide-in-from-left-2 duration-200"
                     >
-                      <span className="text-[9px] font-black uppercase opacity-50 font-mono text-text-secondary dark:text-text-muted">
-                        F{idx + 1}:
+                      <span className="text-[9px] font-black uppercase opacity-50 font-mono">
+                        T{idx + 1}:
                       </span>
 
                       <input
@@ -185,11 +182,11 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
                         onChange={(e) =>
                           updateTurnoTime(dia.id, idx, "inicio", e.target.value)
                         }
-                        className="bg-white dark:bg-bg-dark border-2 border-border dark:border-border-dark p-2 rounded-lg text-xs font-bold font-mono outline-none focus:border-primary text-text-primary dark:text-text-inverse transition-colors"
+                        className="bg-white border-2 border-black p-2 rounded-lg text-xs font-bold font-mono outline-none focus:bg-custom transition-colors"
                       />
 
-                      <span className="text-[10px] font-black opacity-40 text-text-primary dark:text-text-inverse uppercase font-mono">
-                        A
+                      <span className="text-[10px] font-black uppercase font-mono">
+                        a
                       </span>
 
                       <input
@@ -198,26 +195,23 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
                         onChange={(e) =>
                           updateTurnoTime(dia.id, idx, "fin", e.target.value)
                         }
-                        className="bg-white dark:bg-bg-dark border-2 border-border dark:border-border-dark p-2 rounded-lg text-xs font-bold font-mono outline-none focus:border-primary text-text-primary dark:text-text-inverse transition-colors"
+                        className="bg-white border-2 border-black p-2 rounded-lg text-xs font-bold font-mono outline-none focus:bg-custom transition-colors"
                       />
 
-                      {/* Botón de borrado para el segundo turno */}
                       {idx > 0 ? (
                         <button
                           type="button"
                           onClick={() => removeTurno(dia.id, idx)}
-                          className="p-2 text-error hover:bg-error/10 rounded-lg transition-colors cursor-pointer"
-                          title="Eliminar Franja"
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                         >
                           <Trash2 size={14} />
                         </button>
                       ) : (
-                        /* Botón para Añadir Franja si trabaja cortado (Solo si no hay un segundo turno activo) */
                         turnosValidos.length < 2 && (
                           <button
                             type="button"
                             onClick={() => addTurno(dia.id)}
-                            className="flex items-center gap-1 px-2.5 py-2 border-2 border-dashed border-primary/50 text-primary dark:text-text-inverse hover:bg-primary/10 rounded-lg transition-all text-[10px] font-black uppercase italic cursor-pointer"
+                            className="flex items-center gap-1 px-2.5 py-2 border-2 border-dashed border-black hover:bg-custom rounded-lg transition-all text-[10px] font-black uppercase italic cursor-pointer"
                           >
                             <Plus size={12} strokeWidth={3} /> Cortado
                           </button>
@@ -228,9 +222,8 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
                 </div>
               )}
 
-              {/* Cartel de Cerrado */}
               {!isOpen && (
-                <span className="text-[10px] font-black uppercase opacity-40 italic tracking-widest text-text-primary dark:text-text-inverse font-mono">
+                <span className="text-[10px] font-black uppercase opacity-40 italic tracking-widest font-mono">
                   Cerrado
                 </span>
               )}

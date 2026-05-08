@@ -5,20 +5,14 @@ import {
   type PedidoData,
 } from "@/components/adminPanel/pedidos/PedidosRadar";
 
-/**
- * Panel de Control de Pedidos NEO.
- * Orquesta la hidratación inicial de datos estáticos desde el servidor libres de lógica de estados.
- */
 export default async function PedidosPage() {
   const supabase = await createClient();
 
-  // 1. Control perimetral de sesión activa en el servidor
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // 2. Obtención del contexto de inquilino (Negocio asociado al usuario)
   const { data: negocio } = await supabase
     .from("negocios")
     .select("id, nombre")
@@ -27,47 +21,47 @@ export default async function PedidosPage() {
 
   if (!negocio) redirect("/configuracion");
 
-  // 3. Hidratación inicial del lote de pedidos mediante un JOIN relacional tipado
   const { data: pedidosIniciales } = await supabase
     .from("pedidos")
     .select(
       `
-      id,
-      estado,
-      cliente_nombre,
-      metodo_pago,
-      total,
-      cliente_whatsapp,
-      es_delivery,
-      direccion_entrega,
-      notas,
-      pedido_items (
-        id,
-        cantidad,
-        nombre_producto,
-        precio_unitario
-      )
+      id, estado, cliente_nombre, metodo_pago, total,
+      cliente_whatsapp, es_delivery, direccion_entrega, notas,
+      pedido_items (id, cantidad, nombre_producto, precio_unitario)
     `,
     )
     .eq("negocio_id", negocio.id)
     .order("created_at", { ascending: false })
     .limit(50);
 
-  // Parseo seguro acoplado al contrato de interfaces de Estudio Camaleón sin 'any'
   const listaPedidos = (pedidosIniciales || []) as unknown as PedidoData[];
 
   return (
-    <div className="p-6 md:p-10 space-y-10 min-h-screen pb-32 max-w-7xl mx-auto font-sans relative">
-      {/* El Radar ahora orquesta de forma interna el header reactivo, estadísticas en vivo y mutaciones */}
+    <div className="max-w-7xl mx-auto space-y-10 relative">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-none">
+            Pedidos<span className="text-primary">.</span>
+          </h1>
+          <p className="text-text-muted font-bold uppercase text-xs tracking-[0.2em] mt-2">
+            Centro de monitoreo en tiempo real
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <div className="px-4 py-2 bg-primary/10 border-2 border-primary/20 rounded-neo text-primary font-black text-[10px] uppercase">
+            {negocio.nombre}
+          </div>
+        </div>
+      </header>
+
       <PedidosRadar
         initialPedidos={listaPedidos}
         negocioId={negocio.id}
         negocioNombre={negocio.nombre}
       />
 
-      {/* Marca de Agua Estética de Respaldo NEO */}
-      <div className="fixed bottom-10 right-10 pointer-events-none opacity-5 select-none z-0">
-        <h2 className="text-[12rem] font-black italic leading-none tracking-tighter text-border dark:text-border-dark">
+      <div className="fixed bottom-6 right-6 pointer-events-none opacity-5 select-none hidden lg:block">
+        <h2 className="text-[12rem] font-black italic leading-none tracking-tighter">
           NEO
         </h2>
       </div>

@@ -8,7 +8,7 @@ import Image from "next/image";
 
 interface ImageUploadProps {
   value: string | null;
-  onChange: (url: string) => void;
+  onChange: (_url: string) => void;
 }
 
 export function ImageUpload({ value, onChange }: ImageUploadProps) {

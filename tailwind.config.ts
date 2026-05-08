@@ -1,7 +1,7 @@
+// tailwind.config.ts
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  // Soporte para modo oscuro mediante una clase en el body/html
   darkMode: "class",
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -11,50 +11,43 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // CORREGIDO: Mapeo plano directo apuntando a la variable CSS exacta del Layout público
-        // Incluye un fallback naranja (#ff8000) por si el operador no definió color aún
-        custom: "var(--custom-brand-color, #ff8000)",
+        // Mapeo dinámico al branding del cliente
+        custom: "var(--color-custom)",
 
-        // Definimos los colores que usamos en LoginForm y RegisterForm
+        // Sincronización con globals.css (Paleta Verde NEO)
         primary: {
-          DEFAULT: "#ff8000", // Tu naranja principal original
-          hover: "#e67300",
+          DEFAULT: "var(--color-primary)",
+          hover: "var(--color-primary-hover)",
+          active: "var(--color-primary-active)",
+          light: "var(--color-primary-light)",
+          soft: "var(--color-primary-soft)",
         },
         bg: {
-          darker: "#0a0a0a", // Fondo oscuro para dark mode
+          main: "var(--color-bg-main)",
+          alt: "var(--color-bg-alt)",
+          dark: "var(--color-bg-dark)",
+          darker: "var(--color-bg-darker)",
+        },
+        surface: {
+          DEFAULT: "var(--color-surface)",
+          dark: "var(--color-surface-dark)",
+          muted: "var(--color-surface-muted)",
         },
         text: {
-          primary: "#1a1a1a",
-          secondary: "#4a4a4a",
-          muted: "#888888",
+          primary: "var(--color-text-primary)",
+          secondary: "var(--color-text-secondary)",
+          muted: "var(--color-text-muted)",
+          inverse: "var(--color-text-inverse)",
         },
         border: {
-          DEFAULT: "#e5e7eb",
-          dark: "#262626",
-        },
-        error: {
-          DEFAULT: "#ef4444",
+          DEFAULT: "var(--color-border)",
+          dark: "var(--color-border-dark)",
+          strong: "var(--color-border-strong)",
         },
       },
       borderRadius: {
-        // Aquí "oficializamos" los bordes redondeados de NEO
-        neo: "2rem",
-        super: "2.5rem",
-      },
-      animation: {
-        // Animaciones que usamos en los mensajes de éxito/error
-        in: "fadeIn 0.5s ease-out",
-        zoom: "zoomIn 0.3s ease-out",
-      },
-      keyframes: {
-        fadeIn: {
-          "0%": { opacity: "0" },
-          "100%": { opacity: "1" },
-        },
-        zoomIn: {
-          "0%": { transform: "scale(0.95)", opacity: "0" },
-          "100%": { transform: "scale(1)", opacity: "1" },
-        },
+        neo: "var(--radius-neo)",
+        super: "var(--radius-super)",
       },
     },
   },

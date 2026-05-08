@@ -1,105 +1,152 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { PedidoCard } from "../ui/PedidoCard";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import type {
-  RealtimeChannel,
-  RealtimePostgresChangesPayload,
-} from "@supabase/supabase-js";
+import { PedidoData } from "@/components/adminPanel/pedidos/PedidosRadar"; // Importamos el tipo centralizado
+import { enviarNotificacionWhatsApp } from "@/lib/utils/whatsappActions";
 
-// Interfaz estricta para garantizar un payload seguro y tipado
-interface NuevoPedidoRecord {
-  id: string;
-  negocio_id: string;
-  cliente_nombre: string;
-  total: number | string;
-  estado: string;
-  [key: string]: unknown;
-}
+const playNotificationSound = () => {
+  const audio = new Audio("/sounds/new-order.mp3");
+  audio.play().catch((e) => console.log("Audio block: ", e));
+};
 
-interface RealtimeOrdersProps {
+// Añadimos negocioNombre para que WhatsApp funcione desde aquí también
+export function RealtimeOrders({
+  negocioId,
+  negocioNombre,
+}: {
   negocioId: string;
-}
-
-export function RealtimeOrders({ negocioId }: RealtimeOrdersProps) {
+  negocioNombre: string;
+}) {
+  const [pedidos, setPedidos] = useState<PedidoData[]>([]);
+  const [loadingId, setLoadingId] = useState<string | null>(null);
   const supabase = createClient();
-  const router = useRouter();
 
-  // Pre-cargamos el asset de audio controlando que se ejecute solo en el cliente (browser)
-  const notificationAudio = useMemo(() => {
-    if (typeof window !== "undefined") {
-      return new Audio("/sounds/notification.mp3");
+  const fetchPedidos = useCallback(async () => {
+    const { data } = await supabase
+      .from("pedidos")
+      .select(`*, pedido_items(*)`)
+      .eq("negocio_id", negocioId)
+      // Solo mostramos los que no están finalizados para no saturar el monitoreo
+      .not("estado", "in", '("entregado","cancelado")')
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (data) {
+      setPedidos(data as unknown as PedidoData[]);
     }
-    return null;
-  }, []);
+  }, [negocioId, supabase]);
+
+  // 🛡️ GESTOR DE ESTADOS (Requerido por PedidoCard)
+  const handleUpdateStatus = async (
+    id: string,
+    nuevoEstado: PedidoData["estado"],
+  ) => {
+    setLoadingId(id);
+    const pedidoAfectado = pedidos.find((p) => p.id === id);
+
+    try {
+      const { error } = await supabase
+        .from("pedidos")
+        .update({ estado: nuevoEstado })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      // DISPARAR WHATSAPP
+      if (pedidoAfectado) {
+        enviarNotificacionWhatsApp(pedidoAfectado, nuevoEstado, negocioNombre);
+      }
+
+      toast.success("Estado actualizado");
+
+      // Si el pedido se entrega o cancela, lo sacamos de esta vista "viva"
+      if (nuevoEstado === "entregado" || nuevoEstado === "cancelado") {
+        setPedidos((prev) => prev.filter((p) => p.id !== id));
+      } else {
+        setPedidos((prev) =>
+          prev.map((p) => (p.id === id ? { ...p, estado: nuevoEstado } : p)),
+        );
+      }
+    } catch {
+      toast.error("Error en la sincronización");
+    } finally {
+      setLoadingId(null);
+    }
+  };
 
   useEffect(() => {
-    if (!negocioId) return;
+    const initializeRadar = async () => {
+      await fetchPedidos();
+    };
 
-    // 1. Registro del canal dedicado para alertas transaccionales usando tipo estricto de canal
-    const canal: RealtimeChannel = supabase
-      .channel(`realtime-pedidos-${negocioId}`)
+    initializeRadar();
+
+    const channel = supabase
+      .channel(`pedidos-vivos-${negocioId}`)
       .on(
-        "postgres_changes", // Removido casting 'as any'
+        "postgres_changes",
         {
-          event: "INSERT",
+          event: "*", // Escuchamos todo para sincronizar estados entre dispositivos
           schema: "public",
           table: "pedidos",
           filter: `negocio_id=eq.${negocioId}`,
         },
-        (payload: RealtimePostgresChangesPayload<NuevoPedidoRecord>) => {
-          // Extraemos de forma segura el registro inyectado por Postgres
-          const newRecord = payload.new as NuevoPedidoRecord;
-          if (!newRecord) return;
+        async (payload) => {
+          if (payload.eventType === "INSERT") {
+            const { data: nuevoPedidoConItems } = await supabase
+              .from("pedidos")
+              .select(`*, pedido_items(*)`)
+              .eq("id", payload.new.id)
+              .single();
 
-          // 2. Feedback sonoro instantáneo estilo NEO
-          if (notificationAudio) {
-            notificationAudio.currentTime = 0; // Reinicia el puntero si ya estaba reproduciéndose
-            notificationAudio.play().catch(() => {
-              console.warn(
-                "El navegador bloqueó la alerta de audio. Se requiere interacción previa (click) en el panel.",
-              );
-            });
+            if (nuevoPedidoConItems) {
+              setPedidos((prev) => [
+                nuevoPedidoConItems as unknown as PedidoData,
+                ...prev,
+              ]);
+              playNotificationSound();
+              toast.info("¡NUEVO PEDIDO RECIBIDO!");
+            }
+          } else if (payload.eventType === "UPDATE") {
+            // Si otro dispositivo lo actualizó, reflejamos el cambio
+            setPedidos((prev) =>
+              prev.map((p) =>
+                p.id === payload.new.id
+                  ? { ...p, estado: payload.new.estado }
+                  : p,
+              ),
+            );
           }
-
-          // 3. Alerta visual flotante con Sonner (Estética Premium de Estudio Camaleón)
-          toast.success("¡ORDEN ENTRANTE! 🚀", {
-            description: (
-              <div className="flex flex-col gap-1 font-sans">
-                <span className="font-black uppercase tracking-tight italic text-text-primary">
-                  {newRecord.cliente_nombre}
-                </span>
-                <span className="text-[10px] font-black text-primary font-mono">
-                  TOTAL: ${Number(newRecord.total).toLocaleString("es-AR")}
-                </span>
-              </div>
-            ),
-            duration: 10000,
-            action: {
-              label: "VER AHORA",
-              onClick: () => router.refresh(),
-            },
-          });
-
-          // 4. Actualización silenciosa de los Server Components adyacentes
-          router.refresh();
         },
       )
-      .subscribe((status) => {
-        if (status === "SUBSCRIBED") {
-          console.log(
-            `📡 Radar acústico NEO activo para negocio: ${negocioId}`,
-          );
-        }
-      });
+      .subscribe();
 
-    // Desuscripción e higiene de memoria al desmontar el panel
     return () => {
-      supabase.removeChannel(canal);
+      supabase.removeChannel(channel);
     };
-  }, [negocioId, router, notificationAudio, supabase]); // Agregado 'supabase' para corregir react-hooks/exhaustive-deps
+  }, [negocioId, supabase, fetchPedidos]);
 
-  return null;
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {pedidos.map((p) => (
+        <PedidoCard
+          key={p.id}
+          pedido={p}
+          onUpdateStatus={handleUpdateStatus} // 🚀 Props inyectadas
+          loadingId={loadingId} // 🚀 Props inyectadas
+        />
+      ))}
+
+      {pedidos.length === 0 && (
+        <div className="col-span-full py-20 text-center border-4 border-dashed border-black/10 rounded-neo">
+          <p className="font-black uppercase italic text-text-muted">
+            Esperando nuevos pedidos...
+          </p>
+        </div>
+      )}
+    </div>
+  );
 }

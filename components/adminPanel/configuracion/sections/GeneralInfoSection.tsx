@@ -7,7 +7,7 @@ interface GeneralInfoSectionProps {
   slug: string;
   whatsapp: string;
   direccion: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (_e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export function GeneralInfoSection({

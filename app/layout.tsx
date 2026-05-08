@@ -1,51 +1,63 @@
-import type { Metadata } from "next";
-import { Montserrat } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { Toaster } from "sonner";
 import "./globals.css";
 
-import { CartProvider } from "@/context/CartContext";
-import { Toaster } from "sonner";
-
-const montserrat = Montserrat({
+// Configuración de fuentes de alto rendimiento
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "900"],
-  variable: "--font-montserrat",
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "NEO | Gestión de Catálogos",
-  description: "Tu catálogo digital profesional",
+  title: "NEO | Sistema de Gestión Gastronómica",
+  description:
+    "Plataforma SaaS de alto rendimiento para el control total de locales gastronómicos.",
+  manifest: "/manifest.json", // Opcional por si activás PWA después
+};
+
+// Control de escala para dispositivos móviles
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <html lang="es" suppressHydrationWarning>
       <body
-        className={`${montserrat.variable} ${montserrat.className} antialiased selection:bg-primary selection:text-black`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-primary/30`}
       >
-        <CartProvider>
+        {/* ThemeProvider envuelve toda la app para el control de modo claro/oscuro */}
+        <ThemeProvider>
           {children}
 
+          {/* Toaster configurado con estética Neo-Brutalista */}
           <Toaster
             position="top-center"
             richColors
             closeButton
             toastOptions={{
+              className:
+                "border-4 border-black rounded-neo shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-sans font-bold",
               style: {
-                borderRadius: "12px",
-                border: "3px solid black",
-                fontFamily: "var(--font-montserrat)",
-                fontWeight: "bold",
-                textTransform: "uppercase",
-                fontSize: "12px",
-                boxShadow: "4px 4px 0px 0px rgba(0,0,0,1)",
+                padding: "16px",
               },
             }}
           />
-        </CartProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

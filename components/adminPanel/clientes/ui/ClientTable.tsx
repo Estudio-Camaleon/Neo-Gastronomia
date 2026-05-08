@@ -1,78 +1,106 @@
+// components/adminPanel/clientes/ui/ClientTable.tsx
 "use client";
 
-import { Users, TrendingUp, ShoppingBag } from "lucide-react";
+import { User, MessageCircle, MoreVertical } from "lucide-react";
 
-interface ClienteResumen {
+interface Cliente {
+  id: string;
   nombre: string;
-  totalGasto: number;
-  pedidos: number;
+  whatsapp: string;
+  total_pedidos: number;
+  ultima_compra: string;
 }
 
-interface ClientTableProps {
-  clientes: ClienteResumen[];
-}
-
-export function ClientTable({ clientes }: ClientTableProps) {
+export function ClientTable({ clientes }: { clientes: Cliente[] }) {
   return (
-    <div className="bg-white dark:bg-bg-darker rounded-super border-2 border-border dark:border-border-dark overflow-hidden shadow-sm animate-in fade-in duration-300">
-      <div className="overflow-x-auto">
+    <div className="w-full space-y-4">
+      {/* VISTA DESKTOP: Tabla Técnica */}
+      <div className="hidden md:block overflow-hidden border-4 border-black rounded-neo bg-surface dark:bg-surface-dark shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-gray-50 dark:bg-white/5 text-text-muted text-[10px] uppercase font-black tracking-widest border-b-2 border-border dark:border-border-dark font-mono">
-            <tr>
-              <th className="p-5">
-                <div className="flex items-center gap-2">
-                  <Users size={14} className="text-primary" /> Cliente
-                </div>
+          <thead>
+            <tr className="border-b-4 border-black bg-primary/10 dark:bg-primary/20">
+              <th className="p-4 font-black uppercase italic text-xs tracking-widest">
+                Cliente
               </th>
-              <th className="p-5">
-                <div className="flex items-center gap-2">
-                  <TrendingUp size={14} className="text-primary" /> Inversión
-                  Total
-                </div>
+              <th className="p-4 font-black uppercase italic text-xs tracking-widest">
+                WhatsApp
               </th>
-              <th className="p-5">
-                <div className="flex items-center gap-2">
-                  <ShoppingBag size={14} className="text-primary" /> Frecuencia
-                </div>
+              <th className="p-4 font-black uppercase italic text-xs tracking-widest text-center">
+                Pedidos
+              </th>
+              <th className="p-4 font-black uppercase italic text-xs tracking-widest text-right">
+                Acciones
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y-2 divide-border dark:divide-border-dark">
-            {clientes.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={3}
-                  className="p-16 text-center text-text-muted font-bold italic uppercase text-xs"
-                >
-                  Aún no hay interacciones registradas en el radar.
+          <tbody className="divide-y-2 divide-black/10 dark:divide-white/10">
+            {clientes.map((cliente) => (
+              <tr
+                key={cliente.id}
+                className="hover:bg-primary/5 transition-colors group"
+              >
+                <td className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-black text-white flex items-center justify-center rounded-full border-2 border-primary shadow-[2px_2px_0px_0px_rgba(28,122,66,1)]">
+                      <User size={18} />
+                    </div>
+                    <span className="font-bold text-sm">{cliente.nombre}</span>
+                  </div>
+                </td>
+                <td className="p-4 font-mono text-sm text-primary dark:text-primary-light font-bold">
+                  {cliente.whatsapp}
+                </td>
+                <td className="p-4 text-center">
+                  <span className="bg-black text-white px-3 py-1 rounded-full text-xs font-black">
+                    {cliente.total_pedidos}
+                  </span>
+                </td>
+                <td className="p-4 text-right">
+                  <button className="p-2 hover:bg-black hover:text-white rounded-lg transition-all border-2 border-transparent hover:border-black">
+                    <MoreVertical size={18} />
+                  </button>
                 </td>
               </tr>
-            ) : (
-              clientes.map((cliente) => (
-                <tr
-                  key={cliente.nombre}
-                  className="group hover:bg-primary/5 transition-colors duration-200"
-                >
-                  <td className="p-5 font-black text-text-primary dark:text-text-inverse uppercase tracking-tight italic text-sm">
-                    {cliente.nombre}
-                  </td>
-                  <td className="p-5 font-mono font-bold text-text-primary dark:text-text-inverse text-lg">
-                    $
-                    {cliente.totalGasto.toLocaleString("es-AR", {
-                      minimumFractionDigits: 2,
-                    })}
-                  </td>
-                  <td className="p-5">
-                    <span className="bg-gray-100 dark:bg-white/10 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-text-primary dark:text-text-inverse border border-border dark:border-border-dark">
-                      {cliente.pedidos}{" "}
-                      {cliente.pedidos === 1 ? "Pedido" : "Pedidos"}
-                    </span>
-                  </td>
-                </tr>
-              ))
-            )}
+            ))}
           </tbody>
         </table>
+      </div>
+
+      {/* VISTA MÓVIL: Cards Neo-Brutales */}
+      <div className="grid grid-cols-1 gap-4 md:hidden">
+        {clientes.map((cliente) => (
+          <div
+            key={cliente.id}
+            className="p-5 border-4 border-black rounded-neo bg-surface dark:bg-surface-dark shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-4"
+          >
+            <div className="flex justify-between items-start">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-primary text-white flex items-center justify-center rounded-full border-2 border-black">
+                  <User size={18} />
+                </div>
+                <div>
+                  <p className="font-black uppercase text-xs leading-none">
+                    Cliente
+                  </p>
+                  <p className="font-bold text-lg leading-tight">
+                    {cliente.nombre}
+                  </p>
+                </div>
+              </div>
+              <span className="bg-black text-white px-3 py-1 rounded-lg text-xs font-black">
+                {cliente.total_pedidos} PEDS
+              </span>
+            </div>
+
+            <a
+              href={`https://wa.me/${cliente.whatsapp}`}
+              className="flex items-center justify-center gap-2 w-full py-3 bg-green-500 text-black border-2 border-black rounded-xl font-black uppercase italic text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+            >
+              <MessageCircle size={16} />
+              Contactar WhatsApp
+            </a>
+          </div>
+        ))}
       </div>
     </div>
   );

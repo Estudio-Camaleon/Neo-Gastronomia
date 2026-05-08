@@ -7,13 +7,15 @@ interface CartItem {
   nombre: string;
   precio: number;
   cantidad: number;
+  detalles?: string; // <--- Agregado para paridad con el sistema de personalización
 }
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (item: CartItem) => void;
-  removeFromCart: (id: string) => void;
-  updateQuantity: (id: string, delta: number) => void;
+  // Usamos el prefijo _ para silenciar el error de variables no usadas en la interfaz
+  addToCart: (_item: CartItem) => void;
+  removeFromCart: (_id: string) => void;
+  updateQuantity: (_id: string, _delta: number) => void;
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
@@ -22,7 +24,7 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  // Inicialización perezosa: El estado nace con los datos reales de localStorage
+  // Inicialización perezosa para evitar parpadeos y leer datos reales
   const [cart, setCart] = useState<CartItem[]>(() => {
     if (typeof window !== "undefined") {
       const savedCart = localStorage.getItem("neo_cart");
@@ -31,7 +33,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return [];
   });
 
-  // Guardar en cada cambio (Mantenemos únicamente este efecto de sincronización externa)
+  // Sincronización automática con el almacenamiento local
   useEffect(() => {
     localStorage.setItem("neo_cart", JSON.stringify(cart));
   }, [cart]);
@@ -41,7 +43,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const existing = prev.find((i) => i.id === newItem.id);
       if (existing) {
         return prev.map((i) =>
-          i.id === newItem.id ? { ...i, cantidad: i.cantidad + 1 } : i,
+          i.id === newItem.id
+            ? { ...i, cantidad: i.cantidad + newItem.cantidad }
+            : i,
         );
       }
       return [...prev, newItem];

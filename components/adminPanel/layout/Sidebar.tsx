@@ -67,7 +67,7 @@ export function Sidebar({ slug, negocioNombre }: SidebarProps) {
           slug={slug}
           negocioNombre={negocioNombre}
           mounted={mounted}
-          theme={theme}
+          _theme={theme}
           setTheme={setTheme}
           onSignOutTrigger={() => setShowConfirm(true)}
         />

@@ -1,253 +1,155 @@
 "use client";
 
-import { useState } from "react";
-import { actualizarEstadoPedido } from "@/app/actions/pedidos";
 import {
-  MapPin,
-  Phone,
+  Smartphone,
+  Truck,
+  MessageCircle,
+  XCircle,
   Check,
-  ChevronRight,
+  CheckCircle2,
   Loader2,
-  ExternalLink,
-} from "lucide-react"; // MessageSquare removido con éxito
-import { toast } from "sonner";
-
-interface PedidoItem {
-  id: string;
-  cantidad: number;
-  nombre_producto: string;
-  precio_unitario: number;
-}
-
-interface PedidoData {
-  id: string;
-  estado:
-    | "pendiente"
-    | "preparando"
-    | "preparacion"
-    | "enviado"
-    | "entregado"
-    | "cancelado";
-  cliente_nombre: string;
-  metodo_pago?: string | null;
-  total: number | string;
-  cliente_whatsapp: string;
-  es_delivery: boolean;
-  direccion_entrega?: string | null;
-  notas?: string | null; // Sincronizado a 'notas'
-  pedido_items: PedidoItem[];
-}
+} from "lucide-react";
+import { PedidoData } from "../PedidosRadar";
 
 interface PedidoCardProps {
   pedido: PedidoData;
+  onUpdateStatus: (id: string, nuevoEstado: PedidoData["estado"]) => void; // REQUERIDO
+  loadingId: string | null; // REQUERIDO
 }
 
-export function PedidoCard({ pedido }: PedidoCardProps) {
-  const [isPending, setIsPending] = useState(false);
-
-  const dispararMensajeWhatsApp = (estadoDestino: PedidoData["estado"]) => {
-    const telefonoLimpio = pedido.cliente_whatsapp?.replace(/\D/g, "");
-    if (!telefonoLimpio) return;
-
-    let mensaje = "";
-
-    switch (estadoDestino) {
-      case "preparando":
-      case "preparacion":
-        mensaje = `¡Hola *${pedido.cliente_nombre}*! Tu pedido ya fue aceptado y entró a la cocina. 🍳 Te avisamos cuando esté listo. ¡Muchas gracias por elegirnos!`;
-        break;
-      case "enviado":
-        mensaje = `¡Buenas noticias *${pedido.cliente_nombre}*! Tu pedido ya salió de la cocina y va en camino con el repartidor. 🛵 ¡Prepará la mesa!`;
-        break;
-      case "entregado":
-        if (pedido.estado === "preparando" || pedido.estado === "preparacion") {
-          mensaje = `¡Hola *${pedido.cliente_nombre}*! Tu pedido ya está listo para retirar en el local. 🛍️ ¡Te esperamos!`;
-          break;
-        }
-        return;
-      case "cancelado":
-        mensaje = `Hola *${pedido.cliente_nombre}*, lamentablemente tuvimos que cancelar tu pedido en esta ocasión. 🙏 Disculpá las molestias ocasionadas. Quedamos a tu disposición.`;
-        break;
-      default:
-        return;
-    }
-
-    const url = `https://wa.me/${telefonoLimpio}?text=${encodeURIComponent(mensaje)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
-  };
-
-  const handleEstado = async (nuevoEstado: PedidoData["estado"]) => {
-    setIsPending(true);
-    try {
-      const res = await actualizarEstadoPedido(pedido.id, nuevoEstado);
-      if (res.success) {
-        toast.success(`ESTADO ACTUALIZADO: ${nuevoEstado.toUpperCase()}`);
-        dispararMensajeWhatsApp(nuevoEstado);
-      } else {
-        toast.error("Error al actualizar estado", { description: res.error });
-      }
-    } catch {
-      toast.error("Error de conexión con el radar");
-    } finally {
-      setIsPending(false);
-    }
-  };
-
-  const statusColors: Record<PedidoData["estado"], string> = {
-    pendiente:
-      "border-amber-500 text-amber-600 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-500/10",
-    preparando:
-      "border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-500/10",
-    preparacion:
-      "border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-500/10",
-    enviado:
-      "border-purple-500 text-purple-600 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-500/10",
-    entregado:
-      "border-emerald-500 text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-500/10",
-    cancelado: "border-error text-error bg-error/5 dark:bg-error/10",
-  };
+export function PedidoCard({
+  pedido,
+  onUpdateStatus,
+  loadingId,
+}: PedidoCardProps) {
+  const isLoading = loadingId === pedido.id;
 
   return (
-    <div className="bg-white dark:bg-bg-darker border-2 border-border dark:border-border-dark rounded-super overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-all animate-in fade-in zoom-in-95 font-sans h-full">
+    <div className="border-4 border-black rounded-neo bg-surface dark:bg-surface-dark overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col transition-all hover:translate-y-[-2px]">
+      {/* Header Dinámico según Estado */}
       <div
-        className={`p-4 border-b-2 flex justify-between items-center transition-colors ${statusColors[pedido.estado] || "border-border dark:border-border-dark"}`}
+        className={`p-4 border-b-4 border-black flex justify-between items-center ${
+          pedido.estado === "en_preparacion"
+            ? "bg-primary/20"
+            : "bg-amber-100 dark:bg-amber-900/20"
+        }`}
       >
-        <div>
-          <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-60 font-mono">
-            ID: {pedido.id.slice(0, 8)}
-          </p>
-          <h3 className="font-black italic uppercase text-lg leading-none mt-1 tracking-tighter text-text-primary dark:text-text-inverse">
-            {pedido.cliente_nombre}
-          </h3>
+        <div className="flex items-center gap-2">
+          {pedido.es_delivery ? <Truck size={16} /> : <Smartphone size={16} />}
+          <span className="font-black uppercase italic text-xs tracking-tighter">
+            {pedido.es_delivery
+              ? `Envío: ${pedido.direccion_entrega}`
+              : "Retiro en Local"}
+          </span>
         </div>
-        <div className="text-right select-none">
-          <p className="text-[10px] font-black uppercase tracking-tighter opacity-70 text-text-primary dark:text-text-inverse">
-            {pedido.metodo_pago || "WHATSAPP"}
-          </p>
-          <p className="font-black text-xl italic tracking-tighter font-mono text-text-primary dark:text-text-inverse">
-            $
-            {Number(pedido.total).toLocaleString("es-AR", {
-              minimumFractionDigits: 2,
-            })}
-          </p>
-        </div>
+        <span className="font-mono font-black text-[10px] opacity-40">
+          #{pedido.id.slice(0, 8)}
+        </span>
       </div>
 
-      <div className="p-5 space-y-4 flex-1 flex flex-col justify-between">
-        <div className="space-y-2">
-          {pedido.pedido_items?.map((item: PedidoItem) => (
-            <div
-              key={item.id}
-              className="flex justify-between text-xs font-bold uppercase italic tracking-tight text-text-primary dark:text-text-inverse"
-            >
-              <span className="text-text-muted">
-                {item.cantidad}x {item.nombre_producto}
-              </span>
-              <span className="font-black font-mono">
-                $
-                {(item.precio_unitario * item.cantidad).toLocaleString(
-                  "es-AR",
-                  { minimumFractionDigits: 2 },
-                )}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        <div className="pt-4 border-t-2 border-dashed border-border dark:border-border-dark space-y-3 mt-4">
+      <div className="p-5 space-y-4 flex-1">
+        {/* Info Cliente & WhatsApp */}
+        <div className="flex justify-between items-start">
+          <div>
+            <p className="font-black text-2xl leading-none uppercase">
+              {pedido.cliente_nombre}
+            </p>
+            <p className="text-xs font-bold text-text-muted mt-2 uppercase tracking-widest">
+              {pedido.metodo_pago} •{" "}
+              <span className="text-primary">${pedido.total}</span>
+            </p>
+          </div>
           <a
-            href={`https://wa.me/${pedido.cliente_whatsapp?.replace(/\D/g, "")}`}
+            href={`https://wa.me/${pedido.cliente_whatsapp}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-[10px] font-black text-text-muted dark:text-text-muted/80 uppercase hover:text-primary dark:hover:text-primary transition-colors group"
+            className="p-2 bg-green-500 text-white rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[-1px] transition-all"
           >
-            <Phone size={12} className="text-primary" />
-            <span className="font-mono">{pedido.cliente_whatsapp}</span>
-            <ExternalLink
-              size={10}
-              className="opacity-0 group-hover:opacity-100 transition-opacity"
-            />
+            <MessageCircle size={18} />
           </a>
-
-          {pedido.es_delivery && pedido.direccion_entrega && (
-            <div className="flex items-start gap-2 text-[10px] font-black text-text-muted dark:text-text-muted/80 uppercase italic">
-              <MapPin size={12} className="text-primary mt-0.5 shrink-0" />
-              <span className="leading-tight">{pedido.direccion_entrega}</span>
-            </div>
-          )}
-
-          {pedido.direccion_entrega && !pedido.es_delivery && (
-            <div className="flex items-start gap-2 text-[10px] font-black text-text-muted dark:text-text-muted/80 uppercase italic">
-              <span className="text-primary font-black">🛍️ TAKE AWAY</span>
-            </div>
-          )}
         </div>
+
+        {/* Detalle de Comanda */}
+        <div className="bg-black/5 dark:bg-white/5 rounded-xl p-3 border-2 border-black/5">
+          <p className="text-[10px] font-black uppercase opacity-40 mb-2 tracking-widest">
+            Comanda:
+          </p>
+          <div className="space-y-2">
+            {pedido.pedido_items.map((item) => (
+              <div
+                key={item.id}
+                className="flex flex-col border-b border-black/5 pb-1 last:border-0"
+              >
+                <div className="flex justify-between items-center text-sm">
+                  <span className="font-bold">
+                    <span className="text-primary mr-1">{item.cantidad}x</span>{" "}
+                    {item.nombre_producto}
+                  </span>
+                </div>
+                {item.detalles && (
+                  <span className="text-[11px] text-text-muted italic ml-5 leading-tight">
+                    ↳ {item.detalles}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Notas del Cliente */}
+        {pedido.notas && (
+          <div className="bg-amber-50 dark:bg-amber-900/10 p-3 rounded-lg border-2 border-dashed border-amber-200 dark:border-amber-700/30">
+            <p className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400">
+              Aclaraciones:
+            </p>
+            <p className="text-xs font-medium italic mt-1 leading-relaxed">
+              "{pedido.notas}"
+            </p>
+          </div>
+        )}
       </div>
 
-      <div className="p-4 bg-gray-50 dark:bg-white/5 border-t-2 border-border dark:border-border-dark grid grid-cols-2 gap-2 select-none">
-        {pedido.estado === "pendiente" && (
+      {/* Botones de Acción de Estado */}
+      <div className="p-4 bg-bg-main dark:bg-bg-darker border-t-4 border-black grid grid-cols-2 gap-3 mt-auto">
+        {pedido.estado === "pendiente" ? (
+          <>
+            <button
+              onClick={() => onUpdateStatus(pedido.id, "cancelado")}
+              disabled={isLoading}
+              className="py-3 bg-white dark:bg-surface-dark border-2 border-black rounded-xl font-black uppercase italic text-[10px] flex items-center justify-center gap-2 hover:bg-red-50 text-red-600 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all disabled:opacity-50"
+            >
+              {isLoading ? (
+                <Loader2 className="animate-spin" size={14} />
+              ) : (
+                <XCircle size={14} />
+              )}
+              Rechazar
+            </button>
+            <button
+              onClick={() => onUpdateStatus(pedido.id, "en_preparacion")}
+              disabled={isLoading}
+              className="py-3 bg-primary text-white border-2 border-black rounded-xl font-black uppercase italic text-[10px] flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all disabled:opacity-50"
+            >
+              {isLoading ? (
+                <Loader2 className="animate-spin" size={14} />
+              ) : (
+                <Check size={14} />
+              )}
+              Aceptar
+            </button>
+          </>
+        ) : (
           <button
-            type="button"
-            onClick={() => handleEstado("preparacion")}
-            disabled={isPending}
-            className="col-span-2 bg-black text-white dark:bg-primary py-4 rounded-neo font-black uppercase italic text-[11px] tracking-[0.2em] flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95 disabled:opacity-50 border-t border-white/10 cursor-pointer"
+            onClick={() => onUpdateStatus(pedido.id, "entregado")}
+            disabled={isLoading}
+            className="col-span-2 py-3 bg-green-500 text-black border-2 border-black rounded-xl font-black uppercase italic text-[10px] flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none transition-all disabled:opacity-50"
           >
-            {isPending ? (
-              <Loader2 className="animate-spin" size={16} />
+            {isLoading ? (
+              <Loader2 className="animate-spin" size={14} />
             ) : (
-              <>
-                ACEPTAR PEDIDO <ChevronRight size={14} />
-              </>
+              <CheckCircle2 size={14} />
             )}
-          </button>
-        )}
-
-        {(pedido.estado === "preparando" ||
-          pedido.estado === "preparacion") && (
-          <button
-            type="button"
-            onClick={() =>
-              handleEstado(pedido.es_delivery ? "enviado" : "entregado")
-            }
-            disabled={isPending}
-            className="col-span-2 bg-primary text-white py-4 rounded-neo font-black uppercase italic text-[11px] tracking-[0.2em] flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95 disabled:opacity-50 border-t border-white/10 cursor-pointer"
-          >
-            {isPending ? (
-              <Loader2 className="animate-spin" size={16} />
-            ) : (
-              <>
-                {pedido.es_delivery ? "DESPACHAR ENVÍO" : "LISTO PARA RETIRAR"}
-                <Check size={16} strokeWidth={3} />
-              </>
-            )}
-          </button>
-        )}
-
-        {pedido.estado === "enviado" && (
-          <button
-            type="button"
-            onClick={() => handleEstado("entregado")}
-            disabled={isPending}
-            className="col-span-2 bg-emerald-600 text-white py-4 rounded-neo font-black uppercase italic text-[11px] tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all active:scale-95 disabled:opacity-50 border-t border-white/10 cursor-pointer"
-          >
-            {isPending ? (
-              <Loader2 className="animate-spin" size={16} />
-            ) : (
-              <>
-                MARCAR COMO ENTREGADO <Check size={16} strokeWidth={3} />
-              </>
-            )}
-          </button>
-        )}
-
-        {pedido.estado !== "entregado" && pedido.estado !== "cancelado" && (
-          <button
-            type="button"
-            onClick={() => handleEstado("cancelado")}
-            disabled={isPending}
-            className="col-span-2 mt-1 py-2 text-[10px] font-black uppercase text-error hover:underline transition-all disabled:opacity-30 cursor-pointer"
-          >
-            RECHAZAR PEDIDO
+            Marcar como Entregado
           </button>
         )}
       </div>

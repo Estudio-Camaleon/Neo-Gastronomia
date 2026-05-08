@@ -13,9 +13,9 @@ import { Variant, ExtraGroup } from "../ProductoForm";
 
 interface CustomizationSectionProps {
   variantes: Variant[];
-  setVariantes: (v: Variant[]) => void;
+  setVariantes: (_v: Variant[]) => void;
   grupoExtras: ExtraGroup[];
-  setGrupoExtras: (g: ExtraGroup[]) => void;
+  setGrupoExtras: (_g: ExtraGroup[]) => void;
 }
 
 export function CustomizationSection({

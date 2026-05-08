@@ -6,7 +6,7 @@ interface SidebarFooterProps {
   slug?: string;
   negocioNombre?: string;
   mounted: boolean;
-  theme: string;
+  _theme: string; // <--- Cambiado aquí
   setTheme: (theme: string) => void;
   onSignOutTrigger: () => void;
 }
@@ -15,7 +15,7 @@ export function SidebarFooter({
   slug,
   negocioNombre,
   mounted,
-  theme,
+  _theme, // <--- Cambiado aquí
   setTheme,
   onSignOutTrigger,
 }: SidebarFooterProps) {
@@ -26,24 +26,24 @@ export function SidebarFooter({
         <button
           onClick={() => setTheme("light")}
           className={`flex-1 flex justify-center py-2 rounded-xl transition-all ${
-            mounted && theme === "light"
+            mounted && _theme === "light"
               ? "bg-white dark:bg-surface-dark shadow-sm text-primary"
               : "text-text-muted hover:text-text-primary"
           }`}
           title="Modo Claro"
         >
-          <Sun size={16} strokeWidth={mounted && theme === "light" ? 3 : 2} />
+          <Sun size={16} strokeWidth={mounted && _theme === "light" ? 3 : 2} />
         </button>
         <button
           onClick={() => setTheme("dark")}
           className={`flex-1 flex justify-center py-2 rounded-xl transition-all ${
-            mounted && theme === "dark"
+            mounted && _theme === "dark"
               ? "bg-white dark:bg-surface-dark shadow-sm text-primary"
               : "text-text-muted hover:text-text-primary"
           }`}
           title="Modo Oscuro"
         >
-          <Moon size={16} strokeWidth={mounted && theme === "dark" ? 3 : 2} />
+          <Moon size={16} strokeWidth={mounted && _theme === "dark" ? 3 : 2} />
         </button>
       </div>
 

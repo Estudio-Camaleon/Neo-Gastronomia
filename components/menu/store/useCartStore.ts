@@ -6,22 +6,23 @@ interface CartItem {
   nombre: string;
   precio: number;
   cantidad: number;
-  detalles?: string; // <--- ¡ESTO ES LO QUE FALTA AGREGAR!
+  detalles?: string; // <--- Agregado para soportar personalizaciones
 }
 
 // Contrato de la API de estado global del carrito gerenciado por Zustand
 interface CartState {
   cart: CartItem[];
-  addItem: (item: CartItem) => void;
-  removeItem: (id: string) => void;
+  // Usamos _ para indicar al linter que el nombre es estructural
+  addItem: (_item: CartItem) => void;
+  removeItem: (_id: string) => void;
   clearCart: () => void;
 }
 
 export const useCartStore = create<CartState>((set) => ({
-  // Estado inicial plano
+  // Estado inicial: Vacío
   cart: [],
 
-  // Agrega un ítem al carrito o incrementa su cantidad si ya existe
+  // Agrega un ítem al carrito o incrementa su cantidad si el ID coincide exactamente
   addItem: (newItem) =>
     set((state) => {
       const existingItemIndex = state.cart.findIndex(
@@ -29,7 +30,7 @@ export const useCartStore = create<CartState>((set) => ({
       );
 
       if (existingItemIndex > -1) {
-        // Clonamos el arreglo para respetar la inmutabilidad de Zustand
+        // Clonamos el arreglo para mantener la inmutabilidad de Zustand
         const updatedCart = [...state.cart];
         updatedCart[existingItemIndex] = {
           ...updatedCart[existingItemIndex],
@@ -38,11 +39,11 @@ export const useCartStore = create<CartState>((set) => ({
         return { cart: updatedCart };
       }
 
-      // Si el ítem es nuevo, lo incorporamos al final del arreglo
+      // Si el ítem es nuevo (o tiene un ID único por sus detalles), se agrega al final
       return { cart: [...state.cart, newItem] };
     }),
 
-  // Decrementa la cantidad de un producto o lo remueve por completo si llega a cero
+  // Reduce la cantidad o elimina el ítem si llega a cero
   removeItem: (id) =>
     set((state) => {
       const existingItemIndex = state.cart.findIndex((item) => item.id === id);
@@ -52,14 +53,12 @@ export const useCartStore = create<CartState>((set) => ({
         const currentItem = updatedCart[existingItemIndex];
 
         if (currentItem.cantidad > 1) {
-          // Si tiene más de una unidad, restamos una
           updatedCart[existingItemIndex] = {
             ...currentItem,
             cantidad: currentItem.cantidad - 1,
           };
           return { cart: updatedCart };
         } else {
-          // Si tiene una sola unidad, lo barremos del carrito por completo
           return { cart: state.cart.filter((item) => item.id !== id) };
         }
       }
@@ -67,6 +66,6 @@ export const useCartStore = create<CartState>((set) => ({
       return { cart: state.cart };
     }),
 
-  // Vacía el carrito por completo (útil para cancelaciones o despachos exitosos)
+  // Reset total del estado
   clearCart: () => set({ cart: [] }),
 }));

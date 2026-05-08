@@ -4,7 +4,7 @@ import { Palette } from "lucide-react";
 
 interface CatalogDesignSectionProps {
   colorPrimary: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (_e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export function CatalogDesignSection({
