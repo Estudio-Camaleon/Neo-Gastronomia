@@ -1,4 +1,4 @@
-// app/(public)/layout.tsx
+// app/(menuPublic)/layout.tsx
 import { createClient } from "@/lib/supabase/server";
 import React from "react";
 

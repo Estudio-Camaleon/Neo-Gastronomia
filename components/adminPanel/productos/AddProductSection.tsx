@@ -4,65 +4,59 @@ import { useState } from "react";
 import { Plus, FolderPlus } from "lucide-react";
 import { ProductModal } from "./modals/ProductModal";
 import { CategoriaManager } from "./modals/CategoriaManager";
-import { ProductTable } from "./ui/ProductTable"; // Importación unificada en la subcarpeta UI
-
+import { ProductTable } from "./ui/ProductTable";
+import { Button, Card } from "../ui"; // Importamos del Core
 interface AddProductSectionProps {
   negocioId: string;
 }
-
 export function AddProductSection({ negocioId }: AddProductSectionProps) {
   const [isProductOpen, setIsProductOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
 
   return (
     <div className="space-y-6">
-      {/* barra de Acciones Superiores Estilo NEO */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-white dark:bg-bg-darker p-4 rounded-super border-2 border-border dark:border-border-dark shadow-sm">
+      {/* Barra de Acciones con Card */}
+      <Card className="p-4 flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-col">
-          <h1 className="text-xl font-black uppercase italic tracking-tight text-text-primary dark:text-text-inverse">
+          <h2 className="text-xl font-black uppercase italic tracking-tight">
             Gestión de Inventario
-          </h1>
-          <p className="text-xs text-text-muted font-mono">
-            Administrá tus artículos, precios y categorías en tiempo real.
+          </h2>
+          <p className="text-xs text-text-muted font-mono uppercase">
+            Control de stock y categorías en tiempo real.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Botón Gestor de Categorías */}
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            icon={FolderPlus}
             onClick={() => setIsCategoryOpen(true)}
-            className="bg-white dark:bg-bg-dark border-2 border-border dark:border-border-dark text-text-primary dark:text-text-inverse px-5 py-3 rounded-neo text-xs font-black uppercase tracking-widest hover:border-primary hover:text-primary dark:hover:text-primary transition-all active:scale-95 flex items-center gap-2"
           >
-            <FolderPlus size={16} />
             Categorías
-          </button>
+          </Button>
 
-          {/* Botón Nuevo Producto */}
-          <button
-            type="button"
+          <Button
+            variant="primary"
+            icon={Plus}
             onClick={() => setIsProductOpen(true)}
-            className="bg-primary text-white px-5 py-3 rounded-neo text-xs font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20 flex items-center gap-2 border-t border-white/10"
           >
-            <Plus size={16} strokeWidth={3} />
             Nuevo Producto
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
 
-      {/* Tabla de Productos Integrada */}
-      <div className="bg-white dark:bg-bg-darker rounded-super border-2 border-border dark:border-border-dark overflow-hidden shadow-sm">
+      {/* Tabla envuelta en Card para consistencia de sombras */}
+      <Card title="Listado de Productos" className="p-0 overflow-hidden">
         <ProductTable negocioId={negocioId} />
-      </div>
+      </Card>
 
-      {/* Modales Flotantes Controlados */}
+      {/* Modales se mantienen igual */}
       {isProductOpen && (
         <ProductModal
           negocioId={negocioId}
           onClose={() => setIsProductOpen(false)}
         />
       )}
-
       {isCategoryOpen && (
         <CategoriaManager
           negocioId={negocioId}

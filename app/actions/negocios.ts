@@ -66,7 +66,7 @@ export async function actualizarNegocio(
 
   // Revalidamos las rutas clave para que los cambios visuales se apliquen al instante
   revalidatePath("/(adminPanel)/configuracion", "page");
-  revalidatePath(`/(public)/${data.slug}`, "page");
+  revalidatePath(`/(menuPublic)/${data.slug}`, "page");
 
   return { success: true };
 }

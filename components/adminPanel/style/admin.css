@@ -1,0 +1,58 @@
+@layer base {
+  :root {
+    /* ADMIN LIGHT MODE - "Forest Gallery" */
+    --admin-bg: #ffffff;
+    --admin-surface: #ecf8f1; /* Verde fantasma - Shade 5 */
+    --admin-surface-accent: #c8ebd7; /* Shade 4 */
+    --admin-border: #0f4023; /* Shade 2 - Forest profundo */
+    --admin-text: #0f4023;
+    --admin-text-muted: #145a30; /* Shade 1 */
+    --admin-accent: #1c7a42; /* Color Base - Emerald Tech */
+    --admin-shadow: 4px 4px 0px 0px #0f4023;
+    --admin-shadow-hover: 1px 1px 0px 0px #0f4023;
+    --admin-danger: #e11d48;
+  }
+
+  .dark {
+    /* ADMIN DARK MODE - "Obsidian Forest" */
+    --admin-bg: #0f4023; /* Shade 2 - El más oscuro de base */
+    --admin-surface: #145a30; /* Shade 1 */
+    --admin-surface-accent: #1c7a42; /* Color Base */
+    --admin-border: #c8ebd7; /* Shade 4 - Contraste suave */
+    --admin-text: #ecf8f1; /* Shade 5 - Texto casi blanco */
+    --admin-text-muted: #34a35f; /* Shade 3 */
+    --admin-accent: #34a35f; /* Shade 3 - Brilla en la oscuridad */
+    --admin-shadow: 4px 4px 0px 0px #145a30;
+    --admin-shadow-hover: 1px 1px 0px 0px #145a30;
+    --admin-danger: #fb7185;
+  }
+}
+
+/* Utilidades actualizadas para la variante Forest */
+.admin-card {
+  background-color: var(--admin-surface);
+  border: 2px solid var(--admin-border);
+  box-shadow: var(--admin-shadow);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-card:hover {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.admin-input {
+  background-color: var(--admin-bg);
+  border: 2px solid var(--admin-border);
+  color: var(--admin-text);
+  padding: 0.6rem 1rem;
+  font-weight: 600;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.admin-input:focus {
+  border-color: var(--admin-accent);
+  box-shadow: 3px 3px 0px 0px var(--admin-accent);
+  background-color: var(--admin-surface);
+}

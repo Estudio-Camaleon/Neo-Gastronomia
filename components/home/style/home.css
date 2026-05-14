@@ -1,0 +1,110 @@
+/* NEO_SYSTEM: Anti-Gap & Final Reset */
+
+/* Eliminamos el height: 100% de html/body que puede forzar scrolls raros */
+html,
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+  background-color: #0d0e08; /* Color de fondo base para evitar parpadeo blanco */
+}
+
+@layer base {
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  .neo-home {
+    --theme-background: #0d0e08;
+    --theme-surface: #17190c;
+    --theme-border: rgba(157, 183, 28, 0.2);
+    --theme-primary: #9db71c;
+    --theme-text: #ffffff;
+    --theme-text-muted: #a3b38f;
+
+    background-color: var(--theme-background);
+    color: var(--theme-text);
+    min-height: 100vh;
+    height: auto;
+    position: relative;
+    overflow-x: clip;
+  }
+
+  .neo-home::before {
+    content: "";
+    position: absolute;
+    top: -5%;
+    right: -5%;
+    width: 50%;
+    height: 50%;
+    background: radial-gradient(
+      circle,
+      rgba(157, 183, 28, 0.05) 0%,
+      transparent 70%
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .neo-home .glass-card {
+    background: rgba(23, 25, 12, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .neo-home .glass-card:hover {
+    border-color: rgba(157, 183, 28, 0.3);
+    box-shadow:
+      0 20px 40px rgba(0, 0, 0, 0.4),
+      0 0 20px rgba(157, 183, 28, 0.05);
+    transform: translateY(-4px);
+  }
+
+  .neo-home .btn-elegant {
+    background: var(--theme-primary);
+    color: var(--theme-background);
+    border-radius: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+  }
+
+  .neo-home .btn-elegant:hover {
+    filter: brightness(1.1);
+    transform: scale(1.02);
+    box-shadow: 0 10px 25px rgba(157, 183, 28, 0.2);
+  }
+
+  .neo-home .btn-elegant:active {
+    transform: scale(0.98);
+  }
+
+  @keyframes float {
+    0% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+    100% {
+      transform: translateY(0px);
+    }
+  }
+
+  .animate-float {
+    animation: float 5s ease-in-out infinite;
+  }
+}
+
+@media (max-width: 768px) {
+  .neo-home .glass-card {
+    border-radius: 16px;
+    padding: 1.5rem;
+  }
+}

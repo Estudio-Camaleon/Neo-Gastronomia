@@ -5,7 +5,6 @@ import {
   Edit3,
   Trash2,
   Tag,
-  EyeOff,
   Package,
   ExternalLink,
   Loader2,
@@ -14,9 +13,8 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import Image from "next/image";
 import { IngredientBadge } from "./IngredientBadge"; // 🚀 Importación del nuevo Badge
-import type {
-  RealtimeChannel,
-} from "@supabase/supabase-js";
+import type { RealtimeChannel } from "@supabase/supabase-js";
+import { Button, Badge } from "../../ui"; // Importamos del Core
 
 interface CategoriaRelacion {
   nombre: string;
@@ -212,20 +210,34 @@ export function ProductTable({ negocioId }: ProductTableProps) {
                 {/* ESTADO */}
                 <td className="p-6">
                   {prod.disponible ? (
-                    <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-[9px] font-black uppercase tracking-widest">
-                        Activo
-                      </span>
-                    </div>
+                    <Badge variant="success">Activo</Badge>
                   ) : (
-                    <div className="flex items-center gap-2 text-error opacity-60">
-                      <EyeOff size={12} />
-                      <span className="text-[9px] font-black uppercase tracking-widest">
-                        Pausado
-                      </span>
-                    </div>
+                    <Badge variant="neutral" className="opacity-50">
+                      Pausado
+                    </Badge>
                   )}
+                </td>
+
+                {/* ACCIONES */}
+                <td className="p-6">
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="secondary"
+                      className="p-2"
+                      onClick={() => {
+                        /* edit */
+                      }}
+                    >
+                      <Edit3 size={16} />
+                    </Button>
+                    <Button
+                      variant="danger"
+                      className="p-2"
+                      onClick={() => handleEliminar(prod.id, prod.nombre)}
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  </div>
                 </td>
 
                 {/* ACCIONES */}

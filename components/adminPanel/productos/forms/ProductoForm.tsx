@@ -4,6 +4,7 @@ import { useState } from "react";
 import { guardarProducto } from "@/app/actions/productos";
 import { toast } from "sonner";
 import { Package, Loader2, Save, CheckCircle } from "lucide-react";
+import { Button } from "../../ui"; // Importamos del Core
 
 import { BasicInfoSection } from "./sections/BasicInfoSection";
 import { CustomizationSection } from "./sections/CustomizationSection";
@@ -198,31 +199,19 @@ export function ProductoForm({
 
       {/* --- FOOTER / ACCIONES --- */}
       <div className="mt-12 pt-8 border-t-4 border-black flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="hidden md:block">
-          <p className="text-[10px] font-black uppercase text-text-muted italic">
-            * Campos obligatorios revisados por sistema
-          </p>
-        </div>
+  <p className="hidden md:block text-[10px] font-black uppercase text-text-muted italic">
+    * Campos obligatorios revisados por sistema
+  </p>
 
-        <button
-          type="submit"
-          disabled={isPending}
-          className="w-full md:w-auto group relative flex items-center justify-center gap-4 bg-primary text-black px-12 py-5 rounded-full font-black uppercase tracking-widest italic hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all active:scale-95 disabled:opacity-50 border-2 border-black"
-        >
-          {isPending ? (
-            <Loader2 className="animate-spin" size={24} />
-          ) : (
-            <Save size={24} />
-          )}
-          <span className="text-lg">
-            {isPending
-              ? "Sincronizando..."
-              : initialData
-                ? "Actualizar Cambios"
-                : "Publicar Producto"}
-          </span>
-        </button>
-      </div>
+  <Button
+    type="submit"
+    isLoading={isPending}
+    icon={Save}
+    className="w-full md:w-auto text-lg px-12 py-6"
+  >
+    {initialData ? "Actualizar Cambios" : "Publicar Producto"}
+  </Button>
+</div>
     </form>
   );
 }

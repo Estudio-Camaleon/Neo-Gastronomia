@@ -1,12 +1,11 @@
 "use client";
 
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, ExternalLink, LogOut } from "lucide-react";
 
 interface SidebarFooterProps {
   slug?: string;
   negocioNombre?: string;
-  mounted: boolean;
-  _theme: string; // <--- Cambiado aquí
+  theme: string;
   setTheme: (theme: string) => void;
   onSignOutTrigger: () => void;
 }
@@ -14,66 +13,76 @@ interface SidebarFooterProps {
 export function SidebarFooter({
   slug,
   negocioNombre,
-  mounted,
-  _theme, // <--- Cambiado aquí
+  theme,
   setTheme,
   onSignOutTrigger,
 }: SidebarFooterProps) {
   return (
-    <div className="mt-auto space-y-4 pt-6 border-t border-border dark:border-border-dark">
-      {/* THEME SWITCHER INTEGRADO */}
-      <div className="flex items-center justify-between bg-bg-main dark:bg-bg-darker p-1 rounded-2xl border border-border dark:border-border-dark">
+    <div className="space-y-6">
+      {/* SWITCHER DE TEMA (ESTILO HARDWARE) */}
+      <div className="grid grid-cols-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] p-1 shadow-[2px_2px_0px_0px_var(--admin-border)]">
         <button
           onClick={() => setTheme("light")}
-          className={`flex-1 flex justify-center py-2 rounded-xl transition-all ${
-            mounted && _theme === "light"
-              ? "bg-white dark:bg-surface-dark shadow-sm text-primary"
-              : "text-text-muted hover:text-text-primary"
+          className={`flex items-center justify-center gap-2 py-2 text-[9px] font-black uppercase transition-all ${
+            theme === "light"
+              ? "bg-[var(--admin-accent)] text-[var(--admin-bg)]"
+              : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"
           }`}
-          title="Modo Claro"
         >
-          <Sun size={16} strokeWidth={mounted && _theme === "light" ? 3 : 2} />
+          <Sun size={12} strokeWidth={3} /> Light
         </button>
         <button
           onClick={() => setTheme("dark")}
-          className={`flex-1 flex justify-center py-2 rounded-xl transition-all ${
-            mounted && _theme === "dark"
-              ? "bg-white dark:bg-surface-dark shadow-sm text-primary"
-              : "text-text-muted hover:text-text-primary"
+          className={`flex items-center justify-center gap-2 py-2 text-[9px] font-black uppercase transition-all ${
+            theme === "dark"
+              ? "bg-[var(--admin-accent)] text-[var(--admin-bg)]"
+              : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"
           }`}
-          title="Modo Oscuro"
         >
-          <Moon size={16} strokeWidth={mounted && _theme === "dark" ? 3 : 2} />
+          <Moon size={12} strokeWidth={3} /> Dark
         </button>
       </div>
 
+      {/* MODULO DE ACCESO RÁPIDO */}
       {slug && (
-        <div className="p-3 bg-primary/5 rounded-xl border border-primary/10 font-sans">
-          <p className="text-[10px] uppercase tracking-widest text-primary/70 font-black mb-1">
-            Catálogo Público
-          </p>
+        <div className="bg-[var(--admin-surface-accent)]/30 border-l-2 border-[var(--admin-accent)] p-3 group transition-all">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[var(--admin-accent)] opacity-70">
+              Live Gateway
+            </span>
+            <ExternalLink
+              size={10}
+              className="opacity-30 group-hover:opacity-100 transition-all"
+            />
+          </div>
           <a
             href={`/${slug}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs font-black text-primary hover:underline truncate block"
+            className="text-[11px] font-mono font-bold text-[var(--admin-text)] truncate block hover:text-[var(--admin-accent)] transition-colors"
           >
             neo.app/{slug}
           </a>
         </div>
       )}
 
+      {/* IDENTIDAD DE SESIÓN */}
       <button
         type="button"
         onClick={onSignOutTrigger}
-        className="w-full flex flex-col items-start p-3 hover:bg-error/10 rounded-2xl transition-all group border border-transparent hover:border-error/20 font-sans"
+        className="w-full flex items-center gap-3 p-3 group transition-all"
       >
-        <span className="text-[10px] uppercase font-black tracking-widest text-text-muted group-hover:text-error transition-colors">
-          Cerrar sesión
-        </span>
-        <span className="text-sm font-bold text-text-primary dark:text-text-inverse truncate w-full text-left">
-          {negocioNombre || "Mi Negocio"}
-        </span>
+        <div className="p-2 bg-[var(--admin-surface-accent)] text-[var(--admin-text-muted)] group-hover:bg-[var(--admin-danger)] group-hover:text-white transition-colors border border-[var(--admin-border)]/10">
+          <LogOut size={14} strokeWidth={3} />
+        </div>
+        <div className="flex flex-col items-start overflow-hidden">
+          <span className="text-[9px] font-black uppercase tracking-tighter text-[var(--admin-text-muted)] group-hover:text-[var(--admin-danger)] transition-colors">
+            End Session
+          </span>
+          <span className="text-[10px] font-bold text-[var(--admin-text)] truncate w-full text-left opacity-60">
+            {negocioNombre || "Node_01"}
+          </span>
+        </div>
       </button>
     </div>
   );

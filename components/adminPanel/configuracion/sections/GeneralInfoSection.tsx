@@ -1,101 +1,151 @@
 "use client";
 
-import { Globe, Hash, Smartphone, MapPin } from "lucide-react";
+import { Globe, Hash, Smartphone, MapPin, Navigation } from "lucide-react";
 
 interface GeneralInfoSectionProps {
-  nombre: string;
-  slug: string;
-  whatsapp: string;
-  direccion: string;
-  onChange: (_e: React.ChangeEvent<HTMLInputElement>) => void;
+  formData: {
+    nombre: string;
+    slug: string;
+    whatsapp: string;
+    direccion: string;
+    localidad: string;
+    direccion_notas: string;
+  };
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export function GeneralInfoSection({
-  nombre,
-  slug,
-  whatsapp,
-  direccion,
+  formData,
   onChange,
 }: GeneralInfoSectionProps) {
   return (
-    <section className="bg-white dark:bg-bg-darker border-2 border-border dark:border-border-dark rounded-super p-8 space-y-6 shadow-sm transition-colors font-sans">
-      {/* Cabecera de Sección */}
-      <div className="flex items-center gap-3 mb-2">
-        <Globe className="text-primary w-5 h-5" />
-        <h2 className="font-black uppercase italic tracking-tight text-lg text-text-primary dark:text-text-inverse">
-          Información General
+    <section className="bg-[var(--admin-surface)] border-2 border-[var(--admin-border)] p-8 space-y-10 shadow-[var(--admin-shadow)] animate-in fade-in duration-500">
+      {/* HEADER TÉCNICO */}
+      <div className="flex items-center gap-3 border-b border-[var(--admin-border)] pb-6">
+        <Globe size={24} className="text-[var(--admin-accent)]" />
+        <h2 className="font-black uppercase italic tracking-tighter text-2xl">
+          Información{" "}
+          <span className="text-[var(--admin-text-muted)] font-medium">
+            / Operativa
+          </span>
         </h2>
       </div>
 
-      {/* Grilla de Inputs de Control */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Input: Nombre Comercial */}
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-text-muted italic ml-1">
-            Nombre Comercial
+      <div className="grid md:grid-cols-2 gap-x-10 gap-y-8">
+        {/* Nombre Comercial */}
+        <div className="space-y-3">
+          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--admin-text-muted)] ml-1 italic">
+            Razón Social / Nombre
           </label>
           <input
             type="text"
             name="nombre"
-            value={nombre}
+            value={formData.nombre}
             onChange={onChange}
-            className="w-full bg-bg-main dark:bg-bg-dark p-4 rounded-neo border-2 border-border dark:border-border-dark focus:border-primary text-text-primary dark:text-text-inverse outline-none font-bold transition-colors uppercase text-sm"
+            placeholder="Ej: Neo Burguer"
+            className="admin-input w-full rounded-xl text-sm tracking-tight"
             required
           />
         </div>
 
-        {/* Input: Identificador de URL (Slug) */}
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-text-muted italic ml-1">
-            Identificador de URL (Slug)
+        {/* URL del Catálogo (Slug) */}
+        <div className="space-y-3">
+          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--admin-text-muted)] ml-1 italic">
+            Identificador URL (Slug)
           </label>
-          <div className="relative">
-            <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary z-10" />
+          <div className="relative group">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--admin-accent)] z-10 transition-transform group-focus-within:scale-110">
+              <Hash size={18} strokeWidth={3} />
+            </div>
             <input
               type="text"
               name="slug"
-              value={slug}
+              value={formData.slug}
               onChange={onChange}
-              className="w-full bg-bg-main dark:bg-bg-dark p-4 pl-10 rounded-neo border-2 border-border dark:border-border-dark focus:border-primary text-text-primary dark:text-text-inverse outline-none font-black italic transition-colors text-sm font-mono lowercase"
+              className="admin-input w-full pl-12 rounded-xl text-sm font-mono lowercase text-[var(--admin-accent)]"
+              placeholder="nombre-de-tu-local"
               required
             />
           </div>
         </div>
 
-        {/* Input: WhatsApp de Pedidos */}
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-text-muted italic ml-1">
-            WhatsApp de Pedidos
+        {/* WhatsApp Pedidos */}
+        <div className="space-y-3">
+          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--admin-text-muted)] ml-1 italic">
+            Línea de Pedidos (WhatsApp)
           </label>
-          <div className="relative">
-            <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500 z-10" />
+          <div className="relative group">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500 z-10 transition-transform group-focus-within:scale-110">
+              <Smartphone size={18} strokeWidth={3} />
+            </div>
             <input
               type="tel"
               name="whatsapp"
-              value={whatsapp}
+              value={formData.whatsapp}
               onChange={onChange}
-              className="w-full bg-bg-main dark:bg-bg-dark p-4 pl-10 rounded-neo border-2 border-border dark:border-border-dark focus:border-primary text-text-primary dark:text-text-inverse outline-none font-bold transition-colors text-sm font-mono"
-              placeholder="54381..."
+              className="admin-input w-full pl-12 rounded-xl text-sm font-mono"
+              placeholder="5493815550000"
             />
           </div>
         </div>
 
-        {/* Input: Ubicación Física */}
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-text-muted italic ml-1">
-            Ubicación
+        {/* Ciudad / Localidad */}
+        <div className="space-y-3">
+          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--admin-text-muted)] ml-1 italic">
+            Región / Localidad
           </label>
-          <div className="relative">
-            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary z-10" />
+          <div className="relative group">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] z-10 transition-transform group-focus-within:text-[var(--admin-accent)]">
+              <Navigation size={18} strokeWidth={2.5} />
+            </div>
+            <input
+              type="text"
+              name="localidad"
+              value={formData.localidad}
+              onChange={onChange}
+              className="admin-input w-full pl-12 rounded-xl text-sm uppercase tracking-tighter"
+              placeholder="Yerba Buena, Tucumán"
+            />
+          </div>
+        </div>
+
+        {/* Dirección Principal (Full Width) */}
+        <div className="space-y-3 md:col-span-2">
+          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--admin-text-muted)] ml-1 italic">
+            Ubicación Física
+          </label>
+          <div className="relative group">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] z-10">
+              <MapPin size={18} strokeWidth={2.5} />
+            </div>
             <input
               type="text"
               name="direccion"
-              value={direccion}
+              value={formData.direccion}
               onChange={onChange}
-              className="w-full bg-bg-main dark:bg-bg-dark p-4 pl-10 rounded-neo border-2 border-border dark:border-border-dark focus:border-primary text-text-primary dark:text-text-inverse outline-none font-bold transition-colors text-sm uppercase placeholder:normal-case placeholder:font-normal"
-              placeholder="Calle, Número, Localidad"
+              className="admin-input w-full pl-12 rounded-xl text-sm uppercase font-bold"
+              placeholder="Avenida Principal 1234"
             />
           </div>
+        </div>
+
+        {/* Notas de Dirección (Full Width) */}
+        <div className="space-y-3 md:col-span-2">
+          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--admin-text-muted)] ml-1 italic">
+            Referencias de Entrega / Despacho
+          </label>
+          <input
+            type="text"
+            name="direccion_notas"
+            value={formData.direccion_notas}
+            onChange={onChange}
+            className="admin-input w-full rounded-xl text-xs bg-[var(--admin-bg)]"
+            placeholder="Ej: Portón negro, timbre B. Local interno."
+          />
+          <p className="text-[9px] text-[var(--admin-text-muted)] uppercase font-bold px-1 opacity-60">
+            * Esta información ayudará a los repartidores y clientes a encontrar
+            tu local más rápido.
+          </p>
         </div>
       </div>
     </section>

@@ -1,52 +1,42 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { LogOut, AlertTriangle } from "lucide-react";
 import { useTheme } from "@/components/providers/ThemeProvider";
+import {
+  LayoutDashboard,
+  Package,
+  ClipboardList,
+  Users,
+  Settings,
+  AlertCircle,
+} from "lucide-react";
 
-// SINCENAMIENTO DE IMPORTACIONES NOMBRADAS (Named Imports)
 import { SidebarLogo } from "./sections/SidebarLogo";
 import { SidebarRadar } from "./sections/SidebarRadar";
-import { SidebarNavigation } from "./sections/SidebarNavigation";
 import { SidebarFooter } from "./sections/SidebarFooter";
+import Link from "next/link";
 
-interface SidebarProps {
+export function Sidebar({
+  slug,
+  negocioNombre,
+  negocioId,
+}: {
   slug?: string;
   negocioNombre?: string;
-}
-
-export function Sidebar({ slug, negocioNombre }: SidebarProps) {
-  const supabase = createClient();
-  const router = useRouter();
+  negocioId?: string | null;
+}) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [negocioId, setNegocioId] = useState<string | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const pathname = usePathname();
+  const supabase = createClient();
+  const router = useRouter();
 
   useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
+    setMounted(true);
   }, []);
-
-  useEffect(() => {
-    async function obtenerContextoNegocio() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data } = await supabase
-        .from("negocios")
-        .select("id")
-        .eq("user_id", user.id)
-        .single();
-
-      if (data) setNegocioId(data.id);
-    }
-    obtenerContextoNegocio();
-  }, [supabase]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -54,56 +44,119 @@ export function Sidebar({ slug, negocioNombre }: SidebarProps) {
     router.refresh();
   };
 
+  // Definición de la sección de Dashboard y Navegación
+  const navItems = [
+    { name: "Dashboard", href: "/", icon: LayoutDashboard }, // Ruta raíz de (adminPanel)
+    { name: "Pedidos", href: "/pedidos", icon: ClipboardList },
+    { name: "Productos", href: "/productos", icon: Package },
+    { name: "Clientes", href: "/clientes", icon: Users },
+    { name: "Configuración", href: "/configuracion", icon: Settings },
+  ];
+
+  if (!mounted)
+    return (
+      <aside className="w-72 bg-[var(--admin-surface)] border-r-2 border-[var(--admin-border)]" />
+    );
+
   return (
     <>
-      <aside className="w-64 bg-surface dark:bg-surface-dark border-r border-border dark:border-border-dark p-6 flex flex-col h-screen sticky top-0 transition-colors duration-300 z-40">
-        <SidebarLogo mounted={mounted} theme={theme} />
+      <aside className="flex flex-col h-full bg-[var(--admin-surface)] border-r-2 border-[var(--admin-border)] p-6 transition-colors duration-500 z-40">
+        <SidebarLogo />
+
+        <div className="my-8 border-t border-[var(--admin-border)] opacity-10" />
 
         <SidebarRadar negocioId={negocioId} />
 
-        <SidebarNavigation />
+        {/* SECCIÓN DE NAVEGACIÓN PRINCIPAL */}
+        <nav className="flex-1 mt-8 space-y-2 overflow-y-auto custom-scrollbar">
+          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[var(--admin-text-muted)] ml-2 mb-4 block opacity-50">
+            Main Terminal
+          </span>
+
+          {navItems.map((item) => {
+            const isActive =
+              pathname === item.href ||
+              (item.href !== "/" && pathname.startsWith(item.href));
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`
+                  flex items-center gap-4 px-4 py-3 border-2 transition-all duration-200 group relative
+                  ${
+                    isActive
+                      ? "bg-[var(--admin-accent)] border-[var(--admin-border)] text-[var(--admin-bg)] shadow-[4px_4px_0px_0px_var(--admin-border)]"
+                      : "bg-transparent border-transparent text-[var(--admin-text-muted)] hover:border-[var(--admin-border)]/20 hover:text-[var(--admin-text)]"
+                  }
+                `}
+              >
+                <Icon
+                  size={18}
+                  strokeWidth={isActive ? 3 : 2}
+                  className={
+                    isActive
+                      ? "text-[var(--admin-bg)]"
+                      : "text-[var(--admin-accent)]"
+                  }
+                />
+                <span className="text-xs font-black uppercase tracking-widest italic">
+                  {item.name}
+                </span>
+
+                {isActive && (
+                  <div className="absolute right-2 w-1.5 h-1.5 bg-[var(--admin-bg)] rounded-full animate-pulse" />
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="mt-auto pt-6 border-t border-[var(--admin-border)] opacity-20" />
 
         <SidebarFooter
           slug={slug}
           negocioNombre={negocioNombre}
-          mounted={mounted}
-          _theme={theme}
+          theme={theme}
           setTheme={setTheme}
-          onSignOutTrigger={() => setShowConfirm(true)}
+          onSignOutTrigger={() => setShowLogoutConfirm(true)}
         />
       </aside>
 
-      {/* MODAL DE CONFIRMACIÓN ESTILO NEO-BRUTALISTA */}
-      {showConfirm && (
-        <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-bg-darker border-4 border-black dark:border-border-dark p-6 max-w-sm w-full rounded-super shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(38,38,38,1)] animate-in zoom-in-95 duration-200 text-center font-sans">
-            <div className="mx-auto w-12 h-12 rounded-full bg-error/10 text-error flex items-center justify-center mb-4 border-2 border-error">
-              <AlertTriangle size={22} />
+      {/* MODAL DE DESCONEXIÓN (ESTILO FOREST TECH) */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-[#0f4023]/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-[var(--admin-bg)] border-2 border-[var(--admin-border)] p-8 max-w-sm w-full shadow-[8px_8px_0px_0px_var(--admin-border)] relative">
+            <div className="mx-auto w-14 h-14 bg-[var(--admin-danger)]/10 text-[var(--admin-danger)] flex items-center justify-center mb-6 border-2 border-[var(--admin-danger)] rounded-full">
+              <AlertCircle size={28} strokeWidth={2.5} />
             </div>
-            <h3 className="font-black uppercase italic text-xl tracking-tighter text-text-primary dark:text-text-inverse leading-none mb-2">
-              ¿Cerrar Sesión Operativa?
+
+            <h3 className="font-black text-xl text-[var(--admin-text)] text-center uppercase italic tracking-tighter mb-2">
+              Desconectar{" "}
+              <span className="text-[var(--admin-accent)]">Terminal</span>
             </h3>
-            <p className="text-xs font-medium text-text-muted dark:text-text-muted/80 leading-relaxed mb-6">
-              Vas a salir del Panel de Control de{" "}
-              <span className="font-black text-text-primary dark:text-text-inverse">
-                {negocioNombre || "tu negocio"}
+
+            <p className="text-[10px] font-bold text-[var(--admin-text-muted)] text-center uppercase tracking-widest leading-tight mb-8 opacity-70">
+              ¿Confirmás la salida de <br />
+              <span className="text-[var(--admin-text)] font-black">
+                {negocioNombre || "la unidad actual"}
               </span>
-              . El radar dejará de escuchar pedidos en vivo.
+              ?
             </p>
-            <div className="grid grid-cols-2 gap-3 font-mono">
+
+            <div className="flex flex-col gap-3">
               <button
-                type="button"
-                onClick={() => setShowConfirm(false)}
-                className="py-3 border-2 border-border dark:border-border-dark rounded-xl text-xs font-black uppercase text-text-secondary dark:text-text-inverse hover:bg-gray-100 dark:hover:bg-white/5 active:scale-95 transition-all"
+                onClick={handleSignOut}
+                className="w-full py-4 bg-[var(--admin-border)] text-[var(--admin-bg)] font-black uppercase italic text-xs tracking-[0.2em] hover:bg-[var(--admin-accent)] transition-all shadow-[4px_4px_0px_0px_var(--admin-accent)]/20"
               >
-                Cancelar
+                Cerrar Terminal
               </button>
               <button
-                type="button"
-                onClick={handleSignOut}
-                className="py-3 bg-error text-white rounded-xl text-xs font-black uppercase flex items-center justify-center gap-1.5 hover:opacity-90 active:scale-95 transition-all border-t border-white/10 shadow-sm"
+                onClick={() => setShowLogoutConfirm(false)}
+                className="w-full py-4 border-2 border-[var(--admin-border)] text-[var(--admin-text)] font-black uppercase italic text-[10px] tracking-[0.2em] hover:bg-[var(--admin-surface-accent)] transition-all"
               >
-                <LogOut size={13} strokeWidth={3} /> Salir
+                Cancelar y Volver
               </button>
             </div>
           </div>

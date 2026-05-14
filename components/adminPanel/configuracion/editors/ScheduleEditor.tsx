@@ -1,34 +1,12 @@
 "use client";
 
 import React from "react";
-import { Clock, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Copy, ShieldCheck} from "lucide-react";
+import { toast } from "sonner";
 
-// Estructura atómica para soportar múltiples turnos por día
-interface FranjaHoraria {
-  inicio: string;
-  fin: string;
-}
-
-interface HorarioDia {
-  turnos: FranjaHoraria[];
-}
-
-// Interfaz auxiliar de seguridad para leer registros viejos sin romper tipos
-interface HorarioViejo {
-  inicio?: string;
-  fin?: string;
-  turnos?: never;
-}
-
-interface ScheduleData {
-  [dayId: string]: HorarioDia | HorarioViejo | undefined;
-}
-
-interface ScheduleEditorProps {
-  schedule: ScheduleData;
-  // Cambiamos 'newSchedule' por '_newSchedule' para silenciar el error del linter
-  onChange: (_newSchedule: ScheduleData) => void;
-}
+export interface FranjaHoraria { inicio: string; fin: string; }
+export interface HorarioDia { turnos?: FranjaHoraria[]; }
+export interface ScheduleData { [dayId: string]: HorarioDia | undefined; }
 
 const DIAS = [
   { id: "lunes", label: "Lunes" },
@@ -40,193 +18,151 @@ const DIAS = [
   { id: "domingo", label: "Domingo" },
 ];
 
-export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
-  // Activa o desactiva el día completo
+export function ScheduleEditor({
+  schedule = {},
+  onChange,
+}: {
+  schedule: ScheduleData;
+  onChange: (s: ScheduleData) => void;
+}) {
+  const getTurnos = (dayId: string) => schedule[dayId]?.turnos || [];
+
   const updateDay = (day: string, active: boolean) => {
-    const updatedSchedule = { ...schedule };
-    if (!active) {
-      delete updatedSchedule[day];
-    } else {
-      // Inicializa con un turno por defecto
-      updatedSchedule[day] = {
-        turnos: [{ inicio: "09:00", fin: "13:00" }],
-      };
-    }
-    onChange(updatedSchedule);
+    const updated = { ...schedule };
+    if (active) updated[day] = { turnos: [{ inicio: "09:00", fin: "13:00" }] };
+    else delete updated[day];
+    onChange(updated);
   };
 
-  // Modifica de forma segura la hora de un turno específico mediante su índice
-  const updateTurnoTime = (
-    day: string,
-    index: number,
-    field: "inicio" | "fin",
-    value: string,
-  ) => {
-    const dayData = schedule[day];
-    if (!dayData || !("turnos" in dayData) || !dayData.turnos) return;
-
-    const nuevosTurnos = [...dayData.turnos];
-    nuevosTurnos[index] = { ...nuevosTurnos[index], [field]: value };
-
-    onChange({
-      ...schedule,
-      [day]: { ...dayData, turnos: nuevosTurnos },
-    });
+  const addFranja = (day: string) => {
+    const turnos = getTurnos(day);
+    if (turnos.length >= 2) return toast.error("LIMITE DE TURNOS ALCANZADO");
+    const updated = { ...schedule, [day]: { turnos: [...turnos, { inicio: "19:00", fin: "23:00" }] } };
+    onChange(updated);
   };
 
-  // Agrega un segundo turno (Turno cortado)
-  const addTurno = (day: string) => {
-    const dayData = schedule[day];
-    if (!dayData || !("turnos" in dayData) || !dayData.turnos) return;
-
-    // Limitamos a un máximo de 2 turnos para mantener limpia la UI y la DB
-    if (dayData.turnos.length >= 2) return;
-
-    onChange({
-      ...schedule,
-      [day]: {
-        ...dayData,
-        turnos: [...dayData.turnos, { inicio: "19:00", fin: "23:00" }],
-      },
-    });
+  const removeFranja = (day: string, index: number) => {
+    const turnos = getTurnos(day).filter((_, i) => i !== index);
+    const updated = { ...schedule };
+    if (turnos.length === 0) delete updated[day];
+    else updated[day] = { turnos };
+    onChange(updated);
   };
 
-  // Remueve el segundo turno volviendo al horario de corrido
-  const removeTurno = (day: string, index: number) => {
-    const dayData = schedule[day];
-    if (!dayData || !("turnos" in dayData) || !dayData.turnos) return;
+  const updateTime = (day: string, index: number, field: keyof FranjaHoraria, value: string) => {
+    const turnos = [...getTurnos(day)];
+    turnos[index] = { ...turnos[index], [field]: value };
+    onChange({ ...schedule, [day]: { turnos } });
+  };
 
-    const nuevosTurnos = dayData.turnos.filter((_, i) => i !== index);
-
-    // Si borra todos los turnos, marcamos el día como cerrado
-    if (nuevosTurnos.length === 0) {
-      updateDay(day, false);
-      return;
-    }
-
-    onChange({
-      ...schedule,
-      [day]: { ...dayData, turnos: nuevosTurnos },
+  const cloneToAll = (dayId: string) => {
+    const source = getTurnos(dayId);
+    if (!source.length) return;
+    const newSchedule: ScheduleData = {};
+    DIAS.forEach((d) => { newSchedule[d.id] = { turnos: source.map((t) => ({ ...t })) }; });
+    onChange(newSchedule);
+    toast.success("SISTEMA SINCRONIZADO", {
+      style: { background: 'var(--admin-bg)', color: 'var(--admin-accent)', border: '2px solid var(--admin-accent)' }
     });
   };
 
   return (
-    <div className="space-y-4 font-sans">
-      <div className="flex items-center gap-3 mb-6">
-        <Clock className="text-primary w-5 h-5" />
-        <h2 className="font-black uppercase italic tracking-tight text-lg">
-          Horarios de Atención
-        </h2>
+    <div className="bg-[var(--admin-bg)] border-2 border-[var(--admin-border)] shadow-[var(--admin-shadow)] overflow-hidden transition-all duration-500">
+      {/* HEADER DE CONSOLA */}
+      <div className="bg-[var(--admin-surface)] px-6 py-4 border-b-2 border-[var(--admin-border)] flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-[var(--admin-accent)] rounded-full animate-pulse" />
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--admin-text)]">
+            Disponibilidad Operativa / <span className="opacity-50 font-medium">Protocolo de Apertura</span>
+          </span>
+        </div>
+        <ShieldCheck size={14} className="text-[var(--admin-accent)] opacity-50" />
       </div>
 
-      <div className="grid gap-3">
+      {/* FILAS DE CONFIGURACIÓN */}
+      <div className="divide-y divide-[var(--admin-border)]/10">
         {DIAS.map((dia) => {
-          const dayConfig = schedule[dia.id];
-
-          // Parseo seguro para compatibilidad con datos viejos
-          const turnosValidos: FranjaHoraria[] = [];
-          if (dayConfig) {
-            if ("turnos" in dayConfig && Array.isArray(dayConfig.turnos)) {
-              turnosValidos.push(...dayConfig.turnos);
-            } else if ("inicio" in dayConfig && "fin" in dayConfig) {
-              const inicio =
-                typeof dayConfig.inicio === "string"
-                  ? dayConfig.inicio
-                  : "09:00";
-              const fin =
-                typeof dayConfig.fin === "string" ? dayConfig.fin : "18:00";
-              turnosValidos.push({ inicio, fin });
-            }
-          }
-          const isOpen = turnosValidos.length > 0;
+          const turnos = getTurnos(dia.id);
+          const isOpen = turnos.length > 0;
 
           return (
-            <div
-              key={dia.id}
-              className={`flex flex-col md:flex-row md:items-center justify-between p-4 rounded-neo border-2 transition-all gap-4 ${
-                isOpen
-                  ? "border-black bg-primary/10"
-                  : "border-gray-200 opacity-50 bg-gray-50"
-              }`}
+            <div 
+              key={dia.id} 
+              className={`flex flex-col md:flex-row items-stretch md:items-center transition-all duration-300 ${isOpen ? 'bg-[var(--admin-surface)]/20' : 'bg-transparent'}`}
             >
-              <div className="flex items-center gap-4 select-none flex-shrink-0">
+              {/* SELECTOR DE ESTADO */}
+              <div className="w-full md:w-44 px-6 py-4 flex items-center gap-4 border-b md:border-b-0 md:border-r border-[var(--admin-border)]/5">
                 <input
                   type="checkbox"
-                  id={`check-${dia.id}`}
                   checked={isOpen}
                   onChange={(e) => updateDay(dia.id, e.target.checked)}
-                  className="w-5 h-5 accent-black cursor-pointer"
+                  className="w-4 h-4 rounded-none border-2 border-[var(--admin-border)] accent-[var(--admin-accent)] cursor-pointer"
                 />
-                <label
-                  htmlFor={`check-${dia.id}`}
-                  className="font-black uppercase italic text-xs w-20 cursor-pointer"
-                >
+                <span className={`text-xs font-black uppercase tracking-widest ${isOpen ? 'text-[var(--admin-text)]' : 'text-[var(--admin-text-muted)] opacity-30'}`}>
                   {dia.label}
-                </label>
+                </span>
               </div>
 
-              {isOpen && (
-                <div className="flex flex-col gap-2 w-full md:w-auto items-start md:items-end">
-                  {turnosValidos.map((turno, idx) => (
-                    <div
-                      key={`${dia.id}-turno-${idx}`}
-                      className="flex items-center gap-3 w-full justify-between md:justify-end animate-in fade-in slide-in-from-left-2 duration-200"
-                    >
-                      <span className="text-[9px] font-black uppercase opacity-50 font-mono">
-                        T{idx + 1}:
-                      </span>
-
-                      <input
-                        type="time"
-                        value={turno.inicio}
-                        onChange={(e) =>
-                          updateTurnoTime(dia.id, idx, "inicio", e.target.value)
-                        }
-                        className="bg-white border-2 border-black p-2 rounded-lg text-xs font-bold font-mono outline-none focus:bg-custom transition-colors"
-                      />
-
-                      <span className="text-[10px] font-black uppercase font-mono">
-                        a
-                      </span>
-
-                      <input
-                        type="time"
-                        value={turno.fin}
-                        onChange={(e) =>
-                          updateTurnoTime(dia.id, idx, "fin", e.target.value)
-                        }
-                        className="bg-white border-2 border-black p-2 rounded-lg text-xs font-bold font-mono outline-none focus:bg-custom transition-colors"
-                      />
-
-                      {idx > 0 ? (
-                        <button
-                          type="button"
-                          onClick={() => removeTurno(dia.id, idx)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+              {/* SLOTS DE TIEMPO (PIPELINE) */}
+              <div className="flex-1 px-8 py-4 flex items-center min-h-[64px]">
+                {isOpen ? (
+                  <div className="flex flex-wrap items-center gap-6 animate-in fade-in slide-in-from-left-2">
+                    {turnos.map((t, idx) => (
+                      <div key={idx} className="flex items-center group/slot">
+                        <div className="flex items-center bg-[var(--admin-bg)] border border-[var(--admin-border)] px-3 py-1.5 shadow-[2px_2px_0px_0px_var(--admin-border)] focus-within:shadow-[var(--admin-accent)] transition-all">
+                          <input 
+                            type="time" 
+                            value={t.inicio} 
+                            onChange={(e) => updateTime(dia.id, idx, "inicio", e.target.value)}
+                            className="bg-transparent font-mono text-[11px] font-black outline-none text-[var(--admin-text)] focus:text-[var(--admin-accent)]" 
+                          />
+                          <span className="mx-2 text-[10px] font-black opacity-20 text-[var(--admin-accent)]"></span>
+                          <input 
+                            type="time" 
+                            value={t.fin} 
+                            onChange={(e) => updateTime(dia.id, idx, "fin", e.target.value)}
+                            className="bg-transparent font-mono text-[11px] font-black outline-none text-[var(--admin-text)] focus:text-[var(--admin-accent)]" 
+                          />
+                        </div>
+                        <button 
+                          onClick={() => removeFranja(dia.id, idx)}
+                          className="ml-3 p-1.5 text-[var(--admin-text-muted)] hover:text-rose-500 opacity-0 group-hover/slot:opacity-100 transition-all hover:scale-110"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={12} />
                         </button>
-                      ) : (
-                        turnosValidos.length < 2 && (
-                          <button
-                            type="button"
-                            onClick={() => addTurno(dia.id)}
-                            className="flex items-center gap-1 px-2.5 py-2 border-2 border-dashed border-black hover:bg-custom rounded-lg transition-all text-[10px] font-black uppercase italic cursor-pointer"
-                          >
-                            <Plus size={12} strokeWidth={3} /> Cortado
-                          </button>
-                        )
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-[9px] font-bold text-[var(--admin-text-muted)] uppercase tracking-[0.5em] opacity-10 italic">
+                    Station Offline
+                  </span>
+                )}
+              </div>
 
-              {!isOpen && (
-                <span className="text-[10px] font-black uppercase opacity-40 italic tracking-widest font-mono">
-                  Cerrado
-                </span>
-              )}
+              {/* ACCIONES TÉCNICAS */}
+              <div className="px-6 py-4 flex items-center justify-end gap-2 border-t md:border-t-0 border-[var(--admin-border)]/5">
+                {isOpen && (
+                  <>
+                    {turnos.length < 2 && (
+                      <button
+                        onClick={() => addFranja(dia.id)}
+                        className="p-2 border border-[var(--admin-border)] text-[var(--admin-text)] hover:bg-[var(--admin-accent)] hover:text-white transition-all shadow-[2px_2px_0px_0px_var(--admin-border)] active:translate-y-0.5 active:shadow-none"
+                        title="Añadir Turno"
+                      >
+                        <Plus size={12} strokeWidth={3} />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => cloneToAll(dia.id)}
+                      className="p-2 border border-[var(--admin-border)] text-[var(--admin-text)] hover:bg-[var(--admin-surface-accent)] transition-all shadow-[2px_2px_0px_0px_var(--admin-border)] active:translate-y-0.5 active:shadow-none"
+                      title="Sincronizar Semana"
+                    >
+                      <Copy size={12} />
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           );
         })}
