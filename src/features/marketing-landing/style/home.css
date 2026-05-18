@@ -1,0 +1,31 @@
+@layer base {
+  .neo-home {
+    --theme-background: #17190c;
+    --theme-surface: #1f2212;
+    --theme-border: rgba(95, 131, 16, 0.25);
+    --theme-primary: #9db71c;
+    --theme-text: #ffffff;
+    --theme-text-muted: #748c58;
+
+    background-color: var(--theme-background);
+    color: var(--theme-text);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  .neo-home .glass-card {
+    background: rgba(31, 34, 18, 0.45);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--theme-border);
+    border-radius: 16px;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .neo-home .glass-card:hover {
+    border-color: var(--theme-primary);
+    box-shadow: 0 12px 30px rgba(157, 183, 28, 0.1);
+    transform: translateY(-2px);
+  }
+}
