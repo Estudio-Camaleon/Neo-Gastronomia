@@ -8,7 +8,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --cache && echo \"✅ [NEO SYSTEM]: Codigo Impecable. Listo para produccion. 🚀\"",
-    "impecable": "npm run lint"
+    "typecheck": "tsc --noEmit && echo \"✅ [NEO SYSTEM]: Tipado estricto validado.\"",
+    "clean": "rmdir /s /q .next && echo 🧹 [NEO SYSTEM]: Caché purgada. Lista para dev.",
+    "free-port": "npx kill-port 3000 && echo 🔫 [NEO SYSTEM]: Puerto 3000 liberado.",
+    "impecable": "npm run lint && npm run typecheck"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.8",
@@ -21,7 +24,7 @@
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
     "lucide-react": "^1.14.0",
-    "next": "16.2.4",
+    "next": "^16.2.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.75.0",
@@ -39,7 +42,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "globals": "^17.6.0",
-    "supabase": "^2.95.0",
+    "supabase": "^2.100.1",
     "tailwindcss": "^4.2.4",
     "tsx": "^4.21.0",
     "typescript": "^5"
