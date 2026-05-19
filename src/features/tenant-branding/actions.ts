@@ -14,7 +14,9 @@ export interface UpdateTenantBrandingPayload {
   color_primary: string;
   logo_url: string;
   banner_url: string;
-  links_sociales: Record<string, string>;
+  instagram_url: string;
+  facebook_url: string;
+  tiktok_url: string;
   horarios: Record<string, unknown>;
 }
 
@@ -31,8 +33,9 @@ export async function updateTenantBrandingAction(
     data: { user },
     error: authError,
   } = await supabase.auth.getUser();
-  if (authError || !user)
+  if (authError || !user) {
     throw new Error("Acceso denegado. Terminal no autenticada.");
+  }
 
   // Sanitización determinista del identificador web para URLs públicas
   const slugSaneado = payload.slug
@@ -44,8 +47,9 @@ export async function updateTenantBrandingAction(
     .replace(/-+/g, "-")
     .replace(/(^-|-$)+/g, "");
 
-  if (slugSaneado.length < 3)
+  if (slugSaneado.length < 3) {
     throw new Error("El identificador URL (Slug) es demasiado corto.");
+  }
 
   // Actualización plana mapeada milimétricamente a la tabla public.negocios
   const { error } = await supabase
@@ -67,7 +71,7 @@ export async function updateTenantBrandingAction(
       updated_at: new Date().toISOString(),
     })
     .eq("id", payload.id)
-    .eq("user_id", user.id); // Doble candado Multi-tenant
+    .eq("user_id", user.id); // Doble candado Multi-tenant para blindar aislamiento de datos
 
   if (error) {
     if (error.code === "23505") {

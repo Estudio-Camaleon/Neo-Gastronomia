@@ -152,7 +152,7 @@ export function ConfigForm({
 
     setIsPending(true);
     try {
-      // payload blindado garantizando strings primitivos puros hacia actions.ts
+      // Payload blindado mapeando las propiedades planas requeridas por el backend
       const payload: UpdateTenantBrandingPayload = {
         id: initialData.id,
         nombre: formData.nombre,
@@ -164,11 +164,9 @@ export function ConfigForm({
         color_primary: formData.color_primary,
         logo_url: formData.logo_url,
         banner_url: formData.banner_url,
-        links_sociales: {
-          instagram: formData.instagram_url,
-          facebook: formData.facebook_url,
-          tiktok: formData.tiktok_url,
-        },
+        instagram_url: formData.instagram_url,
+        facebook_url: formData.facebook_url,
+        tiktok_url: formData.tiktok_url,
         horarios: formData.horarios as Record<string, unknown>,
       };
 
@@ -193,7 +191,7 @@ export function ConfigForm({
       onSubmit={handleSubmit}
       className="space-y-8 font-sans text-black max-w-5xl"
     >
-      {/* ALERTA CRÍTICA DE SLUG (MODO UX ACTIVADO) */}
+      {/* ALERTA CRÍTICA DE SLUG */}
       {hasSlugChanged && (
         <div className="bg-[#FF3333] text-white border-4 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-start gap-3 animate-pulse">
           <AlertTriangle className="h-6 w-6 shrink-0 stroke-[2.5]" />
