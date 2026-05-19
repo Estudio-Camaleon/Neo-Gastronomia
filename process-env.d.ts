@@ -1,13 +1,21 @@
+/* eslint-disable no-unused-vars */
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
-      // Forzamos el tipado explícito de la variable interna de Next.js
+      // Runtime e Infraestructura de Next.js
       NEXT_RUNTIME?: "nodejs" | "edge";
+      NODE_ENV: "development" | "production" | "test";
 
-      // Aprovechamos para tipar variables críticas del SaaS
+      // Conectores Públicos de Supabase
       NEXT_PUBLIC_SUPABASE_URL: string;
       NEXT_PUBLIC_SUPABASE_ANON_KEY: string;
+
+      // Llaves de Alta Seguridad del Servidor (Server-Only Actions)
       SUPABASE_SERVICE_ROLE_KEY: string;
+
+      // Integraciones de Mensajería (WhatsApp Engine)
+      WHATSAPP_API_URL?: string;
+      WHATSAPP_TOKEN?: string;
     }
   }
 }

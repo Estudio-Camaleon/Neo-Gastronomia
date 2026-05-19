@@ -1,110 +1,107 @@
-## 🚀 Cómo empezar
+# ⚡ NEO - Plataforma Gastronómica SaaS Multi-Tenant
 
-1. Requisitos previos
-   Node.js (v18 o superior recomendado).
+NEO es una plataforma de software como servicio (SaaS) de alto rendimiento diseñada para la industria gastronómica. Permite a múltiples comercios (Tenants) gestionar de forma autónoma su identidad de marca, menús digitales dinámicos, control operativo de catálogos y procesamiento de pedidos con integraciones de mensajería automatizada en tiempo real.
 
-Git.
+El proyecto está construido bajo una identidad de diseño **Neo-Brutalista** (alto contraste, tipografía técnica, bordes rígidos industriales y feedback de interacción física).
 
-Una cuenta en Supabase.
+---
 
-2. Instalación
-   Bash
+## 🛠️ Stack Tecnológico Core
 
-# Clonar el repositorio
+- **Framework:** Next.js (App Router, Server Actions, React Server Components)
+- **Lenguaje:** TypeScript (Tipado estricto, interfaces ambientales globales)
+- **Estilos:** Tailwind CSS (Arquitectura de variables dinámicas inyectadas vía Base de Datos)
+- **Backend e Infraestructura:** Supabase (PostgreSQL, Autenticación SSR, Storage Buckets)
+- **Seguridad:** Row Level Security (RLS) a nivel de Base de Datos y Server-Side Guards en Middleware
 
-git clone <tu-url-del-repositorio>
+---
 
-# Entrar a la carpeta
+## 🚦 Semáforo de Estado del Sistema & Roadmap
 
-cd neo-app
+### 📦 Lo ya logrado (Producción-Ready)
 
-# Instalar dependencias
+- **Estado de Gracia Estática:** Pipeline de optimización técnica certificado (`Zero Warnings, Zero Errors`) ejecutando `npm run lint`.
+- **Aislamiento Multi-tenant:** Middleware de enrutamiento dinámico para acceso por URL pública (`/[slug]`) y panel privado aislado (`/configuracion`, `/pedidos`).
+- **Autenticación Blindada:** Implementación de `@supabase/ssr` con persistencia segura en cookies del servidor y base de datos con PostgreSQL Triggers automatizados para inyección de perfiles mediante Google Auth / Email.
+- **Orquestador de Identidad de Marca:** Formulario de control maestro con **Slug Change Radar** (alerta UX preventiva de enlaces caídos) y sanitización de URLs en caliente.
+- **Módulo de Base de Datos Seguro:** Abstracción unificada de consultas mediante `safe-query.ts` para aislar fallos de red o mutaciones críticas en Supabase.
+- **UI Atómica Global:** Desacoplamiento de componentes de infraestructura compartidos (`image-upload.tsx` con control de aspecto, `error-modal.tsx`, `button.tsx`).
 
+### 🚀 Próximos Pasos (Hoja de Ruta)
+
+1. **Catálogo Pro (`catalog-management`):** Implementar el tipado de variantes complejas (talles, sabores, extras) mediante esquemas JSONB nativos en la Server Action de carga.
+2. **Dashboard de Analíticas (`client-radar`):** Construcción de la tabla técnica de "Neo-Compradores" recurrentes, calculando ticket promedio, recurrencia y volumen de facturación.
+3. **Engine de Pedidos Avanzado (`order-engine`):** Blindaje de transacciones de compra públicas con sincronización de inventario reactivo en tiempo real y optimización del formateador de mensajes para WhatsApp.
+
+---
+
+## 📂 Arquitectura de Carpetas Detallada
+
+El proyecto utiliza una organización basada en **Features Modulares** y capas de abstracción para el **Core**, garantizando alta cohesión y bajo acoplamiento:
+
+```text
+NEO-APP/
+├── public/                 # Assets estáticos globales de la plataforma
+├── src/
+│   ├── app/                # Capa de Enrutamiento (Next.js App Router)
+│   │   ├── (adminPanel)/   # Layout y vistas privadas del comercio (Clientes, Configuración, Pedidos)
+│   │   ├── (auth)/         # Flujos de acceso (Login, Registro) con Server-Side Protection
+│   │   └── (menuPublic)/   # Menú dinámico indexable por cliente final (/[slug])
+│   │
+│   ├── components/         # Componentes visuales compartidos de Infraestructura
+│   │   └── ui/             # Átomos puros de diseño Neo-Brutalista (button, input, badge, image-upload)
+│   │
+│   ├── core/               # Núcleo técnico independiente del negocio
+│   │   ├── config/         # Validadores estáticos de entorno (env.ts)
+│   │   ├── lib/            # Librerías globales y utilidades transversales
+│   │   │   └── supabase/   # Inicializadores de Supabase (client, server, admin, safe-query)
+│   │   ├── providers/      # Contenedores de contexto global (ThemeProvider)
+│   │   └── types/          # Contratos globales de TypeScript (pedido.ts)
+│   │
+│   └── features/           # Módulos de Lógica de Negocio Encapsulados (Actions + Components)
+│       ├── admin-dashboard/# Orquestación visual de métricas del panel principal
+│       ├── auth-portal/    # Componentes de UI y Server Actions estrictas de login/registro
+│       ├── catalog-management/ # Lógica de gestión de productos, categorías y modificadores JSONB
+│       ├── client-radar/   # Tablas técnicas y analíticas de usuarios compradores
+│       ├── marketing-landing/  # Páginas estáticas optimizadas para conversión comercial de NEO
+│       ├── order-engine/   # Lógica pública del carrito, persistencia en Zustand y envío
+│       └── tenant-branding/# Formularios de marca, editores de horarios dinámicos y subsecciones
+
+## ⚡ Guía de Instalación y Puesta en Marcha
+Sigue estos pasos con precisión de consola para clonar y levantar NEO en tu entorno de desarrollo local de forma segura:
+
+1. Clonar el repositorio y acceder
+Abre tu terminal (PowerShell / CMD / Terminal Unix) y ejecuta:
+
+Bash
+
+git clone [https://github.com/LynxWiLd/URL)
+
+2. Instalar dependencias del sistema
+Asegúrate de estar utilizando Node.js (versión 18 o superior recomendada). Instala el árbol de módulos limpios:
+
+Bash
 npm install
 
-3. Configuración de variables de entorno
-   Crea un archivo .env.local en la raíz del proyecto basándote en el archivo .env.example:
+
+3. Configurar variables de entorno
+Crea un archivo llamado .env.local en la raíz del proyecto copiando las variables esenciales inyectadas en process-env.d.ts:
 
 Fragmento de código
 NEXT_PUBLIC_SUPABASE_URL=tu_url_de_supabase
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key_de_supabase
+NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_clave_anonima_publica
+SUPABASE_SERVICE_ROLE_KEY=tu_clave_privada_de_servicio_role
+4. Certificar la consistencia del código (Linter Check)
+Antes de levantar el servidor, corre el pipeline de validación para garantizar que no existan desajustes locales:
 
-4. Ejecución en desarrollo
-   Bash
-   npm run dev
-   Luego, abre http://localhost:3000 en tu navegador.
+Bash
+npm run lint
+Deberías ver el mensaje: ✅ [NEO SYSTEM]: Codigo Impecable. Listo para produccion. 🚀
 
-## Notas para el equipo (Estudio Camaleón):
+5. Levantar el entorno de desarrollo con Turbopack
+Inicia el compilador optimizado de alta velocidad de Next.js:
 
-No toques lib/supabase/server.ts a menos que sea estrictamente necesario para cambios en la autenticación. Es el núcleo de seguridad.
-
-Uso de componentes: Siempre verifica si estás en un componente de cliente ("use client") antes de elegir la importación:
-
-import { supabase } from "@/lib/supabase/client" (Cliente)
-
-import { createClient } from "@/lib/supabase/server" (Servidor)
-
-CSS: Estamos utilizando Tailwind CSS. Si agregas componentes nuevos, mantén la consistencia usando las clases de utilidades existentes (espaciados, colores, bordes).
-
-## Estructura Actual de Carpetas
-
-neo-app/
-├── app/
-│ ├── (auth)/ # Rutas de autenticación (Login/Registro)
-│ │ ├── login/page.tsx
-│ │ └── registro/page.tsx
-│ ├── (adminPanel)/ # Rutas privadas (Admin, Productos, Config)
-│ │ ├── admin/
-│ │ │ ├── loading.tsx
-│ │ │ └── page.tsx # Server Component (usa lib/supabase/server)
-│ │ ├── configuracion/
-│ │ │ └── page.tsx
-│ │ ├── productos/
-│ │ │ └── page.tsx
-│ │ └── layout.tsx # Contiene el Sidebar (Client Component)
-│ ├── (public)/ # Vista pública del catálogo
-│ │ ├── [slug]/
-│ │ │ └── page.tsx
-│ │ └── layout.tsx
-│ ├── globals.css
-│ ├── layout.tsx # Layout raíz global
-│ └── page.tsx # Landing Page principal
-├── components/
-│ ├── auth/ # Formularios de acceso
-│ ├── adminPanel/ # Componentes del panel (Sidebar, Tablas, Forms)
-│ ├── menu/ # Componentes de la vista pública
-│ └── shared/ # Navbar/Footer globales
-├── lib/
-│ ├── supabase/
-│ │ ├── client.ts # Para "use client" (Navegador)
-│ │ └── server.ts # Para Server Components (Cookies/Auth)
-│ ├── schemas.ts # Validaciones
-│ └── utils.ts # Utilidades generales
-└── middleware.ts # Protección de rutas
-
-## Tecnologías y Herramientas
-
-El proyecto está construido bajo una arquitectura moderna centrada en el rendimiento y la seguridad, utilizando Next.js 16 (App Router) y Supabase.
-
-1. Stack Tecnológico
-   Framework: Next.js 16 (App Router) - Utilizado por su capacidad de renderizado híbrido (Server/Client Components) y optimización SEO.
-
-Autenticación y Backend: Supabase - Provee la base de datos (PostgreSQL), autenticación de usuarios y almacenamiento.
-
-Gestión de Sesión: @supabase/ssr - Librería oficial para manejar la autenticación en el servidor y sincronizarla con el cliente mediante cookies.
-
-Estilos: Tailwind CSS - Framework de utilidades para un diseño rápido, responsivo y mantenible.
-
-2. Herramientas Clave
-   TypeScript: Garantiza la seguridad de tipos en todo el código, reduciendo bugs en tiempo de ejecución.
-
-Middleware: Implementado para proteger rutas privadas (/admin, /productos, /configuracion) asegurando que solo usuarios autenticados tengan acceso.
-
-Route Groups: Estructura de carpetas ((auth), (adminPanel), (public)) para organizar el proyecto sin afectar la estructura de URLs.
-
-3. Arquitectura del Cliente vs. Servidor
-   Para evitar conflictos de sesión y optimizar la carga, se separaron las responsabilidades:
-
-Server Components (lib/supabase/server.ts): Utilizados para lectura de datos y protección de rutas. Acceden directamente a cookies() de Next.js.
-
-Client Components (lib/supabase/client.ts): Utilizados para formularios e interactividad, gestionando el estado de la sesión directamente en el navegador.
+Bash
+npm run dev
+La plataforma estará disponible de inmediato en http://localhost:3000.
+```

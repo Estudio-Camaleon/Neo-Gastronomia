@@ -3,7 +3,7 @@
  * Server Component de misión crítica. Controla accesos, sesiones y contingencias Multi-tenant.
  */
 import { Sidebar } from "@/features/tenant-layout/components/Sidebar";
-import { ErrorModal } from "@/features/tenant-branding/ui/ErrorModal";
+import { ErrorModal } from "@/components/ui/errorModal";
 import { ThemeProvider } from "@/core/providers/ThemeProvider";
 import { createClient } from "@/core/lib/supabase/server";
 import { redirect } from "next/navigation";

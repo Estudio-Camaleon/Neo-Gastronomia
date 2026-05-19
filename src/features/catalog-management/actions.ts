@@ -38,7 +38,7 @@ async function getAuthenticatedTenant(supabase: SupabaseClient) {
     data: { user },
     error: authError,
   } = await supabase.auth.getUser();
-  if (authError || !user) throw new Error("Acceso no autorizado.");
+  if (authError || !user) throw new Error("Acceso denegado. No autenticado.");
 
   const { data: negocio, error: tenantError } = await supabase
     .from("negocios")

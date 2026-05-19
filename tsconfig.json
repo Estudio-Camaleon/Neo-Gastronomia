@@ -23,8 +23,9 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@core/*": ["./src/core/*"],
+      "@app/*": ["./src/app/*"],
       "@ui/*": ["./src/components/ui/*"],
+      "@core/*": ["./src/core/*"],
       "@features/*": ["./src/features/*"]
     }
   },

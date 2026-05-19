@@ -1,4 +1,3 @@
-/* global FormData */
 "use server";
 
 import { createClient } from "@/core/lib/supabase/server";
