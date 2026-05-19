@@ -7,11 +7,17 @@ interface LoadingContextType {
   isLoading: boolean;
   show: (message?: string) => void;
   hide: () => void;
+  variant: "dark" | "light";
 }
 
 const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
 
-export function LoadingProvider({ children }: { children: ReactNode }) {
+interface LoadingProviderProps {
+  children: ReactNode;
+  variant?: "dark" | "light";
+}
+
+export function LoadingProvider({ children, variant = "dark" }: LoadingProviderProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -25,9 +31,9 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <LoadingContext.Provider value={{ isLoading, show, hide }}>
+    <LoadingContext.Provider value={{ isLoading, show, hide, variant }}>
       {children}
-      <LoadingOverlay isActive={isLoading} message={message} />
+      <LoadingOverlay isActive={isLoading} message={message} variant={variant} />
     </LoadingContext.Provider>
   );
 }

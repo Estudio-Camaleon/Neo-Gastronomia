@@ -5,6 +5,7 @@
 import { Sidebar } from "@/features/tenant-layout/components/Sidebar";
 import { ErrorModal } from "@/components/ui/errorModal";
 import { ThemeProvider } from "@/core/providers/ThemeProvider";
+import { LoadingProvider } from "@/core/providers/LoadingProvider";
 import { createClient } from "@/core/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Menu } from "lucide-react";
@@ -54,7 +55,8 @@ export default async function AdminPanelLayout({
   }
 
   return (
-    <ThemeProvider>
+    <LoadingProvider variant="light">
+      <ThemeProvider>
       <div className="flex min-h-screen bg-gray-50 text-black font-sans antialiased">
         {/* SIDEBAR DESKTOP SÓLIDO BRUTALISTA */}
         <aside className="hidden lg:flex lg:w-72 lg:flex-col lg:fixed lg:inset-y-0 border-r-4 border-black bg-white">
@@ -83,5 +85,6 @@ export default async function AdminPanelLayout({
         </div>
       </div>
     </ThemeProvider>
+    </LoadingProvider>
   );
 }
