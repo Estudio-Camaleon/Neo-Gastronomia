@@ -78,6 +78,8 @@ export function StatsCards({
 }
 
 // Helper puramente sintáctico para tipar componentes de Lucide sin leaks en el linter
-function PushNotificationIconHack(icon: any) {
-  return icon as React.ComponentType<{ className?: string }>;
+function PushNotificationIconHack(
+  icon: React.ComponentType<{ className?: string }>,
+) {
+  return icon;
 }

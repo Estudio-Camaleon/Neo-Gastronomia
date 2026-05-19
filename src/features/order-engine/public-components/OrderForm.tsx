@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft,Loader2} from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/core/lib/supabase/client";
 import { submitOrderPublicAction } from "../actions";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 
 interface OrderFormProps {
   negocioId: string;
-  cart: any[];
+  cart: import("./useCartStore").CartItem[]; // Tipo real de Zustand
   total: number;
   onBack: () => void;
   onSuccess: () => void;
@@ -126,8 +126,8 @@ export function OrderForm({
       toast.success("ORDEN DE COMPRA CAPTURADA");
       dispararWhatsAppExterno(negocio.whatsapp, orderId);
       onSuccess();
-    } catch (error: any) {
-      toast.error("FALLO DE REGISTRO", { description: error.message });
+    } catch {
+      toast.error("ERROR");
     } finally {
       setIsPending(false);
     }

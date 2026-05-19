@@ -7,10 +7,10 @@ import { useRouter } from "next/navigation";
 import { Save, Loader2, CheckCircle2, Settings } from "lucide-react";
 import {
   updateTenantBrandingAction,
-  UpdateTenantBrandingPayload,
+  type UpdateTenantBrandingPayload,
 } from "../actions";
 
-// Subsecciones Modulares
+// Subsecciones Modulares del Core de Configuración
 import { BrandingSection } from "../sections/BrandingSection";
 import { GeneralInfoSection } from "../sections/GeneralInfoSection";
 import { CatalogDesignSection } from "../sections/CatalogDesignSection";
@@ -34,6 +34,22 @@ export interface NegocioInitialData {
   horarios: Record<string, unknown>;
 }
 
+interface ConfigFormState {
+  nombre: string;
+  slug: string;
+  whatsapp: string;
+  direccion: string;
+  localidad: string;
+  direccion_notes: string;
+  color_primary: string;
+  logo_url: string;
+  banner_url: string;
+  instagram_url: string;
+  facebook_url: string;
+  tiktok_url: string;
+  horarios: ScheduleData;
+}
+
 export function ConfigForm({
   initialData,
   userId,
@@ -46,13 +62,14 @@ export function ConfigForm({
   const [isPending, setIsPending] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
 
-  const [formData, setFormData] = useState({
+  // Inicialización de estado plano para sincronización perfecta con subsecciones
+  const [formData, setFormData] = useState<ConfigFormState>({
     nombre: initialData?.nombre || "",
     slug: initialData?.slug || "",
     whatsapp: initialData?.whatsapp || "",
     direccion: initialData?.direccion || "",
     localidad: initialData?.localidad || "",
-    direccion_notas: initialData?.direccion_notas || "",
+    direccion_notes: initialData?.direccion_notes || "",
     color_primary: initialData?.color_primary || "#000000",
     logo_url: initialData?.logo_url || "",
     banner_url: initialData?.banner_url || "",
@@ -75,8 +92,9 @@ export function ConfigForm({
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024)
+    if (file.size > 2 * 1024 * 1024) {
       return toast.error("ARCHIVO EXCEDE LÍMITE DE 2MB");
+    }
 
     setUploading(field);
     try {
@@ -84,7 +102,7 @@ export function ConfigForm({
       const fileName = `${userId}-${field}-${Date.now()}.${fileExt}`;
       const filePath = `identidad/${fileName}`;
 
-      // Escritura en el Bucket Unificado de Supabase
+      // Escritura en el Bucket Unificado Multi-tenant de Supabase
       const { error: uploadError } = await supabase.storage
         .from("imagenes-negocios")
         .upload(filePath, file, { upsert: true, cacheControl: "3600" });
@@ -97,8 +115,8 @@ export function ConfigForm({
 
       setFormData((prev) => ({ ...prev, [field]: publicUrl }));
       toast.success("ASSET DE MARCA SINCRONIZADO EN TERMINAL");
-    } catch (err: any) {
-      toast.error("FALLO DE CARGA DE ASSET", { description: err.message });
+    } catch {
+      toast.error("FALLO DE CARGA DE ASSET EN SERVIDOR");
     } finally {
       setUploading(null);
     }
@@ -106,14 +124,27 @@ export function ConfigForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!initialData?.id)
+    if (!initialData?.id) {
       return toast.error("ERROR CRÍTICO: ID DE TENANT AUSENTE");
+    }
 
     setIsPending(true);
     try {
       const payload: UpdateTenantBrandingPayload = {
         id: initialData.id,
-        ...formData,
+        nombre: formData.nombre,
+        slug: formData.slug,
+        whatsapp: formData.whatsapp,
+        direccion: formData.direccion,
+        localidad: formData.localidad,
+        direccion_notes: formData.direccion_notes,
+        color_primary: formData.color_primary,
+        logo_url: formData.logo_url,
+        banner_url: formData.banner_url,
+        instagram_url: formData.instagram_url,
+        facebook_url: formData.facebook_url,
+        tiktok_url: formData.tiktok_url,
+        horarios: formData.horarios as Record<string, unknown>,
       };
 
       const res = await updateTenantBrandingAction(payload);
@@ -124,8 +155,8 @@ export function ConfigForm({
       });
 
       router.refresh();
-    } catch (error: any) {
-      toast.error("FALLO DE SINCRONIZACIÓN", { description: error.message });
+    } catch {
+      toast.error("FALLO DE SINCRONIZACIÓN EN BASE DE DATOS");
     } finally {
       setIsPending(false);
     }

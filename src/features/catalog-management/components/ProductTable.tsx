@@ -1,13 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import {
-  Edit3,
-  Trash2,
-  Tag,
-  Package,
-  Loader2,
-} from "lucide-react";
+import { Edit3, Trash2, Tag, Package, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/core/lib/supabase/client";
 import Image from "next/image";
@@ -15,41 +9,55 @@ import { IngredientBadge } from "./IngredientBadge";
 import { deleteProductAction } from "../actions";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
-interface ProductoInventario {
+// Contrato único y unificado para todo el ecosistema de Catálogo NEO
+export interface UnifiedProduct {
   id: string;
   nombre: string;
   descripcion: string | null;
   precio: number;
   imagen_url: string | null;
+  categoria_id: string | null;
   disponible: boolean;
-  configuracion: { grupos_opciones?: Array<Record<string, unknown>> } | null;
+  configuracion: {
+    grupos_opciones?: Array<Record<string, unknown>>;
+    variantes?: Array<{ nombre: string; precio: number | string }>;
+    grupo_extras?: Array<{
+      id: string;
+      titulo: string;
+      requerido: boolean;
+      multiple: boolean;
+      items: Array<{ id: string; nombre: string; precio: number | string }>;
+    }>;
+  } | null;
   categorias: { nombre: string } | null;
 }
 
 interface ProductTableProps {
   negocioId: string;
-  onEdit: (producto: ProductoInventario) => void;
+  onEdit: (producto: UnifiedProduct) => void ;
 }
 
 export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
-  const [productos, setProductos] = useState<ProductoInventario[]>([]);
+  const [productos, setProductos] = useState<UnifiedProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
   const cargarProductos = useCallback(async () => {
     try {
+      // Inyectamos categoria_id en el select para hidratar el formulario de edición de forma directa
       const { data, error } = await supabase
         .from("productos")
         .select(
-          `id, nombre, descripcion, precio, imagen_url, disponible, configuracion, categorias(nombre)`,
+          `id, nombre, descripcion, precio, imagen_url, disponible, categoria_id, configuracion, categorias(nombre)`,
         )
         .eq("negocio_id", negocioId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setProductos((data as any) || []);
+      setProductos((data as unknown as UnifiedProduct[]) || []);
     } catch (error) {
       console.error("Error Sync Catálogo:", error);
+      toast.error("Error de sincronización con el almacén");
     } finally {
       setLoading(false);
     }
@@ -86,8 +94,8 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
     try {
       await deleteProductAction(id);
       toast.success("PRODUCTO REMOVIDO DEL ALMACÉN");
-    } catch (err: any) {
-      toast.error("FALLO DE ELIMINACIÓN", { description: err.message });
+    } catch {
+      toast.error("ERROR AL ELIMINAR");
     }
   };
 

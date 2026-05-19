@@ -4,7 +4,8 @@ import { useState } from "react";
 import { Plus, FolderPlus, Layers } from "lucide-react";
 import { ProductModal } from "../modals/ProductModal";
 import { CategoriaManager } from "../modals/CategoriaManager";
-import { ProductTable } from "./ProductTable";
+// 1. IMPORTANTE: Importamos la interfaz oficial y la tabla juntas
+import { ProductTable, type UnifiedProduct } from "./ProductTable";
 import { Button } from "@/components/ui/button";
 
 interface AddProductSectionProps {
@@ -14,9 +15,14 @@ interface AddProductSectionProps {
 export function AddProductSection({ negocioId }: AddProductSectionProps) {
   const [isProductOpen, setIsProductOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
-  const [productoAEditar, setProductoAEditar] = useState<any | null>(null);
 
-  const handleAbrirEdicion = (producto: any) => {
+  // 2. Sincronizamos el estado local con el contrato oficial
+  const [productoAEditar, setProductoAEditar] = useState<UnifiedProduct | null>(
+    null,
+  );
+
+  // 3. Sincronizamos el argumento de la función de apertura
+  const handleAbrirEdicion = (producto: UnifiedProduct) => {
     setProductoAEditar(producto);
     setIsProductOpen(true);
   };
@@ -61,13 +67,16 @@ export function AddProductSection({ negocioId }: AddProductSectionProps) {
         <div className="p-4 bg-black text-white font-mono text-xs uppercase tracking-widest">
           💻 Terminal de Productos Activos
         </div>
+
+        {/* Aquí la prop onEdit se vuelve 100% azul/verde y válida */}
         <ProductTable negocioId={negocioId} onEdit={handleAbrirEdicion} />
       </div>
 
+      {/* Orquestación de Modales */}
       {isProductOpen && (
         <ProductModal
           negocioId={negocioId}
-          productoAEditar={productoAEditar}
+          initialData={productoAEditar}
           onClose={handleCerrarModal}
         />
       )}

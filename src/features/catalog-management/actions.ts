@@ -2,6 +2,7 @@
 
 import { createClient } from "@/core/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 export interface JSONBExtraItem {
   id: string;
@@ -32,7 +33,7 @@ interface UpsertProductPayload {
   configuracion: ProductoConfiguracion;
 }
 
-async function getAuthenticatedTenant(supabase: any) {
+async function getAuthenticatedTenant(supabase: SupabaseClient) {
   const {
     data: { user },
     error: authError,

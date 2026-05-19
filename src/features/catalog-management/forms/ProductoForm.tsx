@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CategorySelect } from "../components/CategorySelect";
+// Importamos el contrato rey del catálogo para consistencia total
+import type { UnifiedProduct } from "../components/ProductTable";
 
 export interface Variant {
   nombre: string;
@@ -29,24 +31,10 @@ interface CategoriaOption {
   nombre: string;
 }
 
-interface ProductoInitialData {
-  id: string;
-  nombre: string;
-  descripcion: string | null;
-  precio: string | number;
-  imagen_url: string | null;
-  categoria_id: string | null;
-  disponible: boolean;
-  configuracion?: {
-    variantes?: Variant[];
-    grupos_opciones?: JSONBExtraGroup[];
-  } | null;
-}
-
 interface ProductoFormProps {
   negocioId: string;
   categorias: CategoriaOption[];
-  initialData?: ProductoInitialData | null;
+  initialData?: UnifiedProduct | null; // Sincronizado aguas arriba con el Modal y la Tabla
   onSuccess?: () => void;
 }
 
@@ -68,12 +56,13 @@ export function ProductoForm({
     disponible: initialData?.disponible ?? true,
   });
 
-  // Estados dinámicos para los modificadores JSONB
+  // Mapeo seguro de estructuras JSONB a tipos interactivos de TypeScript
   const [variantes, setVariantes] = useState<Variant[]>(
-    initialData?.configuracion?.variantes || [],
+    (initialData?.configuracion?.variantes as unknown as Variant[]) || [],
   );
   const [gruposOpciones, setGruposOpciones] = useState<JSONBExtraGroup[]>(
-    initialData?.configuracion?.grupos_opciones || [],
+    (initialData?.configuracion
+      ?.grupos_opciones as unknown as JSONBExtraGroup[]) || [],
   );
 
   // --- HANDLERS DINÁMICOS (VARIACIONES Y GRUPOS DE EXTRAS) ---
@@ -193,9 +182,10 @@ export function ProductoForm({
       });
 
       if (onSuccess) onSuccess();
-    } catch (error: any) {
-      toast.error("FALLO TERMINAL", { description: error.message });
+    } catch {
+      toast.error("ERROR AL GUARDAR", { description: "Error con Supabase." });
     } finally {
+      setFormData((prev) => ({ ...prev })); // Fix menor para asegurar limpieza de render loops
       setIsPending(false);
     }
   };

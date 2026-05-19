@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  User,
-  MessageCircle,
-  Trophy,
-  StickyNote,
-} from "lucide-react";
+import { User, MessageCircle, Trophy, StickyNote } from "lucide-react";
 import { ClienteResumen } from "./ClientRadar";
 import { updateClientSystemNotes } from "../actions";
 import { toast } from "sonner";
@@ -15,7 +10,7 @@ export function ClientTable({ clientes }: { clientes: ClienteResumen[] }) {
     id: string,
     notasActuales: string | null,
   ) => {
-    const promptNueva = prompt(
+    const promptNueva = window.prompt(
       "EDITAR NOTAS TÉCNICAS DEL CLIENTE:",
       notasActuales || "",
     );
@@ -24,8 +19,8 @@ export function ClientTable({ clientes }: { clientes: ClienteResumen[] }) {
     try {
       await updateClientSystemNotes(id, promptNueva);
       toast.success("EXPEDIENTE DE CLIENTE ACTUALIZADO");
-    } catch (err: any) {
-      toast.error("FALLO DE RED", { description: err.message });
+    } catch {
+      toast.error("FALLO DE RED");
     }
   };
 

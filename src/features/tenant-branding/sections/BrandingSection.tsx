@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { ImageIcon, Loader2, Upload, Camera} from "lucide-react";
+import { ImageIcon, Loader2, Upload, Camera } from "lucide-react";
 
 interface BrandingSectionProps {
   logoUrl: string;

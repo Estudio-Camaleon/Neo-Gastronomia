@@ -5,17 +5,19 @@ import { createClient } from "@/core/lib/supabase/client";
 import { PedidoCard } from "./PedidoCard";
 import { toast } from "sonner";
 import { PedidoData } from "./PedidosRadar";
-import { updateOrderStatusAction } from "../actions";
 import { enviarNotificacionWhatsApp } from "@/core/lib/utils/whatsappActions";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShoppingBag, BellDot } from "lucide-react";
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+
+interface RealtimeOrdersProps {
+  negocioId: string;
+  negocioNombre: string;
+}
 
 export function RealtimeOrders({
   negocioId,
   negocioNombre,
-}: {
-  negocioId: string;
-  negocioNombre: string;
-}) {
+}: RealtimeOrdersProps) {
   const [pedidos, setPedidos] = useState<PedidoData[]>([]);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [initializing, setInitializing] = useState(true);
@@ -31,9 +33,11 @@ export function RealtimeOrders({
         .order("created_at", { ascending: false })
         .limit(20);
 
-      if (data) setPedidos((data as any) || []);
-    } catch (err) {
-      console.error("Fallo Sync Realtime Comandas:", err);
+      if (data) {
+        setPedidos(data as unknown as PedidoData[]);
+      }
+    } catch {
+      console.error("Fallo crítico en fetch de comandas.");
     } finally {
       setInitializing(false);
     }
@@ -44,20 +48,29 @@ export function RealtimeOrders({
     nuevoEstado: PedidoData["estado"],
   ) => {
     setLoadingId(id);
-    const pedidoTarget = pedidos.find((p) => p.id === id);
+    const pedidoAfectado = pedidos.find((p) => p.id === id);
 
     try {
-      await updateOrderStatusAction(id, nuevoEstado);
+      const { error } = await supabase
+        .from("pedidos")
+        .update({ estado: nuevoEstado })
+        .eq("id", id);
 
-      if (pedidoTarget) {
+      if (error) throw error;
+
+      if (pedidoAfectado) {
+        // Inferencia dinámica del contrato de parámetros para omitir el 'any'
         enviarNotificacionWhatsApp(
-          pedidoTarget as any,
+          pedidoAfectado as unknown as Parameters<
+            typeof enviarNotificacionWhatsApp
+          >[0],
           nuevoEstado,
           negocioNombre,
         );
       }
 
-      toast.success("ESTADO INTERNO ACTUALIZADO");
+      toast.success("Estado actualizado");
+
       if (nuevoEstado === "entregado" || nuevoEstado === "cancelado") {
         setPedidos((prev) => prev.filter((p) => p.id !== id));
       } else {
@@ -65,17 +78,18 @@ export function RealtimeOrders({
           prev.map((p) => (p.id === id ? { ...p, estado: nuevoEstado } : p)),
         );
       }
-    } catch (error: any) {
-      toast.error("FALLO DE BASE DE DATOS", { description: error.message });
+    } catch {
+      toast.error("Error en la sincronización");
     } finally {
       setLoadingId(null);
     }
   };
 
-  // 🚀 MOTOR REALTIME - INFRAESTRUCTURA DE ESCUCHA DE ALTA VELOCIDAD
   useEffect(() => {
+    fetchPedidos();
+
     const channel = supabase
-      .channel(`live-radar-${negocioId}`)
+      .channel(`pedidos-vivos-${negocioId}`)
       .on(
         "postgres_changes",
         {
@@ -84,44 +98,48 @@ export function RealtimeOrders({
           table: "pedidos",
           filter: `negocio_id=eq.${negocioId}`,
         },
-        async (payload: {
-          eventType: string;
-          new: {
+        // Tipamos la payload entrante del socket de Supabase de forma estricta
+        async (
+          payload: RealtimePostgresChangesPayload<{
             id: string;
             estado: PedidoData["estado"];
-            cliente_nombre?: string | null;
-          };
-        }) => {
-          if (payload.eventType === "INSERT") {
-            const { data: fullPedido } = await supabase
+          }>,
+        ) => {
+          if (payload.eventType === "INSERT" && payload.new) {
+            const { data: nuevoPedidoConItems } = await supabase
               .from("pedidos")
-              .select("*, pedido_items(*)")
+              .select(`*, pedido_items(*)`)
               .eq("id", payload.new.id)
               .single();
 
-            if (fullPedido) {
+            if (nuevoPedidoConItems) {
               setPedidos((prev) => [
-                fullPedido as unknown as PedidoData,
+                nuevoPedidoConItems as unknown as PedidoData,
                 ...prev,
               ]);
 
-              // Disparar audio por hardware nativo
               const audio = new Audio("/sounds/new-order.mp3");
               audio.play().catch(() => {});
 
-              toast.info("NUEVO PEDIDO ENTRANTE", {
-                icon: <BellDot className="text-black animate-bounce" />,
-                description: `Cliente: ${(fullPedido.cliente_nombre || "Anónimo").toUpperCase()}`,
+              toast.info("¡NUEVO PEDIDO RECIBIDO!", {
+                icon: <BellDot className="text-black" />,
               });
             }
-          } else if (payload.eventType === "UPDATE") {
-            setPedidos((prev) =>
-              prev.map((p) =>
-                p.id === payload.new.id
-                  ? { ...p, estado: payload.new.estado }
-                  : p,
-              ),
-            );
+          } else if (payload.eventType === "UPDATE" && payload.new) {
+            if (
+              payload.new.estado === "entregado" ||
+              payload.new.estado === "cancelado"
+            ) {
+              setPedidos((prev) => prev.filter((p) => p.id !== payload.new.id));
+            } else {
+              setPedidos((prev) =>
+                prev.map((p) =>
+                  p.id === payload.new.id
+                    ? { ...p, estado: payload.new.estado }
+                    : p,
+                ),
+              );
+            }
           }
         },
       )
@@ -130,19 +148,19 @@ export function RealtimeOrders({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [negocioId, supabase]);
+  }, [negocioId, supabase, fetchPedidos]);
 
   if (initializing) {
     return (
       <div className="py-20 flex flex-col justify-center items-center font-mono text-xs text-gray-400 gap-2">
         <Loader2 className="animate-spin text-black" size={24} />
-        <span>Iniciando escucha de sockets activos...</span>
+        <span>Sincronizando monitor en tiempo real...</span>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 font-sans">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 font-sans text-black w-full">
       {pedidos.map((p) => (
         <PedidoCard
           key={p.id}
@@ -153,9 +171,10 @@ export function RealtimeOrders({
       ))}
 
       {pedidos.length === 0 && (
-        <div className="col-span-full py-20 text-center border-4 border-black border-dashed bg-gray-50 select-none">
-          <p className="font-black uppercase font-mono text-xs tracking-widest text-gray-400 animate-pulse">
-            📡 Terminal a la escucha. Esperando comisiones entrantes...
+        <div className="col-span-full py-20 text-center border-4 border-black border-dashed bg-white select-none">
+          <ShoppingBag className="mx-auto text-gray-200 mb-2" size={32} />
+          <p className="font-black font-mono text-xs uppercase text-gray-400 tracking-wider">
+            Esperando nuevos pedidos en pasarela...
           </p>
         </div>
       )}

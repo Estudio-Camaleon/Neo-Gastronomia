@@ -2,11 +2,11 @@
 
 import { createClient } from "@/core/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-
+import { SupabaseClient } from "@supabase/supabase-js";
 /**
  * Helper privado para asegurar el aislamiento Multi-tenant en el servidor.
  */
-async function getValidatedTenantId(supabase: any) {
+async function getValidatedTenantId(supabase: SupabaseClient) {
   const {
     data: { user },
     error: authError,

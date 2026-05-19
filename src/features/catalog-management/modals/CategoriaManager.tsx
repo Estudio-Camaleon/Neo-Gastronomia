@@ -51,11 +51,8 @@ export function CategoriaManager({
 
       if (error) throw error;
       setCategorias(data || []);
-    } catch (error: any) {
-      console.error(
-        "Fallo terminal en sincronización de secciones:",
-        error.message,
-      );
+    } catch {
+      toast.error("Error de conexión con el servidor");
     } finally {
       setLoadingList(false);
     }
@@ -115,8 +112,8 @@ export function CategoriaManager({
         setNuevoNombre("");
         toast.success("SECCIÓN DESPLEGADA CON ÉXITO");
       }
-    } catch (error: any) {
-      toast.error("FALLO DE ESCRITURA", { description: error.message });
+    } catch {
+      toast.error("FALLO DE ESCRITURA", { description: "Error con Supabase." });
     } finally {
       setIsPending(false);
     }
@@ -139,8 +136,8 @@ export function CategoriaManager({
 
       if (error) throw error;
       toast.success("SECCIÓN REMOVIDA");
-    } catch (error: any) {
-      toast.error("FALLO DE ELIMINACIÓN", { description: error.message });
+    } catch {
+      toast.error("FALLO DE ELIMINACIÓN", { description: "Error con Supabase." });
     }
   };
 

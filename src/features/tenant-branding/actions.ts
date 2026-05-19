@@ -14,10 +14,8 @@ export interface UpdateTenantBrandingPayload {
   color_primary: string;
   logo_url: string;
   banner_url: string;
-  instagram_url: string;
-  facebook_url: string;
-  tiktok_url: string;
-  horarios: Record<string, any>;
+  links_sociales: Record<string, string>;
+  horarios: Record<string, unknown>;
 }
 
 /**

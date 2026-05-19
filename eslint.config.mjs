@@ -14,15 +14,16 @@ export default [
       parserOptions: {
         ecmaFeatures: { jsx: true },
       },
-      // Le decimos al linter qué variables globales existen
+      // Registro centralizado de scopes de ejecución en NEO v3.0
       globals: {
-        // Entorno Navegador
+        // Entorno Navegador / Web APIs globales
         window: "readonly",
         document: "readonly",
         navigator: "readonly",
         localStorage: "readonly",
         sessionStorage: "readonly",
         Audio: "readonly",
+        FormData: "readonly", // <-- FIX DE RAÍZ: Inyectado para Server Actions y Formularios
         HTMLInputElement: "readonly",
         HTMLFormElement: "readonly",
         HTMLTextAreaElement: "readonly",
@@ -36,19 +37,22 @@ export default [
         confirm: "readonly",
         setTimeout: "readonly",
         clearTimeout: "readonly",
-        // Entorno Node.js (Server Side)
+
+        // Entorno Node.js (Server Side Runtime)
         process: "readonly",
         console: "readonly",
         Buffer: "readonly",
         module: "readonly",
         __dirname: "readonly",
-        // React
+
+        // React Global Scope
         React: "readonly",
       },
     },
     rules: {
       "@typescript-eslint/no-explicit-any": "error",
-      // Cambiamos esto: ahora es error si no se usa, a menos que empiece con _
+
+      // Control estricto de código muerto con soporte para escapes funcionales
       "no-unused-vars": [
         "error",
         {
@@ -58,11 +62,14 @@ export default [
           args: "none",
         },
       ],
-      "no-undef": "error",
+
+      // Senior Tip: Se apaga para TS porque 'tsc' lo valida de forma nativa y libre de bugs.
+      "no-undef": "off",
       "no-useless-escape": "off",
     },
   },
   {
+    // Aislamiento de directorios de compilación y empaquetado
     ignores: [".next/**", "node_modules/**", "out/**", "build/**"],
   },
 ];
