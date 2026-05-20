@@ -1,31 +1,55 @@
 @layer base {
   .neo-home {
-    --theme-background: #17190c;
-    --theme-surface: #1f2212;
-    --theme-border: rgba(95, 131, 16, 0.25);
-    --theme-primary: #9db71c;
-    --theme-text: #ffffff;
-    --theme-text-muted: #748c58;
+    --theme-background: #f7f4ec;
+    --theme-surface: rgba(255, 255, 255, 0.72);
+    --theme-surface-strong: #ffffff;
+    --theme-surface-soft: #eef5e9;
+    --theme-border: rgba(28, 72, 42, 0.12);
+    --theme-border-strong: rgba(28, 72, 42, 0.18);
+    --theme-primary: #1f6b3d;
+    --theme-primary-soft: #d8e8d4;
+    --theme-primary-soft-2: #bfd8b7;
+    --theme-accent: #8dbb7a;
+    --theme-text: #163225;
+    --theme-text-muted: #5d6d64;
+    --theme-shadow: 0 18px 50px rgba(31, 107, 61, 0.08);
 
     background-color: var(--theme-background);
     color: var(--theme-text);
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
+    background-image:
+      radial-gradient(circle at top left, rgba(141, 187, 122, 0.24), transparent 26%),
+      radial-gradient(circle at top right, rgba(31, 107, 61, 0.12), transparent 24%),
+      linear-gradient(180deg, #faf8f2 0%, #f7f4ec 38%, #f3efe6 100%);
   }
 
   .neo-home .glass-card {
-    background: rgba(31, 34, 18, 0.45);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: var(--theme-surface);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
     border: 1px solid var(--theme-border);
-    border-radius: 16px;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    border-radius: 20px;
+    box-shadow: var(--theme-shadow);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .neo-home .glass-card:hover {
-    border-color: var(--theme-primary);
-    box-shadow: 0 12px 30px rgba(157, 183, 28, 0.1);
-    transform: translateY(-2px);
+    border-color: var(--theme-border-strong);
+    box-shadow: 0 20px 60px rgba(31, 107, 61, 0.12);
+    transform: translateY(-3px);
+  }
+
+  .neo-home .neo-panel {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid var(--theme-border);
+    box-shadow: var(--theme-shadow);
+  }
+
+  .neo-home .neo-chip {
+    background: var(--theme-primary-soft);
+    color: var(--theme-primary);
+    border: 1px solid rgba(31, 107, 61, 0.1);
   }
 }

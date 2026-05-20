@@ -1,74 +1,111 @@
-import { MessageSquare, Star } from "lucide-react";
+import { BadgePercent, Sparkles, Truck, ChevronRight } from "lucide-react";
 
 export function Testimonials() {
-  const reviews = [
+  const promos = [
     {
-      quote:
-        "Pasamos de procesar carritos de WhatsApp desordenados a recibir pedidos con el formato exacto de nuestro sistema. El cambio en la velocidad de la cocina fue radical.",
-      author: "Matias G.",
-      role: "Fundador, Burger Corner",
-      stars: 5,
+      title: "2x1 en rolls",
+      subtitle: "Sushi Lab",
+      label: "Hasta las 22 hs",
+      accent: "bg-[linear-gradient(135deg,rgba(31,107,61,0.2),rgba(141,187,122,0.24))]",
     },
     {
-      quote:
-        "Editar precios y dar de baja stock de ingredientes en hora pico tomaba minutos con plataformas pesadas. Con NEO impacta al instante en los celulares de los clientes.",
-      author: "Sofia R.",
-      role: "Operaciones, Sushi Lab",
-      stars: 5,
+      title: "20% OFF combos",
+      subtitle: "Burger Corner",
+      label: "Envío gratis",
+      accent: "bg-[linear-gradient(135deg,rgba(255,255,255,0.95),rgba(238,245,233,0.9))]",
+    },
+    {
+      title: "Bowl + bebida",
+      subtitle: "Healthy Bowl",
+      label: "Disponible ahora",
+      accent: "bg-[linear-gradient(135deg,rgba(141,187,122,0.22),rgba(255,255,255,0.9))]",
     },
   ];
 
   return (
-    <section id="testimonials" className="py-16 relative">
+    <section id="promotions" className="py-16 relative">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
-        <div className="text-center space-y-4">
-          <h2 className="text-xs font-black uppercase tracking-widest text-[var(--theme-primary)]">
-            Prueba Social
-          </h2>
-          <p className="text-3xl md:text-5xl font-black tracking-tighter uppercase text-white">
-            Validado por{" "}
-            <span className="text-[var(--theme-primary)]">
-              operadores reales
-            </span>
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div className="space-y-3">
+            <h2 className="text-xs font-black uppercase tracking-widest text-[var(--theme-primary)]">
+              Promociones y banners
+            </h2>
+            <p className="text-3xl md:text-5xl font-black tracking-tighter uppercase text-[var(--theme-text)] max-w-3xl">
+              Contenido visual para empujar la conversión.
+            </p>
+          </div>
+          <p className="max-w-md text-sm text-[var(--theme-text-muted)]">
+            Espacios destacados para promociones activas, banners web y llamados
+            a la acción que se noten sin saturar la pantalla.
           </p>
         </div>
 
-        {/* Layout De Comentarios */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-          {reviews.map((rev, idx) => (
-            <div
-              key={idx}
-              className="glass-card p-6 md:p-8 border border-[var(--theme-border)] bg-[rgba(23,25,12,0.3)] flex flex-col justify-between space-y-6"
-            >
-              {/* Estrellas e Icono */}
-              <div className="flex items-center justify-between">
-                <div className="flex gap-0.5">
-                  {[...Array(rev.stars)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className="h-4 w-4 fill-[var(--theme-primary)] text-[var(--theme-primary)]"
-                    />
-                  ))}
-                </div>
-                <MessageSquare className="h-4 w-4 text-[var(--theme-primary)]/40" />
+        <div className="grid gap-5 lg:grid-cols-[1.35fr_0.65fr]">
+          <article className="glass-card relative overflow-hidden border border-[var(--theme-border)] bg-[linear-gradient(135deg,rgba(31,107,61,0.92),rgba(47,126,73,0.88))] p-6 md:p-8 text-white">
+            <div className="absolute right-0 top-0 h-44 w-44 rounded-full bg-white/10 blur-3xl" />
+            <div className="relative space-y-6">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+                <Sparkles className="h-3.5 w-3.5" />
+                Banner principal
               </div>
-
-              {/* Contenido del testimonio */}
-              <p className="text-sm md:text-base text-[var(--theme-text-muted)] italic leading-relaxed">
-                "{rev.quote}"
-              </p>
-
-              {/* Autor */}
-              <div className="border-t border-[var(--theme-border)] pt-4">
-                <h4 className="text-sm font-black text-white uppercase tracking-tight">
-                  {rev.author}
-                </h4>
-                <p className="text-xs text-[var(--theme-text-muted)] font-mono">
-                  {rev.role}
+              <div className="space-y-3 max-w-xl">
+                <h3 className="text-3xl md:text-5xl font-black uppercase tracking-tighter leading-[0.92]">
+                  Promos activas para decidir rápido
+                </h3>
+                <p className="text-sm md:text-base text-white/80 max-w-lg">
+                  Un banner hero con contraste fuerte, mensaje claro y un CTA
+                  directo para llevar al usuario al restaurante o al combo.
                 </p>
               </div>
+              <div className="flex flex-wrap gap-3">
+                {[
+                  "Combo clásico",
+                  "Envío gratis",
+                  "2x1 hoy",
+                ].map((item) => (
+                  <span
+                    key={item}
+                    className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-widest"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
             </div>
-          ))}
+          </article>
+
+          <div className="grid gap-4">
+            {promos.map((promo) => (
+              <article
+                key={promo.title}
+                className={`glass-card border border-[var(--theme-border)] p-5 ${promo.accent}`}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-2">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-white/75 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[var(--theme-primary)]">
+                      <BadgePercent className="h-3.5 w-3.5" />
+                      {promo.label}
+                    </span>
+                    <h3 className="text-xl font-black uppercase tracking-tight text-[var(--theme-text)]">
+                      {promo.title}
+                    </h3>
+                    <p className="text-sm font-medium text-[var(--theme-text-muted)]">
+                      {promo.subtitle}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl bg-white p-3 text-[var(--theme-primary)] shadow-sm">
+                    <Truck className="h-5 w-5" />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center justify-between border-t border-[var(--theme-border)] pt-4">
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--theme-text-muted)]">
+                    Banner web
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-[var(--theme-primary)]" />
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
       </div>
     </section>
