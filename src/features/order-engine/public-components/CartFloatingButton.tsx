@@ -25,9 +25,9 @@ export function CartFloatingButton({ onClick }: CartFloatingButtonProps) {
           className="group-hover:rotate-12 transition-transform duration-300"
         />
         <span className="text-sm">Ver Pedido</span>
-        
+
         {totalItems > 0 && (
-          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-sm animate-in zoom-in">
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-white dark:border-zinc-900 shadow-sm animate-in zoom-in">
             {totalItems}
           </span>
         )}

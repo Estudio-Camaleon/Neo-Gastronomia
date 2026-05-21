@@ -2,9 +2,11 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 
+type Theme = "light" | "dark";
+
 interface ThemeContextType {
-  theme: string;
-  setTheme: (theme: string) => void;
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
@@ -13,37 +15,35 @@ const ThemeContext = createContext<ThemeContextType>({
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<string>("light");
-  const [mounted, setMounted] = useState(false);
+  const [theme, setThemeState] = useState<Theme>("light");
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("neo-theme") || "light";
+    const savedTheme = (localStorage.getItem("neo-theme") as Theme) || "light";
     setThemeState(savedTheme);
-    
-    // Aplicar clase al cargar
+
     if (savedTheme === "dark") {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
     }
-    
-    setMounted(true);
   }, []);
 
-  const setTheme = (newTheme: string) => {
+  const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
     localStorage.setItem("neo-theme", newTheme);
-    
+
     if (newTheme === "dark") {
       document.documentElement.classList.add("dark");
+      document.documentElement.style.colorScheme = "dark";
     } else {
       document.documentElement.classList.remove("dark");
+      document.documentElement.style.colorScheme = "light";
     }
   };
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
-      {mounted ? children : <div className="invisible">{children}</div>}
+      {children}
     </ThemeContext.Provider>
   );
 }

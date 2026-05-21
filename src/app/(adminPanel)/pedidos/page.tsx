@@ -41,14 +41,14 @@ export default async function PedidosPage() {
   const listaPedidos = (pedidosIniciales || []) as unknown as PedidoData[];
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 relative z-10">
+    <div className="max-w-7xl mx-auto space-y-8 relative z-10 ">
       {/* HEADER DE MONITOREO VIVO */}
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-[var(--admin-border)]/50">
-        <div className="space-y-2">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-[var(--admin-border)]/50 ">
+        <div className="space-y-2 ">
           <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-[var(--admin-text)]">
             Pedidos en vivo
           </h1>
-          <p className="text-[var(--admin-text-muted)] font-medium text-sm">
+          <p className="text-[var(--admin-text-muted)] font-medium text-sm ">
             Control de órdenes y despacho inmediato en tiempo real
           </p>
         </div>

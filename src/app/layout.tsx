@@ -7,7 +7,10 @@ export const metadata: Metadata = {
   title: "NEO | Sistema de Gestión Brutalista",
   description:
     "Plataforma de alta velocidad para la gestión de catálogos y negocios digitales.",
-  robots: "noindex, nofollow", // Por defecto privado hasta el despliegue
+  robots: "noindex, nofollow", 
+  icons: {
+    icon: "/icons/neo_logo_negro.svg",
+  },
 };
 
 export const viewport: Viewport = {

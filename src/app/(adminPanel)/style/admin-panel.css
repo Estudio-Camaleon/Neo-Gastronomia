@@ -1,48 +1,54 @@
-/* 1. Importación moderna de Tailwind v4 */
 @import "tailwindcss";
 
-/* 2. Definición de variables CSS (Theme) */
 @theme {
+  /* Mapeo directo a variables CSS para que Tailwind las reconozca en todas las utilidades */
   --color-admin-surface: var(--admin-surface);
+  --color-admin-surface-secondary: var(--admin-surface-secondary);
   --color-admin-bg: var(--admin-bg);
   --color-admin-border: var(--admin-border);
   --color-admin-text: var(--admin-text);
   --color-admin-text-muted: var(--admin-text-muted);
   --color-admin-accent: var(--admin-accent);
   --color-admin-danger: var(--admin-danger);
-  --color-admin-surface-accent: var(--admin-surface-accent);
 }
 
-/* Variables globales aplicadas para compatibilidad con código existente */
 :root {
-  --admin-surface: rgba(255, 255, 255, 0.85);
-  --admin-bg: #ecf8f1;
-  --admin-border: #c8ebd7;
-  --admin-text: #000000;
-  --admin-text-muted: rgba(0, 0, 0, 0.6);
+  /* Paleta Light - Neo-Brutalismo Pastel */
+  --admin-surface: #ffffff;
+  --admin-surface-secondary: #f9f9f9;
+  --admin-bg: #f4f4f4;
+  --admin-border: #e5e7eb;
+  --admin-text: #0f172a;
+  --admin-text-muted: #64748b;
   --admin-accent: #34a35f;
-  --admin-danger: #e3342f;
-  --admin-surface-accent: #c8ebd7;
+  --admin-danger: #e11d48;
 }
 
 .dark {
-  --admin-surface: rgba(24, 24, 27, 0.85); /* zinc-900 con transparencia */
-  --admin-bg: #09090b; /* zinc-950 */
-  --admin-border: #27272a; /* zinc-800 */
-  --admin-text: #fafafa; /* zinc-50 */
-  --admin-text-muted: #a1a1aa; /* zinc-400 */
-  --admin-accent: #34a35f;
-  --admin-danger: #ef4444; /* red-500 */
-  --admin-surface-accent: #27272a; /* zinc-800 */
+  /* Paleta Dark - Neo-Brutalismo Industrial (OLED friendly) */
+  --admin-surface: #0f0f11;
+  --admin-surface-secondary: #18181b;
+  --admin-bg: #000000;
+  --admin-border: #27272a;
+  --admin-text: #f4f4f5;
+  --admin-text-muted: #a1a1aa;
+  --admin-accent: #22c55e; /* Un verde un poco más eléctrico para el modo oscuro */
+  --admin-danger: #f87171;
 }
 
-/* 3. Tus clases utilitarias */
 @layer components {
+  /* Card con sombra brutalista - Sombra fija que no cambia con el tema */
   .admin-card {
-    @apply bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-md transition-all duration-300;
+    @apply bg-[var(--admin-surface)] border border-[var(--admin-border)] 
+           rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] 
+           dark:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.4)] 
+           transition-colors duration-200;
   }
-  
+
+  /* Sidebar con glassmorphism selectivo */
   .admin-sidebar {
-    @apply flex flex-col h-full bg-[var(--admin-surface)] backdrop-blur-xl border-r border-[var(--admin-border)];
+    @apply flex flex-col h-full bg-[var(--admin-surface)] 
+           border-r border-[var(--admin-border)] 
+           transition-colors duration-200;
   }
 }

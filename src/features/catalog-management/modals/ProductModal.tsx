@@ -14,7 +14,7 @@ interface Categoria {
 interface ProductModalProps {
   negocioId: string;
   onClose: () => void;
-  initialData?: UnifiedProduct | null; 
+  initialData?: UnifiedProduct | null;
 }
 
 export function ProductModal({
@@ -46,15 +46,15 @@ export function ProductModal({
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
-      <div 
-        className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity"
+      <div
+        className="absolute inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
-      
-      <div className="relative w-full max-w-5xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200">
+
+      <div className="relative w-full max-w-5xl max-h-[90vh] flex flex-col bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border dark:border-zinc-800">
         <button
           onClick={onClose}
-          className="absolute z-50 -top-3 -right-3 p-2 bg-white text-gray-500 hover:text-gray-900 rounded-full border border-gray-200 shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center"
+          className="absolute z-50 -top-3 -right-3 p-2 bg-white dark:bg-zinc-900 text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100 rounded-full border border-gray-200 dark:border-zinc-700 shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center"
           aria-label="Cerrar"
         >
           <X size={20} />
@@ -62,11 +62,12 @@ export function ProductModal({
 
         <div className="w-full h-full overflow-hidden flex flex-col rounded-2xl">
           {loadingCats ? (
-            <div className="flex flex-col justify-center items-center h-[50vh] text-gray-500 gap-3">
-              <Loader2 className="animate-spin text-[var(--admin-accent)]" size={32} />
-              <p className="text-sm font-medium">
-                Cargando formulario...
-              </p>
+            <div className="flex flex-col justify-center items-center h-[50vh] text-gray-500 dark:text-zinc-400 gap-3 bg-white dark:bg-zinc-900">
+              <Loader2
+                className="animate-spin text-[var(--admin-accent)]"
+                size={32}
+              />
+              <p className="text-sm font-medium">Cargando formulario...</p>
             </div>
           ) : (
             <ProductoForm

@@ -1,23 +1,23 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  ReactNode,
+} from "react";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 
 interface LoadingContextType {
   isLoading: boolean;
   show: (message?: string) => void;
   hide: () => void;
-  variant: "dark" | "light";
 }
 
 const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
 
-interface LoadingProviderProps {
-  children: ReactNode;
-  variant?: "dark" | "light";
-}
-
-export function LoadingProvider({ children, variant = "dark" }: LoadingProviderProps) {
+export function LoadingProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -31,17 +31,16 @@ export function LoadingProvider({ children, variant = "dark" }: LoadingProviderP
   }, []);
 
   return (
-    <LoadingContext.Provider value={{ isLoading, show, hide, variant }}>
+    <LoadingContext.Provider value={{ isLoading, show, hide }}>
       {children}
-      <LoadingOverlay isActive={isLoading} message={message} variant={variant} />
+      <LoadingOverlay isActive={isLoading} message={message} />
     </LoadingContext.Provider>
   );
 }
 
 export function useLoading() {
   const context = useContext(LoadingContext);
-  if (!context) {
+  if (!context)
     throw new Error("useLoading debe usarse dentro de LoadingProvider");
-  }
   return context;
 }

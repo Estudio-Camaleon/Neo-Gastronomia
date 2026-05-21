@@ -1,7 +1,3 @@
-/**
- * NEO SYSTEM v3.0 - Admin Panel Maestro Layout
- * Server Component de misión crítica. Controla accesos, sesiones y contingencias Multi-tenant.
- */
 import { Sidebar } from "@/features/tenant-layout/components/Sidebar";
 import { ErrorModal } from "@/components/ui/errorModal";
 import { ThemeProvider } from "@/core/providers/ThemeProvider";
@@ -35,7 +31,7 @@ export default async function AdminPanelLayout({
     .eq("user_id", user.id)
     .single();
 
-  // 3. Contingencia: Si no tiene local asignado, bloquea la terminal e induce registro
+  // 3. Contingencia: Si no tiene local asignado, bloquea la terminal e induce registro con compuerta de escape UX
   if (businessError || !negocio) {
     return (
       <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[99999] flex items-center justify-center p-4 font-sans">
@@ -43,12 +39,33 @@ export default async function AdminPanelLayout({
           title="Terminal Incompleta"
           message="Necesitás inicializar la infraestructura operativa de tu local antes de acceder a las herramientas de control maestro."
           action={
-            <TransitionLink
-              href="/configuracion"
-              className="block w-full py-4 bg-[var(--admin-accent)] text-white font-bold rounded-xl shadow-md hover:shadow-lg active:scale-95 transition-all text-center"
-            >
-              Inicializar Mi Negocio
-            </TransitionLink>
+            <div className="flex flex-col gap-3.5 w-full">
+              {/* Acción Principal: Registro de local */}
+              <TransitionLink
+                href="/registro"
+                className="block w-full py-4 bg-[var(--admin-accent)] text-white font-bold rounded-xl shadow-md hover:shadow-lg active:scale-95 transition-all text-center text-sm tracking-wide"
+              >
+                Completar Registro de Local
+              </TransitionLink>
+
+              {/* Canal de Escape Protegido contra Loops del Middleware */}
+              <form
+                action={async () => {
+                  "use server";
+                  const client = await createClient();
+                  await client.auth.signOut();
+                  redirect("/login");
+                }}
+                className="w-full flex justify-center"
+              >
+                <button
+                  type="submit"
+                  className="text-xs text-zinc-400 dark:text-zinc-500 hover:text-zinc-200 dark:hover:text-zinc-300 hover:underline transition-colors text-center font-medium bg-transparent border-none cursor-pointer py-1 outline-none"
+                >
+                  Cerrar sesión o cambiar de cuenta
+                </button>
+              </form>
+            </div>
           }
         />
       </div>

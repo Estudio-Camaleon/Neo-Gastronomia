@@ -1,17 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/core/lib/supabase/client";
 import { z } from "zod";
 import { ShieldAlert, CheckCircle2, ArrowRight, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
+// Esquema de registro con Regex quirúrgico para fulminar inyecciones XSS
 const registerSchema = z.object({
   nombreNegocio: z
     .string()
-    .min(2, "El nombre debe tener al menos 2 caracteres"),
-  email: z.string().email("Ingresa un correo válido"),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+    .min(2, "El nombre comercial debe poseer al menos 2 caracteres.")
+    .transform((val) => {
+      return val
+        .trim()
+        .replace(/<\/?[^>]+(>|$)/g, "")
+        .replace(/[<>]/g, "");
+    }),
+  email: z
+    .string()
+    .min(1, "El correo electrónico es mandatorio.")
+    .email("Ingresa un formato de correo válido")
+    .transform((val) => val.trim().toLowerCase()),
+  password: z
+    .string()
+    .min(6, "La contraseña del administrador requiere mínimo 6 caracteres.")
+    .transform((val) => val.trim()),
 });
 
 export function RegisterForm() {
@@ -22,13 +35,46 @@ export function RegisterForm() {
   const [isSent, setIsSent] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const supabase = createClient();
+  // --- HEURÍSTICA DE ENTROPÍA ULTRA-LIGHT ---
+  const getPasswordStrength = (pass: string) => {
+    if (pass.length === 0) {
+      return { score: 0, label: "", color: "bg-transparent", width: "w-0" };
+    }
+    let points = 0;
+    if (pass.length >= 6) points++;
+    if (/[A-Z]/.test(pass)) points++;
+    if (/[0-9]/.test(pass)) points++;
+    if (/[^A-Za-z0-9]/.test(pass)) points++;
+
+    if (points <= 1) {
+      return {
+        score: 1,
+        label: "Insegura",
+        color: "bg-red-500",
+        width: "w-1/3",
+      };
+    }
+    if (points === 2 || points === 3) {
+      return {
+        score: 2,
+        label: "Moderada",
+        color: "bg-amber-500",
+        width: "w-2/3",
+      };
+    }
+    return {
+      score: 3,
+      label: "Fuerte",
+      color: "bg-zinc-900 dark:bg-zinc-100",
+      width: "w-full",
+    };
+  };
+
+  const strength = getPasswordStrength(password);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
-
-    setLoading(true);
     setErrorMsg("");
 
     const validation = registerSchema.safeParse({
@@ -36,31 +82,35 @@ export function RegisterForm() {
       email,
       password,
     });
+
     if (!validation.success) {
-      setErrorMsg(validation.error.issues[0]?.message || "Datos incorrectos.");
-      setLoading(false);
+      setErrorMsg(validation.error.issues[0]?.message || "Esquema inválido.");
       return;
     }
 
+    setLoading(true);
     try {
+      const { createClient } = await import("@/core/lib/supabase/client");
+      const supabase = createClient();
+
       const { error } = await supabase.auth.signUp({
-        email,
-        password,
+        email: validation.data.email,
+        password: validation.data.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/pedidos`,
+          emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
-            nombre_negocio: nombreNegocio,
+            nombre_negocio: validation.data.nombreNegocio,
           },
         },
       });
 
       if (error) throw error;
       setIsSent(true);
-    } catch (error) {
+    } catch (err: unknown) {
       setErrorMsg(
-        error instanceof Error
-          ? error.message
-          : "Error fatal al crear la cuenta.",
+        err instanceof Error
+          ? err.message
+          : "Fallo crítico de persistencia en la creación de credenciales.",
       );
     } finally {
       setLoading(false);
@@ -69,34 +119,34 @@ export function RegisterForm() {
 
   if (isSent) {
     return (
-      <div className="bg-[var(--admin-surface)] p-8 rounded-2xl border border-[var(--admin-border)] shadow-lg text-center space-y-6 animate-in zoom-in-95 duration-300">
-        <div className="w-16 h-16 bg-[var(--admin-surface-accent)]/50 text-[var(--admin-accent)] rounded-full flex items-center justify-center mx-auto shadow-sm">
-          <CheckCircle2 className="h-8 w-8" />
+      <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 text-center space-y-4 animate-in zoom-in-95 duration-200 select-none">
+        <div className="w-12 h-12 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-full flex items-center justify-center mx-auto shadow-3xs">
+          <CheckCircle2 className="h-6 w-6" />
         </div>
-        <div>
-          <h2 className="text-2xl font-bold text-[var(--admin-text)] tracking-tight mb-2">
-            ¡Casi listo!
+        <div className="space-y-1">
+          <h2 className="text-base font-bold text-zinc-900 dark:text-white tracking-tight">
+            Enlace de Activación Despachado
           </h2>
-          <p className="text-[var(--admin-text-muted)] text-sm leading-relaxed">
-            Hemos enviado un enlace de confirmación para tu negocio <br />
-            <span className="font-semibold text-[var(--admin-text)] bg-[var(--admin-bg)] px-2 py-0.5 rounded-md mt-1 inline-block">
-              {nombreNegocio}
-            </span>{" "}
+          <p className="text-zinc-500 dark:text-zinc-400 text-xs leading-relaxed">
+            Hemos enviado una firma de verificación para consolidar el local:{" "}
             <br />
-            al correo: <span className="font-medium text-[var(--admin-text)]">{email}</span>
+            <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-[11px] mt-1 inline-block">
+              {nombreNegocio}
+            </span>
           </p>
         </div>
-        <div className="p-4 bg-[var(--admin-accent)]/10 border border-[var(--admin-accent)]/20 rounded-xl text-xs font-medium text-[var(--admin-text)]">
-          Por favor, revisa tu bandeja de entrada o la carpeta de spam para verificar tu cuenta y comenzar a usar NEO.
+        <div className="p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900/60 rounded-lg text-[10px] text-zinc-400 dark:text-zinc-500 leading-normal">
+          Por favor, valida tu bandeja de entrada o buzón de spam para habilitar
+          tu infraestructura multi-tenant en NEO.
         </div>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleRegister} className="w-full space-y-5">
+    <form onSubmit={handleRegister} className="w-full space-y-4 text-xs">
       <div className="space-y-1.5">
-        <label className="block text-sm font-semibold text-[var(--admin-text)]">
+        <label className="font-semibold text-zinc-700 dark:text-zinc-300">
           Nombre de tu Negocio
         </label>
         <Input
@@ -105,13 +155,13 @@ export function RegisterForm() {
           disabled={loading}
           value={nombreNegocio}
           onChange={(e) => setNombreNegocio(e.target.value)}
-          placeholder="Ej: Burger King"
-          className="h-12 uppercase border-[var(--admin-border)]"
+          placeholder="Ej: Burger Station"
+          className="h-11 bg-zinc-50/50 dark:bg-zinc-950/30 border-zinc-200 dark:border-zinc-800 text-sm rounded-lg focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-300 focus:bg-white text-zinc-900 dark:text-zinc-50"
         />
       </div>
 
       <div className="space-y-1.5">
-        <label className="block text-sm font-semibold text-[var(--admin-text)]">
+        <label className="font-semibold text-zinc-700 dark:text-zinc-300">
           Correo Electrónico
         </label>
         <Input
@@ -121,14 +171,22 @@ export function RegisterForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="socio@tu-negocio.com"
-          className="h-12 border-[var(--admin-border)]"
+          className="h-11 bg-zinc-50/50 dark:bg-zinc-950/30 border-zinc-200 dark:border-zinc-800 text-sm rounded-lg focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-300 focus:bg-white text-zinc-900 dark:text-zinc-50"
         />
       </div>
 
+      {/* INPUT DE CONTRASEÑA CON ENTROPÍA PREMIUM INTEGRADA */}
       <div className="space-y-1.5">
-        <label className="block text-sm font-semibold text-[var(--admin-text)]">
-          Contraseña
-        </label>
+        <div className="flex justify-between items-center">
+          <label className="font-semibold text-zinc-700 dark:text-zinc-300">
+            Contraseña Administrador
+          </label>
+          {password.length > 0 && (
+            <span className="text-[10px] font-mono font-medium text-zinc-400 dark:text-zinc-500 animate-in fade-in duration-200">
+              Fortaleza: {strength.label}
+            </span>
+          )}
+        </div>
         <Input
           required
           autoComplete="new-password"
@@ -136,14 +194,21 @@ export function RegisterForm() {
           disabled={loading}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
-          className="h-12 border-[var(--admin-border)]"
+          placeholder="Mínimo 6 caracteres"
+          className="h-11 bg-zinc-50/50 dark:bg-zinc-950/30 border-zinc-200 dark:border-zinc-800 text-sm rounded-lg focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-300 focus:bg-white text-zinc-900 dark:text-zinc-50 mb-1"
         />
+
+        {/* TRACKING VISUAL ADAPTATIVO */}
+        <div className="h-1 w-full bg-zinc-100 dark:bg-zinc-800/80 rounded-full overflow-hidden transition-all duration-300">
+          <div
+            className={`h-full ${strength.color} ${strength.width} transition-all duration-500 ease-out`}
+          />
+        </div>
       </div>
 
       {errorMsg && (
-        <div className="flex items-center gap-2 text-[var(--admin-danger)] bg-[var(--admin-danger)]/10 p-3 rounded-xl border border-[var(--admin-danger)]/20 text-sm font-medium animate-in fade-in duration-200">
-          <ShieldAlert className="h-4 w-4 shrink-0" />
+        <div className="flex items-start gap-2.5 text-red-700 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 p-3 rounded-lg text-[11px] leading-relaxed animate-in fade-in duration-150">
+          <ShieldAlert className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400 mt-0.5" />
           <span>{errorMsg}</span>
         </div>
       )}
@@ -151,16 +216,17 @@ export function RegisterForm() {
       <button
         disabled={loading}
         type="submit"
-        className="w-full bg-[var(--admin-text)] hover:opacity-90 text-[var(--admin-surface)] font-bold text-sm py-4 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none transition-all flex items-center justify-center gap-2 mt-2 border border-[var(--admin-border)]"
+        className="w-full bg-zinc-900 dark:bg-zinc-50 text-zinc-50 dark:text-zinc-900 font-medium text-xs h-11 rounded-lg shadow-sm hover:opacity-90 active:scale-[0.99] disabled:opacity-40 disabled:pointer-events-none transition-all flex items-center justify-center gap-2 mt-2"
       >
         {loading ? (
           <>
-            <Loader2 className="w-5 h-5 animate-spin" /> Creando cuenta...
+            <Loader2 className="w-4 h-4 animate-spin" /> Provisionando
+            entorno...
           </>
         ) : (
           <>
-            Crear cuenta ahora
-            <ArrowRight className="h-4 w-4" />
+            <span>Inicializar Mi Cuenta Comercial</span>
+            <ArrowRight size={13} />
           </>
         )}
       </button>

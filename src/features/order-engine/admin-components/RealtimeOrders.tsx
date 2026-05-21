@@ -150,8 +150,11 @@ export function RealtimeOrders({
 
   if (initializing) {
     return (
-      <div className="py-20 flex flex-col justify-center items-center text-sm text-gray-500 gap-3">
-        <Loader2 className="animate-spin text-[var(--admin-accent)]" size={32} />
+      <div className="py-20 flex flex-col justify-center items-center text-sm text-gray-500 dark:text-zinc-400 gap-3">
+        <Loader2
+          className="animate-spin text-[var(--admin-accent)]"
+          size={32}
+        />
         <span>Sincronizando monitor en tiempo real...</span>
       </div>
     );
@@ -169,15 +172,15 @@ export function RealtimeOrders({
       ))}
 
       {pedidos.length === 0 && (
-        <div className="col-span-full py-20 admin-card flex flex-col items-center justify-center bg-gray-50/50 border-dashed border-gray-200">
-          <div className="p-4 bg-gray-100 rounded-full mb-4 text-gray-400">
-             <ShoppingBag size={48} strokeWidth={1.5} />
+        <div className="col-span-full py-20 admin-card flex flex-col items-center justify-center bg-gray-50/50 dark:bg-zinc-900/30 border-dashed border-gray-200 dark:border-zinc-800 rounded-2xl">
+          <div className="p-4 bg-gray-100 dark:bg-zinc-800 rounded-full mb-4 text-gray-400 dark:text-zinc-500">
+            <ShoppingBag size={48} strokeWidth={1.5} />
           </div>
-          <p className="text-lg font-semibold text-gray-700 mb-1">
+          <p className="text-lg font-semibold text-gray-700 dark:text-zinc-300 mb-1">
             Monitor a la espera
           </p>
-          <p className="text-sm text-gray-500">
-             No hay nuevos pedidos en la pasarela.
+          <p className="text-sm text-gray-500 dark:text-zinc-500">
+            No hay nuevos pedidos en la pasarela.
           </p>
         </div>
       )}

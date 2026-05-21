@@ -152,28 +152,27 @@ export function PedidosRadar({
       label: "Nuevos Pendientes",
       value: stats.nuevos,
       color: "bg-blue-500",
-      bgLight: "bg-blue-50",
-      border: "border-blue-100",
+      border: "border-blue-100 dark:border-blue-900/30",
       icon: Clock,
-      textColor: "text-blue-600",
+      textColor: "text-blue-600 dark:text-blue-400",
     },
     {
       label: "En Cocina",
       value: stats.cocina,
       color: "bg-amber-500",
-      bgLight: "bg-amber-50",
-      border: "border-amber-100",
+
+      border: "border-amber-100 dark:border-amber-900/30",
       icon: ChefHat,
-      textColor: "text-amber-600",
+      textColor: "text-amber-600 dark:text-amber-400",
     },
     {
       label: "Entregados",
       value: stats.listos,
       color: "bg-green-500",
-      bgLight: "bg-green-50",
-      border: "border-green-100",
+
+      border: "border-green-100 dark:border-green-900/30",
       icon: CheckCircle2,
-      textColor: "text-green-600",
+      textColor: "text-green-600 dark:text-green-400",
     },
   ];
 
@@ -183,14 +182,14 @@ export function PedidosRadar({
         {radarItems.map((item, idx) => (
           <div
             key={idx}
-            className={`admin-card !p-5 border ${item.border} ${item.bgLight} transition-all duration-300`}
+            className={`admin-card !p-5 border ${item.border} transition-all duration-300 rounded-2xl`}
           >
             <div className="flex justify-between items-start mb-2">
-              <span className="text-sm font-semibold text-gray-600">
+              <span className="text-sm font-semibold text-gray-600 dark:text-zinc-400">
                 {item.label}
               </span>
-              <div className={`p-2 rounded-lg bg-white ${item.textColor} shadow-sm`}>
-                <item.icon size={18} />
+              <div className="p-2 rounded-lg bg-white dark:bg-zinc-900 shadow-sm text-[var(--admin-text)]">
+                <item.icon size={18} className={item.textColor} />
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -198,21 +197,23 @@ export function PedidosRadar({
                 {item.value}
               </span>
               {item.value > 0 && item.label !== "Entregados" && (
-                 <div className={`w-2.5 h-2.5 rounded-full ${item.color} animate-pulse shadow-sm`} />
+                <div
+                  className={`w-2.5 h-2.5 rounded-full ${item.color} animate-pulse shadow-sm`}
+                />
               )}
             </div>
           </div>
         ))}
       </div>
 
-      <div className="admin-card !p-2 flex items-center">
-        <div className="pl-4 pr-3 text-gray-400">
+      <div className="admin-card !p-2 flex items-center bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl">
+        <div className="pl-4 pr-3 text-gray-400 dark:text-zinc-500">
           <Search size={20} />
         </div>
         <input
           type="text"
           placeholder="Buscar pedido por cliente o código..."
-          className="flex-1 bg-transparent border-none outline-none py-3 text-sm font-medium text-gray-700 placeholder:text-gray-400"
+          className="flex-1 bg-transparent border-none outline-none py-3 text-sm font-medium text-[var(--admin-text)] placeholder:text-gray-400 dark:placeholder:text-zinc-500"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         />
@@ -239,15 +240,15 @@ export function PedidosRadar({
       {pedidos.filter(
         (p) => p.estado !== "entregado" && p.estado !== "cancelado",
       ).length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 admin-card bg-gray-50/50 border-dashed border-gray-200">
-          <div className="p-4 bg-gray-100 rounded-full mb-4 text-gray-400">
-             <ShoppingBag size={48} strokeWidth={1.5} />
+        <div className="flex flex-col items-center justify-center py-20 admin-card bg-gray-50/50 dark:bg-zinc-900/30 border-dashed border-gray-200 dark:border-zinc-800 rounded-2xl">
+          <div className="p-4 bg-gray-100 dark:bg-zinc-800 rounded-full mb-4 text-gray-400 dark:text-zinc-500">
+            <ShoppingBag size={48} strokeWidth={1.5} />
           </div>
-          <p className="text-lg font-semibold text-gray-700 mb-1">
+          <p className="text-lg font-semibold text-gray-700 dark:text-zinc-300 mb-1">
             Radar despejado
           </p>
-          <p className="text-sm text-gray-500">
-             No hay pedidos activos en este momento.
+          <p className="text-sm text-gray-500 dark:text-zinc-500">
+            No hay pedidos activos en este momento.
           </p>
         </div>
       )}
