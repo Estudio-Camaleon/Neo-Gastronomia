@@ -8,7 +8,6 @@ import {
   MessageCircle,
   Trophy,
   StickyNote,
-  Smartphone,
 } from "lucide-react";
 import { updateClientSystemNotes } from "../actions";
 import { toast } from "sonner";
@@ -40,7 +39,6 @@ export function ClientRadar({ initialClientes }: ClientRadarProps) {
     id: string,
     notasActuales: string | null,
   ) => {
-    // Nota: Mantenemos el prompt por compatibilidad atómica, sanando sus textos
     const promptNueva = window.prompt(
       "Editar notas técnicas del cliente:",
       notasActuales || "",
@@ -83,7 +81,7 @@ export function ClientRadar({ initialClientes }: ClientRadarProps) {
 
       {/* CONTENEDOR MONOLÍTICO DE LA TABLA / REJILLA */}
       <div className="admin-card !p-0 overflow-hidden bg-[var(--admin-surface)] border border-[var(--admin-border)] dark:bg-zinc-900/90 rounded-2xl shadow-sm">
-        <div className="px-5 py-4 border-b border-[var(--admin-border)]   dark:border-zinc-800 flex justify-between items-center bg-gray-50/50 dark:bg-zinc800/40">
+        <div className="px-5 py-4 border-b border-[var(--admin-border)] dark:border-zinc-800 flex justify-between items-center bg-gray-50/50 dark:bg-zinc-800/40">
           <span className="font-bold text-gray-700 dark:text-zinc-300 text-sm">
             Listado de Consumidores
           </span>

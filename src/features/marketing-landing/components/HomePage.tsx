@@ -11,7 +11,7 @@ import "../style/home.css";
 
 export function HomePage() {
   return (
-    <div className="neo-home font-sans selection:bg-[#9db71c] selection:text-black min-h-screen flex flex-col justify-between">
+    <div className="neo-home font-sans selection:bg-[var(--theme-primary-soft)] selection:text-[var(--theme-text)] min-h-screen flex flex-col justify-between">
       {/* Capa estructural superior */}
       <Navbar />
 

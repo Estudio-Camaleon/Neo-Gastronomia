@@ -8,7 +8,6 @@ import {
   Save,
   Loader2,
   CheckCircle2,
-  Settings,
   AlertTriangle,
   Camera,
   ImageIcon,
@@ -27,11 +26,10 @@ import {
 } from "lucide-react";
 import {
   updateTenantBrandingAction,
-  deleteTenantBrandingAction, // Inyección de la nueva Server Action destructiva
+  deleteTenantBrandingAction,
   type UpdateTenantBrandingPayload,
 } from "../actions";
 
-// --- INTERFACES Y CONTRATOS DE TIPOS ESTRICTOS ---
 export interface NegocioInitialData {
   id: string;
   nombre: string;
@@ -311,8 +309,7 @@ export function ConfigForm({
                 Cronograma Operativo Semanal
               </h3>
               <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
-                Administración granular de persianas digitales y recepción
-                automatizada.
+                Campamento e itinerario granular de persianas digitales.
               </p>
             </div>
           </div>
@@ -343,7 +340,7 @@ export function ConfigForm({
         </div>
       </form>
 
-      {/* --- NUEVO SUB-BLOQUE PREMIUM: ZONA DE PELIGRO (DANGER ZONE) --- */}
+      {/* ZONA DE PELIGRO (DANGER ZONE) */}
       {initialData && (
         <div className="bg-white dark:bg-zinc-900 border border-red-200 dark:border-red-950/60 rounded-xl overflow-hidden shadow-2xs mt-12 animate-in fade-in duration-300">
           <div className="px-5 py-3.5 border-b border-red-100 dark:border-red-950/40 bg-red-50/30 dark:bg-red-950/10 flex items-center gap-2.5">
@@ -416,7 +413,6 @@ export function ConfigForm({
   );
 }
 
-// --- SUB-BLOQUE: BRANDING VISUAL ---
 function BrandingBlock({
   logoUrl,
   bannerUrl,
@@ -541,7 +537,6 @@ function BrandingBlock({
   );
 }
 
-// --- SUB-BLOQUE: INFORMACIÓN GENERAL ---
 function GeneralInfoBlock({
   formData,
   onChange,
@@ -650,7 +645,7 @@ function GeneralInfoBlock({
             Aclaraciones de Despacho u Ubicación (Opcional)
           </label>
           <textarea
-            name="direccion_notas"
+            name="direccion_notes"
             value={formData.direccion_notas}
             onChange={onChange}
             className="w-full p-2 bg-zinc-50/50 dark:bg-zinc-950/30 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-zinc-300 resize-none h-14 focus:bg-white dark:focus:bg-zinc-900 transition-all text-xs"
@@ -662,7 +657,6 @@ function GeneralInfoBlock({
   );
 }
 
-// --- SUB-BLOQUE: CONECTIVIDAD DIGITAL (REDES) ---
 function SocialLinksBlock({
   formData,
   onChange,
@@ -736,7 +730,6 @@ function SocialLinksBlock({
   );
 }
 
-// --- SUB-BLOQUE: PALETA Y COLOR DE ACENTO ---
 function CatalogDesignBlock({
   colorPrimary,
   onChange,
@@ -812,7 +805,6 @@ function CatalogDesignBlock({
   );
 }
 
-// --- SUB-BLOQUE: PERSISTENCIA HORARIA PARTIDA ---
 function ScheduleBlock({
   schedule = {},
   onChange,
@@ -904,40 +896,42 @@ function ScheduleBlock({
 
               <div className="flex-1 px-4 py-1.5 flex flex-col sm:flex-row sm:items-center flex-wrap gap-2 min-h-[44px]">
                 {isOpen ? (
-                  turnos.map((t, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center gap-1.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800/60 rounded-md p-1 animate-in zoom-in-95 duration-100"
-                    >
-                      <input
-                        type="time"
-                        value={t.inicio}
-                        onChange={(e) =>
-                          updateTime(dia.id, idx, "inicio", e.target.value)
-                        }
-                        className="bg-transparent text-xs font-medium outline-none text-zinc-800 dark:text-zinc-200 p-0.5 cursor-pointer"
-                      />
-                      <span className="text-[9px] font-bold text-zinc-400">
-                        A
-                      </span>
-                      <input
-                        type="time"
-                        value={t.fin}
-                        onChange={(e) =>
-                          updateTime(dia.id, idx, "fin", e.target.value)
-                        }
-                        className="bg-transparent text-xs font-medium outline-none text-zinc-800 dark:text-zinc-200 p-0.5 cursor-pointer"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeFranja(dia.id, idx)}
-                        className="text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 p-1 rounded-md transition-colors"
-                        title="Remover franja"
+                  <div className="flex flex-wrap gap-2">
+                    {turnos.map((t, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-1.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800/60 rounded-md p-1 animate-in zoom-in-95 duration-100"
                       >
-                        <Trash2 size={11} />
-                      </button>
-                    </div>
-                  ))
+                        <input
+                          type="time"
+                          value={t.inicio}
+                          onChange={(e) =>
+                            updateTime(dia.id, idx, "inicio", e.target.value)
+                          }
+                          className="bg-transparent text-xs font-medium outline-none text-zinc-800 dark:text-zinc-200 p-0.5 cursor-pointer"
+                        />
+                        <span className="text-[9px] font-bold text-zinc-400">
+                          A
+                        </span>
+                        <input
+                          type="time"
+                          value={t.fin}
+                          onChange={(e) =>
+                            updateTime(dia.id, idx, "fin", e.target.value)
+                          }
+                          className="bg-transparent text-xs font-medium outline-none text-zinc-800 dark:text-zinc-200 p-0.5 cursor-pointer"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeFranja(dia.id, idx)}
+                          className="text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 p-1 rounded-md transition-colors"
+                          title="Remover franja"
+                        >
+                          <Trash2 size={11} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 ) : (
                   <span className="text-[10px] font-normal text-zinc-400 dark:text-zinc-500 italic">
                     Cerrado (Sin operaciones)
