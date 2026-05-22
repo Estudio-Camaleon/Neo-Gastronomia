@@ -20,9 +20,13 @@
     position: relative;
     overflow-x: hidden;
     background-image:
-      radial-gradient(circle at top left, rgba(141, 187, 122, 0.24), transparent 26%),
-      radial-gradient(circle at top right, rgba(31, 107, 61, 0.12), transparent 24%),
+      radial-gradient(circle at top left, rgba(141, 187, 122, 0.08), transparent 20%),
+      radial-gradient(circle at top right, rgba(31, 107, 61, 0.05), transparent 18%),
       linear-gradient(180deg, #faf8f2 0%, #f7f4ec 38%, #f3efe6 100%);
+  }
+
+  .neo-home-shell {
+    isolation: isolate;
   }
 
   .neo-home .glass-card {
@@ -51,5 +55,17 @@
     background: var(--theme-primary-soft);
     color: var(--theme-primary);
     border: 1px solid rgba(31, 107, 61, 0.1);
+  }
+
+  @media (max-width: 640px) {
+    .neo-home {
+      padding-inline: 0.75rem;
+      padding-block: 0.75rem;
+    }
+
+    .neo-home-shell {
+      min-height: calc(100vh - 1.5rem);
+      border-radius: 24px;
+    }
   }
 }

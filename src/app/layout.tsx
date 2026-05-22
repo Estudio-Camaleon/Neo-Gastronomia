@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { LoadingProvider } from "@/core/providers/LoadingProvider";
 
 // Configuración de metadatos para SEO y PWA
 export const metadata: Metadata = {
@@ -23,7 +24,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" suppressHydrationWarning className="m-0 p-0">
-      <body className="antialiased m-0 p-0 border-none">{children}</body>
+      <body className="antialiased m-0 p-0 border-none">
+        <LoadingProvider>{children}</LoadingProvider>
+      </body>
     </html>
   );
 }
