@@ -9,7 +9,7 @@ import {
   Trophy,
   StickyNote,
 } from "lucide-react";
-import { updateClientSystemNotes } from "../actions";
+import { updateClientSystemNotes } from "./actions";
 import { toast } from "sonner";
 
 export interface ClienteResumen {

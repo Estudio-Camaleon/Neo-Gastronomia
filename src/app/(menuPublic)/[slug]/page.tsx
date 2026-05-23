@@ -2,13 +2,7 @@ import React from "react";
 import { createClient } from "@/core/lib/supabase/client";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import {
-  ShoppingBasket,
-  MapPin,
-  Smartphone,
-  Clock,
-  Package,
-} from "lucide-react";
+import { ShoppingBasket, MapPin, Smartphone, Package } from "lucide-react";
 
 interface Producto {
   id: string;
@@ -37,153 +31,144 @@ export default async function PublicMenuPage({ params }: PublicPageProps) {
   const { slug } = await params;
   const supabase = createClient();
 
-  // Sincronización relacional en una sola query optimizada
   const { data: negocio, error } = await supabase
     .from("negocios")
     .select(
       `
-      id,
-      nombre,
-      slug,
-      color_primary,
-      banner_url,
-      logo_url,
-      direccion,
-      whatsapp,
-      horarios,
-      categorias (
-        id,
-        nombre,
-        slug,
-        productos (
-          id,
-          nombre,
-          descripcion,
-          precio,
-          imagen_url,
-          disponible
-        )
-      )
+      id, nombre, slug, color_primary, banner_url, logo_url, direccion, whatsapp, horarios,
+      categorias (id, nombre, slug, productos (id, nombre, descripcion, precio, imagen_url, disponible))
     `,
     )
     .eq("slug", slug.toLowerCase())
     .single();
 
-  if (error || !negocio) {
-    return notFound();
-  }
+  if (error || !negocio) return notFound();
 
-  // Casting limpio y seguro erradicando fallas del compilador
   const categoriasFormateadas =
     (negocio.categorias as unknown as CategoriaConProductos[]) || [];
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 pb-32">
-      {/* BANNER DE COBERTURA BRUTALISTA */}
-      <div className="relative w-full h-44 md:h-64 border-b-4 border-black bg-black">
+    <div className="w-full min-h-screen pb-32">
+      {/* Banner Minimalista con Gradiente */}
+      <div className="relative w-full h-52 md:h-72 bg-neutral-950 overflow-hidden">
         {negocio.banner_url ? (
-          <Image
-            src={negocio.banner_url}
-            alt={negocio.nombre}
-            fill
-            className="object-cover opacity-80"
-            priority
-          />
+          <>
+            <Image
+              src={negocio.banner_url}
+              alt={negocio.nombre}
+              fill
+              className="object-cover opacity-85"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/70 via-transparent to-transparent" />
+          </>
         ) : (
-          <div className="w-full h-full flex items-center justify-center font-mono text-xs uppercase tracking-widest text-gray-500">
-            [ INFRAESTRUCTURA VISUAL // NEO ]
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-neutral-800 to-neutral-900 text-neutral-500 font-medium text-xs tracking-widest uppercase">
+            {negocio.nombre}
           </div>
         )}
       </div>
 
-      {/* TARJETA DE MARCA DEL LOCAL FLOTANTE */}
-      <div className="max-w-4xl mx-auto px-4 -mt-16 relative z-10">
-        <div className="bg-white border-4 border-black p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col sm:flex-row items-center gap-5">
-          <div className="relative w-24 h-24 border-4 border-black bg-white shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+      {/* Perfil Comercial Flotante */}
+      <div className="max-w-3xl mx-auto px-4 -mt-16 relative z-10">
+        <div className="bg-white/90 backdrop-blur-md border border-neutral-200/50 p-6 rounded-2xl shadow-xl shadow-neutral-200/40 flex flex-col sm:flex-row items-center gap-5">
+          <div className="relative w-20 h-20 bg-white rounded-xl border border-neutral-100 p-1 shadow-xs overflow-hidden shrink-0">
             {negocio.logo_url ? (
               <Image
                 src={negocio.logo_url}
                 alt="Logo"
                 fill
-                className="object-contain p-2"
+                className="object-contain p-2 rounded-xl"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-black font-black uppercase text-xl">
-                NEO
+              <div className="w-full h-full flex items-center justify-center bg-neutral-100 text-neutral-700 font-bold uppercase text-lg rounded-xl">
+                {negocio.nombre.substring(0, 2)}
               </div>
             )}
           </div>
 
-          <div className="space-y-1.5 text-center sm:text-left flex-1 w-full">
-            <h1 className="text-3xl font-black uppercase tracking-tighter italic leading-none">
+          <div className="space-y-2 text-center sm:text-left flex-1">
+            <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
               {negocio.nombre}
             </h1>
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1 font-mono text-[10px] font-black uppercase text-gray-500 tracking-wider">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs font-medium text-neutral-500">
               {negocio.direccion && (
-                <span className="flex items-center gap-1">
-                  <MapPin size={12} /> {negocio.direccion}
+                <span className="flex items-center gap-1.5 bg-neutral-100 px-3 py-1 rounded-full">
+                  <MapPin size={13} className="text-neutral-400" />{" "}
+                  {negocio.direccion}
                 </span>
               )}
               {negocio.whatsapp && (
-                <span className="flex items-center gap-1 text-emerald-600">
-                  <Smartphone size={12} /> Linea Despacho
-                </span>
+                <a
+                  href={`https://wa.me/${negocio.whatsapp}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full hover:bg-emerald-100/60 transition-colors"
+                >
+                  <Smartphone size={13} /> Pedidos WhatsApp
+                </a>
               )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* ORQUESTACIÓN DEL CATÁLOGO (RESOLUCIÓN DEL ERROR DE LINT SCRIPTS) */}
-      <div className="max-w-4xl mx-auto px-4 mt-12 space-y-10">
+      {/* Grid del Menú */}
+      <div className="max-w-3xl mx-auto px-4 mt-12 space-y-12">
         {categoriasFormateadas.map((cat) => {
-          // Filtramos para renderizar solo secciones que posean ítems activos
           if (!cat.productos || cat.productos.length === 0) return null;
 
           return (
-            <section key={cat.id} id={cat.slug} className="space-y-4">
-              <h3 className="text-lg font-black uppercase tracking-tight bg-black text-white px-3 py-1.5 w-fit italic transform -rotate-1 shadow-[2px_2px_0px_0px_var(--color-custom)]">
-                // {cat.nombre}
+            <section key={cat.id} id={cat.slug} className="space-y-5">
+              <h3 className="text-base font-semibold text-neutral-800 tracking-tight border-b border-neutral-200/50 pb-2.5">
+                {cat.nombre}
               </h3>
 
-              {/* Bento Grid responsiva de ítems del menú */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {cat.productos.map((prod) => (
                   <div
                     key={prod.id}
-                    className={`bg-white border-2 border-black p-4 flex gap-4 transition-all hover:translate-y-[-2px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${!prod.disponible ? "opacity-50 select-none" : ""}`}
+                    className={`bg-white border border-neutral-100 p-4 rounded-xl flex gap-4 justify-between items-center transition-all duration-300 hover:shadow-md hover:border-neutral-200/60 ${
+                      !prod.disponible ? "opacity-45 select-none" : ""
+                    }`}
                   >
-                    <div className="flex-1 space-y-1 flex flex-col justify-between">
-                      <div className="space-y-0.5">
-                        <h4 className="font-black uppercase text-sm tracking-tight text-black leading-tight">
+                    <div className="flex-1 min-w-0 flex flex-col justify-between h-20">
+                      <div>
+                        <h4 className="font-medium text-neutral-900 text-sm tracking-tight truncate">
                           {prod.nombre}
                         </h4>
-                        <p className="text-[11px] text-gray-500 font-medium line-clamp-2 leading-tight">
-                          {prod.descripcion ||
-                            "Sin descripción técnica en terminal"}
+                        <p className="text-xs text-neutral-400 line-clamp-2 mt-0.5 leading-relaxed">
+                          {prod.descripcion || "Receta exclusiva de la casa."}
                         </p>
                       </div>
 
-                      <div className="flex items-baseline justify-between pt-2">
-                        <span className="font-mono font-black italic text-md text-black">
-                          ${Number(prod.precio).toFixed(2)}
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="font-semibold text-neutral-900 text-sm">
+                          $
+                          {Number(prod.precio).toLocaleString("es", {
+                            minimumFractionDigits: 2,
+                          })}
                         </span>
+
                         {prod.disponible ? (
                           <button
-                            style={{ backgroundColor: "var(--color-custom)" }}
-                            className="border-2 border-black p-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none font-black uppercase text-[10px] flex items-center justify-center gap-1"
+                            style={{
+                              backgroundColor: "var(--color-custom)",
+                              color: "var(--color-text-custom)",
+                            }}
+                            className="px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 active:scale-[0.97] transition-all duration-200 shadow-2xs cursor-pointer"
                           >
-                            <ShoppingBasket size={12} strokeWidth={2.5} /> Pedir
+                            <ShoppingBasket size={13} /> Agregar
                           </button>
                         ) : (
-                          <span className="bg-gray-100 border border-black text-gray-400 text-[9px] font-mono font-black uppercase px-2 py-1">
+                          <span className="bg-neutral-50 text-neutral-400 text-[10px] font-medium uppercase px-2 py-0.5 rounded border border-neutral-100">
                             Agotado
                           </span>
                         )}
                       </div>
                     </div>
 
-                    <div className="relative w-20 h-20 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-gray-100 overflow-hidden shrink-0">
+                    <div className="relative w-20 h-20 bg-neutral-50 rounded-lg overflow-hidden shrink-0 border border-neutral-100">
                       {prod.imagen_url ? (
                         <Image
                           src={prod.imagen_url}
@@ -193,8 +178,8 @@ export default async function PublicMenuPage({ params }: PublicPageProps) {
                           sizes="80px"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-300">
-                          <Package size={20} />
+                        <div className="w-full h-full flex items-center justify-center text-neutral-300">
+                          <Package size={18} />
                         </div>
                       )}
                     </div>
@@ -204,15 +189,6 @@ export default async function PublicMenuPage({ params }: PublicPageProps) {
             </section>
           );
         })}
-
-        {categoriasFormateadas.length === 0 && (
-          <div className="py-20 text-center border-4 border-dashed border-black/10 bg-white">
-            <Clock className="mx-auto text-gray-300 mb-2" size={32} />
-            <p className="font-black font-mono text-xs uppercase text-gray-400 tracking-wider">
-              Catálogo en proceso de carga remota.
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );

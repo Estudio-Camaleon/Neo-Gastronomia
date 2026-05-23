@@ -23,10 +23,12 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@app/*": ["./src/app/*"],
-      "@ui/*": ["./src/components/ui/*"],
       "@core/*": ["./src/core/*"],
-      "@features/*": ["./src/features/*"]
+      "@ui/*": ["./src/components/ui/*"],
+      "@auth/*": ["./src/features/auth/*"],
+      "@marketing/*": ["./src/features/marketing/*"],
+      "@admin/*": ["./src/features/admin/*"],
+      "@public-menu/*": ["./src/features/public-menu/*"]
     }
   },
   "include": [

@@ -1,58 +1,55 @@
 @import "tailwindcss";
 
 html {
-	scroll-behavior: smooth;
+  scroll-behavior: smooth;
 }
 
 @keyframes neo-shimmer {
-	0% {
-		background-position: 200% 0;
-	}
-
-	100% {
-		background-position: -200% 0;
-	}
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 @keyframes neo-breathe {
-	0%,
-	100% {
-		opacity: 0.5;
-		transform: scale(1);
-	}
-
-	50% {
-		opacity: 1;
-		transform: scale(1.02);
-	}
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
 }
 
 .neo-loading-grid {
-	background-image:
-		linear-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px),
-		linear-gradient(90deg, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
-	background-size: 42px 42px;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+  background-size: 42px 42px;
 }
 
 .neo-loading-shimmer {
-	background-image: linear-gradient(
-		90deg,
-		rgba(0, 0, 0, 0.05) 0%,
-		rgba(0, 0, 0, 0.14) 50%,
-		rgba(0, 0, 0, 0.05) 100%
-	);
-	background-size: 200% 100%;
-	animation: neo-shimmer 1.35s linear infinite;
+  background-image: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.05) 0%,
+    rgba(0, 0, 0, 0.14) 50%,
+    rgba(0, 0, 0, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: neo-shimmer 1.35s linear infinite;
 }
 
 .neo-loading-breathe {
-	animation: neo-breathe 1.9s ease-in-out infinite;
+  animation: neo-breathe 1.9s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.neo-loading-shimmer,
-	.neo-loading-breathe {
-		animation: none;
-	}
+  .neo-loading-shimmer,
+  .neo-loading-breathe {
+    animation: none;
+  }
 }
-

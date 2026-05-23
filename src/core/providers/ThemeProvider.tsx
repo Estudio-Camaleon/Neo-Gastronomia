@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "light" | "dark";
+export type Theme = "light" | "dark";
 
 interface ThemeContextType {
   theme: Theme;
@@ -16,34 +16,35 @@ const ThemeContext = createContext<ThemeContextType>({
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("light");
+  const [mounted, setMounted] = useState<boolean>(false);
 
   useEffect(() => {
-    const savedTheme = (localStorage.getItem("neo-theme") as Theme) || "light";
+    const savedTheme = (localStorage.getItem("neo-theme") || "light") as Theme;
     setThemeState(savedTheme);
-
-    if (savedTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    setMounted(true);
   }, []);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
     localStorage.setItem("neo-theme", newTheme);
-
-    if (newTheme === "dark") {
-      document.documentElement.classList.add("dark");
-      document.documentElement.style.colorScheme = "dark";
-    } else {
-      document.documentElement.classList.remove("dark");
-      document.documentElement.style.colorScheme = "light";
-    }
   };
+
+  // Protección de Hidratación (Evita el parpadeo claro en recargas)
+  if (!mounted) {
+    return (
+      <div className="admin-theme-wrapper min-h-screen bg-[#f4f4f4] text-[#0f172a] antialiased font-sans">
+        <div className="opacity-0">{children}</div>
+      </div>
+    );
+  }
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
-      {children}
+      <div
+        className={`admin-theme-wrapper min-h-screen transition-colors duration-300 ${theme}`}
+      >
+        {children}
+      </div>
     </ThemeContext.Provider>
   );
 }

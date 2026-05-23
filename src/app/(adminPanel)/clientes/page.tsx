@@ -3,7 +3,7 @@ import { Users, AlertTriangle } from "lucide-react";
 import {
   ClientRadar,
   type ClienteResumen,
-} from "@/features/client-radar/components/ClientRadar";
+} from "@/features/admin/clients/ClientRadar";
 
 export default async function ClientesPage() {
   const supabase = await createClient();

@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/core/lib/supabase/client";
-import { submitOrderPublicAction } from "../actions";
+import { submitOrderPublicAction } from "../../admin/orders/actions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 

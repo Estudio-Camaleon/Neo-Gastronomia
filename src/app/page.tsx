@@ -1,4 +1,4 @@
-import { HomePage } from "@/features/marketing-landing/components/HomePage";
+import { HomePage } from "@/features/marketing/components/HomePage";
 
 export const metadata = {
   title: "NEO | Plataforma Gastronómica Multi-tenant",

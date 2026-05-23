@@ -8,7 +8,7 @@ import { MapPin } from "lucide-react";
 import {
   PedidosRadar,
   type PedidoData,
-} from "@/features/order-engine/admin-components/PedidosRadar";
+} from "@/features/admin/orders/PedidosRadar";
 
 export default async function PedidosPage() {
   const supabase = await createClient();

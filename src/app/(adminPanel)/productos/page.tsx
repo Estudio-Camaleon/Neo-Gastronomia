@@ -5,7 +5,7 @@
 import { createClient } from "@/core/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Package, CheckCircle2 } from "lucide-react";
-import { AddProductSection } from "@/features/catalog-management/components/AddProductSection";
+import { AddProductSection } from "@/features/admin/catalog/components/AddProductSection";
 
 export default async function ProductosAdminPage() {
   const supabase = await createClient();

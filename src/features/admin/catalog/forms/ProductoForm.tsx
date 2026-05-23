@@ -5,7 +5,7 @@ import {
   upsertProductAction,
   JSONBExtraGroup,
   JSONBExtraItem,
-} from "@/features/catalog-management/actions";
+} from "@/features/admin/catalog/actions";
 import { toast } from "sonner";
 import {
   Package,

@@ -12,7 +12,7 @@ import {
 import { createClient } from "@/core/lib/supabase/client";
 import { toast } from "sonner";
 import { PedidoCard } from "./PedidoCard";
-import { updateOrderStatusAction } from "../actions";
+import { updateOrderStatusAction } from "./actions";
 import { enviarNotificacionWhatsApp } from "@/core/lib/utils/whatsappActions";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 

@@ -1,8 +1,8 @@
 // src/features/marketing-landing/components/HomePage.tsx
 "use client";
 
-import { Navbar } from "@/features/marketing-landing/components/shared/Navbar";
-import { Footer } from "@/features/marketing-landing/components/shared/Footer";
+import { Navbar } from "./shared/Navbar";
+import { Footer } from "./shared/Footer";
 import { Hero } from "./Hero";
 import { Features } from "./Features";
 import { Pricing } from "./Pricing";

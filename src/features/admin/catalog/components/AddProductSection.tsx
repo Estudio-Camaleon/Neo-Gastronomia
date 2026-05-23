@@ -4,7 +4,10 @@ import { useState } from "react";
 import { Plus, FolderPlus, Layers, Package } from "lucide-react";
 import { ProductModal } from "../modals/ProductModal";
 import { CategoriaManager } from "../modals/CategoriaManager";
-import { ProductTable, type UnifiedProduct } from "./ProductTable";
+import {
+  ProductTable,
+  type UnifiedProduct,
+} from "./ProductTable";
 
 interface AddProductSectionProps {
   negocioId: string;

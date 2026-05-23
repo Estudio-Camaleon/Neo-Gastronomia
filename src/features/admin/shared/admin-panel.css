@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 @theme {
-  /* Mapeo directo a variables CSS para que Tailwind las reconozca en todas las utilidades */
   --color-admin-surface: var(--admin-surface);
   --color-admin-surface-secondary: var(--admin-surface-secondary);
   --color-admin-bg: var(--admin-bg);
@@ -12,8 +11,8 @@
   --color-admin-danger: var(--admin-danger);
 }
 
-:root {
-  /* Paleta Light - Neo-Brutalismo Pastel */
+/* El entorno administrativo se encapsula bajo su propia clase contenedora */
+.admin-theme-wrapper {
   --admin-surface: #ffffff;
   --admin-surface-secondary: #f9f9f9;
   --admin-bg: #f4f4f4;
@@ -24,28 +23,25 @@
   --admin-danger: #e11d48;
 }
 
-.dark {
-  /* Paleta Dark - Neo-Brutalismo Industrial (OLED friendly) */
+/* El modo oscuro solo opera si coexiste dentro del wrapper administrativo */
+.admin-theme-wrapper.dark {
   --admin-surface: #0f0f11;
   --admin-surface-secondary: #18181b;
   --admin-bg: #000000;
   --admin-border: #27272a;
   --admin-text: #f4f4f5;
   --admin-text-muted: #a1a1aa;
-  --admin-accent: #22c55e; /* Un verde un poco más eléctrico para el modo oscuro */
+  --admin-accent: #22c55e;
   --admin-danger: #f87171;
 }
 
 @layer components {
-  /* Card con sombra brutalista - Sombra fija que no cambia con el tema */
   .admin-card {
     @apply bg-[var(--admin-surface)] border border-[var(--admin-border)] 
-           rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] 
-           dark:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.4)] 
+           rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.03)] 
            transition-colors duration-200;
   }
 
-  /* Sidebar con glassmorphism selectivo */
   .admin-sidebar {
     @apply flex flex-col h-full bg-[var(--admin-surface)] 
            border-r border-[var(--admin-border)] 

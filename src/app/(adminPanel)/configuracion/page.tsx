@@ -7,7 +7,7 @@ import { Settings, ShieldCheck, Activity } from "lucide-react";
 import {
   ConfigForm,
   type NegocioInitialData,
-} from "@/features/tenant-branding/components/ConfigForm";
+} from "@/features/admin/branding/components/ConfigForm";
 
 export default async function ConfiguracionPage() {
   const supabase = await createClient();

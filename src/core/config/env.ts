@@ -1,12 +1,24 @@
 import { z } from "zod";
 
-const envSchema = z.object({
+const clientEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
 });
 
-// Esto lanzará un error explícito en la consola inmediatamente al arrancar el servidor si falta algo
-export const env = envSchema.parse({
-  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+const serverEnvSchema = z.object({
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
 });
+
+// Validación en tiempo de arranque del proceso Next.js
+export const env = {
+  ...clientEnvSchema.parse({
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  }),
+  // Solo se parsea en entorno servidor para evitar fallos de ejecución en cliente
+  ...(typeof window === "undefined"
+    ? serverEnvSchema.parse({
+        SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+      })
+    : {}),
+};

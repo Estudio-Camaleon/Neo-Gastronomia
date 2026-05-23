@@ -1,5 +1,5 @@
 // lib/utils/whatsappActions.ts
-import { PedidoData } from "@/features/order-engine/admin-components/PedidosRadar";
+import { PedidoData } from "@/features/admin/orders/PedidosRadar";
 
 export const enviarNotificacionWhatsApp = (
   pedido: PedidoData,
