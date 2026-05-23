@@ -14,7 +14,8 @@ import {
 import { FaInstagram, FaFacebookF, FaTiktok } from "react-icons/fa6";
 import { useCartStore } from "@/features/public-menu/cart/useCartStore";
 
-interface Producto {
+// 1. Exportamos los tipos para que page.tsx pueda consumirlos
+export interface Producto {
   id: string;
   nombre: string;
   descripcion: string | null;
@@ -23,15 +24,42 @@ interface Producto {
   disponible: boolean;
 }
 
-interface Categoria {
+export interface Categoria {
   id: string;
   nombre: string;
   slug: string;
   productos: Producto[];
 }
 
+export interface Turno {
+  inicio: string;
+  fin: string;
+}
+
+export interface HorarioDia {
+  turnos: Turno[];
+}
+
+// Interfaz estricta para el negocio en la vista pública
+export interface NegocioPublico {
+  id: string;
+  nombre: string;
+  slug: string;
+  color_primary: string | null;
+  banner_url: string | null;
+  logo_url: string | null;
+  direccion: string | null;
+  localidad: string | null;
+  direccion_notas: string | null;
+  whatsapp: string | null;
+  instagram_url: string | null;
+  facebook_url: string | null;
+  tiktok_url: string | null;
+  horarios: Record<string, HorarioDia> | null;
+}
+
 interface CatalogClientProps {
-  negocio: any;
+  negocio: NegocioPublico;
   categorias: Categoria[];
 }
 
@@ -83,9 +111,8 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
 
   return (
     <div className="w-full min-h-screen bg-[#fcfbf9] pb-32 font-sans selection:bg-[var(--color-custom)] selection:text-[var(--color-text-custom)]">
-      {/* 1. HEADER ENRIQUECIDO (Banner + Info) */}
+      {/* HEADER ENRIQUECIDO (Banner + Info) */}
       <div className="bg-white pb-6 shadow-[0_4px_20px_-15px_rgba(0,0,0,0.1)] rounded-b-3xl relative z-20">
-        {/* Banner Portada */}
         <div className="relative w-full h-32 md:h-48 bg-neutral-900 overflow-hidden">
           {negocio.banner_url && (
             <Image
@@ -100,7 +127,6 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
         </div>
 
         <div className="max-w-3xl mx-auto px-4 flex flex-col items-center text-center -mt-12 relative z-10">
-          {/* Logo Flotante */}
           <div className="relative w-24 h-24 bg-white rounded-full border-4 border-white shadow-md overflow-hidden mb-3">
             {negocio.logo_url ? (
               <Image
@@ -117,7 +143,6 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
             )}
           </div>
 
-          {/* Nombre y Dirección */}
           <h1 className="text-2xl font-extrabold tracking-tight text-neutral-900 mb-1">
             {negocio.nombre}
           </h1>
@@ -131,7 +156,6 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
             </p>
           )}
 
-          {/* Botonera de Contacto y Redes */}
           <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
             {negocio.whatsapp && (
               <a
@@ -148,7 +172,6 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
               </a>
             )}
 
-            {/* Redes Sociales Dinámicas usando React Icons */}
             <div className="flex items-center gap-2.5 bg-neutral-100/80 px-3 py-1.5 rounded-full text-neutral-600">
               {negocio.instagram_url && (
                 <a
@@ -182,7 +205,6 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
               )}
             </div>
 
-            {/* Toggle de Info Extra (Horarios y Notas) */}
             <button
               onClick={() => setShowInfo(!showInfo)}
               className="flex items-center gap-1.5 bg-neutral-100/80 px-3 py-1.5 rounded-full text-xs font-medium text-neutral-600 hover:bg-neutral-200 transition-colors"
@@ -191,7 +213,6 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
             </button>
           </div>
 
-          {/* Bloque Colapsable de Información Operativa */}
           {showInfo && (
             <div className="w-full bg-neutral-50 border border-neutral-100 rounded-xl p-4 text-left space-y-4 animate-in fade-in zoom-in-95 duration-200 shadow-inner">
               {negocio.direccion_notas && (
@@ -212,7 +233,7 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
                   </h4>
                   <div className="bg-white rounded-lg border border-neutral-100 overflow-hidden divide-y divide-neutral-50 text-[12px]">
                     {diasOrdenados.map((dia) => {
-                      const jornada = negocio.horarios[dia];
+                      const jornada = negocio.horarios![dia];
                       if (!jornada) return null;
                       return (
                         <div
@@ -223,8 +244,9 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
                             {dia}
                           </span>
                           <span className="text-neutral-500 font-mono text-[11px]">
+                            {/* 2. Removemos el "any" y aplicamos nuestro tipo Turno */}
                             {jornada.turnos
-                              ?.map((t: any) => `${t.inicio} a ${t.fin}`)
+                              ?.map((t: Turno) => `${t.inicio} a ${t.fin}`)
                               .join(" | ")}
                           </span>
                         </div>
@@ -238,7 +260,7 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
         </div>
       </div>
 
-      {/* 2. NAVEGACIÓN Y BÚSQUEDA (Sticky + Color Custom) */}
+      {/* NAVEGACIÓN Y BÚSQUEDA */}
       <div className="sticky top-0 z-30 bg-[#fcfbf9]/95 backdrop-blur-xl border-b border-neutral-200/60 shadow-sm">
         <div className="max-w-3xl mx-auto px-4 py-3 space-y-3">
           <div className="relative group">
@@ -297,7 +319,7 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
         </div>
       </div>
 
-      {/* 3. GRILLA DE PRODUCTOS (Color Custom en Botones) */}
+      {/* GRILLA DE PRODUCTOS */}
       <div className="max-w-3xl mx-auto px-4 mt-6 space-y-10">
         {categoriasFiltradas.length === 0 ? (
           <div className="text-center py-20 text-neutral-500 font-medium text-sm">

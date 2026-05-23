@@ -2,7 +2,7 @@ import { RegisterForm } from "@/features/auth/components/RegisterForm";
 import { Sparkles, Smartphone, LayoutDashboard } from "lucide-react";
 import { TransitionLink } from "@/components/ui/transition-link";
 import Image from "next/image";
-import "@/features/auth-portal/auth.css";
+import "@/features/auth/auth.css";
 
 const BENEFITS = [
   {

@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { TransitionLink } from "@/components/ui/transition-link";
 import Image from "next/image";
-import "@/features/auth-portal/auth.css";
+import "@/features/auth/auth.css";
 
 const CATEGORIES = [
   { icon: <ChefHat size={14} />, label: "Restaurantes" },
@@ -59,14 +59,14 @@ export default function LoginPage() {
           <div className="flex-1 flex flex-col items-center justify-center space-y-10 max-w-xl z-10">
             <div className="space-y-4 text-center">
               <h1 className="text-4xl xl:text-5xl font-bold tracking-tight text-[var(--auth-accent)] leading-tight">
-                Orquestación digital <br />
+                Bienvenido al futuro <br />
                 <span className="font-light italic text-[var(--auth-accent-muted)]">
-                  de tu ecosistema gastronómico
+                  de tu restaurante
                 </span>
               </h1>
               <p className="text-[var(--auth-text-muted)] text-sm leading-relaxed max-w-sm mx-auto font-medium">
-                Arquitectura SaaS multi-tenant diseñada para mitigar tiempos
-                muertos y maximizar tickets de facturación.
+                Simplificá tu día a día. Gestioná tus pedidos, modernizá tu menú
+                y hacé crecer tus ventas sin dolores de cabeza.
               </p>
             </div>
 

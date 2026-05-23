@@ -4,15 +4,13 @@ import { LoadingProvider } from "@/core/providers/LoadingProvider";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
-
-// Configuración de metadatos para SEO y PWA
 export const metadata: Metadata = {
-  title: "NEO | Sistema de Gestión Brutalista",
+  title: "NEO | Sistema de Gestión",
   description:
     "Plataforma de alta velocidad para la gestión de catálogos y negocios digitales.",
-  robots: "noindex, nofollow", 
+  robots: "noindex, nofollow",
   icons: {
     icon: "/icons/neo_logo_negro.svg",
   },
@@ -31,11 +29,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" suppressHydrationWarning className={cn("m-0 p-0", "font-sans", geist.variable)}>
+    <html
+      lang="es"
+      suppressHydrationWarning
+      className={cn("m-0 p-0 font-sans", geist.variable)}
+    >
       <body className="antialiased m-0 p-0 border-none">
-        <LoadingProvider>
-          {children}
-        </LoadingProvider>
+        <LoadingProvider>{children}</LoadingProvider>
       </body>
     </html>
   );
