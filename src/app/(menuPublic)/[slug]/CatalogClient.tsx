@@ -1,20 +1,21 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import {
   Search,
-  MapPin,
-  Smartphone,
   Plus,
+  Minus,
   Image as ImageIcon,
   Clock,
-  Info,
+  MapPin,
 } from "lucide-react";
-import { FaInstagram, FaFacebookF, FaTiktok } from "react-icons/fa6";
+import { FaFacebookF, FaInstagram, FaWhatsapp } from "react-icons/fa6";
 import { useCartStore } from "@/features/public-menu/cart/useCartStore";
+import { CartFloatingButton } from "@/features/public-menu/cart/CartFloatingButton";
+import { PublicCart } from "@/features/public-menu/cart/PublicCart";
+import { estaAbierto } from "@/core/lib/utils/horarios";
 
-// 1. Exportamos los tipos para que page.tsx pueda consumirlos
 export interface Producto {
   id: string;
   nombre: string;
@@ -40,7 +41,6 @@ export interface HorarioDia {
   turnos: Turno[];
 }
 
-// Interfaz estricta para el negocio en la vista pública
 export interface NegocioPublico {
   id: string;
   nombre: string;
@@ -63,361 +63,472 @@ interface CatalogClientProps {
   categorias: Categoria[];
 }
 
+const DAYS_ORDER = [
+  "lunes",
+  "martes",
+  "miercoles",
+  "jueves",
+  "viernes",
+  "sabado",
+  "domingo",
+] as const;
+
+const DAY_LABELS: Record<(typeof DAYS_ORDER)[number], string> = {
+  lunes: "Lunes",
+  martes: "Martes",
+  miercoles: "Miércoles",
+  jueves: "Jueves",
+  viernes: "Viernes",
+  sabado: "Sábado",
+  domingo: "Domingo",
+};
+
+function formatTurnos(dia?: HorarioDia | null) {
+  if (!dia) return "Cerrado";
+
+  const turnos = dia.turnos || [];
+  if (turnos.length === 0) return "Cerrado";
+
+  return turnos.map((turno) => `${turno.inicio} - ${turno.fin}`).join(" · ");
+}
+
 export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("all");
-  const [showInfo, setShowInfo] = useState(false);
-  const addItem = useCartStore((state) => state.addItem);
 
-  // Filtrado reactivo
+  const cart = useCartStore((state) => state.cart);
+  const addItem = useCartStore((state) => state.addItem);
+  const removeItem = useCartStore((state) => state.removeItem);
+  const isCartOpen = useCartStore((state) => state.isCartOpen);
+  const setCartOpen = useCartStore((state) => state.setCartOpen);
+  const totalItems = cart.reduce((acc, item) => acc + item.cantidad, 0);
+  const isOpenNow = estaAbierto(negocio.horarios);
+  const todayKey = useMemo(() => {
+    const formatter = new Intl.DateTimeFormat("es-AR", {
+      weekday: "long",
+      timeZone: "America/Argentina/Buenos_Aires",
+    });
+
+    return formatter
+      .format(new Date())
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase() as (typeof DAYS_ORDER)[number];
+  }, []);
+
+  const horariosOrdenados = useMemo(
+    () =>
+      DAYS_ORDER.map((dayId) => ({
+        dayId,
+        label: DAY_LABELS[dayId],
+        config: negocio.horarios?.[dayId] || null,
+      })),
+    [negocio.horarios],
+  );
+
+  useEffect(() => {
+    const syncCartVisibility = () => {
+      setCartOpen(window.innerWidth >= 1024);
+    };
+
+    syncCartVisibility();
+    window.addEventListener("resize", syncCartVisibility);
+
+    return () => window.removeEventListener("resize", syncCartVisibility);
+  }, [setCartOpen]);
+
+  const cartQuantityByProduct = useMemo(() => {
+    const map = new Map<string, number>();
+    cart.forEach((item) => {
+      map.set(item.producto_id, (map.get(item.producto_id) || 0) + item.cantidad);
+    });
+    return map;
+  }, [cart]);
+
   const categoriasFiltradas = useMemo(() => {
-    if (!searchQuery.trim()) {
-      if (activeCategory === "all") return categorias;
-      return categorias.filter((c) => c.id === activeCategory);
-    }
-    const query = searchQuery.toLowerCase();
-    return categorias
-      .map((cat) => ({
-        ...cat,
-        productos: cat.productos.filter(
-          (p) =>
-            p.nombre.toLowerCase().includes(query) ||
-            (p.descripcion && p.descripcion.toLowerCase().includes(query)),
+    const query = searchQuery.trim().toLowerCase();
+
+    const baseCategorias =
+      activeCategory === "all"
+        ? categorias
+        : categorias.filter((categoria) => categoria.id === activeCategory);
+
+    if (!query) return baseCategorias;
+
+    return baseCategorias
+      .map((categoria) => ({
+        ...categoria,
+        productos: categoria.productos.filter(
+          (producto) =>
+            producto.nombre.toLowerCase().includes(query) ||
+            (producto.descripcion || "").toLowerCase().includes(query),
         ),
       }))
-      .filter((cat) => cat.productos.length > 0);
-  }, [categorias, searchQuery, activeCategory]);
+      .filter((categoria) => categoria.productos.length > 0);
+  }, [categorias, activeCategory, searchQuery]);
 
   const scrollToCategory = (id: string) => {
     setActiveCategory(id);
-    if (id !== "all") {
-      const element = document.getElementById(`cat-${id}`);
-      if (element) {
-        const y = element.getBoundingClientRect().top + window.scrollY - 140;
-        window.scrollTo({ top: y, behavior: "smooth" });
-      }
+
+    if (id === "all") return;
+
+    const element = document.getElementById(`cat-${id}`);
+    if (element) {
+      const y = element.getBoundingClientRect().top + window.scrollY - 120;
+      window.scrollTo({ top: y, behavior: "smooth" });
     }
   };
 
-  const diasOrdenados = [
-    "lunes",
-    "martes",
-    "miercoles",
-    "jueves",
-    "viernes",
-    "sabado",
-    "domingo",
-  ];
+  const menuConfig = {
+    moneda_simbolo: "$",
+    pedido_minimo: 0,
+    costo_envio: 0,
+  };
 
   return (
-    <div className="w-full min-h-screen bg-[#fcfbf9] pb-32 font-sans selection:bg-[var(--color-custom)] selection:text-[var(--color-text-custom)]">
-      {/* HEADER ENRIQUECIDO (Banner + Info) */}
-      <div className="bg-white pb-6 shadow-[0_4px_20px_-15px_rgba(0,0,0,0.1)] rounded-b-3xl relative z-20">
-        <div className="relative w-full h-32 md:h-48 bg-neutral-900 overflow-hidden">
-          {negocio.banner_url && (
-            <Image
-              src={negocio.banner_url}
-              alt="Portada del negocio"
-              fill
-              className="object-cover opacity-80"
-              priority
-            />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/80 via-transparent to-transparent" />
-        </div>
-
-        <div className="max-w-3xl mx-auto px-4 flex flex-col items-center text-center -mt-12 relative z-10">
-          <div className="relative w-24 h-24 bg-white rounded-full border-4 border-white shadow-md overflow-hidden mb-3">
-            {negocio.logo_url ? (
-              <Image
-                src={negocio.logo_url}
-                alt="Logo"
-                fill
-                className="object-contain p-1"
-                sizes="96px"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-neutral-50 text-neutral-400 font-bold text-xl">
-                {negocio.nombre.substring(0, 2).toUpperCase()}
-              </div>
-            )}
-          </div>
-
-          <h1 className="text-2xl font-extrabold tracking-tight text-neutral-900 mb-1">
-            {negocio.nombre}
-          </h1>
-          {(negocio.direccion || negocio.localidad) && (
-            <p className="text-[13px] text-neutral-500 mb-3 flex items-center justify-center gap-1">
-              <MapPin size={14} className="shrink-0" />
-              <span>
-                {negocio.direccion}
-                {negocio.localidad ? `, ${negocio.localidad}` : ""}
-              </span>
-            </p>
-          )}
-
-          <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
-            {negocio.whatsapp && (
-              <a
-                href={`https://wa.me/${negocio.whatsapp.replace(/\D/g, "")}`}
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  backgroundColor: "var(--color-custom)",
-                  color: "var(--color-text-custom)",
-                }}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold shadow-sm hover:opacity-90 transition-opacity"
-              >
-                <Smartphone size={14} /> Pedir
-              </a>
-            )}
-
-            <div className="flex items-center gap-2.5 bg-neutral-100/80 px-3 py-1.5 rounded-full text-neutral-600">
-              {negocio.instagram_url && (
-                <a
-                  href={negocio.instagram_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hover:text-[var(--color-custom)] hover:scale-110 transition-all"
-                >
-                  <FaInstagram size={15} />
-                </a>
-              )}
-              {negocio.facebook_url && (
-                <a
-                  href={negocio.facebook_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hover:text-[var(--color-custom)] hover:scale-110 transition-all"
-                >
-                  <FaFacebookF size={14} />
-                </a>
-              )}
-              {negocio.tiktok_url && (
-                <a
-                  href={negocio.tiktok_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hover:text-[var(--color-custom)] hover:scale-110 transition-all"
-                >
-                  <FaTiktok size={14} />
-                </a>
-              )}
-            </div>
-
-            <button
-              onClick={() => setShowInfo(!showInfo)}
-              className="flex items-center gap-1.5 bg-neutral-100/80 px-3 py-1.5 rounded-full text-xs font-medium text-neutral-600 hover:bg-neutral-200 transition-colors"
-            >
-              <Info size={14} /> Info
-            </button>
-          </div>
-
-          {showInfo && (
-            <div className="w-full bg-neutral-50 border border-neutral-100 rounded-xl p-4 text-left space-y-4 animate-in fade-in zoom-in-95 duration-200 shadow-inner">
-              {negocio.direccion_notas && (
-                <div>
-                  <h4 className="text-xs font-bold text-neutral-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                    <MapPin size={12} /> Indicaciones de llegada
-                  </h4>
-                  <p className="text-[13px] text-neutral-600 leading-relaxed bg-white p-2.5 rounded-lg border border-neutral-100">
-                    {negocio.direccion_notas}
-                  </p>
+    <>
+      <div className="min-h-screen bg-[var(--color-custom-50)] pb-8 text-[var(--color-custom-text)] selection:bg-[var(--color-custom-900)] selection:text-white">
+        <div className="w-full px-4 py-4 lg:px-10 lg:py-6">
+          <header className="rounded-2xl bg-[var(--color-custom-950)] px-4 py-3 text-white shadow-[0_20px_50px_rgba(0,0,0,0.18)] sm:rounded-3xl sm:px-6 sm:py-4">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-5">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl bg-white/10 p-1 sm:h-12 sm:w-12 sm:p-1.5">
+                  <Image
+                    src="/icons/neo_logo_negro.svg"
+                    alt="Estudio Camaleon"
+                    width={32}
+                    height={32}
+                    className="h-7 w-7 object-contain sm:h-8 sm:w-8"
+                  />
                 </div>
-              )}
-
-              {negocio.horarios && Object.keys(negocio.horarios).length > 0 && (
                 <div>
-                  <h4 className="text-xs font-bold text-neutral-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <Clock size={12} /> Horarios de Atención
-                  </h4>
-                  <div className="bg-white rounded-lg border border-neutral-100 overflow-hidden divide-y divide-neutral-50 text-[12px]">
-                    {diasOrdenados.map((dia) => {
-                      const jornada = negocio.horarios![dia];
-                      if (!jornada) return null;
-                      return (
-                        <div
-                          key={dia}
-                          className="flex justify-between px-3 py-2"
-                        >
-                          <span className="capitalize font-medium text-neutral-700">
-                            {dia}
-                          </span>
-                          <span className="text-neutral-500 font-mono text-[11px]">
-                            {/* 2. Removemos el "any" y aplicamos nuestro tipo Turno */}
-                            {jornada.turnos
-                              ?.map((t: Turno) => `${t.inicio} a ${t.fin}`)
-                              .join(" | ")}
-                          </span>
-                        </div>
-                      );
-                    })}
+                  <p className="text-2xl font-black italic leading-none tracking-[-0.06em] sm:text-4xl">
+                    {negocio.nombre}
+                  </p>
+                  <div className="mt-1 inline-flex rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white/95 sm:mt-2 sm:px-3 sm:text-[11px] sm:tracking-[0.18em]">
+                    {isOpenNow ? "Abierto ahora" : "Cerrado ahora"} · Pedí por WhatsApp
                   </div>
                 </div>
-              )}
+              </div>
+
+              <div className="flex justify-center lg:flex-1">
+                {negocio.logo_url ? (
+                  <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-[22px] border border-white/10 bg-white/10 p-1.5 shadow-[0_12px_28px_rgba(0,0,0,0.18)] sm:h-24 sm:w-24 sm:p-2 lg:h-32 lg:w-32">
+                    <Image
+                      src={negocio.logo_url}
+                      alt={negocio.nombre}
+                      width={160}
+                      height={160}
+                      className="h-full w-full rounded-[18px] object-cover sm:rounded-[22px]"
+                    />
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="flex flex-col gap-2 sm:flex-row lg:justify-end sm:gap-3">
+                <div className="rounded-2xl bg-white/10 px-3 py-2 text-white sm:px-4 sm:py-3">
+                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.12em] text-white/90 sm:text-[12px] sm:tracking-[0.14em]">
+                    <MapPin className="h-4 w-4" />
+                    Sucursal
+                  </div>
+                  <p className="mt-1 text-sm font-medium text-white/85">
+                    {negocio.localidad || "Sucursal Centro"}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-white/10 px-3 py-2 text-white sm:px-4 sm:py-3">
+                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.12em] text-white/90 sm:text-[12px] sm:tracking-[0.14em]">
+                    <Clock className="h-4 w-4" />
+                    Horarios
+                  </div>
+                  <p className="mt-1 text-sm font-medium text-white/85">
+                    {formatTurnos(negocio.horarios?.[todayKey])}
+                  </p>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
-      </div>
 
-      {/* NAVEGACIÓN Y BÚSQUEDA */}
-      <div className="sticky top-0 z-30 bg-[#fcfbf9]/95 backdrop-blur-xl border-b border-neutral-200/60 shadow-sm">
-        <div className="max-w-3xl mx-auto px-4 py-3 space-y-3">
-          <div className="relative group">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 group-focus-within:text-[var(--color-custom)] transition-colors" />
-            <input
-              type="text"
-              placeholder="Buscar en el menú..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white border border-neutral-200/80 rounded-2xl pl-10 pr-4 py-2.5 text-[13px] font-medium text-neutral-900 placeholder:text-neutral-400 focus:outline-none transition-all shadow-sm"
-              style={{ outlineColor: "var(--color-custom)" }}
-            />
-          </div>
+            <div className="mt-4 rounded-3xl border border-white/10 bg-white/5 p-3 backdrop-blur-sm sm:mt-5 sm:p-4">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between sm:gap-4">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-white/95 sm:text-[11px] sm:tracking-[0.18em]">
+                    <Clock className="h-3.5 w-3.5" />
+                    Horarios reales
+                  </div>
+                  <p className="max-w-md text-sm text-white/80">
+                    Los horarios se toman directamente de la configuración del negocio.
+                  </p>
+                </div>
 
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-            <button
-              onClick={() => scrollToCategory("all")}
-              style={
-                activeCategory === "all"
-                  ? {
-                      backgroundColor: "var(--color-custom)",
-                      color: "var(--color-text-custom)",
-                    }
-                  : {}
-              }
-              className={`whitespace-nowrap px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all shrink-0 ${
-                activeCategory === "all"
-                  ? "shadow-md"
-                  : "bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50"
+                <div className="flex flex-wrap gap-2">
+                  {negocio.whatsapp && (
+                    <a
+                      href={`https://wa.me/${negocio.whatsapp.replace(/\D/g, "")}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label="WhatsApp"
+                      title="WhatsApp"
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366] text-white transition-all hover:brightness-110"
+                    >
+                      <FaWhatsapp size={20} />
+                    </a>
+                  )}
+                  {negocio.instagram_url && (
+                    <a
+                      href={negocio.instagram_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label="Instagram"
+                      title="Instagram"
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-all hover:bg-white/15"
+                    >
+                      <FaInstagram size={18} />
+                    </a>
+                  )}
+                  {negocio.facebook_url && (
+                    <a
+                      href={negocio.facebook_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label="Facebook"
+                      title="Facebook"
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-all hover:bg-white/15"
+                    >
+                      <FaFacebookF size={16} />
+                    </a>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-4 hidden gap-2 sm:grid sm:grid-cols-2 xl:grid-cols-4">
+                {horariosOrdenados.map(({ dayId, label, config }) => {
+                  const isToday = dayId === todayKey;
+
+                  return (
+                    <div
+                      key={dayId}
+                      className={`rounded-2xl border px-3 py-2 text-sm transition-all ${
+                        isToday
+                          ? "border-[var(--color-custom-500)] bg-white text-[var(--color-custom-950)]"
+                          : "border-white/10 bg-white/5 text-white/85"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-black uppercase tracking-[0.12em] text-[11px]">
+                          {label}
+                        </span>
+                        {isToday && (
+                          <span className="rounded-full bg-[var(--color-custom-500)] px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] text-white">
+                            Hoy
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-1 text-xs leading-snug opacity-90">
+                        {formatTurnos(config)}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </header>
+
+          <main className="mt-6 flex flex-col gap-6 lg:flex-row">
+            <section
+              className={`min-w-0 flex-1 rounded-3xl bg-[var(--color-custom-100)] p-4 shadow-sm lg:p-6 transition-all duration-300 ${
+                isCartOpen ? "lg:basis-auto" : "lg:basis-full"
               }`}
             >
-              Todo
-            </button>
-            {categorias.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => scrollToCategory(cat.id)}
-                style={
-                  activeCategory === cat.id
-                    ? {
-                        backgroundColor: "var(--color-custom)",
-                        color: "var(--color-text-custom)",
-                      }
-                    : {}
-                }
-                className={`whitespace-nowrap px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all shrink-0 ${
-                  activeCategory === cat.id
-                    ? "shadow-md"
-                    : "bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50"
-                }`}
-              >
-                {cat.nombre}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                  <p className="text-2xl font-black italic leading-none tracking-[-0.05em] text-[var(--color-custom-950)] sm:text-3xl">
+                    Menú
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-[var(--color-custom-text-muted)]">
+                    Elegí tu producto favorito
+                  </p>
+                </div>
 
-      {/* GRILLA DE PRODUCTOS */}
-      <div className="max-w-3xl mx-auto px-4 mt-6 space-y-10">
-        {categoriasFiltradas.length === 0 ? (
-          <div className="text-center py-20 text-neutral-500 font-medium text-sm">
-            No encontramos productos para tu búsqueda.
-          </div>
-        ) : (
-          categoriasFiltradas.map((cat) => (
-            <section
-              key={cat.id}
-              id={`cat-${cat.id}`}
-              className="space-y-4 pt-2"
-            >
-              <h2 className="text-lg font-bold text-neutral-900 tracking-tight pl-1 border-b border-neutral-200/50 pb-2">
-                {cat.nombre}
-              </h2>
+                <div className="relative w-full lg:max-w-sm">
+                  <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-custom-600)]" />
+                  <input
+                    type="text"
+                    placeholder="Buscar producto..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full rounded-full border border-[var(--color-custom-200)] bg-white py-3 pl-11 pr-4 text-sm text-[var(--color-custom-text)] outline-none placeholder:text-[var(--color-custom-text-muted)] focus:border-[var(--color-custom-500)]"
+                  />
+                </div>
+              </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-                {cat.productos.map((prod) => (
-                  <div
-                    key={prod.id}
-                    className={`bg-white rounded-2xl border border-neutral-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col transition-transform duration-200 hover:shadow-md ${
-                      !prod.disponible ? "opacity-50 grayscale select-none" : ""
+              <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <button
+                  type="button"
+                  onClick={() => scrollToCategory("all")}
+                  className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
+                    activeCategory === "all"
+                      ? "bg-[var(--color-custom-900)] text-white"
+                      : "border border-[var(--color-custom-200)] bg-white text-[var(--color-custom-950)] hover:border-[var(--color-custom-500)]"
+                  }`}
+                >
+                  Todos
+                </button>
+                {categorias.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => scrollToCategory(cat.id)}
+                    className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
+                      activeCategory === cat.id
+                        ? "bg-[var(--color-custom-900)] text-white"
+                        : "border border-[var(--color-custom-200)] bg-white text-[var(--color-custom-950)] hover:border-[var(--color-custom-500)]"
                     }`}
                   >
-                    <div className="relative w-full aspect-square bg-neutral-50 border-b border-neutral-100">
-                      {prod.imagen_url ? (
-                        <Image
-                          src={prod.imagen_url}
-                          alt={prod.nombre}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 768px) 50vw, 33vw"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-neutral-300">
-                          <ImageIcon size={24} />
-                        </div>
-                      )}
+                    {cat.nombre}
+                  </button>
+                ))}
+              </div>
 
-                      <div className="absolute bottom-2 left-2 bg-white/95 backdrop-blur px-2.5 py-1 rounded-lg shadow-sm border border-neutral-100/50">
-                        <span className="font-bold text-neutral-900 text-[13px]">
-                          $
-                          {Number(prod.precio).toLocaleString("es", {
-                            minimumFractionDigits: 0,
-                          })}
+              <div className="mt-6 space-y-8">
+                {categoriasFiltradas.length === 0 ? (
+                  <div className="rounded-3xl bg-white py-20 text-center text-sm font-medium text-[var(--color-custom-text-muted)] shadow-sm">
+                    No encontramos productos para tu búsqueda.
+                  </div>
+                ) : (
+                  categoriasFiltradas.map((cat) => (
+                    <section key={cat.id} id={`cat-${cat.id}`} className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <span className="h-1.5 w-16 rounded-full bg-[var(--color-custom-600)]" />
+                        <span className="rounded-full bg-[var(--color-custom-900)] px-4 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-white">
+                          {cat.nombre}
                         </span>
                       </div>
 
-                      {!prod.disponible && (
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                          <span className="bg-white text-neutral-900 text-[10px] font-bold uppercase px-3 py-1 rounded-full">
-                            Agotado
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                      <div
+                        className={`grid grid-cols-1 gap-4 md:grid-cols-2 transition-all duration-300 ${
+                          isCartOpen
+                            ? "lg:grid-cols-3 xl:grid-cols-4"
+                            : "lg:grid-cols-4 xl:grid-cols-5"
+                        }`}
+                      >
+                        {cat.productos.map((prod) => {
+                          const cantidad = cartQuantityByProduct.get(prod.id) || 0;
 
-                    <div className="p-3 flex flex-col flex-1 justify-between gap-3">
-                      <div>
-                        <h3 className="font-semibold text-neutral-900 text-[13px] leading-tight line-clamp-2">
-                          {prod.nombre}
-                        </h3>
-                        {prod.descripcion && (
-                          <p className="text-[11px] text-neutral-500 mt-1 line-clamp-2 leading-relaxed">
-                            {prod.descripcion}
-                          </p>
-                        )}
+                          return (
+                            <article
+                              key={prod.id}
+                              className={`overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 ${
+                                !prod.disponible ? "opacity-50 grayscale" : ""
+                              }`}
+                            >
+                              <div className="relative aspect-square w-full bg-[var(--color-custom-100)]">
+                                {prod.imagen_url ? (
+                                  <Image
+                                    src={prod.imagen_url}
+                                    alt={prod.nombre}
+                                    fill
+                                    className="rounded-t-2xl object-cover"
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                  />
+                                ) : (
+                                  <div className="flex h-full items-center justify-center text-[var(--color-custom-text-muted)]">
+                                    <ImageIcon size={34} />
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="flex min-h-[170px] flex-col justify-between p-4">
+                                <div>
+                                  <p className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--color-custom-950)]">
+                                    {prod.nombre}
+                                  </p>
+                                  <p className="mt-1 line-clamp-3 text-sm text-[var(--color-custom-text-muted)]">
+                                    {prod.descripcion || "Producto disponible en el catálogo."}
+                                  </p>
+                                </div>
+
+                                <div className="mt-4 flex items-center justify-between gap-3">
+                                  <div className="text-base font-black text-[var(--color-custom-950)]">
+                                    ${Number(prod.precio).toLocaleString("es", {
+                                      minimumFractionDigits: 0,
+                                    })}
+                                  </div>
+
+                                  {prod.disponible ? (
+                                    <div className="flex items-center overflow-hidden rounded-full bg-[var(--color-custom-500)] text-white">
+                                      <button
+                                        type="button"
+                                        onClick={() => removeItem(prod.id)}
+                                        className="flex h-8 w-8 items-center justify-center transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
+                                        disabled={cantidad === 0}
+                                      >
+                                        <Minus size={14} />
+                                      </button>
+                                      <span className="min-w-8 px-2 text-center text-sm font-bold leading-8">
+                                        {cantidad}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          addItem({
+                                            id: prod.id,
+                                            producto_id: prod.id,
+                                            nombre: prod.nombre,
+                                            imagen_url: prod.imagen_url,
+                                            precio: prod.precio,
+                                            cantidad: 1,
+                                            detalles: null,
+                                          })
+                                        }
+                                        className="flex h-8 w-8 items-center justify-center transition-opacity hover:opacity-80"
+                                      >
+                                        <Plus size={14} />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <span className="rounded-full bg-[var(--color-custom-100)] px-3 py-1 text-xs font-semibold text-[var(--color-custom-950)]">
+                                      Agotado
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </article>
+                          );
+                        })}
                       </div>
-
-                      {prod.disponible && (
-                        <button
-                          onClick={() =>
-                            addItem({
-                              id: prod.id,
-                              producto_id: prod.id,
-                              nombre: prod.nombre,
-                              precio: prod.precio,
-                              cantidad: 1,
-                              detalles: null,
-                            })
-                          }
-                          style={{
-                            backgroundColor: "var(--color-custom)",
-                            color: "var(--color-text-custom)",
-                          }}
-                          className="w-full py-2 rounded-xl text-[13px] font-semibold flex items-center justify-center gap-1.5 active:scale-[0.97] transition-all shadow-sm"
-                        >
-                          <Plus size={16} /> Agregar
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                    </section>
+                  ))
+                )}
               </div>
             </section>
-          ))
+
+            <aside
+              className={`hidden w-[380px] shrink-0 transition-all duration-300 lg:sticky lg:top-4 lg:self-start ${
+                isCartOpen
+                  ? "lg:block opacity-100 translate-x-0"
+                  : "lg:hidden pointer-events-none opacity-0 translate-x-6"
+              }`}
+            >
+              <PublicCart
+                negocioId={negocio.id}
+                config={menuConfig}
+                onCloseDrawer={() => setCartOpen(false)}
+              />
+            </aside>
+          </main>
+        </div>
+      </div>
+
+      <div className="lg:hidden">
+        <CartFloatingButton />
+        {isCartOpen && (
+          <PublicCart
+            negocioId={negocio.id}
+            isDrawer
+            config={menuConfig}
+            onCloseDrawer={() => setCartOpen(false)}
+          />
         )}
       </div>
-    </div>
+    </>
   );
 }

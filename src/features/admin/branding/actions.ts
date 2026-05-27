@@ -37,6 +37,17 @@ export async function updateTenantBrandingAction(
     throw new Error("Acceso denegado. Terminal no autenticada.");
   }
 
+  const { data: negocioActual, error: currentError } = await supabase
+    .from("negocios")
+    .select("logo_url, banner_url")
+    .eq("id", payload.id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (currentError || !negocioActual) {
+    throw new Error("No se pudo leer el estado actual del negocio.");
+  }
+
   // Sanitización determinista del identificador web para URLs públicas
   const slugSaneado = payload.slug
     .toLowerCase()
@@ -82,6 +93,41 @@ export async function updateTenantBrandingAction(
     throw new Error(`Error de persistencia Core: ${error.message}`);
   }
 
+  const brandingFilesToRemove: string[] = [];
+  const previousLogoPath = extractStoragePath(
+    negocioActual.logo_url,
+    "imagenes-negocios",
+  );
+  const previousBannerPath = extractStoragePath(
+    negocioActual.banner_url,
+    "imagenes-negocios",
+  );
+  const nextLogoPath = extractStoragePath(payload.logo_url, "imagenes-negocios");
+  const nextBannerPath = extractStoragePath(
+    payload.banner_url,
+    "imagenes-negocios",
+  );
+
+  if (previousLogoPath && previousLogoPath !== nextLogoPath) {
+    brandingFilesToRemove.push(previousLogoPath);
+  }
+
+  if (previousBannerPath && previousBannerPath !== nextBannerPath) {
+    brandingFilesToRemove.push(previousBannerPath);
+  }
+
+  if (brandingFilesToRemove.length > 0) {
+    const { error: removeError } = await supabase.storage
+      .from("imagenes-negocios")
+      .remove(brandingFilesToRemove);
+
+    if (removeError) {
+      console.error(
+        `[NEO RECOVERY WARN]: Error purga branding anterior: ${removeError.message}`,
+      );
+    }
+  }
+
   // Purga de cachés de Next.js App Router para renderizado inmediato en runtime
   revalidatePath("/configuracion");
   revalidatePath(`/${slugSaneado}`);
@@ -101,7 +147,10 @@ function extractStoragePath(
   const marker = `/public/${bucketName}/`;
   const index = url.indexOf(marker);
   if (index === -1) return null;
-  return url.substring(index + marker.length);
+  return url
+    .substring(index + marker.length)
+    .split("?")[0]
+    .split("#")[0];
 }
 
 /**

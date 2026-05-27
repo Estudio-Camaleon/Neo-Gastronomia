@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -96,6 +96,9 @@ const PRESET_COLORS = [
   "#000000",
 ];
 
+const MAX_IMAGE_SIZE_MB = 5;
+const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+
 export function ConfigForm({
   initialData,
   userId,
@@ -108,6 +111,10 @@ export function ConfigForm({
   const [isDeleting, setIsDeleting] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
   const [confirmName, setConfirmName] = useState("");
+  const [imagePreviews, setImagePreviews] = useState({
+    logo_url: initialData?.logo_url || "",
+    banner_url: initialData?.banner_url || "",
+  });
 
   const [formData, setFormData] = useState<ConfigFormState>({
     nombre: initialData?.nombre || "",
@@ -124,6 +131,44 @@ export function ConfigForm({
     tiktok_url: initialData?.tiktok_url || "",
     horarios: (initialData?.horarios as unknown as ScheduleData) || {},
   });
+
+  useEffect(() => {
+    setImagePreviews({
+      logo_url: initialData?.logo_url || "",
+      banner_url: initialData?.banner_url || "",
+    });
+
+    setFormData({
+      nombre: initialData?.nombre || "",
+      slug: initialData?.slug || "",
+      whatsapp: initialData?.whatsapp || "",
+      direccion: initialData?.direccion || "",
+      localidad: initialData?.localidad || "",
+      direccion_notas: initialData?.direccion_notas || "",
+      color_primary: initialData?.color_primary || "#34a35f",
+      logo_url: initialData?.logo_url || "",
+      banner_url: initialData?.banner_url || "",
+      instagram_url: initialData?.instagram_url || "",
+      facebook_url: initialData?.facebook_url || "",
+      tiktok_url: initialData?.tiktok_url || "",
+      horarios: (initialData?.horarios as unknown as ScheduleData) || {},
+    });
+  }, [
+    initialData?.banner_url,
+    initialData?.color_primary,
+    initialData?.direccion,
+    initialData?.direccion_notas,
+    initialData?.facebook_url,
+    initialData?.horarios,
+    initialData?.id,
+    initialData?.instagram_url,
+    initialData?.localidad,
+    initialData?.logo_url,
+    initialData?.nombre,
+    initialData?.slug,
+    initialData?.tiktok_url,
+    initialData?.whatsapp,
+  ]);
 
   const hasSlugChanged =
     initialData?.slug !== undefined && initialData?.slug !== formData.slug;
@@ -153,42 +198,78 @@ export function ConfigForm({
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      return toast.error("El archivo excede el límite permitido de 2MB");
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      return toast.error(
+        `El archivo excede el límite permitido de ${MAX_IMAGE_SIZE_MB}MB`,
+      );
     }
 
+    const previousValue = formData[field];
+    const previousPreview = imagePreviews[field];
+    if (previousPreview?.startsWith("blob:")) {
+      URL.revokeObjectURL(previousPreview);
+    }
+    const objectUrl = URL.createObjectURL(file);
+
+    setImagePreviews((prev) => ({ ...prev, [field]: objectUrl }));
     setUploading(field);
     try {
-      const { createClient } = await import("@/core/lib/supabase/client");
-      const supabase = createClient();
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("field", field);
 
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${userId}-${field}-${Date.now()}.${fileExt}`;
-      const filePath = `identidad/${fileName}`;
+      const response = await fetch("/api/admin/branding-images", {
+        method: "POST",
+        body: formData,
+      });
 
-      const { error: uploadError } = await supabase.storage
-        .from("imagenes-negocios")
-        .upload(filePath, file, { upsert: true, cacheControl: "3600" });
+      const payload = (await response.json().catch(() => ({}))) as {
+        publicUrl?: string;
+        error?: string;
+      };
 
-      if (uploadError) throw uploadError;
+      if (!response.ok) {
+        throw new Error(payload.error || "No se pudo subir la imagen.");
+      }
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("imagenes-negocios").getPublicUrl(filePath);
+      if (!payload.publicUrl) {
+        throw new Error("El servidor no devolvió una URL pública.");
+      }
 
-      setFormData((prev) => ({ ...prev, [field]: publicUrl }));
+      setFormData((prev) => ({ ...prev, [field]: payload.publicUrl }));
+      setImagePreviews((prev) => ({ ...prev, [field]: payload.publicUrl }));
+      URL.revokeObjectURL(objectUrl);
       toast.success("Archivo multimedia sincronizado y protegido en Cloud.");
-    } catch {
-      toast.error("Fallo crítico en el pipeline de storage multimedia.");
+    } catch (error: unknown) {
+      setFormData((prev) => ({ ...prev, [field]: previousValue }));
+      const errorMessage =
+        error instanceof Error ? error.message : "Fallo crítico en el pipeline de storage multimedia.";
+      toast.error("No se pudo subir la imagen", {
+        description: errorMessage,
+      });
     } finally {
       setUploading(null);
+      e.target.value = "";
     }
   };
+
+  useEffect(() => {
+    return () => {
+      [imagePreviews.logo_url, imagePreviews.banner_url].forEach((url) => {
+        if (url?.startsWith("blob:")) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, [imagePreviews.banner_url, imagePreviews.logo_url]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!initialData?.id) {
       return toast.error("Error estructural: Falta el ID del tenant.");
+    }
+    if (uploading) {
+      return toast.error("Espera a que termine la carga de la imagen antes de guardar.");
     }
 
     setIsPending(true);
@@ -274,8 +355,8 @@ export function ConfigForm({
 
         {/* BLOQUE MULTIMEDIA (BRANDING) */}
         <BrandingBlock
-          logoUrl={formData.logo_url}
-          bannerUrl={formData.banner_url}
+          logoUrl={imagePreviews.logo_url || formData.logo_url}
+          bannerUrl={imagePreviews.banner_url || formData.banner_url}
           uploading={uploading}
           onImageUpload={handleImageUpload}
         />
@@ -325,7 +406,7 @@ export function ConfigForm({
         <div className="sticky bottom-5 z-40 flex justify-end">
           <button
             type="submit"
-            disabled={isPending || isDeleting}
+            disabled={isPending || isDeleting || !!uploading}
             className="bg-[var(--admin-accent)] text-white px-6 py-2.5 rounded-lg text-xs font-medium shadow-md hover:opacity-90 active:scale-[0.98] transition-all flex items-center gap-2 disabled:opacity-40 disabled:pointer-events-none"
           >
             {isPending ? (
@@ -449,14 +530,22 @@ function BrandingBlock({
           <div className="relative group">
             <div className="w-28 h-28 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg)] overflow-hidden relative transition-all group-hover:border-[var(--admin-accent)] shadow-sm">
               {logoUrl ? (
-                <Image
-                  src={logoUrl}
-                  fill
-                  className="object-contain p-1.5 animate-in fade-in duration-200"
-                  alt="Logo"
-                  sizes="112px"
-                  priority
-                />
+                logoUrl.startsWith("blob:") ? (
+                  <img
+                    src={logoUrl}
+                    alt="Logo"
+                    className="h-full w-full object-contain p-1.5 animate-in fade-in duration-200"
+                  />
+                ) : (
+                  <Image
+                    src={logoUrl}
+                    fill
+                    className="object-contain p-1.5 animate-in fade-in duration-200"
+                    alt="Logo"
+                    sizes="112px"
+                    priority
+                  />
+                )
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-[var(--admin-text-muted)]">
                   <ImageIcon size={24} />
@@ -476,7 +565,7 @@ function BrandingBlock({
               <input
                 type="file"
                 hidden
-                accept="image/png, image/jpeg, image/webp"
+                accept="image/png, image/jpeg, image/jpg, image/webp, .jpg, .jpeg, .png, .webp"
                 onChange={(e) => onImageUpload(e, "logo_url")}
                 disabled={!!uploading}
               />
@@ -485,7 +574,7 @@ function BrandingBlock({
           <p className="text-[9px] text-[var(--admin-text-muted)] mt-3 text-center leading-normal">
             Cuadrante estricto 1:1.
             <br />
-            Máx 2MB (PNG, WEBP).
+            Máx {MAX_IMAGE_SIZE_MB}MB (JPG, PNG, WEBP).
           </p>
         </div>
 
@@ -499,7 +588,7 @@ function BrandingBlock({
               <input
                 type="file"
                 hidden
-                accept="image/png, image/jpeg, image/webp"
+                accept="image/png, image/jpeg, image/jpg, image/webp, .jpg, .jpeg, .png, .webp"
                 onChange={(e) => onImageUpload(e, "banner_url")}
                 disabled={!!uploading}
               />
@@ -507,13 +596,21 @@ function BrandingBlock({
           </div>
           <div className="relative w-full aspect-[21/8] rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg)] overflow-hidden shadow-sm">
             {bannerUrl ? (
-              <Image
-                src={bannerUrl}
-                fill
-                className="object-cover animate-in fade-in duration-200"
-                alt="Portada"
-                sizes="(max-width: 768px) 100vw, 650px"
-              />
+              bannerUrl.startsWith("blob:") ? (
+                <img
+                  src={bannerUrl}
+                  alt="Portada"
+                  className="h-full w-full object-cover animate-in fade-in duration-200"
+                />
+              ) : (
+                <Image
+                  src={bannerUrl}
+                  fill
+                  className="object-cover animate-in fade-in duration-200"
+                  alt="Portada"
+                  sizes="(max-width: 768px) 100vw, 650px"
+                />
+              )
             ) : (
               <div className="w-full h-full flex items-center justify-center text-[var(--admin-text-muted)] opacity-50">
                 <ImageIcon size={28} />
@@ -530,6 +627,8 @@ function BrandingBlock({
           </div>
           <p className="text-[9px] text-[var(--admin-text-muted)] leading-none">
             Ratio panorámico optimizado para LCP: 1200x450px.
+            <br />
+            Máx {MAX_IMAGE_SIZE_MB}MB (JPG, PNG, WEBP).
           </p>
         </div>
       </div>

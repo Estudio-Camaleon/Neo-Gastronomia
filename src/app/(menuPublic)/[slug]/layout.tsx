@@ -1,4 +1,5 @@
-import { createClient } from "@/core/lib/supabase/client";
+import { createClient } from "@/core/lib/supabase/server";
+import { buildBrandPalette } from "@/core/lib/utils/color";
 import React from "react";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +28,7 @@ export default async function PublicLayout({
   let brandColor = "#10b981"; // Fallback seguro corporativo
 
   if (slug) {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: negocio } = await supabase
       .from("negocios")
       .select("color_primary")
@@ -39,17 +40,38 @@ export default async function PublicLayout({
     }
   }
 
+  const palette = buildBrandPalette(brandColor);
   const textColor = getContrastYIQ(brandColor);
 
   return (
     <div
       style={
         {
-          "--color-custom": brandColor,
+          "--color-custom": palette.base,
+          "--color-custom-50": palette.softAlt,
+          "--color-custom-100": palette.soft,
+          "--color-custom-200": palette.soft,
+          "--color-custom-500": palette.base,
+          "--color-custom-600": palette.deep,
+          "--color-custom-700": palette.deep,
+          "--color-custom-900": palette.darker,
+          "--color-custom-950": palette.darker,
+          "--color-custom-soft": palette.soft,
+          "--color-custom-soft-2": palette.softAlt,
+          "--color-custom-deep": palette.deep,
+          "--color-custom-darker": palette.darker,
+          "--color-custom-surface": palette.surface,
+          "--color-custom-surface-strong": palette.surfaceStrong,
+          "--color-custom-border": palette.border,
+          "--color-custom-text": palette.text,
+          "--color-custom-text-muted": palette.textMuted,
           "--color-text-custom": textColor,
+          "--admin-accent": palette.base,
+          "--admin-accent-soft": palette.soft,
+          "--admin-accent-strong": palette.deep,
         } as React.CSSProperties
       }
-      className="min-h-screen bg-neutral-50/60 text-neutral-900 font-sans antialiased selection:bg-neutral-900 selection:text-white"
+      className="min-h-screen bg-[var(--color-custom-surface)] text-[var(--color-custom-text)] font-sans antialiased selection:bg-[var(--color-custom-deep)] selection:text-white"
     >
       <main className="w-full h-full">{children}</main>
     </div>

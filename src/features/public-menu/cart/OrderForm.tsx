@@ -49,6 +49,11 @@ export function OrderForm({
   const costoEnvioActual = form.esDelivery ? config.costo_envio || 0 : 0;
   const totalFinal = subtotal + costoEnvioActual;
   const simbolo = config.moneda_simbolo || "$";
+  const formatMoney = (value: number) =>
+    value.toLocaleString("es-AR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -73,14 +78,14 @@ export function OrderForm({
       `\n📦 *DETALLE DE COMANDA:*`,
       ...cart.map(
         (i) =>
-          `• ${i.cantidad}x ${i.nombre.toUpperCase()} ${i.detalles ? `(_${i.detalles}_)` : ""} - ${simbolo}${(i.precio * i.cantidad).toFixed(2)}`,
+          `• ${i.cantidad}x ${i.nombre.toUpperCase()} ${i.detalles ? `(_${i.detalles}_)` : ""} - ${simbolo}${formatMoney(i.precio * i.cantidad)}`,
       ),
       `\n---`,
-      `*Subtotal:* ${simbolo}${subtotal.toFixed(2)}`,
+      `*Subtotal:* ${simbolo}${formatMoney(subtotal)}`,
       form.esDelivery
-        ? `*Envío:* ${simbolo}${costoEnvioActual.toFixed(2)}`
+        ? `*Envío:* ${simbolo}${formatMoney(costoEnvioActual)}`
         : "",
-      `*💰 TOTAL FINAL: ${simbolo}${totalFinal.toFixed(2)}*`,
+      `*💰 TOTAL FINAL: ${simbolo}${formatMoney(totalFinal)}*`,
       `\n📝 *Notas:* ${form.notas || "Sin especificaciones."}`,
       `\n_Enviado de forma segura desde NEO Infrastructure_`,
     ]
@@ -212,7 +217,7 @@ export function OrderForm({
                 <span>Costo de envío:</span>
                 <span className="font-semibold text-gray-900 dark:text-zinc-100">
                   {simbolo}
-                  {config.costo_envio?.toFixed(2)}
+                  {formatMoney(config.costo_envio || 0)}
                 </span>
               </div>
               <Input
@@ -274,7 +279,7 @@ export function OrderForm({
           </span>
           <span className="text-3xl font-bold text-gray-900 dark:text-zinc-100 tracking-tight">
             {simbolo}
-            {totalFinal.toFixed(2)}
+            {formatMoney(totalFinal)}
           </span>
         </div>
         <button
