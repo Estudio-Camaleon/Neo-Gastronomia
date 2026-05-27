@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { createClient } from "@/core/lib/supabase/client";
+import { useEffect, useState, useRef } from "react";
 import { Loader2, X, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -9,12 +8,25 @@ import Image from "next/image";
 interface ImageUploadProps {
   value: string | null;
   onChange: (_url: string) => void;
+  uploadEndpoint?: string;
 }
 
-export function ImageUpload({ value, onChange }: ImageUploadProps) {
+export function ImageUpload({
+  value,
+  onChange,
+  uploadEndpoint = "/api/admin/product-images",
+}: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const supabase = createClient();
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl?.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -28,43 +40,44 @@ export function ImageUpload({ value, onChange }: ImageUploadProps) {
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("Archivo muy pesado", { description: "Límite máximo: 2MB." });
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Archivo muy pesado", { description: "Límite máximo: 5MB." });
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
     setIsUploading(true);
 
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
+
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-      const filePath = `products/${fileName}`;
+      const formData = new FormData();
+      formData.append("file", file);
 
-      const { error: uploadError } = await supabase.storage
-        .from("media")
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
+      const response = await fetch(uploadEndpoint, {
+        method: "POST",
+        body: formData,
+      });
 
-      if (uploadError) throw uploadError;
+      const payload = (await response.json().catch(() => ({}))) as {
+        publicUrl?: string;
+        error?: string;
+      };
 
-      const { data } = supabase.storage.from("media").getPublicUrl(filePath);
-      const publicUrl = data?.publicUrl || "";
+      if (!response.ok) {
+        throw new Error(payload.error || "Error desconocido al subir la imagen");
+      }
 
-      // Fallback: construir la URL pública si la SDK no la retorna
-      const fallback =
-        publicUrl ||
-        (typeof process !== "undefined" && process.env.NEXT_PUBLIC_SUPABASE_URL
-          ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/${filePath}`
-          : "");
+      if (!payload.publicUrl) {
+        throw new Error("El servidor no devolvió una URL pública.");
+      }
 
-      // Logging para depuración en cliente
-      // eslint-disable-next-line no-console
-      console.debug("ImageUpload: upload result", { uploadError: null, publicUrl, fallback });
-
-      onChange(fallback || publicUrl);
+      if (objectUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(objectUrl);
+      }
+      setPreviewUrl(payload.publicUrl);
+      onChange(payload.publicUrl);
       toast.success("Imagen cargada");
     } catch (error: unknown) {
       const errorMessage =
@@ -79,17 +92,35 @@ export function ImageUpload({ value, onChange }: ImageUploadProps) {
   };
 
   const removeImage = async () => {
+    if (previewUrl && !value) {
+      if (previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      setPreviewUrl(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     if (!value) return;
 
     try {
-      if (value.includes("/media/")) {
-        const path = value.split("/media/")[1];
-        if (path) {
-          await supabase.storage.from("media").remove([path]);
-        }
+      const response = await fetch(uploadEndpoint, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url: value }),
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        throw new Error(payload.error || "No se pudo eliminar la imagen.");
       }
 
       onChange("");
+      setPreviewUrl(null);
       toast.info("Imagen eliminada", {
         description: "El archivo fue removido del servidor.",
       });
@@ -106,14 +137,12 @@ export function ImageUpload({ value, onChange }: ImageUploadProps) {
       </label>
 
       <div className="relative group flex-1 min-h-[250px]">
-        {value ? (
+        {value || previewUrl ? (
           <div className="relative h-full w-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-white dark:bg-zinc-950 shadow-sm transition-all hover:border-[var(--admin-accent,#34a35f)]">
-            <Image
-              src={value}
+            <img
+              src={previewUrl || value || ""}
               alt="Preview"
-              fill
-              sizes="(max-width: 768px) 100vw, 33vw"
-              className="object-cover animate-in fade-in zoom-in-95 duration-300"
+              className="h-full w-full object-cover animate-in fade-in zoom-in-95 duration-300"
             />
 
             <button
@@ -123,6 +152,11 @@ export function ImageUpload({ value, onChange }: ImageUploadProps) {
             >
               <X size={16} />
             </button>
+            {isUploading && (
+              <div className="absolute inset-x-0 bottom-0 bg-black/55 px-3 py-2 text-center text-xs font-semibold text-white">
+                Subiendo imagen...
+              </div>
+            )}
           </div>
         ) : (
           <label
@@ -156,7 +190,7 @@ export function ImageUpload({ value, onChange }: ImageUploadProps) {
                     Haga clic para subir una imagen
                   </span>
                   <span className="text-xs text-gray-500 dark:text-gray-400 block">
-                    MAX 2MB (JPG/PNG/WEBP)
+                    MAX 5MB (JPG/PNG/WEBP)
                   </span>
                 </div>
               </div>

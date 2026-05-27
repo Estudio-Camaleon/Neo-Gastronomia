@@ -51,7 +51,7 @@ export function ProductModal({
         onClick={onClose}
       />
 
-      <div className="relative w-full max-w-5xl max-h-[90vh] flex flex-col bg-[var(--admin-surface)] rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-[var(--admin-border)]">
+      <div className="relative flex h-full max-h-[90vh] w-full max-w-5xl min-h-0 flex-col overflow-hidden rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-2xl animate-in zoom-in-95 duration-200">
         {/* BOTÓN CERRAR CORREGIDO */}
         <button
           onClick={onClose}
@@ -61,7 +61,7 @@ export function ProductModal({
           <X size={18} />
         </button>
 
-        <div className="w-full h-full overflow-hidden flex flex-col rounded-2xl">
+        <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-2xl">
           {loadingCats ? (
             <div className="flex flex-col justify-center items-center h-[50vh] text-[var(--admin-text-muted)] gap-3 bg-[var(--admin-surface)]">
               <Loader2

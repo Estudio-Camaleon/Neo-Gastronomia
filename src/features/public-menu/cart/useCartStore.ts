@@ -12,13 +12,17 @@ export interface CartItem {
 
 interface CartState {
   cart: CartItem[];
+  isCartOpen: boolean;
   addItem: (newItem: CartItem) => void;
   removeItem: (id: string) => void;
   clearCart: () => void;
+  toggleCart: () => void;
+  setCartOpen: (isOpen: boolean) => void;
 }
 
 export const useCartStore = create<CartState>((set) => ({
   cart: [],
+  isCartOpen: false,
 
   addItem: (newItem) =>
     set((state) => {
@@ -63,4 +67,8 @@ export const useCartStore = create<CartState>((set) => ({
     }),
 
   clearCart: () => set({ cart: [] }),
+
+  toggleCart: () => set((state) => ({ isCartOpen: !state.isCartOpen })),
+
+  setCartOpen: (isOpen) => set({ isCartOpen: isOpen }),
 }));

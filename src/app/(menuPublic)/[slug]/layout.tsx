@@ -1,4 +1,4 @@
-import { createClient } from "@/core/lib/supabase/client";
+import { createClient } from "@/core/lib/supabase/server";
 import { buildBrandPalette } from "@/core/lib/utils/color";
 import React from "react";
 
@@ -28,7 +28,7 @@ export default async function PublicLayout({
   let brandColor = "#10b981"; // Fallback seguro corporativo
 
   if (slug) {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: negocio } = await supabase
       .from("negocios")
       .select("color_primary")
@@ -48,6 +48,14 @@ export default async function PublicLayout({
       style={
         {
           "--color-custom": palette.base,
+          "--color-custom-50": palette.softAlt,
+          "--color-custom-100": palette.soft,
+          "--color-custom-200": palette.soft,
+          "--color-custom-500": palette.base,
+          "--color-custom-600": palette.deep,
+          "--color-custom-700": palette.deep,
+          "--color-custom-900": palette.darker,
+          "--color-custom-950": palette.darker,
           "--color-custom-soft": palette.soft,
           "--color-custom-soft-2": palette.softAlt,
           "--color-custom-deep": palette.deep,

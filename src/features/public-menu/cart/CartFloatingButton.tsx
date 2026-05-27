@@ -1,14 +1,11 @@
 "use client";
 
-import { useCartStore } from "./useCartStore";
 import { ShoppingBag } from "lucide-react";
+import { useCartStore } from "./useCartStore";
 
-interface CartFloatingButtonProps {
-  onClick: () => void;
-}
-
-export function CartFloatingButton({ onClick }: CartFloatingButtonProps) {
+export function CartFloatingButton() {
   const cart = useCartStore((state) => state.cart);
+  const toggleCart = useCartStore((state) => state.toggleCart);
   const totalItems = cart.reduce((acc, item) => acc + item.cantidad, 0);
 
   if (totalItems === 0) return null;
@@ -17,8 +14,8 @@ export function CartFloatingButton({ onClick }: CartFloatingButtonProps) {
     <div className="fixed bottom-5 right-5 z-40 animate-in fade-in slide-in-from-bottom-4 duration-300 sm:right-6 sm:bottom-6">
       <button
         type="button"
-        onClick={onClick}
-        className="relative flex items-center justify-center gap-2 rounded-full bg-[var(--color-custom)] px-5 py-3.5 font-black uppercase tracking-[0.14em] text-white shadow-[0_14px_28px_rgba(31,107,61,0.22)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_36px_rgba(31,107,61,0.28)] group"
+        onClick={toggleCart}
+        className="relative flex items-center justify-center gap-2 rounded-full bg-[var(--color-custom-900)] px-5 py-3.5 font-black uppercase tracking-[0.14em] text-white shadow-[0_14px_28px_rgba(0,0,0,0.18)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_36px_rgba(0,0,0,0.24)] group"
       >
         <ShoppingBag
           size={18}
@@ -27,7 +24,7 @@ export function CartFloatingButton({ onClick }: CartFloatingButtonProps) {
         <span className="text-xs sm:text-sm">Ver pedido</span>
 
         {totalItems > 0 && (
-          <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-[var(--color-custom-deep)] text-[11px] font-black text-white shadow-sm animate-in zoom-in">
+          <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-[var(--color-custom-500)] text-[11px] font-black text-white shadow-sm animate-in zoom-in">
             {totalItems}
           </span>
         )}

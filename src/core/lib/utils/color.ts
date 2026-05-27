@@ -66,6 +66,8 @@ export function buildBrandPalette(inputHex: string) {
   const surface = `#${mixHexColor(base, "#ffffff", 0.94)}`;
   const surfaceStrong = `#${mixHexColor(base, "#ffffff", 0.985)}`;
   const border = `#${mixHexColor(base, "#cbd5e1", 0.7)}`;
+  const text = `#${mixHexColor(base, "#0f172a", 0.12)}`;
+  const textMuted = `#${mixHexColor(base, "#0f172a", 0.36)}`;
 
   return {
     base,
@@ -76,8 +78,8 @@ export function buildBrandPalette(inputHex: string) {
     surface,
     surfaceStrong,
     border,
-    text: "#16211b",
-    textMuted: "#5b6b62",
+    text,
+    textMuted,
     textOnBase: getContrastYIQ(base),
     textOnDeep: getContrastYIQ(deep),
   };

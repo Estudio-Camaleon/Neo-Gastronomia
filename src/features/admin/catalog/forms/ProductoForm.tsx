@@ -45,6 +45,7 @@ export function ProductoForm({
   onSuccess,
 }: ProductoFormProps) {
   const [isPending, setIsPending] = useState(false);
+  const submitLabel = initialData ? "Guardar Cambios" : "Cargar Producto";
 
   const [formData, setFormData] = useState({
     nombre: initialData?.nombre || "",
@@ -189,10 +190,10 @@ export function ProductoForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-[var(--admin-surface)] rounded-xl font-sans w-full max-w-5xl flex flex-col h-full"
+      className="flex h-full min-h-0 w-full max-w-5xl flex-col rounded-xl bg-[var(--admin-surface)] font-sans"
     >
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 border-b border-[var(--admin-border)] shrink-0 bg-[var(--admin-bg)]/50 rounded-t-xl pr-14">
+      <div className="flex flex-col gap-4 border-b border-[var(--admin-border)] bg-[var(--admin-bg)]/50 p-6 pr-14 shrink-0 md:flex-row md:items-center md:justify-between rounded-t-xl">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-lg shadow-sm text-[var(--admin-text-muted)]">
             <Package className="w-5 h-5" />
@@ -207,25 +208,16 @@ export function ProductoForm({
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={isPending}
-          className="md:hidden flex items-center justify-center gap-2 bg-[var(--admin-accent)] hover:opacity-90 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-all disabled:opacity-50 shadow-sm"
-        >
-          {isPending ? (
-            <Loader2 className="animate-spin" size={16} />
-          ) : (
-            <Save size={16} />
-          )}
-          <span>Guardar</span>
-        </button>
+        <div className="md:ml-auto text-xs font-medium text-[var(--admin-text-muted)]">
+          El formulario se guarda desde el botón inferior.
+        </div>
       </div>
 
       {/* CUERPO INTERNO CON SCROLL */}
-      <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="min-h-0 flex-1 overflow-y-auto p-6 custom-scrollbar">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           {/* COLUMNA IZQUIERDA */}
-          <div className="lg:col-span-5 space-y-5">
+          <div className="space-y-5 lg:col-span-5 lg:min-h-0">
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-[var(--admin-text)] block">
                 Nombre Comercial
@@ -313,7 +305,7 @@ export function ProductoForm({
           </div>
 
           {/* COLUMNA DERECHA */}
-          <div className="lg:col-span-7 space-y-8 border-t lg:border-t-0 lg:border-l border-[var(--admin-border)] pt-8 lg:pt-0 lg:pl-8">
+          <div className="space-y-8 border-t border-[var(--admin-border)] pt-8 lg:col-span-7 lg:min-h-0 lg:border-l lg:border-t-0 lg:pl-8">
             {/* SECCIÓN VARIANTES */}
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-[var(--admin-border)]">
@@ -502,22 +494,22 @@ export function ProductoForm({
       </div>
 
       {/* FOOTER ACCIONES */}
-      <div className="p-6 border-t border-[var(--admin-border)] bg-[var(--admin-surface)] rounded-b-xl flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0 mt-auto">
+      <div className="sticky bottom-0 z-10 mt-auto flex flex-col items-center justify-between gap-4 border-t border-[var(--admin-border)] bg-[var(--admin-surface)] p-6 shadow-[0_-12px_30px_rgba(0,0,0,0.08)] rounded-b-xl sm:flex-row">
         <p className="text-xs font-medium text-[var(--admin-text-muted)]">
           Los cambios impactarán en el catálogo público al instante.
         </p>
         <button
           type="submit"
           disabled={isPending}
-          className="w-full sm:w-auto bg-[var(--admin-accent)] hover:opacity-90 text-white rounded-lg font-semibold text-sm px-8 py-3 transition-all flex items-center justify-center gap-2 shadow-md disabled:opacity-70 disabled:cursor-not-allowed"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--admin-accent)] px-8 py-3 text-sm font-semibold text-white shadow-md transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
         >
           {isPending ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" /> Guardando...
+              <Loader2 className="h-4 w-4 animate-spin" /> {submitLabel}...
             </>
           ) : (
             <>
-              <Save size={16} /> Guardar Producto
+              <Save size={16} /> {submitLabel}
             </>
           )}
         </button>

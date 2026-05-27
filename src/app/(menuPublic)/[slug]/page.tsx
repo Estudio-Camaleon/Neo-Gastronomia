@@ -1,5 +1,5 @@
 import React from "react";
-import { createClient } from "@/core/lib/supabase/client";
+import { createClient } from "@/core/lib/supabase/server";
 import { notFound } from "next/navigation";
 import {
   CatalogClient,
@@ -16,7 +16,7 @@ interface PublicPageProps {
 
 export default async function PublicMenuPage({ params }: PublicPageProps) {
   const { slug } = await params;
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data: negocio, error } = await supabase
     .from("negocios")
