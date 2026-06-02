@@ -41,7 +41,7 @@ export function Navbar() {
   const close = () => setIsOpen(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full px-4 pt-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 w-full px-4 sm:px-6 lg:px-8">
       <nav
         className={`mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8 flex items-center justify-between rounded-[20px] transition-all duration-500 ${
           isScrolled
@@ -102,7 +102,7 @@ export function Navbar() {
 
         {/* Mobile Toggle */}
         <div className="relative md:hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-32 md:w-32 md:h-64 bg-[var(--theme-primary)] rounded-b-[100px] opacity-80 md:opacity-100" />
+          <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-20 md:w-36 md:h-36 bg-[var(--theme-primary)] rounded-b-[80px] opacity-80 md:opacity-100" />
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="relative p-2 text-white hover:text-white/80 focus:outline-none transition-colors duration-200"
