@@ -55,7 +55,7 @@ export function Features() {
               Todo lo que necesitas
             </h2>
             <p className="text-3xl md:text-5xl font-black tracking-tighter uppercase text-[var(--theme-text)] max-w-3xl">
-              Control total sobre tu catálogo y tus ganancias.
+              Control total sobre tu catálogo y tus ganancias
             </p>
           </div>
           <p className="max-w-md text-sm text-[var(--theme-text-muted)]">

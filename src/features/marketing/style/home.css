@@ -56,11 +56,7 @@
   }
 
 
-  .neo-home .neo-chip {
-    background: var(--theme-primary-soft);
-    color: var(--theme-primary);
-    border: 1px solid rgba(31, 107, 61, 0.1);
-  }
+  
 
   /* Actualiza esta parte al final de tu .neo-home dentro de @layer base */
   @media (max-width: 640px) {

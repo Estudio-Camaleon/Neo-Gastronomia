@@ -1,6 +1,6 @@
 "use client";
 
-import { UserPlus, UtensilsCrossed, Share2 } from "lucide-react";
+import { UserPlus, UtensilsCrossed, Share2, Palette } from "lucide-react";
 import Link from "next/link";
 import { useScrollReveal } from "@/core/hooks/useScrollReveal";
 
@@ -22,6 +22,12 @@ export function Pricing() {
     },
     {
       number: "03",
+      title: "Personalizá tu menú",
+      desc: "Adaptá los colores, logo y banner de tu marca. Ofrecé una experiencia visual coherente con tu identidad.",
+      icon: <Palette className="h-6 w-6" />,
+    },
+    {
+      number: "04",
       title: "Compartí y vendé",
       desc: "Descargá tu código QR para las mesas o compartí el enlace en tus redes sociales para envíos.",
       icon: <Share2 className="h-6 w-6" />,
@@ -37,12 +43,12 @@ export function Pricing() {
               Simplicidad ante todo
             </h2>
             <p className="text-3xl md:text-5xl font-black tracking-tighter uppercase text-[var(--theme-text)] max-w-3xl">
-              Empezá a recibir pedidos hoy mismo.
+              Empezá a recibir pedidos hoy mismo
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
           {steps.map((step, idx) => (
             <article
               key={step.number}
