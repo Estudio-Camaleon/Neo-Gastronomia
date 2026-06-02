@@ -12,7 +12,7 @@ export function Hero() {
     >
       <div className="pointer-events-none absolute right-0 top-24 h-32 w-32 sm:h-64 sm:w-64 rounded-full bg-[var(--theme-primary-soft-2)] blur-3xl opacity-20 sm:opacity-28" />
 
-      <div className="relative mx-auto grid max-w-[92rem] items-center gap-6 md:gap-12 px-4 lg:grid-cols-[1.1fr_0.9fr] xl:grid-cols-[1.2fr_0.8fr] lg:px-8">
+      <div className="relative mx-auto grid max-w-[92rem] items-center gap-6 md:gap-12 px-4 lg:grid-cols-[1fr_1.1fr] xl:grid-cols-[0.9fr_1.1fr] lg:px-8">
         {/* --- COLUMNA IZQUIERDA: Copy y CTA --- */}
         <div className="space-y-5 sm:space-y-8 lg:pr-2 xl:pr-6">
           <div className="space-y-4 sm:space-y-6 max-w-3xl">
