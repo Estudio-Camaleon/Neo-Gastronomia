@@ -45,7 +45,7 @@ function getStoragePathFromUrl(url: string | null | undefined) {
 
 export async function POST(request: Request) {
   try {
-    const { userId, negocioId } = await getAuthenticatedTenant();
+    await getAuthenticatedTenant();
     const formData = await request.formData();
     const file = formData.get("file");
     const field = formData.get("field");

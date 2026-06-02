@@ -71,9 +71,34 @@ export default async function PublicLayout({
           "--admin-accent-strong": palette.deep,
         } as React.CSSProperties
       }
-      className="min-h-screen bg-[var(--color-custom-surface)] text-[var(--color-custom-text)] font-sans antialiased selection:bg-[var(--color-custom-deep)] selection:text-white"
+      className="relative min-h-screen bg-[var(--color-custom-surface)] text-[var(--color-custom-text)] font-sans antialiased selection:bg-[var(--color-custom-deep)] selection:text-white"
     >
-      <main className="w-full h-full">{children}</main>
+      {/* Decorative blobs/waves background that tint with brand color */}
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+        <svg className="absolute -top-12 -left-8 md:-left-24 w-[420px] md:w-[520px] h-[420px] md:h-[520px] opacity-60" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="blurA" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="36" result="b" />
+            </filter>
+          </defs>
+          <g fill="var(--color-custom-500)" fillOpacity="0.18" style={{ mixBlendMode: "overlay" }} filter="url(#blurA)">
+            <path d="M421.6,356.9Q390,463,282.9,453.8Q175.8,444.7,116.8,364.1Q57.8,283.5,99.2,191.3Q140.7,99.1,236.1,90.6Q331.6,82.1,403.6,139.2Q475.6,196.3,421.6,356.9Z"/>
+          </g>
+        </svg>
+
+        <svg className="absolute -bottom-12 -right-8 md:-bottom-28 md:-right-24 w-[480px] md:w-[640px] h-[480px] md:h-[640px] opacity-55" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="blurB" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="44" result="b" />
+            </filter>
+          </defs>
+          <g fill="var(--color-custom-500)" fillOpacity="0.14" style={{ mixBlendMode: "overlay" }} filter="url(#blurB)">
+            <path d="M621.4,476.9Q584,653,426.4,697.5Q268.8,742,160.3,630.5Q51.8,519,95.6,345.5Q139.4,172,284.8,124.2Q430.2,76.3,554.1,164.2Q678,252,621.4,476.9Z"/>
+          </g>
+        </svg>
+      </div>
+
+      <main className="w-full h-full relative z-10">{children}</main>
     </div>
   );
 }

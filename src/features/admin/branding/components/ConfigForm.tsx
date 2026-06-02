@@ -528,19 +528,19 @@ function BrandingBlock({
             Isotipo Comercial
           </span>
           <div className="relative group">
-            <div className="w-28 h-28 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg)] overflow-hidden relative transition-all group-hover:border-[var(--admin-accent)] shadow-sm">
+            <div className="w-28 h-28 rounded-full bg-[var(--admin-bg)] overflow-hidden relative flex items-center justify-center shadow-md transition-all hover:shadow-lg ring-1 ring-transparent hover:ring-[var(--admin-accent)]">
               {logoUrl ? (
                 logoUrl.startsWith("blob:") ? (
                   <img
                     src={logoUrl}
                     alt="Logo"
-                    className="h-full w-full object-contain p-1.5 animate-in fade-in duration-200"
+                    className="h-full w-full object-cover animate-in fade-in duration-200"
                   />
                 ) : (
                   <Image
                     src={logoUrl}
                     fill
-                    className="object-contain p-1.5 animate-in fade-in duration-200"
+                    className="object-cover animate-in fade-in duration-200"
                     alt="Logo"
                     sizes="112px"
                     priority
@@ -560,7 +560,7 @@ function BrandingBlock({
                 </div>
               )}
             </div>
-            <label className="absolute -bottom-1.5 -right-1.5 bg-[var(--admin-surface)] text-[var(--admin-text)] p-2 rounded-lg border border-[var(--admin-border)] shadow-sm cursor-pointer hover:border-[var(--admin-accent)] transition-all">
+            <label className="absolute -bottom-1 -right-1 bg-[var(--admin-surface)] text-[var(--admin-text)] p-2 rounded-full border border-[var(--admin-border)] shadow-sm cursor-pointer hover:border-[var(--admin-accent)] transition-all">
               <Upload size={12} />
               <input
                 type="file"
