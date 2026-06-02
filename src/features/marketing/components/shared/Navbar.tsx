@@ -102,7 +102,7 @@ export function Navbar() {
 
         {/* Mobile Toggle */}
         <div className="relative md:hidden">
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-20 md:w-36 md:h-36 bg-[var(--theme-primary)] rounded-b-[80px] opacity-80 md:opacity-100" />
+          <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-16 h-20 md:w-36 md:h-36 bg-[var(--theme-primary)] rounded-b-[80px] opacity-100 md:opacity-100" />
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="relative p-2 text-white hover:text-white/80 focus:outline-none transition-colors duration-200"

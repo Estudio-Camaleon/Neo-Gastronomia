@@ -3,9 +3,6 @@
 export function BackgroundShapes() {
   return (
     <div className="absolute inset-0 z-[-1] overflow-hidden pointer-events-none">
-      {/* 1. TOP LEFT: Arco verde oscuro (Más pequeño en móvil) */}
-      <div className="absolute top-0 left-0 w-16 h-32 md:w-32 md:h-64 bg-[var(--theme-primary)] rounded-br-[100px] opacity-80 md:opacity-100" />
-
       {/* 2. TOP RIGHT: Mancha suave (Oculto en móvil para no tapar, visible en desktop) */}
       <div className="hidden md:block absolute top-0 right-0 w-[40%] h-[40%] bg-[var(--theme-accent)] opacity-60 rounded-bl-full" />
 

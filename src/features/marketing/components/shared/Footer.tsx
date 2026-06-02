@@ -59,9 +59,9 @@ export function Footer() {
             {/* Brand Column */}
             <div className="md:col-span-2 flex flex-col gap-6">
               <div className="flex items-center gap-2">
-                <div className="bg-white p-3 rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-transform hover:scale-105 duration-300">
+                <div className=" p-3 rounded-2xl transition-transform hover:scale-105 duration-300">
                   <Image
-                    src="/icons/neo_logo_negro.webp"
+                    src="/icons/neo_logo_blanco.webp"
                     alt="NEO Brand Logo"
                     width={85}
                     height={85}
@@ -73,10 +73,6 @@ export function Footer() {
                 El sistema definitivo para digitalizar tu restaurante, eliminar
                 comisiones abusivas y aumentar tus ganancias reales.
               </p>
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-black uppercase tracking-widest text-white mt-2 w-fit">
-                <Sparkles className="h-4 w-4 text-[var(--theme-accent)]" />
-                <span>Únete a la revolución</span>
-              </div>
             </div>
 
             {/* Dynamic Nav Columns */}
