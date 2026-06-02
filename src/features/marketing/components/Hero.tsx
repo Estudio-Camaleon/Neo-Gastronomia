@@ -79,8 +79,8 @@ export function Hero() {
             </span>
           </div>
 
-          {/* Contenedor principal estilo "Ventana de App" que flota suavemente */}
-          <div className="animate-float relative rounded-[24px] sm:rounded-[32px] border border-[var(--theme-border)] bg-white/40 p-2 sm:p-4 backdrop-blur-md shadow-[0_30px_60px_rgba(31,107,61,0.12)]">
+          {/* Contenedor principal estilo "Ventana de App" */}
+          <div className="relative rounded-[24px] sm:rounded-[32px] border border-[var(--theme-border)] bg-white/40 p-2 sm:p-4 backdrop-blur-md shadow-[0_30px_60px_rgba(31,107,61,0.12)]">
             {/* Barra superior del navegador (Mac style) */}
             <div className="flex items-center gap-2 px-3 pb-3 pt-2">
               <div className="h-3 w-3 rounded-full bg-[#ff5f56] shadow-sm" />
@@ -107,6 +107,22 @@ export function Hero() {
                 className="object-cover object-top"
                 priority
               />
+
+              {/* Animated mouse cursor */}
+              <div className="animate-cursor absolute z-20 pointer-events-none">
+                <div className="animate-cursor-click">
+                  <svg
+                    className="h-5 w-5 text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  >
+                    <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z" />
+                  </svg>
+                </div>
+                <div className="absolute -top-0.5 -left-0.5 h-6 w-6 rounded-full bg-white/30 animate-ping" />
+              </div>
 
               {/* --- FALLBACK TEMPORAL --- */}
               {/* Si aún no subes la imagen, se mostrará este wireframe estético para que no quede vacío */}
