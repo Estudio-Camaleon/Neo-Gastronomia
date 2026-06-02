@@ -1,4 +1,5 @@
 import { LoginForm } from "@/features/auth/components/LoginForm";
+import { GoogleSignInButton } from "@/features/auth/components/GoogleSignInButton";
 import {
   ChefHat,
   Coffee,
@@ -6,6 +7,7 @@ import {
   ShoppingBasket,
   Library,
   UserPlus,
+  CheckCircle2,
 } from "lucide-react";
 import { TransitionLink } from "@/components/ui/transition-link";
 import Image from "next/image";
@@ -19,7 +21,10 @@ const CATEGORIES = [
   { icon: <Library size={14} />, label: "Gourmet" },
 ];
 
-export default function LoginPage() {
+export default async function LoginPage(props: { searchParams?: Promise<{ message?: string }> }) {
+  const searchParams = await props.searchParams;
+  const validatedMessage = searchParams?.message === "correo_validado";
+
   return (
     <div className="auth-layout-container flex flex-col min-h-screen text-[var(--auth-text)] antialiased font-sans">
       <div className="flex-1 grid lg:grid-cols-12 overflow-hidden">
@@ -117,6 +122,13 @@ export default function LoginPage() {
               </p>
             </div>
 
+            {validatedMessage && (
+              <div className="auth-success-box">
+                <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>Correo electrónico validado correctamente. Ya podés iniciar sesión.</span>
+              </div>
+            )}
+
             <LoginForm />
 
             <div className="flex items-center gap-4 py-1">
@@ -135,21 +147,7 @@ export default function LoginPage() {
               <span>Crear una Nueva Cuenta Comercial</span>
             </TransitionLink>
 
-            <button
-              type="button"
-              className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 border border-[var(--auth-border)] rounded-lg text-[var(--auth-text)] bg-white text-xs font-medium hover:bg-[#f7f4ec] transition-all cursor-pointer shadow-sm active:scale-[0.99]"
-            >
-              <div className="relative h-4 w-4">
-                <Image
-                  src="/icons/google.webp"
-                  alt="Google OAuth"
-                  fill
-                  sizes="16px"
-                  className="object-contain opacity-90"
-                />
-              </div>
-              <span>Ingresar con Cuenta Google</span>
-            </button>
+            <GoogleSignInButton />
           </div>
         </section>
       </div>

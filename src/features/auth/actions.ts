@@ -3,11 +3,32 @@
 import { createClient } from "@/core/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+
+// --- RATE LIMITER SIMPLE (en memoria) ---
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(key: string, maxAttempts = 5, windowMs = 60000): boolean {
+  const now = Date.now();
+  const entry = rateLimitStore.get(key);
+  if (!entry || now > entry.resetAt) {
+    rateLimitStore.set(key, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+  if (entry.count >= maxAttempts) return false;
+  entry.count++;
+  return true;
+}
 
 export async function loginAction(payload: {
   email: string;
   password: string;
 }) {
+  const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
+  if (!checkRateLimit(`login:${ip}`)) {
+    return { error: "Demasiados intentos. Intentalo de nuevo en un minuto." };
+  }
+
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signInWithPassword({
@@ -24,7 +45,6 @@ export async function loginAction(payload: {
     };
   }
 
-  // Refrescamos caché y redirigimos fuera del bloque catch para evitar errores de Next.js
   revalidatePath("/", "layout");
   redirect("/pedidos");
 }
@@ -34,13 +54,17 @@ export async function registerAction(payload: {
   password: string;
   nombreNegocio: string;
 }) {
+  const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
+  if (!checkRateLimit(`register:${ip}`, 3)) {
+    return { error: "Demasiados intentos. Intentalo de nuevo en un minuto." };
+  }
+
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signUp({
     email: payload.email,
     password: payload.password,
     options: {
-      // Importante: La URL debe apuntar al callback de auth, no directo a /pedidos
       emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback`,
       data: {
         nombre_negocio: payload.nombreNegocio,
@@ -50,6 +74,39 @@ export async function registerAction(payload: {
 
   if (error) return { error: error.message };
 
+  return { success: true };
+}
+
+export async function signInWithGoogleAction() {
+  const supabase = await createClient();
+  const origin = (await headers()).get("origin") ?? "http://localhost:3000";
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${origin}/auth/callback`,
+    },
+  });
+
+  if (error) throw new Error(error.message);
+
+  redirect(data.url);
+}
+
+export async function resetPasswordAction(email: string) {
+  const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
+  if (!checkRateLimit(`reset:${ip}`, 3)) {
+    return { error: "Demasiados intentos. Intentalo de nuevo en un minuto." };
+  }
+
+  const supabase = await createClient();
+  const origin = (await headers()).get("origin") ?? "http://localhost:3000";
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/callback?type=recovery`,
+  });
+
+  if (error) return { error: error.message };
   return { success: true };
 }
 

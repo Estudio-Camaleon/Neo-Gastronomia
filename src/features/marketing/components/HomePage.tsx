@@ -9,6 +9,7 @@ import { Pricing } from "./Pricing";
 import { SubscriptionPlans } from "./SubscriptionPlans";
 import { Testimonials } from "./Testimonials";
 import "../style/home.css";
+import "../style/shapes.css";
 
 export function HomePage() {
   return (
