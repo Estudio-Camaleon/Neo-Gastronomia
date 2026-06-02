@@ -42,7 +42,13 @@ next-env.d.ts
 
 # Supabase
 /.supabase
+/supabase/.temp/
 
+# Editor
 .vscode
+*.swp
+*.swo
 
+# Cache
 .eslintcache
+tsconfig.tsbuildinfo
