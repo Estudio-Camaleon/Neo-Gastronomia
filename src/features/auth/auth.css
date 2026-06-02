@@ -1,15 +1,15 @@
 @layer base {
   :root {
-    /* Mapping to neo-home palette for a modern minimalist look */
     --auth-bg: #f7f4ec;
     --auth-surface-hero: transparent;
-    --auth-surface-form: #ffffff;
-    --auth-border: rgba(28, 72, 42, 0.12);
-    --auth-border-strong: rgba(28, 72, 42, 0.2);
+    --auth-surface-form: rgba(255, 255, 255, 0.9);
+    --auth-border: rgba(28, 72, 42, 0.18);
+    --auth-border-strong: rgba(28, 72, 42, 0.28);
     --auth-accent: #163225;
     --auth-accent-muted: #1f6b3d;
+    --auth-accent-secondary: #c05c3e;
     --auth-text: #163225;
-    --auth-text-muted: #5d6d64;
+    --auth-text-muted: #4a5a50;
     --auth-primary: #1f6b3d;
     --auth-primary-hover: #163225;
     --auth-primary-soft: #d8e8d4;
@@ -81,13 +81,18 @@
 .auth-input {
   height: 2.75rem;
   width: 100%;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   border: 1px solid var(--auth-border);
-  background: #faf8f2;
+  background: rgba(250, 248, 242, 0.8);
   color: var(--auth-text);
   font-size: 0.875rem;
   padding: 0 0.875rem;
   transition: all 0.25s ease;
+}
+
+.auth-input:hover:not(:focus) {
+  border-color: var(--auth-border-strong);
+  background: rgba(250, 248, 242, 0.95);
 }
 
 .auth-input:focus {
@@ -95,6 +100,7 @@
   border-color: var(--auth-primary);
   box-shadow: 0 0 0 3px rgba(31, 107, 61, 0.15);
   background: #ffffff;
+  transform: scale(1.01);
 }
 
 .auth-input::placeholder {
@@ -109,7 +115,7 @@
   gap: 0.5rem;
   width: 100%;
   height: 2.75rem;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   background: var(--auth-primary);
   color: #ffffff;
   font-weight: 500;
@@ -127,7 +133,7 @@
 }
 
 .auth-btn-primary:active:not(:disabled) {
-  transform: translateY(0);
+  transform: scale(0.97);
 }
 
 .auth-btn-primary:disabled {
@@ -179,5 +185,48 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes authMorphBlob {
+  0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  25% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+  50% { border-radius: 50% 60% 30% 60% / 40% 50% 60% 50%; }
+  75% { border-radius: 60% 30% 60% 40% / 30% 50% 40% 70%; }
+}
+
+@keyframes authFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33% { transform: translateY(-10px) rotate(0.5deg); }
+  66% { transform: translateY(-5px) rotate(-0.3deg); }
+}
+
+@keyframes authPulseGlow {
+  0%, 100% { opacity: 0.3; filter: blur(60px); }
+  50% { opacity: 0.6; filter: blur(80px); }
+}
+
+@keyframes authShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@layer utilities {
+  .auth-blob {
+    animation: authMorphBlob 18s ease-in-out infinite, authFloat 12s ease-in-out infinite;
+  }
+  .auth-blob-reverse {
+    animation: authMorphBlob 22s ease-in-out infinite reverse, authFloat 15s ease-in-out infinite reverse;
+  }
+  .auth-blob-secondary {
+    animation: authMorphBlob 20s ease-in-out infinite, authFloat 14s ease-in-out infinite;
+    animation-delay: -5s;
+  }
+  .auth-pulse-glow {
+    animation: authPulseGlow 6s ease-in-out infinite;
+  }
+  .auth-dot-grid {
+    background-image: radial-gradient(rgba(28, 72, 42, 0.12) 1px, transparent 1px);
+    background-size: 32px 32px;
   }
 }

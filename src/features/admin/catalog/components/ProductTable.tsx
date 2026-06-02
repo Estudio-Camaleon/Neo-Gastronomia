@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Edit3, Trash2, Tag, Package, Loader2 } from "lucide-react";
+import { Edit3, Trash2, Tag, Package } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/core/lib/supabase/client";
 import Image from "next/image";
@@ -100,12 +100,22 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
 
   if (loading) {
     return (
-      <div className="py-24 flex flex-col items-center justify-center space-y-3 text-sm text-[var(--admin-text-muted)]">
-        <Loader2
-          className="animate-spin text-[var(--admin-accent)]"
-          size={28}
-        />
-        <span>Cargando catálogo...</span>
+      <div className="space-y-3">
+        {[1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="admin-card p-4 flex items-center gap-4 animate-pulse"
+          >
+            <div className="w-12 h-12 rounded-xl shimmer-loader" />
+            <div className="flex-1 space-y-2">
+              <div className="h-4 w-48 rounded-lg shimmer-loader" />
+              <div className="h-3 w-32 rounded-lg shimmer-loader" />
+            </div>
+            <div className="h-4 w-20 rounded-lg shimmer-loader" />
+            <div className="h-6 w-16 rounded-lg shimmer-loader" />
+            <div className="h-8 w-20 rounded-lg shimmer-loader" />
+          </div>
+        ))}
       </div>
     );
   }
@@ -114,19 +124,19 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
     <div className="overflow-x-auto">
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="border-b border-[var(--admin-border)] bg-[var(--admin-bg)]/30 text-xs font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
-            <th className="p-4 pl-6">Producto</th>
-            <th className="p-4 hidden md:table-cell">Sección</th>
-            <th className="p-4">Precio</th>
-            <th className="p-4">Estado</th>
-            <th className="p-4 pr-6 text-right">Acciones</th>
+          <tr className="text-[10px] font-black uppercase tracking-widest text-[var(--admin-text-muted)]">
+            <th className="p-4 pl-6 border-b border-[var(--admin-border)]">Producto</th>
+            <th className="p-4 hidden md:table-cell border-b border-[var(--admin-border)]">Sección</th>
+            <th className="p-4 border-b border-[var(--admin-border)]">Precio</th>
+            <th className="p-4 border-b border-[var(--admin-border)]">Estado</th>
+            <th className="p-4 pr-6 text-right border-b border-[var(--admin-border)]">Acciones</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-[var(--admin-border)] text-sm">
           {productos.map((prod) => (
             <tr
               key={prod.id}
-              className="hover:bg-[var(--admin-border)]/20 transition-colors group bg-[var(--admin-surface)]"
+              className="hover:bg-[var(--admin-accent)]/5 transition-all duration-200 group"
             >
               <td className="p-4 pl-6">
                 <div className="flex items-center gap-4">
@@ -206,7 +216,7 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
             <tr>
               <td
                 colSpan={5}
-                className="p-12 text-center text-[var(--admin-text-muted)] bg-[var(--admin-surface)]"
+                className="p-16 text-center text-sm font-medium text-[var(--admin-text-muted)]"
               >
                 No hay productos registrados en el catálogo.
               </td>

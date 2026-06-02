@@ -4,14 +4,16 @@
     --theme-surface: rgba(255, 255, 255, 0.72);
     --theme-surface-strong: #ffffff;
     --theme-surface-soft: #eef5e9;
-    --theme-border: rgba(28, 72, 42, 0.12);
-    --theme-border-strong: rgba(28, 72, 42, 0.18);
+    --theme-border: rgba(28, 72, 42, 0.18);
+    --theme-border-strong: rgba(28, 72, 42, 0.28);
     --theme-primary: #1f6b3d;
     --theme-primary-soft: #d8e8d4;
     --theme-primary-soft-2: #bfd8b7;
     --theme-accent: #8dbb7a;
+    --theme-accent-secondary: #c05c3e;
+    --theme-accent-secondary-soft: #f5e0d9;
     --theme-text: #163225;
-    --theme-text-muted: #5d6d64;
+    --theme-text-muted: #4a5a50;
     --theme-shadow: 0 18px 50px rgba(31, 107, 61, 0.08);
 
     background-color: var(--theme-background);
@@ -155,4 +157,41 @@
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: var(--theme-border-strong);
   border-radius: 20px;
+}
+
+@layer utilities {
+  .animate-scale-on-hover {
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .animate-scale-on-hover:hover {
+    transform: scale(1.03);
+  }
+  .animate-scale-on-hover:active {
+    transform: scale(0.97);
+  }
+
+  .animate-lift {
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .animate-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 60px rgba(31, 107, 61, 0.12);
+  }
+
+  .shimmer-loader {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(31, 107, 61, 0.06) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmerSlide 1.5s ease-in-out infinite;
+  }
+
+  @keyframes shimmerSlide {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
 }

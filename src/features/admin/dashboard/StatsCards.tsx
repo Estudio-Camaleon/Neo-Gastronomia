@@ -13,9 +13,6 @@ interface StatCardProps {
   accentBg?: boolean;
 }
 
-/**
- * Celda atómica de métricas con UI Neo-Brutalista rígida de alta legibilidad.
- */
 function StatCard({
   title,
   value,
@@ -23,22 +20,24 @@ function StatCard({
   accentBg = false,
 }: StatCardProps) {
   return (
-    <div className="border-4 border-black bg-white p-6 flex items-center justify-between font-sans text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate-in fade-in duration-200">
-      <div className="space-y-1">
-        <h3 className="text-xs font-mono font-black uppercase text-gray-400 tracking-widest">
-          📊 METRIC // {title}
+    <div className="admin-card p-5 md:p-6 flex items-center justify-between animate-in fade-in duration-200">
+      <div className="space-y-1.5">
+        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--admin-text-muted)]">
+          {title}
         </h3>
-        <p className="text-4xl font-mono font-black italic tracking-tighter leading-none">
+        <p className="text-3xl md:text-4xl font-black tracking-tight leading-none text-[var(--admin-text)]">
           {value}
         </p>
       </div>
 
-      {/* Contenedor del Icono Vectorial con Sombra Plana */}
       <div
-        className={`w-12 h-12 border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_0px_#000000] shrink-0
-          ${accentBg ? "bg-[#A3FF00] text-black" : "bg-black text-white"}`}
+        className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-300 ${
+          accentBg
+            ? "bg-[var(--admin-accent)]/10 text-[var(--admin-accent)]"
+            : "bg-[var(--admin-surface-strong, rgba(255,255,255,0.9))] text-[var(--admin-text-muted)] border border-[var(--admin-border)]"
+        }`}
       >
-        <Icon className="h-5 w-5 stroke-[2.5]" />
+        <Icon className="h-5 w-5 stroke-[2]" />
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { TransitionLink } from "@/components/ui/transition-link";
-import { CheckCircle2, ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import Image from "next/image";
 
 const STEPS = [

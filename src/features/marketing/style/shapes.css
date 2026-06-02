@@ -1,70 +1,46 @@
 @layer utilities {
-  /* Patrón de puntos minimalista (Dot Grid) */
-  .neo-grid-pattern {
-    background-image: radial-gradient(
-      var(--theme-border-strong) 1px,
-      transparent 1px
-    );
-    background-size: 40px 40px;
-    opacity: 0.4;
+  @keyframes morphBlob {
+    0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+    25% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+    50% { border-radius: 50% 60% 30% 60% / 40% 50% 60% 50%; }
+    75% { border-radius: 60% 30% 60% 40% / 30% 50% 40% 70%; }
   }
 
-  /* Líneas arquitectónicas sutiles */
-  .neo-line-vertical {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    background: linear-gradient(
-      to bottom,
-      transparent,
-      var(--theme-border),
-      transparent
-    );
+  @keyframes pulseGlow {
+    0%, 100% { opacity: 0.4; filter: blur(60px); }
+    50% { opacity: 0.7; filter: blur(80px); }
   }
 
-  .neo-line-horizontal {
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(
-      to right,
-      transparent,
-      var(--theme-border),
-      transparent
-    );
+  @keyframes floatGently {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    33% { transform: translateY(-8px) rotate(0.5deg); }
+    66% { transform: translateY(-4px) rotate(-0.3deg); }
   }
 
-  /* Animaciones mecánicas para geometría sólida */
-  .animate-float-shape {
-    animation: floatShape 12s ease-in-out infinite;
+  .animate-blob {
+    animation: morphBlob 18s ease-in-out infinite, floatGently 12s ease-in-out infinite;
   }
 
-  .animate-spin-slow {
-    animation: spinSlow 20s linear infinite;
+  .animate-blob-reverse {
+    animation: morphBlob 22s ease-in-out infinite reverse, floatGently 15s ease-in-out infinite reverse;
   }
 
-  .animate-spin-slow-reverse {
-    animation: spinSlow 25s linear infinite reverse;
+  .animate-pulse-glow {
+    animation: pulseGlow 6s ease-in-out infinite;
   }
 
-  @keyframes floatShape {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-20px);
-    }
+  .animate-blob-delayed {
+    animation: morphBlob 20s ease-in-out infinite, floatGently 14s ease-in-out infinite;
+    animation-delay: -5s;
   }
 
-  @keyframes spinSlow {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
+  .animate-scale-on-hover-admin {
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .animate-scale-on-hover-admin:hover {
+    transform: scale(1.02);
+  }
+  .animate-scale-on-hover-admin:active {
+    transform: scale(0.97);
   }
 }

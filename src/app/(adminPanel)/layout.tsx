@@ -35,7 +35,7 @@ export default async function AdminPanelLayout({
   // 3. Contingencia: Si no posee local asignado
   if (businessError || !negocio) {
     return (
-      <div className="admin-theme-wrapper min-h-screen bg-[#f4f4f4] text-[#0f172a] flex items-center justify-center antialiased font-sans">
+      <div className="admin-theme-wrapper min-h-screen flex items-center justify-center antialiased font-sans">
         <ErrorModal
           title="Terminal Incompleta"
           message="Necesitás inicializar la infraestructura operativa de tu local antes de acceder a las herramientas de control maestro."
@@ -43,7 +43,7 @@ export default async function AdminPanelLayout({
             <div className="flex flex-col gap-3.5 w-full">
               <TransitionLink
                 href="/registro"
-                className="block w-full py-4 bg-[#34a35f] hover:bg-[#2e8f53] text-white font-bold rounded-xl shadow-md hover:shadow-lg active:scale-95 transition-all text-center text-sm tracking-wide"
+                className="btn-primary w-full py-4 text-center"
               >
                 Completar Registro de Local
               </TransitionLink>
@@ -59,7 +59,7 @@ export default async function AdminPanelLayout({
               >
                 <button
                   type="submit"
-                  className="text-xs text-zinc-500 hover:text-zinc-800 hover:underline transition-colors text-center font-medium bg-transparent border-none cursor-pointer py-1 outline-none"
+                  className="btn-ghost text-xs"
                 >
                   Cerrar sesión o cambiar de cuenta
                 </button>
@@ -76,9 +76,9 @@ export default async function AdminPanelLayout({
     <LoadingProvider>
       <ThemeProvider>
         <div className="flex min-h-screen bg-[var(--admin-bg)] text-[var(--admin-text)] font-sans antialiased w-full transition-colors duration-200">
-          {/* Elementos geométricos optimizados sin ralentización de GPU */}
-          <div className="fixed top-[-10%] left-[-5%] w-96 h-96 bg-[var(--admin-border)] rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-60 pointer-events-none" />
-          <div className="fixed top-[20%] right-[-10%] w-[500px] h-[500px] bg-[var(--admin-accent)] rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[120px] opacity-10 pointer-events-none" />
+          {/* Blobs orgánicos animados */}
+          <div className="fixed top-[-10%] left-[-5%] w-96 h-96 bg-[var(--admin-accent)] rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-40 pointer-events-none animate-blob" />
+          <div className="fixed bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-[var(--admin-accent-secondary)]/60 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none animate-blob-reverse" />
 
           {/* Sidebar de Escritorio */}
           <aside className="hidden lg:flex lg:w-72 lg:flex-col lg:fixed lg:inset-y-0 z-20">
@@ -88,9 +88,9 @@ export default async function AdminPanelLayout({
           {/* Contenedor de Trabajo Principal */}
           <div className="flex-1 flex flex-col lg:pl-72 z-10">
             {/* Header de Dispositivos Móviles */}
-            <header className="flex lg:hidden items-center justify-between p-4 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]/80 backdrop-blur-md sticky top-0 z-30 shadow-xs transition-colors duration-300">
+            <header className="flex lg:hidden items-center justify-between p-4 border-b border-[var(--admin-border)] bg-[var(--admin-surface)] backdrop-blur-lg sticky top-0 z-30 transition-all duration-300">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-[var(--admin-accent)] rounded-lg flex items-center justify-center text-white font-bold shadow-xs">
+                <div className="w-8 h-8 rounded-xl bg-[var(--admin-accent)] flex items-center justify-center text-white font-bold shadow-sm">
                   N
                 </div>
                 <span className="font-bold text-lg text-[var(--admin-text)] tracking-tight">
@@ -100,7 +100,7 @@ export default async function AdminPanelLayout({
                   </span>
                 </span>
               </div>
-              <button className="p-2 bg-[var(--admin-border)]/40 text-[var(--admin-accent)] rounded-lg hover:bg-[var(--admin-border)] transition-colors cursor-pointer outline-none">
+              <button className="p-2 bg-[var(--admin-accent)]/5 text-[var(--admin-accent)] rounded-xl hover:bg-[var(--admin-accent)]/10 transition-all duration-200 cursor-pointer outline-none active:scale-95">
                 <Menu size={20} />
               </button>
             </header>

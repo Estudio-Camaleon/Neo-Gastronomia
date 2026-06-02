@@ -101,7 +101,7 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
   const removeItem = useCartStore((state) => state.removeItem);
   const isCartOpen = useCartStore((state) => state.isCartOpen);
   const setCartOpen = useCartStore((state) => state.setCartOpen);
-  const totalItems = cart.reduce((acc, item) => acc + item.cantidad, 0);
+  const _totalItems = cart.reduce((acc, item) => acc + item.cantidad, 0);
   const isOpenNow = estaAbierto(negocio.horarios);
   const todayKey = useMemo(() => {
     const formatter = new Intl.DateTimeFormat("es-AR", {
@@ -199,8 +199,9 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
                   <Image
                     src="/icons/neo_logo_negro.webp"
                     alt="Estudio Camaleon"
-                    width={32}
-                    height={32}
+                    width={0}
+                    height={0}
+                    sizes="48px"
                     className="h-7 w-7 object-contain sm:h-8 sm:w-8"
                   />
                 </div>

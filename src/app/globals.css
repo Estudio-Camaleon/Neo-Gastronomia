@@ -58,6 +58,66 @@ html {
   }
 }
 
+@layer utilities {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold tracking-wide transition-all duration-200;
+    background: var(--admin-accent, #1f6b3d);
+    color: white;
+    box-shadow: 0 4px 14px rgba(31, 107, 61, 0.16);
+  }
+  .btn-primary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(31, 107, 61, 0.22);
+  }
+  .btn-primary:active {
+    transform: scale(0.97);
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold tracking-wide transition-all duration-200;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--admin-border, rgba(28, 72, 42, 0.18));
+    color: var(--admin-text, #163225);
+  }
+  .btn-secondary:hover {
+    border-color: var(--admin-border-strong, rgba(28, 72, 42, 0.28));
+    background: rgba(255, 255, 255, 0.85);
+    transform: translateY(-1px);
+  }
+  .btn-secondary:active {
+    transform: scale(0.97);
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200;
+    color: var(--admin-text-muted, #4a5a50);
+  }
+  .btn-ghost:hover {
+    background: rgba(31, 107, 61, 0.06);
+    color: var(--admin-text, #163225);
+  }
+  .btn-ghost:active {
+    transform: scale(0.97);
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold tracking-wide transition-all duration-200;
+    background: rgba(192, 92, 62, 0.1);
+    border: 1px solid rgba(192, 92, 62, 0.2);
+    color: var(--admin-accent-secondary, #c05c3e);
+  }
+  .btn-danger:hover {
+    background: rgba(192, 92, 62, 0.15);
+    border-color: rgba(192, 92, 62, 0.3);
+    transform: translateY(-1px);
+  }
+  .btn-danger:active {
+    transform: scale(0.97);
+  }
+}
+
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: var(--font-sans);

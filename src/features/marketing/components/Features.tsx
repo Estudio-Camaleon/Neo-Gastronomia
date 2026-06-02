@@ -68,19 +68,19 @@ export function Features() {
           {featuresList.map((feat, idx) => (
             <div
               key={idx}
-              className={`glass-card p-6 flex flex-col gap-4 border border-[var(--theme-border)] min-h-[200px] opacity-0 ${
+              className={`glass-card p-6 sm:p-7 flex flex-col gap-4 border border-[var(--theme-border)] min-h-[180px] sm:min-h-[200px] opacity-0 transition-all duration-300 hover:border-[var(--theme-primary-soft-2)] hover:shadow-[0_20px_50px_rgba(31,107,61,0.1)] ${
                 isVisible ? "animate-fade-in-up" : ""
               }`}
               style={{ animationDelay: `${idx * 100}ms` }}
             >
-              <div className="h-12 w-12 flex items-center justify-center rounded-2xl bg-[var(--theme-primary-soft)] border border-[var(--theme-border)] text-[var(--theme-primary)] shadow-[0_0_15px_rgba(31,107,61,0.08)]">
+              <div className="h-11 w-11 sm:h-12 sm:w-12 flex items-center justify-center rounded-2xl bg-[var(--theme-primary-soft)] border border-[var(--theme-border)] text-[var(--theme-primary)] shadow-[0_0_15px_rgba(31,107,61,0.08)] transition-transform duration-300 group-hover:scale-110">
                 {feat.icon}
               </div>
               <div className="space-y-2">
-                <h3 className="text-lg font-black uppercase tracking-tight text-[var(--theme-text)]">
+                <h3 className="text-base sm:text-lg font-black uppercase tracking-tight text-[var(--theme-text)]">
                   {feat.title}
                 </h3>
-                <p className="text-sm text-[var(--theme-text-muted)] leading-relaxed">
+                <p className="text-xs sm:text-sm text-[var(--theme-text-muted)] leading-relaxed">
                   {feat.desc}
                 </p>
               </div>

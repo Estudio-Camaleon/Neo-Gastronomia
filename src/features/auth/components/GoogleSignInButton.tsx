@@ -23,7 +23,7 @@ export function GoogleSignInButton() {
       type="button"
       disabled={loading}
       onClick={handleClick}
-      className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 border border-[var(--auth-border)] rounded-lg text-[var(--auth-text)] bg-white text-xs font-medium hover:bg-[#f7f4ec] transition-all cursor-pointer shadow-sm active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
+      className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 border border-[var(--auth-border)] rounded-xl text-[var(--auth-text)] bg-white/80 backdrop-blur-sm text-xs font-medium hover:bg-white hover:border-[var(--auth-border-strong)] transition-all duration-200 cursor-pointer shadow-sm active:scale-[0.97] disabled:opacity-60 disabled:cursor-not-allowed"
     >
       {loading ? (
         <Loader2 className="h-4 w-4 animate-spin" />

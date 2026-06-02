@@ -26,27 +26,32 @@ export default async function LoginPage(props: { searchParams?: Promise<{ messag
   const validatedMessage = searchParams?.message === "correo_validado";
 
   return (
-    <div className="auth-layout-container flex flex-col min-h-screen text-[var(--auth-text)] antialiased font-sans">
-      <div className="flex-1 grid lg:grid-cols-12 overflow-hidden">
-        {/* === SECCIÓN IZQUIERDA: HERO MINIMALISTA === */}
-        <section className="hidden lg:flex lg:col-span-7 relative p-16 flex-col justify-between items-center overflow-hidden bg-[var(--auth-surface-hero)] border-r border-[var(--auth-border)]">
-          <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none">
-            <Image
-              src="/Neo_portada.webp"
-              alt="Fondo Portada"
-              fill
-              sizes="(max-width: 1024px) 100vw, 60vw"
-              className="object-cover mix-blend-overlay"
-              priority
-            />
-          </div>
+    <div className="auth-layout-container flex flex-col min-h-screen text-[var(--auth-text)] antialiased font-sans relative overflow-hidden">
+      {/* Blobs orgánicos animados de fondo (global) */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-8%] left-[-5%] w-[500px] h-[500px] bg-[var(--auth-primary)]/8 rounded-full auth-blob auth-pulse-glow" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[450px] h-[450px] bg-[var(--auth-accent-secondary)]/10 rounded-full auth-blob-reverse auth-pulse-glow" />
+        <div className="absolute top-[40%] right-[30%] w-[300px] h-[300px] bg-[var(--auth-primary-soft)]/20 rounded-full auth-blob-secondary" />
+      </div>
 
-          <div className="absolute top-[-10%] left-[-5%] w-96 h-96 bg-zinc-100/40 rounded-full mix-blend-multiply filter blur-3xl opacity-60 z-0 pointer-events-none" />
+      <div className="flex-1 grid lg:grid-cols-12 overflow-hidden relative z-10">
+        {/* === SECCIÓN IZQUIERDA: HERO VIVO === */}
+        <section className="hidden lg:flex lg:col-span-7 relative p-16 flex-col justify-between items-center overflow-hidden bg-gradient-to-br from-[var(--auth-bg)] via-transparent to-[var(--auth-primary-soft)]/10 border-r border-[var(--auth-border)]">
+          {/* Dot grid pattern */}
+          <div className="absolute inset-0 auth-dot-grid opacity-30 pointer-events-none" />
+
+          {/* Blobs locales del lado izquierdo */}
+          <div className="absolute top-[-15%] left-[-10%] w-[600px] h-[600px] bg-[var(--auth-primary)]/5 rounded-full auth-blob pointer-events-none" />
+          <div className="absolute bottom-[-20%] right-[-15%] w-[500px] h-[500px] bg-[var(--auth-accent-secondary)]/8 rounded-full auth-blob-reverse pointer-events-none" />
+
+          {/* Líneas arquitectónicas sutiles */}
+          <div className="absolute top-0 bottom-0 left-1/4 w-px bg-gradient-to-b from-transparent via-[var(--auth-border)] to-transparent opacity-30" />
+          <div className="absolute top-0 bottom-0 right-1/3 w-px bg-gradient-to-b from-transparent via-[var(--auth-border)] to-transparent opacity-20" />
 
           <div className="w-full text-left z-10">
             <TransitionLink
               href="/"
-              className="inline-block transition-transform hover:scale-[1.01] active:scale-95"
+              className="inline-block transition-all duration-300 hover:scale-[1.02] active:scale-95"
             >
               <div className="relative h-8 w-24">
                 <Image
@@ -63,10 +68,10 @@ export default async function LoginPage(props: { searchParams?: Promise<{ messag
 
           <div className="flex-1 flex flex-col items-center justify-center space-y-10 max-w-xl z-10">
             <div className="space-y-4 text-center">
-              <h1 className="text-4xl xl:text-5xl font-bold tracking-tight text-[var(--auth-accent)] leading-tight">
-                Bienvenido al futuro <br />
-                <span className="font-light italic text-[var(--auth-accent-muted)]">
-                  de tu restaurante
+              <h1 className="text-4xl xl:text-5xl font-black tracking-tight text-[var(--auth-accent)] leading-[0.95] uppercase">
+                Bienvenido al <br />
+                <span className="text-[var(--auth-accent-muted)] font-light italic normal-case">
+                  futuro de tu restaurante
                 </span>
               </h1>
               <p className="text-[var(--auth-text-muted)] text-sm leading-relaxed max-w-sm mx-auto font-medium">
@@ -77,7 +82,7 @@ export default async function LoginPage(props: { searchParams?: Promise<{ messag
 
             <div className="flex flex-wrap justify-center gap-2 max-w-md">
               {CATEGORIES.map((item, idx) => (
-                <div key={idx} className="auth-badge">
+                <div key={idx} className="auth-badge animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: `${idx * 80}ms` }}>
                   <span className="text-[var(--auth-primary)]">
                     {item.icon}
                   </span>
@@ -91,7 +96,11 @@ export default async function LoginPage(props: { searchParams?: Promise<{ messag
         </section>
 
         {/* === SECCIÓN DERECHA: PASARELA LOGIN === */}
-        <section className="col-span-12 lg:col-span-5 flex flex-col justify-center items-center p-6 md:p-12 bg-[var(--auth-surface-form)] relative">
+        <section className="col-span-12 lg:col-span-5 flex flex-col justify-center items-center p-6 md:p-12 relative bg-[var(--auth-surface-form)] backdrop-blur-xl">
+          {/* Blobs sutiles del lado del form */}
+          <div className="absolute top-[-5%] right-[-10%] w-[300px] h-[300px] bg-[var(--auth-primary)]/5 rounded-full auth-blob pointer-events-none" />
+          <div className="absolute bottom-[-5%] left-[-10%] w-[250px] h-[250px] bg-[var(--auth-accent-secondary)]/6 rounded-full auth-blob-reverse pointer-events-none" />
+
           <div className="w-full max-w-md space-y-8 relative z-10">
             {/* Logo Mobile */}
             <div className="flex lg:hidden justify-center mb-4">
@@ -110,10 +119,10 @@ export default async function LoginPage(props: { searchParams?: Promise<{ messag
             </div>
 
             <div className="text-center lg:text-left space-y-2">
-              <h2 className="text-2xl font-bold text-[var(--auth-accent)] tracking-tight">
-                Consola Maestro /{" "}
-                <span className="font-light text-[var(--auth-accent-muted)]">
-                  NEO
+              <h2 className="text-2xl font-black tracking-tight text-[var(--auth-accent)] uppercase">
+                Consola Maestro{" "}
+                <span className="font-light normal-case text-[var(--auth-accent-muted)]">
+                  / NEO
                 </span>
               </h2>
               <p className="text-[var(--auth-text-muted)] text-xs font-medium">
@@ -141,7 +150,7 @@ export default async function LoginPage(props: { searchParams?: Promise<{ messag
 
             <TransitionLink
               href="/registro"
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 border border-[var(--auth-border)] rounded-lg bg-[#f7f4ec] hover:bg-[#eef5e9] text-[var(--auth-text)] text-xs font-medium transition-all shadow-sm active:scale-[0.99]"
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 border border-[var(--auth-border)] rounded-xl bg-[var(--auth-bg)] hover:bg-[var(--auth-primary-soft)] text-[var(--auth-text)] text-xs font-medium transition-all duration-200 active:scale-[0.97]"
             >
               <UserPlus size={14} className="text-[var(--auth-primary)]" />
               <span>Crear una Nueva Cuenta Comercial</span>

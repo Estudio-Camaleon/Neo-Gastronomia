@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef } from "react";
 import { Loader2, X, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
-import Image from "next/image";
 
 interface ImageUploadProps {
   value: string | null;

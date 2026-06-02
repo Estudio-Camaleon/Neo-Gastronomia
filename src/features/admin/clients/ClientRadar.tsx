@@ -56,36 +56,38 @@ export function ClientRadar({ initialClientes }: ClientRadarProps) {
   return (
     <div className="space-y-6">
       {/* BARRA DE BÚSQUEDA Y CONTROL */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-2xl p-6 shadow-sm">
-        <div className="space-y-1">
-          <h2 className="text-xl font-bold text-[var(--admin-text)] flex items-center gap-2">
-            <Users className="h-6 w-6 text-[var(--admin-accent)]" />
-            Radar de Clientes
-          </h2>
-          <p className="text-sm text-[var(--admin-text-muted)] font-medium">
-            Ranking de fidelidad, volumen de transacciones y notas de auditoría.
-          </p>
-        </div>
+      <div className="admin-card p-5 md:p-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <h2 className="text-xl font-bold text-[var(--admin-text)] flex items-center gap-2">
+              <Users className="h-6 w-6 text-[var(--admin-accent)]" />
+              Radar de Clientes
+            </h2>
+            <p className="text-sm font-medium text-[var(--admin-text-muted)]">
+              Ranking de fidelidad, volumen de transacciones y notas de auditoría.
+            </p>
+          </div>
 
-        <div className="relative group w-full md:max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--admin-text-muted)]" />
-          <input
-            type="text"
-            placeholder="Buscar por nombre o teléfono..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            className="w-full bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg py-2.5 pl-10 pr-4 text-sm text-[var(--admin-text)] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)] transition-all shadow-sm placeholder:text-[var(--admin-text-muted)]"
-          />
+          <div className="relative group w-full md:max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--admin-text-muted)]" />
+            <input
+              type="text"
+              placeholder="Buscar por nombre o teléfono..."
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              className="admin-input"
+            />
+          </div>
         </div>
       </div>
 
       {/* CONTENEDOR MONOLÍTICO DE LA TABLA / REJILLA */}
-      <div className="overflow-hidden bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-2xl shadow-sm">
-        <div className="px-5 py-4 border-b border-[var(--admin-border)] flex justify-between items-center bg-[var(--admin-bg)]/50">
+      <div className="admin-card overflow-hidden !p-0">
+        <div className="px-5 py-4 border-b border-[var(--admin-border)] flex justify-between items-center">
           <span className="font-bold text-[var(--admin-text)] text-sm">
             Listado de Consumidores
           </span>
-          <span className="text-xs font-bold bg-[var(--admin-accent)]/10 text-[var(--admin-accent)] px-2.5 py-1 rounded-full">
+          <span className="text-[10px] font-black uppercase tracking-wider bg-[var(--admin-accent)]/10 text-[var(--admin-accent)] px-2.5 py-1 rounded-full">
             {clientesFiltrados.length} Registros
           </span>
         </div>
@@ -166,7 +168,7 @@ export function ClientRadar({ initialClientes }: ClientRadarProps) {
                           onClick={() =>
                             handleAuditarNotas(cliente.id, cliente.notas)
                           }
-                          className="p-2 text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] hover:bg-[var(--admin-accent)]/10 rounded-lg transition-colors border border-transparent"
+                          className="p-2 text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] hover:bg-[var(--admin-accent)]/10 rounded-xl transition-all duration-200 border border-transparent hover:border-[var(--admin-accent)]/20 active:scale-90"
                           title="Auditar historial"
                         >
                           <StickyNote size={16} />
@@ -176,7 +178,7 @@ export function ClientRadar({ initialClientes }: ClientRadarProps) {
                             href={`https://wa.me/${cliente.telefono.replace(/\D/g, "")}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-2 text-green-500 hover:bg-green-500/10 rounded-lg transition-colors border border-transparent"
+                            className="p-2 text-green-500 hover:bg-green-500/10 rounded-xl transition-all duration-200 border border-transparent hover:border-green-500/20 active:scale-90"
                             title="Canal WhatsApp"
                           >
                             <MessageCircle size={16} />
@@ -192,13 +194,13 @@ export function ClientRadar({ initialClientes }: ClientRadarProps) {
         </div>
 
         {/* === TARJETAS: LAYOUT RESPONSIVO MÓVIL (md:hidden) === */}
-        <div className="grid grid-cols-1 gap-4 md:hidden p-4 bg-[var(--admin-bg)]">
+        <div className="grid grid-cols-1 gap-4 md:hidden p-4">
           {clientesFiltrados.map((cliente, index) => {
             const esTop1 = index === 0;
             return (
               <div
                 key={cliente.id}
-                className="p-4 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl shadow-sm flex flex-col space-y-4"
+                className="admin-card p-4 flex flex-col space-y-4"
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
@@ -245,7 +247,7 @@ export function ClientRadar({ initialClientes }: ClientRadarProps) {
                     onClick={() =>
                       handleAuditarNotas(cliente.id, cliente.notas)
                     }
-                    className="py-2.5 px-3 bg-[var(--admin-surface)] border border-[var(--admin-border)] text-[var(--admin-text)] rounded-lg text-xs font-bold hover:border-[var(--admin-accent)] transition-colors flex justify-center items-center gap-2 shadow-sm"
+                    className="btn-secondary flex-1 text-xs"
                   >
                     <StickyNote size={14} /> Anotaciones
                   </button>
@@ -254,14 +256,14 @@ export function ClientRadar({ initialClientes }: ClientRadarProps) {
                       href={`https://wa.me/${cliente.telefono.replace(/\D/g, "")}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="py-2.5 px-3 bg-[#25D366] hover:opacity-90 text-white rounded-lg text-xs font-bold transition-colors flex justify-center items-center gap-2 shadow-sm"
+                      className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-3 bg-[#25D366] hover:opacity-90 text-white rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm"
                     >
                       <MessageCircle size={14} /> WhatsApp
                     </a>
                   ) : (
                     <button
                       disabled
-                      className="py-2.5 px-3 bg-[var(--admin-bg)] border border-[var(--admin-border)] text-[var(--admin-text-muted)] rounded-lg text-xs font-bold cursor-not-allowed flex justify-center items-center"
+                      className="flex-1 py-2.5 px-3 bg-[var(--admin-bg)] border border-[var(--admin-border)] text-[var(--admin-text-muted)] rounded-xl text-xs font-bold cursor-not-allowed flex justify-center items-center"
                     >
                       Sin Teléfono
                     </button>

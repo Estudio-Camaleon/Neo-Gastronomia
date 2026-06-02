@@ -8,43 +8,90 @@
   --color-admin-text: var(--admin-text);
   --color-admin-text-muted: var(--admin-text-muted);
   --color-admin-accent: var(--admin-accent);
+  --color-admin-accent-secondary: var(--admin-accent-secondary);
   --color-admin-danger: var(--admin-danger);
 }
 
-/* El entorno administrativo se encapsula bajo su propia clase contenedora */
 .admin-theme-wrapper {
-  --admin-surface: #ffffff;
-  --admin-surface-secondary: #f9f9f9;
-  --admin-bg: #f4f4f4;
-  --admin-border: #e5e7eb;
-  --admin-text: #0f172a;
-  --admin-text-muted: #64748b;
-  --admin-accent: #34a35f;
-  --admin-danger: #e11d48;
+  --admin-surface: rgba(255, 255, 255, 0.85);
+  --admin-surface-secondary: rgba(249, 249, 249, 0.7);
+  --admin-bg: #f7f4ec;
+  --admin-border: rgba(28, 72, 42, 0.15);
+  --admin-border-strong: rgba(28, 72, 42, 0.25);
+  --admin-text: #163225;
+  --admin-text-muted: #4a5a50;
+  --admin-accent: #1f6b3d;
+  --admin-accent-secondary: #c05c3e;
+  --admin-danger: #c05c3e;
+  --admin-shadow: 0 8px 30px rgba(31, 107, 61, 0.06);
 }
 
-/* El modo oscuro solo opera si coexiste dentro del wrapper administrativo */
 .admin-theme-wrapper.dark {
-  --admin-surface: #0f0f11;
-  --admin-surface-secondary: #18181b;
-  --admin-bg: #000000;
-  --admin-border: #27272a;
+  --admin-surface: rgba(22, 28, 25, 0.9);
+  --admin-surface-secondary: rgba(18, 24, 21, 0.85);
+  --admin-bg: #0e1410;
+  --admin-border: rgba(255, 255, 255, 0.08);
+  --admin-border-strong: rgba(255, 255, 255, 0.15);
   --admin-text: #f4f4f5;
-  --admin-text-muted: #a1a1aa;
-  --admin-accent: #22c55e;
+  --admin-text-muted: #8a9a90;
+  --admin-accent: #34a35f;
+  --admin-accent-secondary: #d47a5a;
   --admin-danger: #f87171;
+  --admin-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
 }
 
 @layer components {
   .admin-card {
-    @apply bg-[var(--admin-surface)] border border-[var(--admin-border)] 
-           rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.03)] 
-           transition-colors duration-200;
+    background: var(--admin-surface);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--admin-border);
+    border-radius: 20px;
+    box-shadow: var(--admin-shadow);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .admin-card:hover {
+    border-color: var(--admin-border-strong);
+    box-shadow: 0 12px 40px rgba(31, 107, 61, 0.1);
+    transform: translateY(-1px);
   }
 
   .admin-sidebar {
-    @apply flex flex-col h-full bg-[var(--admin-surface)] 
-           border-r border-[var(--admin-border)] 
-           transition-colors duration-200;
+    @apply flex flex-col h-full;
+    background: var(--admin-surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid var(--admin-border);
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+
+  .admin-input {
+    height: 2.75rem;
+    width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid var(--admin-border);
+    background: rgba(255, 255, 255, 0.6);
+    color: var(--admin-text);
+    font-size: 0.875rem;
+    padding: 0 0.875rem;
+    transition: all 0.25s ease;
+  }
+
+  .admin-input:focus {
+    outline: none;
+    border-color: var(--admin-accent);
+    box-shadow: 0 0 0 3px rgba(31, 107, 61, 0.12);
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  .admin-input:hover:not(:focus) {
+    border-color: var(--admin-border-strong);
+    background: rgba(255, 255, 255, 0.75);
+  }
+
+  .admin-input::placeholder {
+    color: var(--admin-text-muted);
+    opacity: 0.7;
   }
 }

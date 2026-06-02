@@ -85,9 +85,9 @@ export function Sidebar({ slug, negocioNombre, negocioId }: SidebarProps) {
           <div className="my-5 border-t border-[var(--admin-border)] shrink-0" />
 
           {/* === 2. BLOQUE RADAR DE SINCRONIZACIÓN REALTIME === */}
-          <div className="bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-xl p-4 shadow-sm relative overflow-hidden shrink-0">
+          <div className="admin-card p-4 relative overflow-hidden shrink-0">
             <div className="flex items-center gap-3 relative z-10">
-              <div className="relative flex items-center justify-center p-1.5 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-lg shadow-xs">
+              <div className="relative flex items-center justify-center p-1.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-xl">
                 <Activity size={16} className="text-[var(--admin-accent)]" />
                 <div className="absolute inset-0 bg-[var(--admin-accent)] opacity-15 blur-md animate-pulse rounded-lg" />
               </div>
@@ -128,16 +128,16 @@ export function Sidebar({ slug, negocioNombre, negocioId }: SidebarProps) {
                   key={link.name}
                   href={link.href}
                   className={`
-                    flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group relative font-semibold text-sm
+                    flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group relative font-semibold text-sm active:scale-[0.97]
                     ${
                       isActive
                         ? "bg-[var(--admin-accent)] text-white shadow-sm shadow-[var(--admin-accent)]/20"
-                        : "text-[var(--admin-text-muted)] hover:bg-[var(--admin-surface-accent)] hover:text-[var(--admin-text)]"
+                        : "text-[var(--admin-text-muted)] hover:bg-[var(--admin-accent)]/5 hover:text-[var(--admin-text)]"
                     }
                   `}
                 >
                   {isActive && (
-                    <span className="absolute left-0 w-1 h-5 bg-white rounded-r-md" />
+                    <span className="absolute left-0 w-0.5 h-5 bg-white rounded-r-md shadow-sm" />
                   )}
 
                   <Icon
@@ -146,7 +146,7 @@ export function Sidebar({ slug, negocioNombre, negocioId }: SidebarProps) {
                     className={
                       isActive
                         ? "text-white"
-                        : "text-[var(--admin-text-subtle)] group-hover:text-[var(--admin-text)] transition-colors"
+                        : "text-[var(--admin-text-muted)] group-hover:text-[var(--admin-text)] transition-colors"
                     }
                   />
                   <span className="tracking-wide">{link.name}</span>
@@ -158,10 +158,10 @@ export function Sidebar({ slug, negocioNombre, negocioId }: SidebarProps) {
 
         {/* === 4. BLOQUE FOOTER GLOBAL === */}
         <div className="mt-auto pt-4 border-t border-[var(--admin-border)] space-y-4 shrink-0">
-          <div className="flex bg-[var(--admin-bg)] rounded-xl p-1 shadow-inner border border-[var(--admin-border)]">
+          <div className="flex bg-[var(--admin-bg)] rounded-xl p-1 border border-[var(--admin-border)]">
             <button
               onClick={() => setTheme("light")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-lg transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-lg transition-all active:scale-[0.97] ${
                 theme === "light"
                   ? "bg-[var(--admin-surface)] text-[var(--admin-text)] shadow-xs border border-[var(--admin-border)]"
                   : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface)]/40"
@@ -171,7 +171,7 @@ export function Sidebar({ slug, negocioNombre, negocioId }: SidebarProps) {
             </button>
             <button
               onClick={() => setTheme("dark")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-lg transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-lg transition-all active:scale-[0.97] ${
                 theme === "dark"
                   ? "bg-[var(--admin-surface)] text-[var(--admin-text)] shadow-xs border border-[var(--admin-border)]"
                   : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface)]/40"
@@ -206,9 +206,9 @@ export function Sidebar({ slug, negocioNombre, negocioId }: SidebarProps) {
           <button
             type="button"
             onClick={() => setShowLogoutConfirm(true)}
-            className="w-full flex items-center gap-3 p-2.5 rounded-xl group transition-all hover:bg-red-500/10 border border-transparent hover:border-red-500/20"
+            className="w-full flex items-center gap-3 p-2.5 rounded-xl group transition-all hover:bg-[var(--admin-accent-secondary)]/10 border border-transparent hover:border-[var(--admin-accent-secondary)]/20 active:scale-[0.97]"
           >
-            <div className="p-2 rounded-lg bg-[var(--admin-surface-accent)] text-[var(--admin-text-muted)] group-hover:bg-red-500 group-hover:text-white transition-colors">
+            <div className="p-2 rounded-xl bg-[var(--admin-bg)] text-[var(--admin-text-muted)] group-hover:bg-[var(--admin-accent-secondary)] group-hover:text-white transition-colors">
               <LogOut size={16} />
             </div>
             <div className="flex flex-col items-start overflow-hidden text-left">

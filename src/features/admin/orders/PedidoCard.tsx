@@ -26,23 +26,20 @@ export function PedidoCard({
   const isLoading = loadingId === pedido.id;
 
   return (
-    <div className="admin-card overflow-hidden flex flex-col h-full !p-0 bg-[var(--admin-surface)] border border-[var(--admin-border)] dark:bg-zinc-900/90 shadow-sm rounded-2xl">
+    <div className="admin-card overflow-hidden flex flex-col h-full !p-0 transition-all duration-300 hover:shadow-lg">
       {/* HEADER DE CANAL DE DESPACHO */}
       <div
         className={`px-5 py-3 border-b border-[var(--admin-border)] flex justify-between items-center transition-colors ${
           pedido.estado === "en_preparacion"
-            ? "bg-[var(--admin-accent)]/5 dark:bg-[var(--admin-accent)]/10"
-            : "bg-white dark:bg-zinc-900"
+            ? "bg-[var(--admin-accent)]/5"
+            : "bg-[var(--admin-surface)]/50"
         }`}
       >
         <div className="flex items-center gap-2 text-sm font-semibold text-[var(--admin-text)]">
           {pedido.es_delivery ? (
-            <Truck size={16} className="text-blue-500 dark:text-blue-400" />
+            <Truck size={16} className="text-blue-500" />
           ) : (
-            <Smartphone
-              size={16}
-              className="text-orange-500 dark:text-orange-400"
-            />
+            <Smartphone size={16} className="text-orange-500" />
           )}
           <span className="truncate max-w-[200px]">
             {pedido.es_delivery
@@ -50,7 +47,7 @@ export function PedidoCard({
               : "Retiro Local"}
           </span>
         </div>
-        <span className="font-mono text-xs text-[var(--admin-text-muted)] font-medium">
+        <span className="font-mono text-xs font-medium text-[var(--admin-text-muted)]">
           #{pedido.id.slice(0, 6)}
         </span>
       </div>
@@ -73,7 +70,7 @@ export function PedidoCard({
             href={`https://wa.me/${pedido.cliente_whatsapp}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2 bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-950/30 dark:text-green-400 dark:border-green-900/50 dark:hover:bg-green-900/40 rounded-lg transition-colors shrink-0 border border-green-200 shadow-sm"
+            className="p-2 rounded-xl bg-green-50/80 text-green-600 hover:bg-green-100 border border-green-200/60 transition-all duration-200 shrink-0 hover:shadow-sm hover:scale-105 active:scale-95"
             title="Contactar por WhatsApp"
           >
             <MessageCircle size={18} />
@@ -81,16 +78,16 @@ export function PedidoCard({
         </div>
 
         {/* COMANDA INTERNA */}
-        <div className="bg-gray-50/50 dark:bg-zinc-800/40 rounded-xl border border-gray-100 dark:border-zinc-800 p-4 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider mb-2">
+        <div className="bg-[var(--admin-bg)]/50 rounded-2xl border border-[var(--admin-border)] p-4 space-y-3">
+          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--admin-text-muted)] mb-2">
             <UtensilsCrossed size={14} />
             <span>Comanda</span>
           </div>
-          <div className="space-y-3 divide-y divide-gray-100 dark:divide-zinc-800 text-sm">
+          <div className="space-y-3 divide-y divide-[var(--admin-border)] text-sm">
             {pedido.pedido_items?.map((item) => (
               <div key={item.id} className="pt-3 first:pt-0">
                 <div className="flex items-start gap-2">
-                  <span className="bg-[var(--admin-surface-accent)] dark:bg-zinc-800 text-[var(--admin-text)] px-1.5 py-0.5 rounded text-xs font-bold shrink-0">
+                  <span className="bg-[var(--admin-accent)]/10 text-[var(--admin-accent)] px-1.5 py-0.5 rounded-lg text-xs font-bold shrink-0">
                     {item.cantidad}x
                   </span>
                   <div className="flex-1">
@@ -98,7 +95,7 @@ export function PedidoCard({
                       {item.nombre_producto}
                     </p>
                     {item.detalles && (
-                      <p className="text-xs text-[var(--admin-text-muted)] mt-1 bg-white dark:bg-zinc-900 p-1.5 rounded-md border border-gray-100 dark:border-zinc-800 inline-block">
+                      <p className="text-xs text-[var(--admin-text-muted)] mt-1 bg-[var(--admin-surface)] p-2 rounded-lg border border-[var(--admin-border)] inline-block">
                         Nota: {item.detalles}
                       </p>
                     )}
@@ -110,11 +107,11 @@ export function PedidoCard({
         </div>
 
         {pedido.notas && (
-          <div className="bg-amber-50 dark:bg-amber-950/20 rounded-xl border border-amber-100 dark:border-amber-900/30 p-3 text-sm">
-            <span className="text-xs font-semibold text-amber-800 dark:text-amber-400 uppercase tracking-wider block mb-1">
+          <div className="bg-amber-50/80 dark:bg-amber-950/15 rounded-2xl border border-amber-200/60 dark:border-amber-900/30 p-3 text-sm">
+            <span className="text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-400 block mb-1">
               Aclaraciones extra
             </span>
-            <p className="text-amber-900 dark:text-amber-300 leading-relaxed">
+            <p className="text-amber-900 dark:text-amber-300 leading-relaxed font-medium text-xs">
               {pedido.notas}
             </p>
           </div>
@@ -122,13 +119,13 @@ export function PedidoCard({
       </div>
 
       {/* CONTROLADORES DE ESTADO */}
-      <div className="p-4 bg-gray-50/80 dark:bg-zinc-800/50 border-t border-[var(--admin-border)] flex gap-3">
+      <div className="p-4 bg-[var(--admin-bg)]/30 border-t border-[var(--admin-border)] flex gap-3">
         {pedido.estado === "pendiente" ? (
           <>
             <button
               onClick={() => onUpdateStatus(pedido.id, "cancelado")}
               disabled={isLoading}
-              className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-white dark:bg-zinc-900 border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 rounded-xl text-sm font-semibold hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors disabled:opacity-50"
+              className="btn-danger flex-1"
             >
               {isLoading ? (
                 <Loader2 className="animate-spin" size={16} />
@@ -140,7 +137,7 @@ export function PedidoCard({
             <button
               onClick={() => onUpdateStatus(pedido.id, "en_preparacion")}
               disabled={isLoading}
-              className="flex-[2] flex items-center justify-center gap-2 px-3 py-2.5 bg-[var(--admin-accent)] text-white rounded-xl text-sm font-semibold hover:bg-[var(--admin-accent)]/90 shadow-sm transition-all disabled:opacity-50"
+              className="btn-primary flex-[2]"
             >
               {isLoading ? (
                 <Loader2 className="animate-spin" size={16} />
@@ -154,7 +151,7 @@ export function PedidoCard({
           <button
             onClick={() => onUpdateStatus(pedido.id, "entregado")}
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[var(--admin-text)] text-[var(--admin-surface)] dark:bg-zinc-100 dark:text-zinc-900 rounded-xl text-sm font-bold hover:bg-gray-800 dark:hover:bg-zinc-200 shadow-md transition-all disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold tracking-wide transition-all duration-200 bg-[var(--admin-text)] text-white hover:opacity-90 active:scale-97 disabled:opacity-50 shadow-md"
           >
             {isLoading ? (
               <Loader2 className="animate-spin" size={18} />

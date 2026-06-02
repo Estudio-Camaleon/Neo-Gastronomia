@@ -115,7 +115,7 @@ export function SubscriptionPlans() {
                 className={`w-full group flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-black uppercase tracking-tight transition-all active:scale-95 ${
                   plan.popular
                     ? "bg-[var(--theme-primary)] text-white hover:opacity-90 shadow-[0_4px_14px_rgba(31,107,61,0.16)]"
-                    : "bg-[var(--theme-surface-soft)] text-[var(--theme-primary)] hover:bg-[var(--theme-primary-soft)]"
+                    : "bg-[var(--theme-accent-secondary-soft)] text-[var(--theme-accent-secondary)] hover:bg-[var(--theme-accent-secondary)] hover:text-white border border-[var(--theme-accent-secondary)]/20"
                 }`}
               >
                 {plan.cta}
