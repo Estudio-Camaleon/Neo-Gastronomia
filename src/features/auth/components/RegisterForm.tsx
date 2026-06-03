@@ -114,6 +114,8 @@ export function RegisterForm() {
       setLoading(false);
     }
     // Si no hay error, el server action redirige automáticamente
+    // Timeout de seguridad por si la redirección falla
+    setTimeout(() => setLoading(false), 10000);
   };
 
   return (

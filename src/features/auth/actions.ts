@@ -12,7 +12,7 @@ const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 
 function checkRateLimit(
   key: string,
-  maxAttempts = 5,
+  maxAttempts = 10,
   windowMs = 60000,
 ): boolean {
   const now = Date.now();
@@ -90,7 +90,7 @@ export async function registerAction(payload: {
   }
 
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
-  if (!checkRateLimit(`register:${ip}`, 3)) {
+  if (!checkRateLimit(`register:${ip}`, 5)) {
     return { error: "Demasiados intentos. Intentalo de nuevo en un minuto." };
   }
 
