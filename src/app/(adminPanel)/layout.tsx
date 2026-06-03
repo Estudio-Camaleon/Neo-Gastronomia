@@ -1,13 +1,11 @@
 import { Suspense } from "react";
 import { Sidebar } from "@/features/admin/shared/Sidebar";
 import { MobileSidebar } from "@/features/admin/shared/MobileSidebar";
-import { ErrorModal } from "@/components/ui/error-modal";
 import { ThemeProvider } from "@/core/providers/ThemeProvider";
 import { createClient } from "@/core/lib/supabase/server";
 import { supabaseAdmin } from "@/core/lib/supabase/admin";
 import { redirect } from "next/navigation";
 import "@/features/admin/shared/admin-panel.css";
-import { TransitionLink } from "@/components/ui/transition-link";
 
 export default async function AdminPanelLayout({
   children,
@@ -33,40 +31,18 @@ export default async function AdminPanelLayout({
     .eq("user_id", user.id)
     .single();
 
-  // 3. Contingencia: Si no posee local asignado
+  // 3. Debug: si falla la consulta del negocio
   if (businessError || !negocio) {
-    return (
-      <div className="admin-theme-wrapper min-h-screen flex items-center justify-center antialiased font-sans">
-        <ErrorModal
-          title="Local no encontrado"
-          message="No encontramos un local asociado a tu cuenta. Creá uno nuevo para acceder al panel."
-          action={
-            <div className="flex flex-col gap-3.5 w-full">
-                <TransitionLink
-                  href="/onboarding"
-                  className="btn-primary w-full py-4 text-center"
-                >
-                  Completar configuración del local
-                </TransitionLink>
-
-              <form
-                action={async () => {
-                  "use server";
-                  const client = await createClient();
-                  await client.auth.signOut();
-                  redirect("/login");
-                }}
-                className="w-full flex justify-center"
-              >
-                <button type="submit" className="btn-ghost text-xs">
-                  Cerrar sesión o cambiar de cuenta
-                </button>
-              </form>
-            </div>
-          }
-        />
-      </div>
-    );
+    console.error("[NEO ADMIN LAYOUT DEBUG]:", {
+      userId: user.id,
+      userEmail: user.email,
+      businessError: businessError?.message,
+      businessErrorCode: businessError?.code,
+      businessErrorDetails: businessError?.details,
+      negocioEncontrado: !!negocio,
+      timestamp: new Date().toISOString(),
+    });
+    redirect("/login");
   }
 
   // 4. Ecosistema Operativo Conectado con el Estado del Cliente

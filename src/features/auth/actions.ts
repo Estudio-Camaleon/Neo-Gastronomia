@@ -103,14 +103,26 @@ export async function registerAction(payload: {
       user_metadata: { nombre_negocio: safeNombre },
     });
 
+  console.log("[NEO REGISTER DEBUG]: createUser result", {
+    userId: authData?.user?.id,
+    userEmail: authData?.user?.email,
+    createError: createError?.message,
+  });
+
   if (createError) return { error: createError.message };
   if (!authData.user) return { error: "No se pudo crear el usuario." };
 
   // Iniciar sesión para establecer cookies de sesión
   const supabase = await createClient();
-  const { error: signInError } = await supabase.auth.signInWithPassword({
+  const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
     email,
     password,
+  });
+
+  console.log("[NEO REGISTER DEBUG]: signInWithPassword result", {
+    userId: signInData?.user?.id,
+    sessionExists: !!signInData?.session,
+    signInError: signInError?.message,
   });
 
   if (signInError) {
