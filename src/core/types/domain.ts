@@ -79,6 +79,7 @@ export type OrderStatus =
 
 export interface PedidoItem {
   id: string;
+  producto_id: string | null;
   cantidad: number;
   nombre_producto: string;
   precio_unitario: number;

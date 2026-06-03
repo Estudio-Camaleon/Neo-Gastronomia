@@ -1,16 +1,10 @@
-// src/core/lib/supabase/client.ts
 import { createBrowserClient } from "@supabase/ssr";
 import type { Database } from "@/core/types/database.types";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error(
-    "⚠️ [NEO CRITICAL]: Variables de entorno de Supabase ausentes.",
-  );
-}
+import { env } from "../../config/env";
 
 export function createClient() {
-  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
+  return createBrowserClient<Database>(
+    env.NEXT_PUBLIC_SUPABASE_URL,
+    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  );
 }

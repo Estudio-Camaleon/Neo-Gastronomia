@@ -149,13 +149,12 @@ max_indexes = 5
 
 [auth]
 enabled = true
-# The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
-# in emails.
 site_url = "http://127.0.0.1:3000"
-# The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
-# external_url = ""
-# A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://127.0.0.1:3000"]
+additional_redirect_urls = [
+  "http://127.0.0.1:3000",
+  "https://127.0.0.1:3000",
+  "https://neo-gastronomia.vercel.app",
+]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to auth.external_url.
@@ -212,14 +211,13 @@ web3 = 30
 # secret = ""
 
 [auth.email]
-# Allow/disallow new user signups via email to your project.
 enable_signup = true
-# If enabled, a user will be required to confirm any email change on both the old, and new email
-# addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
-# If enabled, users need to confirm their email address before signing in.
+# IMPORTANTE: En el proyecto hosted de Supabase (Dashboard → Authentication → Settings),
+# esta opción suele estar en TRUE por defecto. Si querés que los usuarios NO necesiten
+# confirmar su email, desactivá "Confirm email" en el dashboard de Supabase.
+# Si dejás confirmaciones activadas, asegurate de configurar SMTP custom abajo.
 enable_confirmations = false
-# If enabled, users will need to reauthenticate or have logged in recently to change their password.
 secure_password_change = false
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
 max_frequency = "1s"
@@ -229,14 +227,24 @@ otp_length = 6
 otp_expiry = 3600
 
 # Use a production-ready SMTP server
+# ──────────────────────────────────────────────────────────────────────────────
+# CONFIGURACIÓN SMTP PARA CORREOS TRANSACCIONALES (Confirmación, Reseteo, etc.)
+# ──────────────────────────────────────────────────────────────────────────────
+# El free tier de Supabase tiene un límite de ~4 emails/hora.
+# Configurá SMTP custom acá (y en el Dashboard de Supabase) para enviar correos
+# con tu propio dominio y sin límites tan restrictivos.
+#
+# Proveedores recomendados: SendGrid, Resend, AWS SES.
+# ──────────────────────────────────────────────────────────────────────────────
+
 # [auth.email.smtp]
 # enabled = true
 # host = "smtp.sendgrid.net"
 # port = 587
 # user = "apikey"
 # pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+# admin_email = "no-reply@tudominio.com"
+# sender_name = "NEO Gastro"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]

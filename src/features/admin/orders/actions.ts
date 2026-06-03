@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/core/lib/supabase/server";
+import { supabaseAdmin } from "@/core/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getAuthenticatedTenant } from "@/core/lib/tenant";
@@ -48,9 +49,7 @@ export async function submitOrderPublicAction(
     );
   }
 
-  const supabase = await createClient();
-
-  const { data: pedido, error: pedidoError } = await supabase
+  const { data: pedido, error: pedidoError } = await supabaseAdmin
     .from("pedidos")
     .insert({
       negocio_id: parsed.data.negocio_id,
@@ -74,28 +73,28 @@ export async function submitOrderPublicAction(
     );
   }
 
-  // Crear o actualizar cliente en la tabla clientes
-  const clienteNombre = parsed.data.cliente_nombre.trim();
-  const { data: clienteExistente } = await supabase
+  // Crear o actualizar cliente por teléfono (no por nombre)
+  const clienteTelefono = parsed.data.cliente_whatsapp.trim();
+  const { data: clienteExistente } = await supabaseAdmin
     .from("clientes")
-    .select("id, notas")
+    .select("id")
     .eq("negocio_id", parsed.data.negocio_id)
-    .eq("nombre", clienteNombre)
+    .eq("telefono", clienteTelefono)
     .maybeSingle();
 
   if (clienteExistente) {
-    await supabase
+    await supabaseAdmin
       .from("clientes")
       .update({
-        telefono: parsed.data.cliente_whatsapp.trim(),
+        nombre: parsed.data.cliente_nombre.trim(),
         direccion: parsed.data.direccion_entrega?.trim() ?? null,
       })
       .eq("id", clienteExistente.id);
   } else {
-    await supabase.from("clientes").insert({
+    await supabaseAdmin.from("clientes").insert({
       negocio_id: parsed.data.negocio_id,
-      nombre: clienteNombre,
-      telefono: parsed.data.cliente_whatsapp.trim(),
+      nombre: parsed.data.cliente_nombre.trim(),
+      telefono: clienteTelefono,
       direccion: parsed.data.direccion_entrega?.trim() ?? null,
     });
   }
@@ -109,7 +108,7 @@ export async function submitOrderPublicAction(
     detalles: item.detalles ?? null,
   }));
 
-  const { error: itemsError } = await supabase
+  const { error: itemsError } = await supabaseAdmin
     .from("pedido_items")
     .insert(itemsPayload);
 

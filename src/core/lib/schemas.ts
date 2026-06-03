@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+export const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, "El correo es obligatorio")
+    .email("El correo no tiene un formato válido"),
+  password: z.string().min(1, "La contraseña es obligatoria"),
+});
+
 export const registerSchema = z.object({
   email: z.string().email("El correo no tiene un formato válido"),
   password: z
@@ -8,11 +16,9 @@ export const registerSchema = z.object({
     .regex(/[A-Z]/, "Debe incluir una mayúscula")
     .regex(/[0-9]/, "Debe incluir un número")
     .regex(/[^A-Za-z0-9]/, "Debe incluir un símbolo especial"),
-  businessName: z.string().min(2, "Nombre de negocio muy corto"),
-  slug: z
-    .string()
-    .min(3, "El slug debe tener al menos 3 caracteres")
-    .regex(/^[a-z0-9-]+$/, "Solo letras minúsculas, números y guiones"),
+  nombreNegocio: z.string().min(2, "Nombre de negocio muy corto"),
+  whatsapp: z.string().optional(),
+  descripcion: z.string().optional(),
 });
 
 const productVariantSchema = z.object({

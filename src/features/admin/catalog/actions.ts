@@ -5,7 +5,6 @@ import { revalidatePath } from "next/cache";
 import { getAuthenticatedTenant } from "@/core/lib/tenant";
 import { upsertProductSchema } from "@/core/lib/schemas";
 import { z } from "zod";
-import type { ProductoConfiguracion } from "@/core/types/domain";
 
 export async function upsertProductAction(
   payload: z.infer<typeof upsertProductSchema>,
@@ -82,6 +81,22 @@ export async function createCategoryAction(nombre: string, slug: string) {
     slug: parsed.data.slug,
     negocio_id: tenantId,
   });
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/productos");
+  return { success: true };
+}
+
+export async function deleteCategoryAction(categoriaId: string) {
+  const supabase = await createClient();
+  const tenantId = await getAuthenticatedTenant(supabase);
+
+  const { error } = await supabase
+    .from("categorias")
+    .delete()
+    .eq("id", categoriaId)
+    .eq("negocio_id", tenantId);
 
   if (error) throw new Error(error.message);
 

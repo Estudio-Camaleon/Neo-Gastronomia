@@ -12,7 +12,7 @@ const ALLOWED_FIELDS = ["logo_url", "banner_url"] as const;
 
 export async function POST(request: Request) {
   try {
-    await getAuthenticatedTenantWithUser();
+    const { negocioId } = await getAuthenticatedTenantWithUser();
     const formData = await request.formData();
     const file = formData.get("file");
     const field = formData.get("field");
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const filePath = `identidad/${field}`;
+    const filePath = `identidad/${negocioId}/${field}`;
 
     const { error: uploadError } = await supabaseAdmin.storage
       .from(BUCKET)

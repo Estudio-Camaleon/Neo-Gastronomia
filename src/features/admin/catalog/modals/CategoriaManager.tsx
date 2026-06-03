@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useTransition } from "react";
 import { createClient } from "@/core/lib/supabase/client";
 import { Tag, Plus, Trash2, Loader2, Hash, X } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { createCategoryAction, deleteCategoryAction } from "../actions";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import type { CategoriaRow } from "@/core/types/domain";
 
@@ -23,8 +24,8 @@ export function CategoriaManager({
 }: CategoriaManagerProps) {
   const [categorias, setCategorias] = useState<CategoriaBase[]>([]);
   const [nuevoNombre, setNuevoNombre] = useState("");
-  const [isPending, setIsPending] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
+  const [isPending, startTransition] = useTransition();
   const [deleteConfirm, setDeleteConfirm] = useState<{
     id: string;
     nombre: string;
@@ -82,55 +83,42 @@ export function CategoriaManager({
     };
   }, [cargarCategorias, supabase, negocioId]);
 
-  const handleAdd = async (e: React.FormEvent) => {
+  const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     const nombreLimpio = nuevoNombre.trim();
     if (!nombreLimpio || isPending) return;
 
-    setIsPending(true);
-    const slug = slugificar(nombreLimpio);
-
-    try {
-      const { error } = await supabase.from("categorias").insert({
-        nombre: nombreLimpio,
-        slug,
-        negocio_id: negocioId,
-      });
-
-      if (error) {
-        if (error.code === "23505") {
+    startTransition(async () => {
+      try {
+        await createCategoryAction(nombreLimpio, slugificar(nombreLimpio));
+        setNuevoNombre("");
+        toast.success("Categoría creada con éxito");
+      } catch (err) {
+        const msg =
+          err instanceof Error ? err.message : "Error al crear la categoría";
+        if (msg.includes("duplicate") || msg.includes("23505")) {
           toast.error("Categoría duplicada", {
             description: "Ya existe una sección con ese nombre.",
           });
         } else {
-          throw error;
+          toast.error(msg);
         }
-      } else {
-        setNuevoNombre("");
-        toast.success("Categoría creada con éxito");
       }
-    } catch {
-      toast.error("Error al crear la categoría");
-    } finally {
-      setIsPending(false);
-    }
+    });
   };
 
-  const handleRemove = async () => {
-    if (!deleteConfirm) return;
+  const handleRemove = () => {
+    if (!deleteConfirm || isPending) return;
 
-    try {
-      const { error } = await supabase
-        .from("categorias")
-        .delete()
-        .eq("id", deleteConfirm.id)
-        .eq("negocio_id", negocioId);
-
-      if (error) throw error;
-      toast.success("Categoría eliminada");
-    } catch {
-      toast.error("Error al eliminar la categoría");
-    }
+    startTransition(async () => {
+      try {
+        await deleteCategoryAction(deleteConfirm.id);
+        setDeleteConfirm(null);
+        toast.success("Categoría eliminada");
+      } catch {
+        toast.error("Error al eliminar la categoría");
+      }
+    });
   };
 
   return (

@@ -72,6 +72,7 @@ CREATE POLICY "usuarios_ven_su_negocio" ON public.negocios
   FOR ALL USING (auth.uid() = user_id);
 
 -- productos: el usuario ve productos de su negocio (vía JOIN)
+DROP POLICY IF EXISTS "usuarios_ven_sus_productos" ON public.productos;
 CREATE POLICY "usuarios_ven_sus_productos" ON public.productos
   FOR ALL USING (
     EXISTS (
@@ -82,6 +83,7 @@ CREATE POLICY "usuarios_ven_sus_productos" ON public.productos
   );
 
 -- pedidos: el usuario ve pedidos de su negocio
+DROP POLICY IF EXISTS "usuarios_ven_sus_pedidos" ON public.pedidos;
 CREATE POLICY "usuarios_ven_sus_pedidos" ON public.pedidos
   FOR ALL USING (
     EXISTS (
@@ -92,6 +94,7 @@ CREATE POLICY "usuarios_ven_sus_pedidos" ON public.pedidos
   );
 
 -- clientes: el usuario ve clientes de su negocio
+DROP POLICY IF EXISTS "usuarios_ven_sus_clientes" ON public.clientes;
 CREATE POLICY "usuarios_ven_sus_clientes" ON public.clientes
   FOR ALL USING (
     EXISTS (
@@ -102,6 +105,7 @@ CREATE POLICY "usuarios_ven_sus_clientes" ON public.clientes
   );
 
 -- pedido_items: el usuario ve items de pedidos de su negocio
+DROP POLICY IF EXISTS "usuarios_ven_sus_pedido_items" ON public.pedido_items;
 CREATE POLICY "usuarios_ven_sus_pedido_items" ON public.pedido_items
   FOR ALL USING (
     EXISTS (
@@ -113,6 +117,7 @@ CREATE POLICY "usuarios_ven_sus_pedido_items" ON public.pedido_items
   );
 
 -- categorias: el usuario ve categorías de su negocio
+DROP POLICY IF EXISTS "usuarios_ven_sus_categorias" ON public.categorias;
 CREATE POLICY "usuarios_ven_sus_categorias" ON public.categorias
   FOR ALL USING (
     EXISTS (
@@ -126,17 +131,21 @@ CREATE POLICY "usuarios_ven_sus_categorias" ON public.categorias
 -- Esto anula la policy anterior para SELECT
 DROP POLICY IF EXISTS "usuarios_ven_su_negocio" ON public.negocios;
 
+DROP POLICY IF EXISTS "negocios_publicos_select" ON public.negocios;
 CREATE POLICY "negocios_publicos_select" ON public.negocios
   FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "negocios_propio_all" ON public.negocios;
 CREATE POLICY "negocios_propio_all" ON public.negocios
   FOR ALL USING (auth.uid() = user_id);
 
 -- Insert público en pedidos (para el menú público)
+DROP POLICY IF EXISTS "pedidos_insert_publico" ON public.pedidos;
 CREATE POLICY "pedidos_insert_publico" ON public.pedidos
   FOR INSERT WITH CHECK (true);
 
 -- Insert público en pedido_items
+DROP POLICY IF EXISTS "pedido_items_insert_publico" ON public.pedido_items;
 CREATE POLICY "pedido_items_insert_publico" ON public.pedido_items
   FOR INSERT WITH CHECK (true);
 

@@ -11,12 +11,14 @@ describe("cn", () => {
   });
 
   it("filters falsy values", () => {
-    expect(cn("foo", false && "bar", "baz")).toBe("foo baz");
+    expect(cn("foo", undefined, "baz")).toBe("foo baz");
+    expect(cn("foo", null, "baz")).toBe("foo baz");
+    expect(cn("foo", "", "baz")).toBe("foo baz");
+    expect(cn("foo", 0, "baz")).toBe("foo baz");
   });
 
   it("handles conditional classes", () => {
-    expect(cn("base", true && "active", false && "hidden")).toBe(
-      "base active",
-    );
+    expect(cn("base", "active")).toBe("base active");
+    expect(cn("base")).toBe("base");
   });
 });

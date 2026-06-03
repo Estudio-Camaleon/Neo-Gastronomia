@@ -1,18 +1,14 @@
-// src/core/lib/supabase/server.ts
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Database } from "@/core/types/database.types";
+import { env } from "../../config/env";
 
-/**
- * Instancia del cliente de Supabase optimizada para Server Components y Actions.
- * Controla la persistencia de cookies forzando políticas de larga duración.
- */
 export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    env.NEXT_PUBLIC_SUPABASE_URL,
+    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       auth: {
         persistSession: true,

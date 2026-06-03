@@ -3,6 +3,7 @@
 import { createClient } from "@/core/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { extractStoragePath } from "@/core/lib/tenant";
+import { supabaseAdmin } from "@/core/lib/supabase/admin";
 import type { UpdateTenantBrandingPayload } from "@/core/types/domain";
 import type { Json } from "@/core/types/database.types";
 
@@ -100,7 +101,6 @@ export async function updateTenantBrandingAction(
   }
 
   if (brandingFilesToRemove.length > 0) {
-    const { supabaseAdmin } = await import("@/core/lib/supabase/admin");
     const { error: removeError } = await supabaseAdmin.storage
       .from("imagenes-negocios")
       .remove(brandingFilesToRemove);
@@ -173,7 +173,6 @@ export async function deleteTenantBrandingAction(id: string) {
   if (bannerPath) brandingPathsToPurge.push(bannerPath);
 
   // 5. Purga en bloque de Cloud Storage (Productos + Identidad)
-  const { supabaseAdmin } = await import("@/core/lib/supabase/admin");
   if (mediaPathsToPurge.length > 0) {
     const { error: mediaStorageError } = await supabaseAdmin.storage
       .from(MEDIA_BUCKET)
@@ -226,7 +225,6 @@ export async function deleteTenantBrandingAction(id: string) {
 
   // 8. Eliminar la cuenta de usuario de auth de forma definitiva para evitar residuos y bloqueos de nuevo registro
   try {
-    const { supabaseAdmin } = await import("@/core/lib/supabase/admin");
     const { error: deleteUserError } =
       await supabaseAdmin.auth.admin.deleteUser(user.id);
     if (deleteUserError) {

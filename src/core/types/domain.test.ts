@@ -14,6 +14,7 @@ describe("domain types", () => {
       pedido_items: [
         {
           id: "i1",
+          producto_id: "p1",
           nombre_producto: "Pizza",
           cantidad: 2,
           precio_unitario: 100,
@@ -37,6 +38,28 @@ describe("domain types", () => {
       pedido_items: [],
     };
     expect(pedido.direccion_entrega).toBe("Calle Falsa 123");
+  });
+
+  it("pedido items include producto_id", () => {
+    const pedido: PedidoData = {
+      id: "p3",
+      estado: "pendiente",
+      cliente_nombre: "Test",
+      cliente_whatsapp: "000",
+      metodo_pago: "efectivo",
+      total: 0,
+      es_delivery: false,
+      pedido_items: [
+        {
+          id: "i1",
+          producto_id: "prod-1",
+          nombre_producto: "Item",
+          cantidad: 1,
+          precio_unitario: 100,
+        },
+      ],
+    };
+    expect(pedido.pedido_items[0].producto_id).toBe("prod-1");
   });
 
   it("ClienteResumen structure", () => {

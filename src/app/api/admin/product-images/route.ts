@@ -6,6 +6,7 @@ import {
 } from "@/core/lib/tenant";
 
 const BUCKET = "media";
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 
 export async function POST(request: Request) {
   try {
@@ -16,6 +17,20 @@ export async function POST(request: Request) {
     if (!(file instanceof File)) {
       return NextResponse.json(
         { error: "No se recibió ningún archivo válido." },
+        { status: 400 },
+      );
+    }
+
+    if (!file.type.startsWith("image/")) {
+      return NextResponse.json(
+        { error: "Solo se permiten archivos de imagen." },
+        { status: 400 },
+      );
+    }
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      return NextResponse.json(
+        { error: "El archivo excede el límite permitido de 5MB." },
         { status: 400 },
       );
     }

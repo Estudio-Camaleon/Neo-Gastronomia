@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { supabaseAdmin } from "@/core/lib/supabase/admin";
+import { env } from "@/core/config/env";
+import { loginSchema, registerSchema } from "@/core/lib/schemas";
 
 // --- RATE LIMITER SIMPLE (en memoria) ---
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
@@ -29,6 +31,15 @@ export async function loginAction(payload: {
   email: string;
   password: string;
 }) {
+  const parsed = loginSchema.safeParse(payload);
+  if (!parsed.success) {
+    return {
+      error:
+        parsed.error.issues[0]?.message || "Datos de acceso inválidos.",
+    };
+  }
+  const { email, password } = parsed.data;
+
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
   if (!checkRateLimit(`login:${ip}`)) {
     return { error: "Demasiados intentos. Intentalo de nuevo en un minuto." };
@@ -37,8 +48,8 @@ export async function loginAction(payload: {
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signInWithPassword({
-    email: payload.email,
-    password: payload.password,
+    email,
+    password,
   });
 
   if (error) {
@@ -58,7 +69,27 @@ export async function registerAction(payload: {
   email: string;
   password: string;
   nombreNegocio: string;
+  whatsapp?: string;
+  descripcion?: string;
 }) {
+  const parsed = registerSchema.safeParse(payload);
+  if (!parsed.success) {
+    return {
+      error:
+        parsed.error.issues[0]?.message || "Datos de registro inválidos.",
+    };
+  }
+
+  const { email, password, nombreNegocio, whatsapp, descripcion } = parsed.data;
+
+  const safeNombre = nombreNegocio.trim().replace(/<[^>]*>/g, "");
+  const safeWhatsapp = (whatsapp || "").trim();
+  const safeDescripcion = (descripcion || "").trim().replace(/<[^>]*>/g, "");
+
+  if (safeNombre.length < 2) {
+    return { error: "El nombre comercial debe tener al menos 2 caracteres." };
+  }
+
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
   if (!checkRateLimit(`register:${ip}`, 3)) {
     return { error: "Demasiados intentos. Intentalo de nuevo en un minuto." };
@@ -67,12 +98,12 @@ export async function registerAction(payload: {
   const supabase = await createClient();
 
   const { data, error } = await supabase.auth.signUp({
-    email: payload.email,
-    password: payload.password,
+    email,
+    password,
     options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/callback`,
+      emailRedirectTo: `${env.NEXT_PUBLIC_SITE_URL}/callback`,
       data: {
-        nombre_negocio: payload.nombreNegocio,
+        nombre_negocio: safeNombre,
       },
     },
   });
@@ -80,25 +111,38 @@ export async function registerAction(payload: {
   if (error) return { error: error.message };
   if (!data.user) return { error: "No se pudo crear el usuario." };
 
-  const slug = payload.nombreNegocio
+  let slug = safeNombre
     .toLowerCase()
-    .trim()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9-]/g, "-")
     .replace(/-+/g, "-")
-    .replace(/(^-|-$)+/g, "");
+    .replace(/(^-|-$)+/g, "")
+    || `local-${data.user.id.slice(0, 8)}`;
 
-  const { error: negocioError } = await supabaseAdmin
+  const { data: existing } = await supabaseAdmin
     .from("negocios")
-    .insert({
-      user_id: data.user.id,
-      nombre: payload.nombreNegocio.trim(),
-      slug: slug || `local-${data.user.id.slice(0, 8)}`,
-    });
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (existing) {
+    const suffix = Math.random().toString(36).slice(2, 6);
+    slug = `${slug}-${suffix}`;
+  }
+
+  const { error: negocioError } = await supabaseAdmin.from("negocios").insert({
+    user_id: data.user.id,
+    nombre: safeNombre,
+    slug,
+    ...(safeWhatsapp ? { whatsapp: safeWhatsapp } : {}),
+    ...(safeDescripcion ? { descripcion: safeDescripcion } : {}),
+  });
 
   if (negocioError) {
-    console.error("[REGISTER]: Error creando negocio:", negocioError.message);
+    return {
+      error: `No se pudo crear el negocio: ${negocioError.message}. Contactá a soporte.`,
+    };
   }
 
   return { success: true };

@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { StepIndicator } from "./StepIndicator";
 import { registerAction } from "../actions";
 
-// Esquema de registro validado por pasos
 const step1Schema = z.object({
   email: z
     .string()
@@ -22,7 +21,7 @@ const step1Schema = z.object({
     .transform((val) => val.trim().toLowerCase()),
   password: z
     .string()
-    .min(6, "La contraseña del administrador requiere mínimo 6 caracteres.")
+    .min(8, "La contraseña del administrador requiere mínimo 8 caracteres.")
     .transform((val) => val.trim()),
 });
 
@@ -31,6 +30,8 @@ export function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nombreNegocio, setNombreNegocio] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [descripcion, setDescripcion] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [isSent, setIsSent] = useState(false);
@@ -42,7 +43,7 @@ export function RegisterForm() {
       return { score: 0, label: "", color: "bg-transparent", width: "w-0" };
     }
     let points = 0;
-    if (pass.length >= 6) points++;
+    if (pass.length >= 8) points++;
     if (/[A-Z]/.test(pass)) points++;
     if (/[0-9]/.test(pass)) points++;
     if (/[^A-Za-z0-9]/.test(pass)) points++;
@@ -88,11 +89,13 @@ export function RegisterForm() {
     if (loading) return;
     setErrorMsg("");
 
-    // Regex quirúrgico original aplicado manualmente antes de enviar
-    const negocioLimpio = nombreNegocio
-      .trim()
-      .replace(/<\/?[^>]+(>|$)/g, "")
-      .replace(/[<>]/g, "");
+    const sanitize = (v: string) =>
+      v.trim().replace(/<[^>]*>/g, "").replace(/[<>]/g, "");
+
+    const negocioLimpio = sanitize(nombreNegocio);
+    const whatsappLimpio = sanitize(whatsapp);
+    const descripcionLimpia = sanitize(descripcion);
+
     if (negocioLimpio.length < 2) {
       setErrorMsg("El nombre comercial debe poseer al menos 2 caracteres.");
       return;
@@ -103,6 +106,8 @@ export function RegisterForm() {
       email,
       password,
       nombreNegocio: negocioLimpio,
+      whatsapp: whatsappLimpio || undefined,
+      descripcion: descripcionLimpia || undefined,
     });
 
     if (response?.error) {
@@ -181,7 +186,7 @@ export function RegisterForm() {
                 disabled={loading}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Mínimo 8 caracteres"
                 className="auth-input mb-1.5"
               />
               {/* TRACKING VISUAL ADAPTATIVO */}
@@ -223,6 +228,36 @@ export function RegisterForm() {
                 placeholder="Ej: Burger Station"
                 className="auth-input"
               />
+            </div>
+
+            <div className="space-y-2">
+              <label className="auth-label">WhatsApp de contacto</label>
+              <Input
+                type="tel"
+                disabled={loading}
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value)}
+                placeholder="Ej: +5491123456789"
+                className="auth-input"
+              />
+              <p className="text-[10px] text-[var(--auth-text-muted)] pl-1">
+                Opcional — lo usará tu menú QR para recibir pedidos.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="auth-label">Descripción breve</label>
+              <textarea
+                disabled={loading}
+                value={descripcion}
+                onChange={(e) => setDescripcion(e.target.value)}
+                placeholder="Ej: Hamburguesas artesanales en Palermo"
+                rows={2}
+                className="auth-input min-h-[60px] h-auto resize-none"
+              />
+              <p className="text-[10px] text-[var(--auth-text-muted)] pl-1">
+                Opcional — aparecerá en tu perfil público.
+              </p>
             </div>
 
             {errorMsg && (

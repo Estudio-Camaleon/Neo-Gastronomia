@@ -24,13 +24,6 @@ export interface UnifiedProduct {
   configuracion: {
     grupos_opciones?: Array<Record<string, unknown>>;
     variantes?: Array<{ nombre: string; precio: number | string }>;
-    grupo_extras?: Array<{
-      id: string;
-      titulo: string;
-      requerido: boolean;
-      multiple: boolean;
-      items: Array<{ id: string; nombre: string; precio: number | string }>;
-    }>;
   } | null;
   categorias: { nombre: string } | null;
 }

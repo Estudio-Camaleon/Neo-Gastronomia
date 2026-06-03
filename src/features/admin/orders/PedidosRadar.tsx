@@ -19,7 +19,7 @@ import { PedidoCard } from "./PedidoCard";
 import { updateOrderStatusAction } from "./actions";
 import { enviarNotificacionWhatsApp } from "@/core/lib/utils/whatsappActions";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
-import type { PedidoItem, PedidoData } from "@/core/types/domain";
+import type { PedidoData } from "@/core/types/domain";
 
 const supabase = createClient();
 
@@ -106,15 +106,16 @@ export function PedidosRadar({
     [pedidosActivos, debouncedFilter, statusFilter],
   );
 
-  const itemsPerPage = showAll ? pedidosFiltrados.length : ORDERS_PER_PAGE;
-  const totalPages = Math.max(
-    1,
-    Math.ceil(pedidosFiltrados.length / itemsPerPage),
-  );
-  const pedidosPagina = pedidosFiltrados.slice(
-    page * itemsPerPage,
-    (page + 1) * itemsPerPage,
-  );
+  const totalPages = showAll
+    ? 1
+    : Math.max(1, Math.ceil(pedidosFiltrados.length / ORDERS_PER_PAGE));
+  const currentPage = Math.min(page, totalPages - 1);
+  const pedidosPagina = showAll
+    ? pedidosFiltrados
+    : pedidosFiltrados.slice(
+        currentPage * ORDERS_PER_PAGE,
+        (currentPage + 1) * ORDERS_PER_PAGE,
+      );
 
   useEffect(() => {
     const channel = supabase
