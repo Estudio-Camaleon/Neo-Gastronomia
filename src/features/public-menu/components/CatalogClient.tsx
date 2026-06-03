@@ -127,134 +127,135 @@ export function CatalogClient({
   return (
     <>
       <div className="min-h-screen bg-[var(--color-custom-950)] pb-8 text-[var(--color-custom-text)] selection:bg-[var(--color-custom-900)] selection:text-white">
-        <div className="w-full px-4 py-4 lg:px-10 lg:py-6">
-          {/* HEADER UNIFICADO */}
-          <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl">
-            {negocio.banner_url && (
-              <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[400px] w-[400px] sm:h-[500px] sm:w-[500px] opacity-20 sm:opacity-25">
-                  <Image
-                    src={negocio.banner_url}
-                    alt=""
-                    fill
-                    className="scale-[2] object-cover blur-[80px]"
-                    sizes="500px"
-                    priority
-                  />
+        {/* HEADER UNIFICADO */}
+        <header className="relative overflow-hidden pt-20 pb-10">
+          {negocio.banner_url && (
+            <div
+              className="pointer-events-none absolute inset-0 overflow-hidden"
+              aria-hidden="true"
+            >
+              <Image
+                src={negocio.banner_url}
+                alt=""
+                fill
+                className="object-cover scale-105"
+                sizes="100vw"
+                priority
+              />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_60%,var(--color-custom-100)_95%)]" />
+            </div>
+          )}
+
+          <div className="relative z-10 flex flex-col gap-4 px-4 py-5 sm:px-6 sm:py-6">
+            <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center">
+                {negocio.logo_url && (
+                  <div className="h-40 w-40 shrink-0 overflow-hidden rounded-full ring-2 ring-white/10 shadow-xl sm:h-30 sm:w-30 lg:h-50 lg:w-50">
+                    <Image
+                      src={negocio.logo_url}
+                      alt={negocio.nombre}
+                      width={160}
+                      height={160}
+                      className="h-full w-full rounded-full object-cover"
+                      priority
+                    />
+                  </div>
+                )}
+                <div className="text-center sm:text-left">
+                  <h1 className="text-5xl font-black  leading-none tracking-[-0.06em] text-[var(--color-custom-150)] sm:text-5xl text-shadow-lg/30">
+                    {negocio.nombre}
+                  </h1>
+                  <div
+                    className="mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] sm:text-[15px]"
+                    style={{
+                      backgroundColor: isOpenNow
+                        ? "rgba(34,197,94,0.10)"
+                        : "rgba(255,0,0,0.10)",
+                      color: isOpenNow ? "#4ade80" : "#be2414",
+                    }}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        isOpenNow ? "animate-pulse bg-green-500" : "bg-white"
+                      }`}
+                    />
+                    {isOpenNow ? "Abierto ahora" : "Cerrado ahora"}
+                  </div>
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-custom-950)]/80 via-[var(--color-custom-950)]/30 to-transparent" />
               </div>
-            )}
 
-            <div className="relative z-10 flex flex-col gap-4 px-4 py-5 sm:px-6 sm:py-6">
-              <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center">
-                  {negocio.logo_url && (
-                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full ring-2 ring-white/10 shadow-xl sm:h-24 sm:w-24 lg:h-28 lg:w-28">
-                      <Image
-                        src={negocio.logo_url}
-                        alt={negocio.nombre}
-                        width={160}
-                        height={160}
-                        className="h-full w-full rounded-full object-cover"
-                        priority
-                      />
-                    </div>
-                  )}
-                  <div className="text-center sm:text-left">
-                    <h1 className="text-2xl font-black italic leading-none tracking-[-0.06em] text-white sm:text-3xl lg:text-4xl">
-                      {negocio.nombre}
-                    </h1>
-                    <div
-                      className="mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] sm:text-[11px]"
-                      style={{
-                        backgroundColor: isOpenNow
-                          ? "rgba(34,197,94,0.15)"
-                          : "rgba(255,255,255,0.08)",
-                        color: isOpenNow
-                          ? "#4ade80"
-                          : "rgba(255,255,255,0.7)",
-                      }}
-                    >
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${
-                          isOpenNow
-                            ? "animate-pulse bg-green-500"
-                            : "bg-white/40"
-                        }`}
-                      />
-                      {isOpenNow ? "Abierto ahora" : "Cerrado ahora"}
-                    </div>
+              <div className="flex flex-col items-center gap-3 sm:items-end">
+                <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 sm:justify-end ">
+                  <div className="flex items-center gap-1.5 text-sm text-white rounded-2xl bg-black/60 p-2 ">
+                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                    <span>{negocio.localidad || "Sucursal Centro"}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-sm text-white rounded-2xl bg-black/70 p-2">
+                    <Clock className="h-3.5 w-3.5 shrink-0" />
+                    <span>
+                      Hoy:{" "}
+                      {formatTurnos(
+                        todayKey ? negocio.horarios?.[todayKey] : null,
+                      )}
+                    </span>
                   </div>
                 </div>
 
-                <div className="flex flex-col items-center gap-3 sm:items-end">
-                  <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 sm:justify-end">
-                    <div className="flex items-center gap-1.5 text-sm text-white/70">
-                      <MapPin className="h-3.5 w-3.5 shrink-0" />
-                      <span>{negocio.localidad || "Sucursal Centro"}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-sm text-white/70">
-                      <Clock className="h-3.5 w-3.5 shrink-0" />
-                      <span>
-                        Hoy: {formatTurnos(todayKey ? negocio.horarios?.[todayKey] : null)}
-                      </span>
-                    </div>
+                {(negocio.whatsapp ||
+                  negocio.instagram_url ||
+                  negocio.facebook_url) && (
+                  <div className="flex gap-2 ">
+                    {negocio.whatsapp && (
+                      <a
+                        href={`https://wa.me/${negocio.whatsapp.replace(/\D/g, "")}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label="WhatsApp"
+                        className="flex h-8 w-20 items-center justify-center rounded-full bg-black/40 text-white/80 transition-all hover:bg-white/20 hover:text-white "
+                      >
+                        <FaWhatsapp size={27} />
+                      </a>
+                    )}
+                    {negocio.instagram_url && (
+                      <a
+                        href={negocio.instagram_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label="Instagram"
+                        className="flex h-8 w-20 items-center justify-center rounded-full bg-black/40 text-white/80 transition-all hover:bg-white/20 hover:text-white"
+                      >
+                        <FaInstagram size={26} />
+                      </a>
+                    )}
+                    {negocio.facebook_url && (
+                      <a
+                        href={negocio.facebook_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label="Facebook"
+                        className="flex h-8 w-20 items-center justify-center rounded-full bg-black/40 text-white/80 transition-all hover:bg-white/20 hover:text-white"
+                      >
+                        <FaFacebookF size={25} />
+                      </a>
+                    )}
                   </div>
-
-                  {(negocio.whatsapp ||
-                    negocio.instagram_url ||
-                    negocio.facebook_url) && (
-                    <div className="flex gap-2">
-                      {negocio.whatsapp && (
-                        <a
-                          href={`https://wa.me/${negocio.whatsapp.replace(/\D/g, "")}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          aria-label="WhatsApp"
-                          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/80 transition-all hover:bg-white/20 hover:text-white"
-                        >
-                          <FaWhatsapp size={14} />
-                        </a>
-                      )}
-                      {negocio.instagram_url && (
-                        <a
-                          href={negocio.instagram_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          aria-label="Instagram"
-                          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/80 transition-all hover:bg-white/20 hover:text-white"
-                        >
-                          <FaInstagram size={13} />
-                        </a>
-                      )}
-                      {negocio.facebook_url && (
-                        <a
-                          href={negocio.facebook_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          aria-label="Facebook"
-                          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/80 transition-all hover:bg-white/20 hover:text-white"
-                        >
-                          <FaFacebookF size={12} />
-                        </a>
-                      )}
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             </div>
           </div>
+        </header>
 
-          <main className="mt-6 flex flex-col gap-6 lg:flex-row">
+        {/* CATALOGO */}
+        <div className="w-full">
+          <main className=" flex flex-col gap-6 lg:flex-row">
             <section
-              className={`min-w-0 flex-1 rounded-3xl bg-[var(--color-custom-100)] p-4 shadow-sm lg:p-6 transition-all duration-300 ${
+              className={`min-w-0 flex-1 bg-[var(--color-custom-100)] p-4 shadow-sm lg:p-6 transition-all duration-300 ${
                 isCartOpen ? "lg:basis-auto" : "lg:basis-full"
               }`}
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
-                  <p className="text-2xl font-black italic leading-none tracking-[-0.05em] text-[var(--color-custom-950)] sm:text-3xl">
+                  <p className="text-5xl font-black italic leading-none tracking-[-0.05em] text-[var(--color-custom-950)] sm:text-3xl">
                     Menú
                   </p>
                   <p className="mt-1 text-sm font-medium text-[var(--color-custom-text-muted)]">
@@ -445,7 +446,7 @@ export function CatalogClient({
             </section>
 
             <aside
-              className={`hidden w-[380px] shrink-0 transition-all duration-300 lg:sticky lg:top-4 lg:self-start ${
+              className={`bg-[var(--color-custom-100)] pt-7 hidden w-[380px] shrink-0 transition-all duration-300 lg:sticky lg:top-4 lg:self-start ${
                 isCartOpen
                   ? "lg:block opacity-100 translate-x-0"
                   : "lg:hidden pointer-events-none opacity-0 translate-x-6"

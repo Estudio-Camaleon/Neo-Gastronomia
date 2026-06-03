@@ -96,7 +96,7 @@ export function PublicCart({
   }, [isDrawer, handleEscape]);
 
   const renderCartContent = () => (
-    <div className="flex h-full flex-col justify-between">
+    <div className="flex h-full flex-col justify-between ">
       {cart.length === 0 ? (
         <div className="flex flex-1 select-none flex-col items-center justify-center px-4 py-16 text-center">
           <div className="mb-4 rounded-full bg-[var(--color-custom-50)] p-4 text-[var(--color-custom-900)]" aria-hidden="true">
