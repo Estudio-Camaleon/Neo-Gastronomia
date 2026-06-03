@@ -124,7 +124,7 @@ export function RegisterForm() {
   // --- REDIRECCIÓN TRAS REGISTRO EXITOSO ---
   useEffect(() => {
     if (isSent) {
-      router.push("/pedidos");
+      router.push("/configuracion?firstLogin=true");
     }
   }, [isSent, router]);
 

@@ -1,18 +1,19 @@
-/**
- * NEO SYSTEM v3.0 - Portal Maestro de Configuración
- * Server Component puro encargado del abastecimiento de data de marca del local.
- */
 import { createClient } from "@/core/lib/supabase/server";
 import { Settings, ShieldCheck, Activity } from "lucide-react";
 import {
   ConfigForm,
   type NegocioInitialData,
 } from "@/features/admin/branding/components/ConfigForm";
+import { FirstTimeTutorial } from "@/features/admin/shared/FirstTimeTutorial";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default async function ConfiguracionPage() {
+export default async function ConfiguracionPage(props: {
+  searchParams?: Promise<{ firstLogin?: string }>;
+}) {
+  const searchParams = await props.searchParams;
+  const firstLogin = searchParams?.firstLogin === "true";
   const supabase = await createClient();
   const {
     data: { user },
@@ -28,6 +29,8 @@ export default async function ConfiguracionPage() {
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-16 relative z-10">
+      {firstLogin && <FirstTimeTutorial />}
+
       {/* HEADER DE AUDITORÍA */}
       <header className="space-y-3 border-b border-[var(--admin-border)]/50 pb-6">
         <div className="flex items-center gap-2 text-[var(--admin-text-muted)]">
