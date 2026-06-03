@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { supabaseAdmin } from "@/core/lib/supabase/admin";
-import { env } from "@/core/config/env";
 import { loginSchema, registerSchema } from "@/core/lib/schemas";
 
 // --- RATE LIMITER SIMPLE (en memoria) ---
@@ -95,21 +94,28 @@ export async function registerAction(payload: {
     return { error: "Demasiados intentos. Intentalo de nuevo en un minuto." };
   }
 
-  const supabase = await createClient();
+  // Crear usuario confirmado via admin client (bypassea config de confirmación)
+  const { data: authData, error: createError } =
+    await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { nombre_negocio: safeNombre },
+    });
 
-  const { data, error } = await supabase.auth.signUp({
+  if (createError) return { error: createError.message };
+  if (!authData.user) return { error: "No se pudo crear el usuario." };
+
+  // Iniciar sesión para establecer cookies de sesión
+  const supabase = await createClient();
+  const { error: signInError } = await supabase.auth.signInWithPassword({
     email,
     password,
-    options: {
-      emailRedirectTo: `${env.NEXT_PUBLIC_SITE_URL}/callback`,
-      data: {
-        nombre_negocio: safeNombre,
-      },
-    },
   });
 
-  if (error) return { error: error.message };
-  if (!data.user) return { error: "No se pudo crear el usuario." };
+  if (signInError) {
+    return { error: signInError.message };
+  }
 
   let slug = safeNombre
     .toLowerCase()
@@ -118,7 +124,7 @@ export async function registerAction(payload: {
     .replace(/[^a-z0-9-]/g, "-")
     .replace(/-+/g, "-")
     .replace(/(^-|-$)+/g, "")
-    || `local-${data.user.id.slice(0, 8)}`;
+    || `local-${authData.user.id.slice(0, 8)}`;
 
   const { data: existing } = await supabaseAdmin
     .from("negocios")
@@ -132,7 +138,7 @@ export async function registerAction(payload: {
   }
 
   const { error: negocioError } = await supabaseAdmin.from("negocios").insert({
-    user_id: data.user.id,
+    user_id: authData.user.id,
     nombre: safeNombre,
     slug,
     ...(safeWhatsapp ? { whatsapp: safeWhatsapp } : {}),

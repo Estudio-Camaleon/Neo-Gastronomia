@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { z } from "zod";
 import {
   ShieldAlert,
@@ -9,7 +9,6 @@ import {
   ArrowLeft,
   Loader2,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { StepIndicator } from "./StepIndicator";
 import { registerAction } from "../actions";
@@ -34,9 +33,7 @@ export function RegisterForm() {
   const [whatsapp, setWhatsapp] = useState("");
   const [descripcion, setDescripcion] = useState("");
 
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [isSent, setIsSent] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   // --- HEURÍSTICA DE ENTROPÍA ULTRA-LIGHT ORIGINAL RESTAURADA ---
@@ -116,35 +113,10 @@ export function RegisterForm() {
       setErrorMsg(response.error);
       setLoading(false);
     } else {
-      setIsSent(true);
-      setLoading(false);
+      // Navegación completa para garantizar cookies de sesión sincronizadas
+      window.location.href = "/configuracion?firstLogin=true";
     }
   };
-
-  // --- REDIRECCIÓN TRAS REGISTRO EXITOSO ---
-  useEffect(() => {
-    if (isSent) {
-      router.push("/configuracion?firstLogin=true");
-    }
-  }, [isSent, router]);
-
-  if (isSent) {
-    return (
-      <div className="bg-[var(--auth-surface-form)] p-6 rounded-xl border border-[var(--auth-border)] text-center space-y-4 animate-in zoom-in-95 duration-200 select-none shadow-sm">
-        <div className="w-12 h-12 bg-[var(--auth-primary-soft)] text-[var(--auth-primary)] rounded-full flex items-center justify-center mx-auto shadow-sm">
-          <Loader2 className="h-6 w-6 animate-spin" />
-        </div>
-        <div className="space-y-1">
-          <h2 className="text-base font-bold text-[var(--auth-accent)] tracking-tight">
-            Registro Exitoso
-          </h2>
-          <p className="text-[var(--auth-text-muted)] text-sm leading-relaxed">
-            Redirigiendo a tu panel de control...
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full">
