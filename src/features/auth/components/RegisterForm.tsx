@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import {
   ShieldAlert,
@@ -9,6 +9,7 @@ import {
   ArrowLeft,
   Loader2,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { StepIndicator } from "./StepIndicator";
 import { registerAction } from "../actions";
@@ -33,6 +34,7 @@ export function RegisterForm() {
   const [whatsapp, setWhatsapp] = useState("");
   const [descripcion, setDescripcion] = useState("");
 
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [isSent, setIsSent] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -119,28 +121,26 @@ export function RegisterForm() {
     }
   };
 
-  // --- MENSAJE DE ÉXITO ORIGINAL RESTAURADO ---
+  // --- REDIRECCIÓN TRAS REGISTRO EXITOSO ---
+  useEffect(() => {
+    if (isSent) {
+      router.push("/pedidos");
+    }
+  }, [isSent, router]);
+
   if (isSent) {
     return (
       <div className="bg-[var(--auth-surface-form)] p-6 rounded-xl border border-[var(--auth-border)] text-center space-y-4 animate-in zoom-in-95 duration-200 select-none shadow-sm">
         <div className="w-12 h-12 bg-[var(--auth-primary-soft)] text-[var(--auth-primary)] rounded-full flex items-center justify-center mx-auto shadow-sm">
-          <CheckCircle2 className="h-6 w-6" />
+          <Loader2 className="h-6 w-6 animate-spin" />
         </div>
         <div className="space-y-1">
           <h2 className="text-base font-bold text-[var(--auth-accent)] tracking-tight">
-            Enlace de Activación Despachado
+            Registro Exitoso
           </h2>
           <p className="text-[var(--auth-text-muted)] text-sm leading-relaxed">
-            Hemos enviado una firma de verificación para consolidar el local:{" "}
-            <br />
-            <span className="font-mono font-semibold text-[var(--auth-accent)] bg-[var(--auth-bg)] px-2 py-0.5 rounded text-xs mt-2 inline-block border border-[var(--auth-border)]">
-              {nombreNegocio}
-            </span>
+            Redirigiendo a tu panel de control...
           </p>
-        </div>
-        <div className="p-3 bg-[var(--auth-bg)] border border-[var(--auth-border)] rounded-lg text-xs text-[var(--auth-text-muted)] leading-normal">
-          Por favor, valida tu bandeja de entrada o buzón de spam para habilitar
-          tu infraestructura multi-tenant en NEO.
         </div>
       </div>
     );
