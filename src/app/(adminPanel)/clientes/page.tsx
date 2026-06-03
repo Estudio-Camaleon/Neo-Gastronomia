@@ -1,14 +1,11 @@
 import { createClient } from "@/core/lib/supabase/server";
 import { Users, AlertTriangle } from "lucide-react";
-import {
-  ClientRadar,
-  type ClienteResumen,
-} from "@/features/admin/clients/ClientRadar";
+import { ClientRadar } from "@/features/admin/clients/ClientRadar";
+import type { ClienteResumen } from "@/core/types/domain";
 
 export default async function ClientesPage() {
   const supabase = await createClient();
 
-  // 1. Extracción de contexto asumiendo layout seguro
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -16,7 +13,7 @@ export default async function ClientesPage() {
   const { data: negocio } = await supabase
     .from("negocios")
     .select("id")
-    .eq("user_id", user?.id)
+    .eq("user_id", user?.id ?? "")
     .single();
 
   if (!negocio) {
@@ -33,38 +30,52 @@ export default async function ClientesPage() {
     );
   }
 
-  // 2. Traemos comandas de forma limpia para cálculo asíncrono
-  const { data: pedidos } = await supabase
-    .from("pedidos")
-    .select("cliente_nombre, total, cliente_whatsapp")
-    .eq("negocio_id", negocio.id);
+  // 2. Intentar traer clientes registrados + pedidos para métricas
+  const [{ data: clientesBD }, { data: pedidos }] = await Promise.all([
+    supabase.from("clientes").select("*").eq("negocio_id", negocio.id),
+    supabase
+      .from("pedidos")
+      .select("cliente_nombre, total, cliente_whatsapp")
+      .eq("negocio_id", negocio.id),
+  ]);
 
-  // 3. Motor de agregación de datos con Tipado Estricto (Cero Warnings)
-  const resumenClientes = (pedidos || []).reduce<
-    Record<string, ClienteResumen>
-  >((acc, pedido) => {
+  // 3. Mapa: clientes registrados por nombre normalizado
+  const clientesMap = new Map<string, ClienteResumen>();
+  for (const cli of clientesBD ?? []) {
+    const key = cli.nombre.trim().toUpperCase();
+    clientesMap.set(key, {
+      id: cli.id,
+      nombre: key,
+      telefono: cli.telefono,
+      email: cli.email,
+      totalGasto: 0,
+      pedidos: 0,
+      notas: cli.notas,
+    });
+  }
+
+  // 4. Agregar métricas desde pedidos
+  for (const pedido of pedidos ?? []) {
     const nombreLimpio =
       pedido.cliente_nombre?.trim().toUpperCase() || "CONSUMIDOR ANÓNIMO";
-    const whatsapp = pedido.cliente_whatsapp || null;
-
-    if (!acc[nombreLimpio]) {
-      acc[nombreLimpio] = {
-        id: crypto.randomUUID(), // Nota: Si implementás auth relacional de clientes, usar ID real de Supabase Auth
+    const existente = clientesMap.get(nombreLimpio);
+    if (existente) {
+      existente.totalGasto += Number(pedido.total || 0);
+      existente.pedidos += 1;
+    } else {
+      clientesMap.set(nombreLimpio, {
+        id: crypto.randomUUID(),
         nombre: nombreLimpio,
-        telefono: whatsapp,
+        telefono: pedido.cliente_whatsapp || null,
         email: null,
-        totalGasto: 0,
-        pedidos: 0,
+        totalGasto: Number(pedido.total || 0),
+        pedidos: 1,
         notas: null,
-      };
+      });
     }
+  }
 
-    acc[nombreLimpio].totalGasto += Number(pedido.total || 0);
-    acc[nombreLimpio].pedidos += 1;
-    return acc;
-  }, {});
-
-  const listaClientes = Object.values(resumenClientes).sort(
+  const listaClientes = Array.from(clientesMap.values()).sort(
     (a, b) => b.totalGasto - a.totalGasto,
   );
 

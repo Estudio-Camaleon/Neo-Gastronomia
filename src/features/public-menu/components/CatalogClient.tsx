@@ -12,13 +12,21 @@ import {
   MapPin,
 } from "lucide-react";
 import { FaFacebookF, FaInstagram, FaWhatsapp } from "react-icons/fa6";
-import { useCartStore, generateItemId } from "@/features/public-menu/cart/useCartStore";
+import {
+  useCartStore,
+  generateItemId,
+} from "@/features/public-menu/cart/useCartStore";
 import { CartFloatingButton } from "@/features/public-menu/cart/CartFloatingButton";
 import { PublicCart } from "@/features/public-menu/cart/PublicCart";
 import { FloatingFood } from "@/features/public-menu/components/FloatingFood";
 import { ExtrasSelector } from "@/features/public-menu/components/ExtrasSelector";
 import { estaAbierto } from "@/core/lib/utils/horarios";
-import type { Categoria, NegocioPublico, ExtraGroup, Producto } from "@/features/public-menu/types";
+import type {
+  Categoria,
+  NegocioPublico,
+  ExtraGroup,
+  Producto,
+} from "@/features/public-menu/types";
 import {
   DAYS_ORDER,
   DAY_LABELS,
@@ -578,7 +586,8 @@ export function CatalogClient({
                                           aria-label={`Aumentar cantidad de ${prod.nombre}`}
                                           onClick={() => {
                                             const grupos =
-                                              prod.configuracion?.grupos_opciones;
+                                              prod.configuracion
+                                                ?.grupos_opciones;
                                             if (
                                               grupos &&
                                               grupos.length > 0 &&
@@ -701,12 +710,8 @@ export function CatalogClient({
             groups={extrasProduct.groups}
             simbolo={menuConfig.moneda_simbolo}
             onConfirm={(extras, extraTotal) => {
-              const id = generateItemId(
-                extrasProduct.product.id,
-                extras,
-              );
-              const precioFinal =
-                extrasProduct.product.precio + extraTotal;
+              const id = generateItemId(extrasProduct.product.id, extras);
+              const precioFinal = extrasProduct.product.precio + extraTotal;
               addItem({
                 id,
                 producto_id: extrasProduct.product.id,

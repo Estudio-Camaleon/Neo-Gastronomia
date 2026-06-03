@@ -16,7 +16,7 @@ export default async function ProductosAdminPage() {
   const { data: negocio } = await supabase
     .from("negocios")
     .select("id, nombre")
-    .eq("user_id", user?.id)
+    .eq("user_id", user?.id ?? "")
     .single();
 
   if (!negocio) redirect("/configuracion");

@@ -116,20 +116,16 @@ export function OrderForm({
     const numeroLimpio = negocioWhatsapp.replace(/\D/g, "");
     if (!numeroLimpio) return false;
 
-    const formatearExtras = (i: typeof cart[0]) => {
+    const formatearExtras = (i: (typeof cart)[0]) => {
       if (!i.extras || i.extras.length === 0) return "";
-      return i.extras
-        .map((e) => `${e.item_nombre}`)
-        .join(", ");
+      return i.extras.map((e) => `${e.item_nombre}`).join(", ");
     };
 
-    const lineasDetalle = cart.map(
-      (i) => {
-        const extrasStr = formatearExtras(i);
-        const extraPart = extrasStr ? ` (_${extrasStr}_)` : "";
-        return `• ${i.cantidad}x ${i.nombre.toUpperCase()}${extraPart} - ${simbolo}${formatMoney(i.precio * i.cantidad)}`;
-      },
-    );
+    const lineasDetalle = cart.map((i) => {
+      const extrasStr = formatearExtras(i);
+      const extraPart = extrasStr ? ` (_${extrasStr}_)` : "";
+      return `• ${i.cantidad}x ${i.nombre.toUpperCase()}${extraPart} - ${simbolo}${formatMoney(i.precio * i.cantidad)}`;
+    });
 
     const MAX_DETALLE_ITEMS = 12;
     const detalleTruncado =

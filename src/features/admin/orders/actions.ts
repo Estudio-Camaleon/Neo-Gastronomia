@@ -74,6 +74,32 @@ export async function submitOrderPublicAction(
     );
   }
 
+  // Crear o actualizar cliente en la tabla clientes
+  const clienteNombre = parsed.data.cliente_nombre.trim();
+  const { data: clienteExistente } = await supabase
+    .from("clientes")
+    .select("id, notas")
+    .eq("negocio_id", parsed.data.negocio_id)
+    .eq("nombre", clienteNombre)
+    .maybeSingle();
+
+  if (clienteExistente) {
+    await supabase
+      .from("clientes")
+      .update({
+        telefono: parsed.data.cliente_whatsapp.trim(),
+        direccion: parsed.data.direccion_entrega?.trim() ?? null,
+      })
+      .eq("id", clienteExistente.id);
+  } else {
+    await supabase.from("clientes").insert({
+      negocio_id: parsed.data.negocio_id,
+      nombre: clienteNombre,
+      telefono: parsed.data.cliente_whatsapp.trim(),
+      direccion: parsed.data.direccion_entrega?.trim() ?? null,
+    });
+  }
+
   const itemsPayload = parsed.data.items.map((item) => ({
     pedido_id: pedido.id,
     producto_id: item.producto_id,

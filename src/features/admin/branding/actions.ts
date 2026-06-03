@@ -3,23 +3,8 @@
 import { createClient } from "@/core/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { extractStoragePath } from "@/core/lib/tenant";
-
-export interface UpdateTenantBrandingPayload {
-  id: string;
-  nombre: string;
-  slug: string;
-  whatsapp: string;
-  direccion: string;
-  localidad: string;
-  direccion_notas: string;
-  color_primary: string;
-  logo_url: string;
-  banner_url: string;
-  instagram_url: string;
-  facebook_url: string;
-  tiktok_url: string;
-  horarios: Record<string, unknown>;
-}
+import type { UpdateTenantBrandingPayload } from "@/core/types/domain";
+import type { Json } from "@/core/types/database.types";
 
 /**
  * Pone al día la identidad corporativa de un negocio mitigando escaladas RLS.
@@ -73,7 +58,7 @@ export async function updateTenantBrandingAction(
       instagram_url: payload.instagram_url.trim(),
       facebook_url: payload.facebook_url.trim(),
       tiktok_url: payload.tiktok_url.trim(),
-      horarios: payload.horarios,
+      horarios: payload.horarios as Json,
       updated_at: new Date().toISOString(),
     })
     .eq("id", payload.id)

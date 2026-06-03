@@ -1,37 +1,14 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/core/lib/supabase/server";
 import { supabaseAdmin } from "@/core/lib/supabase/admin";
-import { extractStoragePath } from "@/core/lib/tenant";
+import {
+  extractStoragePath,
+  getAuthenticatedTenantWithUser,
+} from "@/core/lib/tenant";
 
 const BUCKET = "imagenes-negocios";
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 
 const ALLOWED_FIELDS = ["logo_url", "banner_url"] as const;
-
-async function getAuthenticatedTenantWithUser() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    throw new Error("Acceso denegado. No autenticado.");
-  }
-
-  const { data: negocio, error: tenantError } = await supabase
-    .from("negocios")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
-
-  if (tenantError || !negocio) {
-    throw new Error("Inconsistencia Multi-tenant: Local no asignado.");
-  }
-
-  return { userId: user.id, negocioId: negocio.id };
-}
 
 export async function POST(request: Request) {
   try {

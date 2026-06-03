@@ -12,6 +12,14 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "clean": "npx rimraf .next",
     "free-port": "npx kill-port 3000",
+    "db:link": "supabase link --project-ref hokibyfaompjhdhnhtru",
+    "db:pull": "supabase db pull --project-id hokibyfaompjhdhnhtru",
+    "db:push": "supabase db push --project-id hokibyfaompjhdhnhtru",
+    "db:types": "supabase gen types typescript --project-id hokibyfaompjhdhnhtru > src/core/types/database.types.ts",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "impecable": "npm run lint && npm run typecheck && npm run format"
   },
   "dependencies": {
@@ -43,16 +51,22 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.0.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "globals": "^17.6.0",
+    "jsdom": "^29.1.1",
     "prettier": "^3.8.3",
     "supabase": "^2.100.1",
     "tailwindcss": "^4.2.4",
     "tsx": "^4.21.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.8"
   }
 }

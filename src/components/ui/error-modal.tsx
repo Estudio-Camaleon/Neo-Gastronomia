@@ -1,18 +1,42 @@
 "use client";
 
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface ErrorModalProps {
   title: string;
   message: string;
   action?: React.ReactNode;
+  autoHideAfter?: number;
 }
 
-export function ErrorModal({ title, message, action }: ErrorModalProps) {
+export function ErrorModal({
+  title,
+  message,
+  action,
+  autoHideAfter = 8,
+}: ErrorModalProps) {
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    if (!autoHideAfter) return;
+    const timer = setTimeout(() => setVisible(false), autoHideAfter * 1000);
+    return () => clearTimeout(timer);
+  }, [autoHideAfter]);
+
+  if (!visible) return null;
+
   return (
-    // Blindamos el z-index al máximo operativo para bloquear interacción de fondo
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 backdrop-blur-md p-6 font-sans animate-in fade-in duration-200">
-      <div className="max-w-md w-full bg-white dark:bg-zinc-950 border border-gray-200 dark:border-gray-800 p-8 rounded-2xl shadow-xl text-center animate-in zoom-in-95 duration-200">
+    <div className="flex items-center justify-center p-6 font-sans">
+      <div className="relative max-w-md w-full bg-white dark:bg-zinc-950 border border-gray-200 dark:border-gray-800 p-8 rounded-2xl shadow-xl text-center">
+        <button
+          onClick={() => setVisible(false)}
+          className="absolute top-3 right-3 p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+          aria-label="Cerrar"
+        >
+          <X size={18} />
+        </button>
+
         <div className="w-14 h-14 bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-5">
           <AlertTriangle size={24} strokeWidth={2} />
         </div>
@@ -30,6 +54,10 @@ export function ErrorModal({ title, message, action }: ErrorModalProps) {
             {action}
           </div>
         )}
+
+        <p className="text-xs text-gray-400 dark:text-gray-600 mt-4">
+          Esta ventana se cerrará automáticamente en {autoHideAfter} segundos
+        </p>
       </div>
     </div>
   );

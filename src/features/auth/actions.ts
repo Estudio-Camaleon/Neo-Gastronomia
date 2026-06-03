@@ -4,6 +4,7 @@ import { createClient } from "@/core/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
+import { supabaseAdmin } from "@/core/lib/supabase/admin";
 
 // --- RATE LIMITER SIMPLE (en memoria) ---
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
@@ -65,7 +66,7 @@ export async function registerAction(payload: {
 
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email: payload.email,
     password: payload.password,
     options: {
@@ -77,6 +78,28 @@ export async function registerAction(payload: {
   });
 
   if (error) return { error: error.message };
+  if (!data.user) return { error: "No se pudo crear el usuario." };
+
+  const slug = payload.nombreNegocio
+    .toLowerCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/(^-|-$)+/g, "");
+
+  const { error: negocioError } = await supabaseAdmin
+    .from("negocios")
+    .insert({
+      user_id: data.user.id,
+      nombre: payload.nombreNegocio.trim(),
+      slug: slug || `local-${data.user.id.slice(0, 8)}`,
+    });
+
+  if (negocioError) {
+    console.error("[REGISTER]: Error creando negocio:", negocioError.message);
+  }
 
   return { success: true };
 }

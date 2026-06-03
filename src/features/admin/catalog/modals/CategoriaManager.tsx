@@ -6,15 +6,11 @@ import { Tag, Plus, Trash2, Loader2, Hash, X } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import type { RealtimeChannel } from "@supabase/supabase-js";
+import type { CategoriaRow } from "@/core/types/domain";
 
 const supabase = createClient();
 
-interface CategoriaBase {
-  id: string;
-  nombre: string;
-  slug: string;
-  negocio_id: string;
-}
+type CategoriaBase = CategoriaRow;
 
 interface CategoriaManagerProps {
   negocioId: string;
@@ -49,7 +45,7 @@ export function CategoriaManager({
     try {
       const { data, error } = await supabase
         .from("categorias")
-        .select("id, nombre, slug, negocio_id")
+        .select("*")
         .eq("negocio_id", negocioId)
         .order("nombre", { ascending: true });
 

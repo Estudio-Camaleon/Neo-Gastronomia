@@ -5,16 +5,7 @@ import { Users, User, MessageCircle, Trophy, StickyNote } from "lucide-react";
 import { updateClientSystemNotes } from "./actions";
 import { NotesModal } from "@/components/ui/notes-modal";
 import { toast } from "sonner";
-
-export interface ClienteResumen {
-  id: string;
-  nombre: string;
-  telefono: string | null;
-  email: string | null;
-  totalGasto: number;
-  pedidos: number;
-  notas: string | null;
-}
+import type { ClienteResumen } from "@/core/types/domain";
 
 interface ClientRadarProps {
   initialClientes: ClienteResumen[];

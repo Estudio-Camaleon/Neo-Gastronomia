@@ -2,10 +2,9 @@
 
 import Link, { type LinkProps } from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import React, { useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useLoading } from "@/core/providers/LoadingProvider";
 
-// Omitimos las propiedades HTML que ya existen en LinkProps para evitar el choque de tipos.
 type TransitionLinkProps = LinkProps &
   Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof LinkProps> & {
     delayMs?: number;
@@ -23,6 +22,7 @@ export function TransitionLink({
 }: TransitionLinkProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const prevPathRef = useRef(pathname);
   const { show: showLoading, hide: hideLoading } = useLoading();
 
   const isHashLink = useMemo(() => {
@@ -35,37 +35,57 @@ export function TransitionLink({
     return targetPath === pathname;
   }, [href, pathname]);
 
-  const handleTransition = (
-    e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
-  ) => {
-    onClick?.(e);
+  const handleTransition = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+      onClick?.(e);
 
-    // Si el usuario abre en otra pestaña o usa atajos, no intervenimos
-    if (
-      e.defaultPrevented ||
-      e.metaKey ||
-      e.ctrlKey ||
-      e.shiftKey ||
-      e.altKey
-    ) {
-      return;
-    }
+      if (
+        e.defaultPrevented ||
+        e.metaKey ||
+        e.ctrlKey ||
+        e.shiftKey ||
+        e.altKey
+      ) {
+        return;
+      }
 
-    if (props.target === "_blank" || isHashLink || isSamePath) {
-      return;
-    }
+      if (props.target === "_blank" || isHashLink || isSamePath) {
+        return;
+      }
 
-    e.preventDefault();
-    showLoading(loadingMessage);
+      e.preventDefault();
+      prevPathRef.current = pathname;
+      showLoading(loadingMessage);
 
-    // href en Next.js puede ser un UrlObject. Extraemos el string seguro.
-    const targetUrl = typeof href === "string" ? href : href.pathname || "/";
+      const targetUrl =
+        typeof href === "string" ? href : href.pathname || "/";
 
-    window.setTimeout(() => {
-      router.push(targetUrl);
+      setTimeout(() => {
+        router.push(targetUrl);
+        hideLoading();
+      }, delayMs);
+    },
+    [
+      href,
+      onClick,
+      isHashLink,
+      isSamePath,
+      pathname,
+      showLoading,
+      hideLoading,
+      loadingMessage,
+      delayMs,
+      props.target,
+      router,
+    ],
+  );
+
+  useEffect(() => {
+    if (prevPathRef.current !== pathname) {
       hideLoading();
-    }, delayMs);
-  };
+      prevPathRef.current = pathname;
+    }
+  }, [pathname, hideLoading]);
 
   return (
     <Link

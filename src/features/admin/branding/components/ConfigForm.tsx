@@ -27,8 +27,8 @@ import {
 import {
   updateTenantBrandingAction,
   deleteTenantBrandingAction,
-  type UpdateTenantBrandingPayload,
 } from "../actions";
+import type { UpdateTenantBrandingPayload } from "@/core/types/domain";
 
 export interface NegocioInitialData {
   id: string;

@@ -5,25 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getAuthenticatedTenant } from "@/core/lib/tenant";
 import { upsertProductSchema } from "@/core/lib/schemas";
 import { z } from "zod";
-
-export interface JSONBExtraItem {
-  id: string;
-  nombre: string;
-  precio: number;
-}
-
-export interface JSONBExtraGroup {
-  id: string;
-  titulo: string;
-  requerido: boolean;
-  multiple: boolean;
-  items: JSONBExtraItem[];
-}
-
-export interface ProductoConfiguracion {
-  variantes: Array<{ nombre: string; precio: number }>;
-  grupos_opciones: JSONBExtraGroup[];
-}
+import type { ProductoConfiguracion } from "@/core/types/domain";
 
 export async function upsertProductAction(
   payload: z.infer<typeof upsertProductSchema>,

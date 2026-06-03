@@ -20,7 +20,10 @@ export interface CartItem {
   extras: CartExtra[];
 }
 
-export function generateItemId(producto_id: string, extras: CartExtra[]): string {
+export function generateItemId(
+  producto_id: string,
+  extras: CartExtra[],
+): string {
   if (!extras || extras.length === 0) return producto_id;
   const key = extras
     .map((e) => `${e.grupo_id}:${e.item_id}`)

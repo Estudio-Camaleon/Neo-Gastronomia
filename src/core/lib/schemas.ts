@@ -15,6 +15,11 @@ export const registerSchema = z.object({
     .regex(/^[a-z0-9-]+$/, "Solo letras minúsculas, números y guiones"),
 });
 
+const productVariantSchema = z.object({
+  nombre: z.string().min(1, "El nombre de variante es requerido"),
+  precio: z.number().min(0, "El precio no puede ser negativo"),
+});
+
 const extraItemSchema = z.object({
   id: z.string(),
   nombre: z.string(),
@@ -27,11 +32,6 @@ const extraGroupSchema = z.object({
   requerido: z.boolean(),
   multiple: z.boolean(),
   items: z.array(extraItemSchema),
-});
-
-const productVariantSchema = z.object({
-  nombre: z.string().min(1, "El nombre de variante es requerido"),
-  precio: z.number().min(0, "El precio no puede ser negativo"),
 });
 
 const productConfigSchema = z.object({

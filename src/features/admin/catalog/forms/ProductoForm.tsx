@@ -1,11 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import {
-  upsertProductAction,
-  JSONBExtraGroup,
-  JSONBExtraItem,
-} from "@/features/admin/catalog/actions";
+import { upsertProductAction } from "@/features/admin/catalog/actions";
+import type { ExtraGroup, ExtraItem } from "@/core/types/domain";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { toast } from "sonner";
 import {
@@ -61,9 +58,9 @@ export function ProductoForm({
   const [variantes, setVariantes] = useState<Variant[]>(
     (initialData?.configuracion?.variantes as unknown as Variant[]) || [],
   );
-  const [gruposOpciones, setGruposOpciones] = useState<JSONBExtraGroup[]>(
-    (initialData?.configuracion
-      ?.grupos_opciones as unknown as JSONBExtraGroup[]) || [],
+  const [gruposOpciones, setGruposOpciones] = useState<ExtraGroup[]>(
+    (initialData?.configuracion?.grupos_opciones as unknown as ExtraGroup[]) ||
+      [],
   );
 
   useEffect(() => {
@@ -107,7 +104,7 @@ export function ProductoForm({
   };
 
   const agregarGrupoOpcion = () => {
-    const nuevoGrupo: JSONBExtraGroup = {
+    const nuevoGrupo: ExtraGroup = {
       id: crypto.randomUUID(),
       titulo: "",
       requerido: false,
@@ -131,7 +128,7 @@ export function ProductoForm({
     setGruposOpciones(
       gruposOpciones.map((g) => {
         if (g.id !== grupoId) return g;
-        const nuevoItem: JSONBExtraItem = {
+        const nuevoItem: ExtraItem = {
           id: crypto.randomUUID(),
           nombre: "",
           precio: 0,
@@ -153,7 +150,7 @@ export function ProductoForm({
   const actualizarItemDeGrupo = (
     grupoId: string,
     itemId: string,
-    fields: Partial<JSONBExtraItem>,
+    fields: Partial<ExtraItem>,
   ) => {
     setGruposOpciones(
       gruposOpciones.map((g) => {

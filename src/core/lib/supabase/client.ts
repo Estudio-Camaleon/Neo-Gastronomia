@@ -1,7 +1,7 @@
 // src/core/lib/supabase/client.ts
 import { createBrowserClient } from "@supabase/ssr";
+import type { Database } from "@/core/types/database.types";
 
-// Validamos en tiempo de compilación/ejecución con fallbacks seguros
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
@@ -12,5 +12,5 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export function createClient() {
-  return createBrowserClient(supabaseUrl, supabaseAnonKey);
+  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
 }

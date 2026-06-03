@@ -19,6 +19,7 @@ import { PedidoCard } from "./PedidoCard";
 import { updateOrderStatusAction } from "./actions";
 import { enviarNotificacionWhatsApp } from "@/core/lib/utils/whatsappActions";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import type { PedidoItem, PedidoData } from "@/core/types/domain";
 
 const supabase = createClient();
 
@@ -26,7 +27,11 @@ let audioBufferCache: AudioBuffer | null = null;
 
 async function playSound() {
   try {
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    const ctx = new (
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext })
+        .webkitAudioContext
+    )();
     if (ctx.state === "suspended") await ctx.resume();
 
     if (!audioBufferCache) {
@@ -42,27 +47,6 @@ async function playSound() {
   } catch {
     // audio no crítico
   }
-}
-
-export interface PedidoItem {
-  id: string;
-  cantidad: number;
-  nombre_producto: string;
-  precio_unitario: number;
-  detalles?: string | null;
-}
-
-export interface PedidoData {
-  id: string;
-  estado: "pendiente" | "en_preparacion" | "entregado" | "cancelado";
-  cliente_nombre: string;
-  metodo_pago: string;
-  total: number;
-  cliente_whatsapp: string;
-  es_delivery: boolean;
-  direccion_entrega?: string | null;
-  notas?: string | null;
-  pedido_items: PedidoItem[];
 }
 
 interface PedidosRadarProps {

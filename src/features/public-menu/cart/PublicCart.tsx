@@ -238,10 +238,7 @@ export function PublicCart({
                         {item.extras && item.extras.length > 0 && (
                           <div className="ml-[22px] mt-0.5 space-y-0.5">
                             {item.extras.map((e, ei) => (
-                              <p
-                                key={ei}
-                                className="text-[10px] text-[#777]"
-                              >
+                              <p key={ei} className="text-[10px] text-[#777]">
                                 + {e.item_nombre}
                                 {e.item_precio > 0 &&
                                   ` (${simbolo}${formatMoney(e.item_precio)})`}

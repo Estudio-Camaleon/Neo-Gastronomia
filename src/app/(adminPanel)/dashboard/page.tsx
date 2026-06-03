@@ -32,7 +32,7 @@ export default async function DashboardPage() {
   const [
     { count: pedidosHoy },
     { data: ventasData },
-    { count: totalClientes },
+    { data: clientesNombres },
     { count: totalProductos },
   ] = await Promise.all([
     supabase
@@ -47,8 +47,9 @@ export default async function DashboardPage() {
       .gte("created_at", todayStart.toISOString()),
     supabase
       .from("pedidos")
-      .select("cliente_id", { count: "exact", head: true })
-      .eq("negocio_id", negocioId),
+      .select("cliente_nombre")
+      .eq("negocio_id", negocioId)
+      .not("cliente_nombre", "is", null),
     supabase
       .from("productos")
       .select("*", { count: "exact", head: true })
@@ -57,6 +58,9 @@ export default async function DashboardPage() {
 
   const ventasHoy =
     ventasData?.reduce((sum, p) => sum + (Number(p.total) || 0), 0) ?? 0;
+  const totalClientes = new Set(
+    clientesNombres?.map((c) => c.cliente_nombre).filter(Boolean),
+  ).size;
 
   return (
     <div className="space-y-8 z-10 relative">

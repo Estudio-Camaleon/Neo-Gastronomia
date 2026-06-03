@@ -23,7 +23,7 @@ export default async function ConfiguracionPage() {
     .select(
       `id, nombre, slug, whatsapp, direccion, localidad, direccion_notas, color_primary, logo_url, banner_url, horarios, instagram_url, facebook_url, tiktok_url`,
     )
-    .eq("user_id", user?.id)
+    .eq("user_id", user?.id ?? "")
     .single();
 
   return (

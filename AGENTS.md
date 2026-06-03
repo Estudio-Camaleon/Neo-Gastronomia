@@ -6,6 +6,7 @@
 npm install              # install deps
 npm run dev              # custom dev script (tsx scripts/dev.ts → next dev --turbo)
 npm run build            # production build
+npm run test             # vitest run (CI)
 npm run impecable        # lint → typecheck → format (run before committing)
 ```
 
@@ -18,6 +19,8 @@ npm run impecable        # lint → typecheck → format (run before committing)
 | `npm run lint` | `eslint . --cache` |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run format` | `prettier --write "src/**/*.{ts,tsx,css}"` |
+| `npm run test` | `vitest run` (CI) |
+| `npm run test:watch` | `vitest` (watch mode) |
 | `npm run impecable` | `lint && typecheck && format` (pre-commit gate) |
 
 ## Architecture
@@ -93,7 +96,10 @@ File: `src/proxy.ts`, exported function: `proxy(request: NextRequest)`.
 - **Storage paths** are extracted from public URLs using `extractStoragePath()` (strips query params, hash)
 - **Multi-tenant** isolation: every DB query scoped by `negocio_id` + `user_id` (server) or RLS (client)
 - **Auth routes** use CSS variables from `auth.css` (`--auth-*`), marketing uses `home.css` (`--theme-*`)
-- **No tests exist** in the repo yet
+- **Tests** use `vitest` + `@testing-library/react` + `jsdom`; run `npm run test`
+- **`src/__tests__/setup.ts`** loads `@testing-library/jest-dom/vitest` matchers + auto-cleanup
+- **`src/__tests__/test-utils.tsx`** wraps render with `ThemeProvider` + `LoadingProvider`
+- **Test convention**: `*.test.ts` for pure logic, `*.test.tsx` for components, colocated next to source
 - **Zod schemas** used for form validation client-side + `env.ts` for env validation
 - **Rate limiting** is in-memory (`Map` in `auth/actions.ts`) — resets on server restart
 
@@ -107,4 +113,6 @@ File: `src/proxy.ts`, exported function: `proxy(request: NextRequest)`.
 - Supabase `safe-query.ts` was removed (dead code)
 - `new-order.mp3` exists at `public/sounds/` (referenced by RealtimeOrders and PedidosRadar)
 - `tsconfig.json` has an extra stray include entry for `src/components/ui/CoffieCoppe.tsx`
-- `supabase/` dir at root is minimal (only `.temp/`) — no local migrations yet
+- `supabase/` dir has `config.toml` + `seed.sql` + `migrations/` for local Supabase
+- Migration workflow: edit schema in Supabase dashboard → `npm run db:pull` → `npm run db:types`
+- Local dev: `npm run db:start` (requires Docker) → migrate → `npm run dev`

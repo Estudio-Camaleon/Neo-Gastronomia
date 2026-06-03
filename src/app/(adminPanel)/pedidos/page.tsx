@@ -5,10 +5,8 @@
 import { createClient } from "@/core/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { MapPin } from "lucide-react";
-import {
-  PedidosRadar,
-  type PedidoData,
-} from "@/features/admin/orders/PedidosRadar";
+import { PedidosRadar } from "@/features/admin/orders/PedidosRadar";
+import type { PedidoData } from "@/core/types/domain";
 
 export default async function PedidosPage() {
   const supabase = await createClient();
@@ -19,7 +17,7 @@ export default async function PedidosPage() {
   const { data: negocio } = await supabase
     .from("negocios")
     .select("id, nombre")
-    .eq("user_id", user?.id)
+    .eq("user_id", user?.id ?? "")
     .single();
 
   if (!negocio) redirect("/configuracion");
