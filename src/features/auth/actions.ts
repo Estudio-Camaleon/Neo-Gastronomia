@@ -151,7 +151,8 @@ export async function registerAction(payload: {
     };
   }
 
-  return { success: true };
+  revalidatePath("/", "layout");
+  redirect("/configuracion?firstLogin=true");
 }
 
 export async function signInWithGoogleAction() {

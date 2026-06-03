@@ -112,10 +112,8 @@ export function RegisterForm() {
     if (response?.error) {
       setErrorMsg(response.error);
       setLoading(false);
-    } else {
-      // Navegación completa para garantizar cookies de sesión sincronizadas
-      window.location.href = "/configuracion?firstLogin=true";
     }
+    // Si no hay error, el server action redirige automáticamente
   };
 
   return (
