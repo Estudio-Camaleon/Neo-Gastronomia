@@ -2,8 +2,8 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
 export interface CartItem {
-  id: string; // Hash único sintáctico (productoId + extrasSlug)
-  producto_id: string; // ID real de la tabla public.productos
+  id: string;
+  producto_id: string;
   nombre: string;
   imagen_url?: string | null;
   precio: number;
@@ -14,18 +14,21 @@ export interface CartItem {
 interface CartState {
   cart: CartItem[];
   isCartOpen: boolean;
+  negocio_id: string | null;
   addItem: (newItem: CartItem) => void;
   removeItem: (id: string) => void;
   clearCart: () => void;
   toggleCart: () => void;
   setCartOpen: (isOpen: boolean) => void;
+  setNegocioId: (id: string) => void;
 }
 
 export const useCartStore = create<CartState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       cart: [],
       isCartOpen: false,
+      negocio_id: null,
 
       addItem: (newItem) =>
         set((state) => {
@@ -56,10 +59,7 @@ export const useCartStore = create<CartState>()(
             if (currentItem.cantidad > 1) {
               updatedCart[existingItemIdx] = {
                 ...currentItem,
-                cantidad:
-                  currentItem.cantidad > 1
-                    ? currentItem.cantidad - 1
-                    : currentItem.cantidad - 1,
+                cantidad: currentItem.cantidad - 1,
               };
               return { cart: updatedCart };
             } else {
@@ -74,9 +74,18 @@ export const useCartStore = create<CartState>()(
       toggleCart: () => set((state) => ({ isCartOpen: !state.isCartOpen })),
 
       setCartOpen: (isOpen) => set({ isCartOpen: isOpen }),
+
+      setNegocioId: (id) => {
+        const currentId = get().negocio_id;
+        if (currentId && currentId !== id && get().cart.length > 0) {
+          set({ cart: [], negocio_id: id, isCartOpen: false });
+        } else {
+          set({ negocio_id: id });
+        }
+      },
     }),
     {
-      name: "neo-cart", // key in localStorage
+      name: "neo-cart",
       storage: createJSONStorage(() => {
         if (typeof window !== "undefined") return window.localStorage;
         return {
@@ -85,7 +94,11 @@ export const useCartStore = create<CartState>()(
           removeItem: (_name: string) => undefined,
         } as unknown as Storage;
       }),
-      partialize: (state) => ({ cart: state.cart, isCartOpen: state.isCartOpen }),
+      partialize: (state) => ({
+        cart: state.cart,
+        isCartOpen: state.isCartOpen,
+        negocio_id: state.negocio_id,
+      }),
     },
   ),
 );

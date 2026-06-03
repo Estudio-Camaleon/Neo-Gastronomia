@@ -1,17 +1,40 @@
 import React from "react";
 import { createClient } from "@/core/lib/supabase/server";
 import { notFound } from "next/navigation";
-import {
-  CatalogClient,
-  type Categoria,
-  type NegocioPublico,
-} from "./CatalogClient";
+import type { Metadata } from "next";
+import { CatalogClient } from "@/features/public-menu/components/CatalogClient";
+import type { Categoria, NegocioPublico } from "@/features/public-menu/types";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 interface PublicPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: PublicPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const supabase = await createClient();
+
+  const { data: negocio } = await supabase
+    .from("negocios")
+    .select("nombre, descripcion, banner_url")
+    .eq("slug", slug.toLowerCase())
+    .single();
+
+  if (!negocio) return { title: "Local no encontrado | NEO" };
+
+  return {
+    title: `${negocio.nombre} | Menú Online`,
+    description:
+      negocio.descripcion ||
+      `Pedí online en ${negocio.nombre} a través de NEO.`,
+    openGraph: negocio.banner_url
+      ? { images: [{ url: negocio.banner_url }] }
+      : undefined,
+  };
 }
 
 export default async function PublicMenuPage({ params }: PublicPageProps) {
@@ -31,7 +54,6 @@ export default async function PublicMenuPage({ params }: PublicPageProps) {
 
   if (error || !negocio) return notFound();
 
-  // 1. Tipado estricto eliminando "any" usando la interfaz Categoria
   const categoriasFormateadas =
     (negocio.categorias as Categoria[])?.filter(
       (cat) => cat.productos && cat.productos.length > 0,

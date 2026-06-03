@@ -18,7 +18,7 @@ export default function CatalogError({
   return (
     <div className="w-full min-h-screen bg-[#fcfbf9] flex flex-col items-center justify-center p-6 text-center font-sans">
       <div className="w-24 h-24 bg-red-50 rounded-3xl flex items-center justify-center mb-6 border border-red-100/50">
-        <AlertOctagon className="w-10 h-10 text-red-500" strokeWidth={1.5} />
+        <AlertOctagon className="w-10 h-10 text-red-500" strokeWidth={1.5} aria-hidden="true" />
       </div>
 
       <h1 className="text-2xl font-extrabold text-neutral-900 mb-2 tracking-tight">
@@ -34,7 +34,7 @@ export default function CatalogError({
         onClick={() => reset()}
         className="flex items-center gap-2 bg-neutral-900 text-white px-6 py-2.5 rounded-full text-[13px] font-semibold hover:bg-neutral-800 active:scale-95 transition-all shadow-md"
       >
-        <RefreshCcw size={16} />
+        <RefreshCcw size={16} aria-hidden="true" />
         Reintentar conexión
       </button>
     </div>

@@ -9,112 +9,44 @@ import {
   Image as ImageIcon,
   Clock,
   MapPin,
+  ChevronDown,
 } from "lucide-react";
 import { FaFacebookF, FaInstagram, FaWhatsapp } from "react-icons/fa6";
 import { useCartStore } from "@/features/public-menu/cart/useCartStore";
 import { CartFloatingButton } from "@/features/public-menu/cart/CartFloatingButton";
 import { PublicCart } from "@/features/public-menu/cart/PublicCart";
 import { estaAbierto } from "@/core/lib/utils/horarios";
+import type { Categoria, NegocioPublico } from "@/features/public-menu/types";
+import {
+  DAYS_ORDER,
+  DAY_LABELS,
+  getTodayKey,
+  formatTurnos,
+} from "@/features/public-menu/utils";
 
-export interface Producto {
-  id: string;
-  nombre: string;
-  descripcion: string | null;
-  precio: number;
-  imagen_url: string | null;
-  disponible: boolean;
-}
-
-export interface Categoria {
-  id: string;
-  nombre: string;
-  slug: string;
-  productos: Producto[];
-}
-
-export interface Turno {
-  inicio: string;
-  fin: string;
-}
-
-export interface HorarioDia {
-  turnos: Turno[];
-}
-
-export interface NegocioPublico {
-  id: string;
-  nombre: string;
-  slug: string;
-  color_primary: string | null;
-  banner_url: string | null;
-  logo_url: string | null;
-  direccion: string | null;
-  localidad: string | null;
-  direccion_notas: string | null;
-  whatsapp: string | null;
-  instagram_url: string | null;
-  facebook_url: string | null;
-  tiktok_url: string | null;
-  horarios: Record<string, HorarioDia> | null;
-}
-
-interface CatalogClientProps {
+export function CatalogClient({
+  negocio,
+  categorias,
+}: {
   negocio: NegocioPublico;
   categorias: Categoria[];
-}
-
-const DAYS_ORDER = [
-  "lunes",
-  "martes",
-  "miercoles",
-  "jueves",
-  "viernes",
-  "sabado",
-  "domingo",
-] as const;
-
-const DAY_LABELS: Record<(typeof DAYS_ORDER)[number], string> = {
-  lunes: "Lunes",
-  martes: "Martes",
-  miercoles: "Miércoles",
-  jueves: "Jueves",
-  viernes: "Viernes",
-  sabado: "Sábado",
-  domingo: "Domingo",
-};
-
-function formatTurnos(dia?: HorarioDia | null) {
-  if (!dia) return "Cerrado";
-
-  const turnos = dia.turnos || [];
-  if (turnos.length === 0) return "Cerrado";
-
-  return turnos.map((turno) => `${turno.inicio} - ${turno.fin}`).join(" · ");
-}
-
-export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
+}) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [showSchedule, setShowSchedule] = useState(false);
 
   const cart = useCartStore((state) => state.cart);
   const addItem = useCartStore((state) => state.addItem);
   const removeItem = useCartStore((state) => state.removeItem);
   const isCartOpen = useCartStore((state) => state.isCartOpen);
   const setCartOpen = useCartStore((state) => state.setCartOpen);
-  const _totalItems = cart.reduce((acc, item) => acc + item.cantidad, 0);
+  const setNegocioId = useCartStore((state) => state.setNegocioId);
   const isOpenNow = estaAbierto(negocio.horarios);
-  const todayKey = useMemo(() => {
-    const formatter = new Intl.DateTimeFormat("es-AR", {
-      weekday: "long",
-      timeZone: "America/Argentina/Buenos_Aires",
-    });
+  const todayKey = getTodayKey();
 
-    return formatter
-      .format(new Date())
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase() as (typeof DAYS_ORDER)[number];
-  }, []);
+  useEffect(() => {
+    setNegocioId(negocio.id);
+  }, [negocio.id, setNegocioId]);
 
   const horariosOrdenados = useMemo(
     () =>
@@ -179,6 +111,10 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
     if (element) {
       const y = element.getBoundingClientRect().top + window.scrollY - 120;
       window.scrollTo({ top: y, behavior: "smooth" });
+      setTimeout(() => {
+        const heading = element.querySelector("h3");
+        heading?.focus({ preventScroll: true });
+      }, 400);
     }
   };
 
@@ -190,153 +126,125 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
 
   return (
     <>
-      <div className="min-h-screen bg-[var(--color-custom-50)] pb-8 text-[var(--color-custom-text)] selection:bg-[var(--color-custom-900)] selection:text-white">
+      <div className="min-h-screen bg-[var(--color-custom-950)] pb-8 text-[var(--color-custom-text)] selection:bg-[var(--color-custom-900)] selection:text-white">
         <div className="w-full px-4 py-4 lg:px-10 lg:py-6">
-          <header className="rounded-2xl bg-[var(--color-custom-950)] px-4 py-3 text-white shadow-[0_20px_50px_rgba(0,0,0,0.18)] sm:rounded-3xl sm:px-6 sm:py-4">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-5">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl bg-white/10 p-1 sm:h-12 sm:w-12 sm:p-1.5">
+          {/* HEADER UNIFICADO */}
+          <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl">
+            {negocio.banner_url && (
+              <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[400px] w-[400px] sm:h-[500px] sm:w-[500px] opacity-20 sm:opacity-25">
                   <Image
-                    src="/icons/neo_logo_negro.webp"
-                    alt="Estudio Camaleon"
-                    width={0}
-                    height={0}
-                    sizes="48px"
-                    className="h-7 w-7 object-contain sm:h-8 sm:w-8"
+                    src={negocio.banner_url}
+                    alt=""
+                    fill
+                    className="scale-[2] object-cover blur-[80px]"
+                    sizes="500px"
+                    priority
                   />
                 </div>
-                <div>
-                  <p className="text-2xl font-black italic leading-none tracking-[-0.06em] sm:text-4xl">
-                    {negocio.nombre}
-                  </p>
-                  <div className="mt-1 inline-flex rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white/95 sm:mt-2 sm:px-3 sm:text-[11px] sm:tracking-[0.18em]">
-                    {isOpenNow ? "Abierto ahora" : "Cerrado ahora"} · Pedí por
-                    WhatsApp
-                  </div>
-                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-custom-950)]/80 via-[var(--color-custom-950)]/30 to-transparent" />
               </div>
+            )}
 
-              <div className="flex justify-center lg:flex-1">
-                {negocio.logo_url ? (
-                    <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-white/10 p-1.5 sm:h-24 sm:w-24 sm:p-2 lg:h-32 lg:w-32 shadow-md transition-shadow hover:shadow-lg ring-1 ring-transparent hover:ring-white/20">
+            <div className="relative z-10 flex flex-col gap-4 px-4 py-5 sm:px-6 sm:py-6">
+              <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center">
+                  {negocio.logo_url && (
+                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full ring-2 ring-white/10 shadow-xl sm:h-24 sm:w-24 lg:h-28 lg:w-28">
                       <Image
                         src={negocio.logo_url}
                         alt={negocio.nombre}
                         width={160}
                         height={160}
                         className="h-full w-full rounded-full object-cover"
+                        priority
                       />
                     </div>
-                ) : null}
-              </div>
-
-              <div className="flex flex-col gap-2 sm:flex-row lg:justify-end sm:gap-3">
-                <div className="rounded-2xl bg-white/10 px-3 py-2 text-white sm:px-4 sm:py-3">
-                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.12em] text-white/90 sm:text-[12px] sm:tracking-[0.14em]">
-                    <MapPin className="h-4 w-4" />
-                    Sucursal
-                  </div>
-                  <p className="mt-1 text-sm font-medium text-white/85">
-                    {negocio.localidad || "Sucursal Centro"}
-                  </p>
-                </div>
-                <div className="rounded-2xl bg-white/10 px-3 py-2 text-white sm:px-4 sm:py-3">
-                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.12em] text-white/90 sm:text-[12px] sm:tracking-[0.14em]">
-                    <Clock className="h-4 w-4" />
-                    Horarios
-                  </div>
-                  <p className="mt-1 text-sm font-medium text-white/85">
-                    {formatTurnos(negocio.horarios?.[todayKey])}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 rounded-3xl border border-white/10 bg-white/5 p-3 backdrop-blur-sm sm:mt-5 sm:p-4">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between sm:gap-4">
-                <div className="space-y-2">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-white/95 sm:text-[11px] sm:tracking-[0.18em]">
-                    <Clock className="h-3.5 w-3.5" />
-                    Horarios reales
-                  </div>
-                  <p className="max-w-md text-sm text-white/80">
-                    Los horarios se toman directamente de la configuración del
-                    negocio.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {negocio.whatsapp && (
-                    <a
-                      href={`https://wa.me/${negocio.whatsapp.replace(/\D/g, "")}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      aria-label="WhatsApp"
-                      title="WhatsApp"
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366] text-white transition-all hover:brightness-110"
-                    >
-                      <FaWhatsapp size={20} />
-                    </a>
                   )}
-                  {negocio.instagram_url && (
-                    <a
-                      href={negocio.instagram_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      aria-label="Instagram"
-                      title="Instagram"
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-all hover:bg-white/15"
-                    >
-                      <FaInstagram size={18} />
-                    </a>
-                  )}
-                  {negocio.facebook_url && (
-                    <a
-                      href={negocio.facebook_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      aria-label="Facebook"
-                      title="Facebook"
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-all hover:bg-white/15"
-                    >
-                      <FaFacebookF size={16} />
-                    </a>
-                  )}
-                </div>
-              </div>
-
-              <div className="mt-4 hidden gap-2 sm:grid sm:grid-cols-2 xl:grid-cols-4">
-                {horariosOrdenados.map(({ dayId, label, config }) => {
-                  const isToday = dayId === todayKey;
-
-                  return (
+                  <div className="text-center sm:text-left">
+                    <h1 className="text-2xl font-black italic leading-none tracking-[-0.06em] text-white sm:text-3xl lg:text-4xl">
+                      {negocio.nombre}
+                    </h1>
                     <div
-                      key={dayId}
-                      className={`rounded-2xl border px-3 py-2 text-sm transition-all ${
-                        isToday
-                          ? "border-[var(--color-custom-500)] bg-white text-[var(--color-custom-950)]"
-                          : "border-white/10 bg-white/5 text-white/85"
-                      }`}
+                      className="mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] sm:text-[11px]"
+                      style={{
+                        backgroundColor: isOpenNow
+                          ? "rgba(34,197,94,0.15)"
+                          : "rgba(255,255,255,0.08)",
+                        color: isOpenNow
+                          ? "#4ade80"
+                          : "rgba(255,255,255,0.7)",
+                      }}
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-black uppercase tracking-[0.12em] text-[11px]">
-                          {label}
-                        </span>
-                        {isToday && (
-                          <span className="rounded-full bg-[var(--color-custom-500)] px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] text-white">
-                            Hoy
-                          </span>
-                        )}
-                      </div>
-                      <p className="mt-1 text-xs leading-snug opacity-90">
-                        {formatTurnos(config)}
-                      </p>
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${
+                          isOpenNow
+                            ? "animate-pulse bg-green-500"
+                            : "bg-white/40"
+                        }`}
+                      />
+                      {isOpenNow ? "Abierto ahora" : "Cerrado ahora"}
                     </div>
-                  );
-                })}
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-center gap-3 sm:items-end">
+                  <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 sm:justify-end">
+                    <div className="flex items-center gap-1.5 text-sm text-white/70">
+                      <MapPin className="h-3.5 w-3.5 shrink-0" />
+                      <span>{negocio.localidad || "Sucursal Centro"}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-sm text-white/70">
+                      <Clock className="h-3.5 w-3.5 shrink-0" />
+                      <span>
+                        Hoy: {formatTurnos(todayKey ? negocio.horarios?.[todayKey] : null)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {(negocio.whatsapp ||
+                    negocio.instagram_url ||
+                    negocio.facebook_url) && (
+                    <div className="flex gap-2">
+                      {negocio.whatsapp && (
+                        <a
+                          href={`https://wa.me/${negocio.whatsapp.replace(/\D/g, "")}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label="WhatsApp"
+                          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/80 transition-all hover:bg-white/20 hover:text-white"
+                        >
+                          <FaWhatsapp size={14} />
+                        </a>
+                      )}
+                      {negocio.instagram_url && (
+                        <a
+                          href={negocio.instagram_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label="Instagram"
+                          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/80 transition-all hover:bg-white/20 hover:text-white"
+                        >
+                          <FaInstagram size={13} />
+                        </a>
+                      )}
+                      {negocio.facebook_url && (
+                        <a
+                          href={negocio.facebook_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label="Facebook"
+                          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/80 transition-all hover:bg-white/20 hover:text-white"
+                        >
+                          <FaFacebookF size={12} />
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </header>
+          </div>
 
           <main className="mt-6 flex flex-col gap-6 lg:flex-row">
             <section
@@ -359,6 +267,7 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
                   <input
                     type="text"
                     placeholder="Buscar producto..."
+                    aria-label="Buscar producto"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full rounded-full border border-[var(--color-custom-200)] bg-white py-3 pl-11 pr-4 text-sm text-[var(--color-custom-text)] outline-none placeholder:text-[var(--color-custom-text-muted)] focus:border-[var(--color-custom-500)]"
@@ -366,9 +275,15 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
                 </div>
               </div>
 
-              <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div
+                className="mt-4 flex gap-2 overflow-x-auto pb-1"
+                role="tablist"
+                aria-label="Categorías del menú"
+              >
                 <button
                   type="button"
+                  role="tab"
+                  aria-selected={activeCategory === "all"}
                   onClick={() => scrollToCategory("all")}
                   className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
                     activeCategory === "all"
@@ -382,6 +297,8 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
                   <button
                     key={cat.id}
                     type="button"
+                    role="tab"
+                    aria-selected={activeCategory === cat.id}
                     onClick={() => scrollToCategory(cat.id)}
                     className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
                       activeCategory === cat.id
@@ -408,9 +325,13 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
                     >
                       <div className="flex items-center gap-3">
                         <span className="h-1.5 w-16 rounded-full bg-[var(--color-custom-600)]" />
-                        <span className="rounded-full bg-[var(--color-custom-900)] px-4 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-white">
+                        <h3
+                          id={`heading-${cat.id}`}
+                          tabIndex={-1}
+                          className="rounded-full bg-[var(--color-custom-900)] px-4 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-white"
+                        >
                           {cat.nombre}
-                        </span>
+                        </h3>
                       </div>
 
                       <div
@@ -430,6 +351,7 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
                               className={`overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 ${
                                 !prod.disponible ? "opacity-50 grayscale" : ""
                               }`}
+                              aria-disabled={!prod.disponible}
                             >
                               <div className="relative aspect-square w-full bg-[var(--color-custom-100)]">
                                 {prod.imagen_url ? (
@@ -441,7 +363,10 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
                                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                                   />
                                 ) : (
-                                  <div className="flex h-full items-center justify-center text-[var(--color-custom-text-muted)]">
+                                  <div
+                                    className="flex h-full items-center justify-center text-[var(--color-custom-text-muted)]"
+                                    aria-hidden="true"
+                                  >
                                     <ImageIcon size={34} />
                                   </div>
                                 )}
@@ -461,26 +386,31 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
                                 <div className="mt-4 flex items-center justify-between gap-3">
                                   <div className="text-base font-black text-[var(--color-custom-950)]">
                                     $
-                                    {Number(prod.precio).toLocaleString("es", {
-                                      minimumFractionDigits: 0,
-                                    })}
+                                    {Number(prod.precio).toLocaleString(
+                                      "es-AR",
+                                      {
+                                        minimumFractionDigits: 0,
+                                      },
+                                    )}
                                   </div>
 
                                   {prod.disponible ? (
                                     <div className="flex items-center overflow-hidden rounded-full bg-[var(--color-custom-500)] text-white">
                                       <button
                                         type="button"
+                                        aria-label={`Disminuir cantidad de ${prod.nombre}`}
                                         onClick={() => removeItem(prod.id)}
-                                        className="flex h-8 w-8 items-center justify-center transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
+                                        className="flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40 sm:h-8 sm:w-8"
                                         disabled={cantidad === 0}
                                       >
-                                        <Minus size={14} />
+                                        <Minus size={16} />
                                       </button>
-                                      <span className="min-w-8 px-2 text-center text-sm font-bold leading-8">
+                                      <span className="inline-flex min-w-10 items-center justify-center px-3 text-sm font-bold sm:min-w-8 sm:px-2 sm:leading-8">
                                         {cantidad}
                                       </span>
                                       <button
                                         type="button"
+                                        aria-label={`Aumentar cantidad de ${prod.nombre}`}
                                         onClick={() =>
                                           addItem({
                                             id: prod.id,
@@ -492,9 +422,9 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
                                             detalles: null,
                                           })
                                         }
-                                        className="flex h-8 w-8 items-center justify-center transition-opacity hover:opacity-80"
+                                        className="flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-80 sm:h-8 sm:w-8"
                                       >
-                                        <Plus size={14} />
+                                        <Plus size={16} />
                                       </button>
                                     </div>
                                   ) : (
@@ -528,9 +458,75 @@ export function CatalogClient({ negocio, categorias }: CatalogClientProps) {
               />
             </aside>
           </main>
+          <footer>
+            <div className="mt-4 rounded-3xl border border-white/10 bg-white/5 p-3 backdrop-blur-sm sm:mt-5 sm:p-4">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between sm:gap-4">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-white/95 sm:text-[11px] sm:tracking-[0.18em]">
+                    <Clock className="h-3.5 w-3.5" />
+                    Horarios
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowSchedule(!showSchedule)}
+                  className="flex w-full items-center justify-between gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/85 transition-all hover:bg-white/10"
+                  aria-expanded={showSchedule}
+                  aria-controls="schedule-grid"
+                >
+                  <span className="font-semibold">Horarios</span>
+                  <ChevronDown
+                    size={16}
+                    className={`transition-transform duration-200 ${
+                      showSchedule ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                {showSchedule && (
+                  <div
+                    id="schedule-grid"
+                    className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-4"
+                  >
+                    {horariosOrdenados.map(({ dayId, label, config }) => {
+                      const isToday = dayId === todayKey;
+
+                      return (
+                        <div
+                          key={dayId}
+                          className={`rounded-2xl border px-3 py-2 text-sm transition-all ${
+                            isToday
+                              ? "border-[var(--color-custom-500)] bg-white text-[var(--color-custom-950)]"
+                              : "border-white/10 bg-white/5 text-white/85"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-black uppercase tracking-[0.12em] text-[11px]">
+                              {label}
+                            </span>
+                            {isToday && (
+                              <span className="rounded-full bg-[var(--color-custom-500)] px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] text-white">
+                                Hoy
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-1 text-xs leading-snug opacity-90">
+                            {formatTurnos(config)}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </footer>
         </div>
       </div>
 
+      {/* CARRITO DE DISPOSITIVOS SM Y MD */}
       <div className="lg:hidden">
         <CartFloatingButton />
         {isCartOpen && (

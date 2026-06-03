@@ -6,7 +6,7 @@ export default function CatalogNotFound() {
   return (
     <div className="w-full min-h-screen bg-[#fcfbf9] flex flex-col items-center justify-center p-6 text-center font-sans">
       <div className="w-24 h-24 bg-white rounded-3xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)] flex items-center justify-center mb-6 border border-neutral-100">
-        <Store className="w-10 h-10 text-neutral-300" strokeWidth={1.5} />
+        <Store className="w-10 h-10 text-neutral-300" strokeWidth={1.5} aria-hidden="true" />
       </div>
 
       <h1 className="text-2xl font-extrabold text-neutral-900 mb-2 tracking-tight">

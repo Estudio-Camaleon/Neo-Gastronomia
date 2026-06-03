@@ -1,5 +1,5 @@
 import { createClient } from "@/core/lib/supabase/server";
-import { buildBrandPalette } from "@/core/lib/utils/color";
+import { buildBrandPalette, getContrastYIQ } from "@/core/lib/utils/color";
 import React from "react";
 
 export const dynamic = "force-dynamic";
@@ -7,17 +7,7 @@ export const revalidate = 0;
 
 interface PublicLayoutProps {
   children: React.ReactNode;
-  params: Promise<{ slug?: string }>;
-}
-
-// Algoritmo matemático para cálculo de contraste lumínico YIQ
-function getContrastYIQ(hexcolor: string): string {
-  const hex = hexcolor.replace("#", "");
-  const r = parseInt(hex.substring(0, 2), 16);
-  const g = parseInt(hex.substring(2, 4), 16);
-  const b = parseInt(hex.substring(4, 6), 16);
-  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-  return yiq >= 128 ? "#000000" : "#FFFFFF";
+  params: Promise<{ slug: string }>;
 }
 
 export default async function PublicLayout({
@@ -25,7 +15,7 @@ export default async function PublicLayout({
   params,
 }: PublicLayoutProps) {
   const { slug } = await params;
-  let brandColor = "#10b981"; // Fallback seguro corporativo
+  let brandColor = "#10b981";
 
   if (slug) {
     const supabase = await createClient();
@@ -50,10 +40,10 @@ export default async function PublicLayout({
           "--color-custom": palette.base,
           "--color-custom-50": palette.softAlt,
           "--color-custom-100": palette.soft,
-          "--color-custom-200": palette.soft,
+          "--color-custom-200": palette.softAlt,
           "--color-custom-500": palette.base,
           "--color-custom-600": palette.deep,
-          "--color-custom-700": palette.deep,
+          "--color-custom-700": palette.darker,
           "--color-custom-900": palette.darker,
           "--color-custom-950": palette.darker,
           "--color-custom-soft": palette.soft,
@@ -73,8 +63,7 @@ export default async function PublicLayout({
       }
       className="relative min-h-screen bg-[var(--color-custom-surface)] text-[var(--color-custom-text)] font-sans antialiased selection:bg-[var(--color-custom-deep)] selection:text-white"
     >
-      {/* Decorative blobs/waves background that tint with brand color */}
-      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
         <svg className="absolute -top-12 -left-8 md:-left-24 w-[420px] md:w-[520px] h-[420px] md:h-[520px] opacity-60" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <filter id="blurA" x="-20%" y="-20%" width="140%" height="140%">
@@ -98,7 +87,24 @@ export default async function PublicLayout({
         </svg>
       </div>
 
-      <main className="w-full h-full relative z-10">{children}</main>
+      <main className="w-full relative z-10">{children}</main>
+
+      <style>{`
+        .public-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .public-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .public-scrollbar::-webkit-scrollbar-thumb {
+          background: color-mix(in srgb, var(--color-custom-900) 20%, transparent);
+          border-radius: 99px;
+        }
+        .public-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: color-mix(in srgb, var(--color-custom-900) 20%, transparent) transparent;
+        }
+      `}</style>
     </div>
   );
 }
