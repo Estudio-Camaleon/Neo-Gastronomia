@@ -239,11 +239,11 @@ otp_expiry = 3600
 
 # [auth.email.smtp]
 # enabled = true
-# host = "smtp.resend.com"
+# host = "smtp.sendgrid.net"
 # port = 587
-# user = "resend"
-# pass = "env(RESEND_API_KEY)"
-# admin_email = "no-reply@tudominio.com"
+# user = "apikey"
+# pass = "env(SENDGRID_API_KEY)"
+# admin_email = "no-reply@neo-gastronomia.vercel.app"
 # sender_name = "NEO Gastro"
 
 # Uncomment to customize email template

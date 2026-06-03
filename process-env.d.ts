@@ -22,7 +22,7 @@ declare global {
       WHATSAPP_TOKEN?: string;
 
       // SMTP para correos transaccionales (local Supabase)
-      RESEND_API_KEY?: string;
+      SENDGRID_API_KEY?: string;
     }
   }
 }
