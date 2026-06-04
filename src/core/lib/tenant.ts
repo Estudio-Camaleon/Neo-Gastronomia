@@ -10,13 +10,14 @@ export async function getAuthenticatedTenant(supabase?: SupabaseClient) {
   } = await client.auth.getUser();
   if (authError || !user) throw new Error("Acceso denegado. No autenticado.");
 
-  const { data: negocio, error: tenantError } = await client
+  const { data: negocios } = await client
     .from("negocios")
     .select("id")
     .eq("user_id", user.id)
-    .single();
+    .limit(1);
 
-  if (tenantError || !negocio)
+  const negocio = negocios?.[0] ?? null;
+  if (!negocio)
     throw new Error("Inconsistencia Multi-tenant: Local no asignado.");
 
   return negocio.id;
@@ -36,13 +37,15 @@ export async function getAuthenticatedTenantWithUser(
     throw new Error("Acceso denegado. No autenticado.");
   }
 
-  const { data: negocio, error: tenantError } = await client
+  const { data: negocios } = await client
     .from("negocios")
     .select("id")
     .eq("user_id", user.id)
-    .single();
+    .limit(1);
 
-  if (tenantError || !negocio) {
+  const negocio = negocios?.[0] ?? null;
+
+  if (!negocio) {
     throw new Error("Inconsistencia Multi-tenant: Local no asignado.");
   }
 

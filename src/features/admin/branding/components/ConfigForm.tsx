@@ -8,6 +8,7 @@ import {
   Save,
   Loader2,
   CheckCircle2,
+  XCircle,
   AlertTriangle,
   Camera,
   ImageIcon,
@@ -107,9 +108,10 @@ export function ConfigForm({
   userId: string;
 }) {
   const router = useRouter();
-  const [isPending, setIsPending] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
   const [isDeleting, setIsDeleting] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
+  const successTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
   const [confirmName, setConfirmName] = useState("");
   const [imagePreviews, setImagePreviews] = useState({
     logo_url: initialData?.logo_url || "",
@@ -248,6 +250,7 @@ export function ConfigForm({
 
   useEffect(() => {
     return () => {
+      if (successTimerRef.current) clearTimeout(successTimerRef.current);
       [imagePreviews.logo_url, imagePreviews.banner_url].forEach((url) => {
         if (url?.startsWith("blob:")) {
           URL.revokeObjectURL(url);
@@ -267,7 +270,7 @@ export function ConfigForm({
       );
     }
 
-    setIsPending(true);
+    setSaveStatus("saving");
     try {
       const payload: UpdateTenantBrandingPayload = {
         id: initialData.id,
@@ -289,6 +292,10 @@ export function ConfigForm({
       const res = await updateTenantBrandingAction(payload);
 
       setFormData((prev) => ({ ...prev, slug: res.slugSaneado }));
+      setSaveStatus("success");
+      if (successTimerRef.current) clearTimeout(successTimerRef.current);
+      successTimerRef.current = setTimeout(() => setSaveStatus("idle"), 2000);
+
       toast.success("Ajustes consolidados con éxito", {
         icon: <CheckCircle2 className="text-[var(--admin-accent)]" />,
       });
@@ -296,9 +303,10 @@ export function ConfigForm({
       router.refresh();
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : "Error de red.";
+      setSaveStatus("error");
+      if (successTimerRef.current) clearTimeout(successTimerRef.current);
+      successTimerRef.current = setTimeout(() => setSaveStatus("idle"), 2500);
       toast.error(errorMsg);
-    } finally {
-      setIsPending(false);
     }
   };
 
@@ -400,16 +408,32 @@ export function ConfigForm({
         <div className="sticky bottom-5 z-40 flex justify-end">
           <button
             type="submit"
-            disabled={isPending || isDeleting || !!uploading}
-            className="bg-[var(--admin-accent)] text-white px-6 py-2.5 rounded-lg text-xs font-medium shadow-md hover:opacity-90 active:scale-[0.98] transition-all flex items-center gap-2 disabled:opacity-40 disabled:pointer-events-none"
+            disabled={saveStatus !== "idle" || isDeleting || !!uploading}
+            className={`px-6 py-2.5 rounded-lg text-xs font-medium shadow-md flex items-center gap-2 disabled:opacity-40 disabled:pointer-events-none transition-all duration-300 ${
+              saveStatus === "success"
+                ? "bg-emerald-500 text-white scale-105"
+                : saveStatus === "error"
+                  ? "bg-red-500 text-white animate-[shake_0.4s_ease-in-out]"
+                  : "bg-[var(--admin-accent)] text-white hover:opacity-90 active:scale-[0.98]"
+            }`}
           >
-            {isPending ? (
+            {saveStatus === "saving" ? (
               <Loader2 className="animate-spin" size={14} />
+            ) : saveStatus === "success" ? (
+              <CheckCircle2 className="animate-in zoom-in-50 duration-200" size={14} />
+            ) : saveStatus === "error" ? (
+              <XCircle className="animate-in zoom-in-50 duration-200" size={14} />
             ) : (
               <Save size={14} />
             )}
             <span>
-              {isPending ? "Guardando ajustes..." : "Guardar Cambios"}
+              {saveStatus === "saving"
+                ? "Guardando ajustes..."
+                : saveStatus === "success"
+                  ? "¡Guardado!"
+                  : saveStatus === "error"
+                    ? "Error al guardar"
+                    : "Guardar Cambios"}
             </span>
           </button>
         </div>
@@ -458,7 +482,7 @@ export function ConfigForm({
                   type="text"
                   value={confirmName}
                   onChange={(e) => setConfirmName(e.target.value)}
-                  disabled={isPending || isDeleting}
+                  disabled={saveStatus !== "idle" || isDeleting}
                   placeholder="Nombre del negocio exacto"
                   className="flex-1 p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 transition-all text-xs"
                 />
@@ -467,7 +491,7 @@ export function ConfigForm({
                   onClick={handleDeleteBusiness}
                   disabled={
                     confirmName !== initialData.nombre ||
-                    isPending ||
+                    saveStatus !== "idle" ||
                     isDeleting
                   }
                   className="bg-red-500 hover:bg-red-600 text-white font-medium text-xs px-4 py-2 rounded-lg shadow-sm transition-all disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center gap-1.5 shrink-0"

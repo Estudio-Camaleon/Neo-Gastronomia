@@ -29,6 +29,12 @@ html {
   }
 }
 
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+  20%, 40%, 60%, 80% { transform: translateX(3px); }
+}
+
 .neo-loading-grid {
   background-image:
     linear-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px),
