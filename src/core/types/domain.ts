@@ -18,6 +18,9 @@ export interface NegocioPublico {
   facebook_url: string | null;
   tiktok_url: string | null;
   horarios: Record<string, HorarioDia> | null;
+  moneda_simbolo?: string;
+  pedido_minimo?: number;
+  costo_envio?: number;
 }
 
 // ── Categoría ────────────────────────────────────────

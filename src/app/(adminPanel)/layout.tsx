@@ -29,6 +29,7 @@ export default async function AdminPanelLayout({
     .from("negocios")
     .select("slug, nombre")
     .eq("user_id", user.id)
+    .order("created_at", { ascending: true })
     .limit(1);
 
   const negocio = negocios?.[0] ?? null;

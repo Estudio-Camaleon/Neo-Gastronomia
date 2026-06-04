@@ -62,10 +62,11 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
           )
           .eq("negocio_id", negocioId)
           .order("created_at", { ascending: false })
-          .range(from, to);
+          .range(from, to)
+          .returns<UnifiedProduct[]>();
 
         if (error) throw error;
-        setProductos((data as unknown as UnifiedProduct[]) || []);
+        setProductos(data || []);
         if (count !== null) setTotalCount(count);
       } catch (error) {
         console.error("Error Sync Catálogo:", error);

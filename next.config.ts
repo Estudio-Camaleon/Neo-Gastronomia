@@ -19,8 +19,11 @@ const nextConfig: NextConfig = {
   },
 
   compiler: {
-    // Limpia los logs en el cliente al compilar para producción
-    removeConsole: process.env.NODE_ENV === "production",
+    // Limpia logs del cliente en producción, pero preserva errores
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? { exclude: ["error"] }
+        : false,
   },
 };
 

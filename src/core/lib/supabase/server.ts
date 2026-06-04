@@ -38,6 +38,10 @@ export async function createClient() {
           }
         },
       },
+      global: {
+        fetch: (url, opts) =>
+          fetch(url, { ...opts, cache: "no-store" }),
+      },
     },
   );
 }

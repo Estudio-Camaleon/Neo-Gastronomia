@@ -28,14 +28,30 @@ export async function generateMetadata({
   const negocio = negocios?.[0] ?? null;
   if (!negocio) return { title: "Local no encontrado | NEO" };
 
+  const title = `${negocio.nombre} | Menú Online`;
+  const description =
+    negocio.descripcion ||
+    `Pedí online en ${negocio.nombre} a través de NEO.`;
+
   return {
-    title: `${negocio.nombre} | Menú Online`,
-    description:
-      negocio.descripcion ||
-      `Pedí online en ${negocio.nombre} a través de NEO.`,
-    openGraph: negocio.banner_url
-      ? { images: [{ url: negocio.banner_url }] }
-      : undefined,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      locale: "es_AR",
+      siteName: "NEO",
+      ...(negocio.banner_url
+        ? { images: [{ url: negocio.banner_url, width: 1200, height: 630 }] }
+        : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(negocio.banner_url ? { images: [negocio.banner_url] } : {}),
+    },
   };
 }
 
@@ -49,7 +65,8 @@ export default async function PublicMenuPage({ params }: PublicPageProps) {
       "id, nombre, slug, color_primary, banner_url, logo_url, direccion, localidad, direccion_notas, whatsapp, instagram_url, facebook_url, tiktok_url, horarios",
     )
     .eq("slug", slug.toLowerCase())
-    .limit(1);
+    .limit(1)
+    .returns<NegocioPublico[]>();
 
   const negocio = negocios?.[0] ?? null;
   if (!negocio) return notFound();
@@ -60,16 +77,17 @@ export default async function PublicMenuPage({ params }: PublicPageProps) {
       "id, nombre, slug, productos (id, nombre, descripcion, precio, imagen_url, disponible, configuracion)",
     )
     .eq("negocio_id", negocio.id)
-    .order("nombre");
+    .order("nombre")
+    .returns<Categoria[]>();
 
   const categoriasFormateadas =
-    (categorias as Categoria[])?.filter(
+    categorias?.filter(
       (cat) => cat.productos && cat.productos.length > 0,
     ) || [];
 
   return (
     <CatalogClient
-      negocio={negocio as unknown as NegocioPublico}
+      negocio={negocio}
       categorias={categoriasFormateadas}
     />
   );

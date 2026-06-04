@@ -17,13 +17,14 @@ export default async function PedidosPage() {
   const { data: negocios } = await supabase
     .from("negocios")
     .select("id, nombre")
-    .eq("user_id", user?.id ?? "")
-    .limit(1);
+    .eq("user_id", user?.id ?? "");
 
-  const negocio = negocios?.[0] ?? null;
-  if (!negocio) redirect("/configuracion");
+  if (!negocios || negocios.length === 0) redirect("/configuracion");
 
-  // Captura inicial indexada (Límite preventivo de 50 registros para evitar lag de buffer)
+  const negocioIds = negocios.map((n) => n.id);
+  const negocioNombre = negocios.map((n) => n.nombre).join(", ");
+
+  // Captura inicial indexada de TODOS los negocios del usuario
   const { data: pedidosIniciales } = await supabase
     .from("pedidos")
     .select(
@@ -33,11 +34,12 @@ export default async function PedidosPage() {
       pedido_items (id, cantidad, nombre_producto, precio_unitario, detalles)
     `,
     )
-    .eq("negocio_id", negocio.id)
+    .in("negocio_id", negocioIds)
     .order("created_at", { ascending: false })
-    .limit(50);
+    .limit(50)
+    .returns<PedidoData[]>();
 
-  const listaPedidos = (pedidosIniciales || []) as unknown as PedidoData[];
+  const listaPedidos = pedidosIniciales || [];
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 relative z-10 ">
@@ -54,15 +56,15 @@ export default async function PedidosPage() {
 
         <div className="flex items-center gap-2 bg-[var(--admin-accent)] text-white px-4 py-2 rounded-xl shadow-md shadow-[var(--admin-accent)]/20 font-semibold text-xs tracking-wide">
           <MapPin size={16} />
-          {negocio.nombre}
+          {negocioNombre}
         </div>
       </header>
 
       {/* RADAR DE CONEXIONES SOCKET INTERACTIVAS */}
       <PedidosRadar
         initialPedidos={listaPedidos}
-        negocioId={negocio.id}
-        negocioNombre={negocio.nombre}
+        negocioIds={negocioIds}
+        negocioNombre={negocioNombre}
       />
     </div>
   );

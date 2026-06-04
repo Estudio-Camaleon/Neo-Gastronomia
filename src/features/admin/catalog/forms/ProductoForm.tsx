@@ -55,13 +55,27 @@ export function ProductoForm({
     disponible: initialData?.disponible ?? true,
   });
 
-  const [variantes, setVariantes] = useState<Variant[]>(
-    (initialData?.configuracion?.variantes as unknown as Variant[]) || [],
-  );
-  const [gruposOpciones, setGruposOpciones] = useState<ExtraGroup[]>(
-    (initialData?.configuracion?.grupos_opciones as unknown as ExtraGroup[]) ||
-      [],
-  );
+  const [variantes, setVariantes] = useState<Variant[]>(() => {
+    if (!initialData?.configuracion?.variantes) return [];
+    return initialData.configuracion.variantes.map((v) => ({
+      nombre: v.nombre,
+      precio: Number(v.precio),
+    }));
+  });
+  const [gruposOpciones, setGruposOpciones] = useState<ExtraGroup[]>(() => {
+    if (!initialData?.configuracion?.grupos_opciones) return [];
+    return initialData.configuracion.grupos_opciones.map((g: Record<string, unknown>) => ({
+      id: String(g["id"] || ""),
+      titulo: String(g["titulo"] || ""),
+      requerido: Boolean(g["requerido"]),
+      multiple: Boolean(g["multiple"]),
+      items: (Array.isArray(g["items"]) ? g["items"] : []).map((i: Record<string, unknown>) => ({
+        id: String(i["id"] || ""),
+        nombre: String(i["nombre"] || ""),
+        precio: Number(i["precio"]) || 0,
+      })),
+    }));
+  });
 
   useEffect(() => {
     if (!onUnsavedChange) return;

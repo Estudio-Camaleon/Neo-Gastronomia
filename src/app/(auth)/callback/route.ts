@@ -48,7 +48,8 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login`);
   }
 
-  const { data: negocios } = await supabase
+  // Usar supabaseAdmin para evitar race conditions RLS
+  const { data: negocios } = await supabaseAdmin
     .from("negocios")
     .select("id")
     .eq("user_id", user.id)

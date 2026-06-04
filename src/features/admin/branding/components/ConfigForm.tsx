@@ -31,6 +31,19 @@ import {
 } from "../actions";
 import type { UpdateTenantBrandingPayload } from "@/core/types/domain";
 
+export interface FranjaHoraria {
+  inicio: string;
+  fin: string;
+}
+
+export interface HorarioDia {
+  turnos?: FranjaHoraria[];
+}
+
+export interface ScheduleData {
+  [dayId: string]: HorarioDia | undefined;
+}
+
 export interface NegocioInitialData {
   id: string;
   nombre: string;
@@ -45,20 +58,7 @@ export interface NegocioInitialData {
   instagram_url?: string;
   facebook_url?: string;
   tiktok_url?: string;
-  horarios: Record<string, unknown>;
-}
-
-export interface FranjaHoraria {
-  inicio: string;
-  fin: string;
-}
-
-export interface HorarioDia {
-  turnos?: FranjaHoraria[];
-}
-
-export interface ScheduleData {
-  [dayId: string]: HorarioDia | undefined;
+  horarios: ScheduleData;
 }
 
 export interface ConfigFormState {
@@ -133,7 +133,7 @@ export function ConfigForm({
     instagram_url: initialData?.instagram_url || "",
     facebook_url: initialData?.facebook_url || "",
     tiktok_url: initialData?.tiktok_url || "",
-    horarios: (initialData?.horarios as unknown as ScheduleData) || {},
+    horarios: initialData?.horarios || {},
   });
 
   const initialIdRef = useRef(initialData?.id);
@@ -161,7 +161,7 @@ export function ConfigForm({
       instagram_url: initialData?.instagram_url || "",
       facebook_url: initialData?.facebook_url || "",
       tiktok_url: initialData?.tiktok_url || "",
-      horarios: (initialData?.horarios as unknown as ScheduleData) || {},
+      horarios: initialData?.horarios || {},
     });
   }, [initialData?.id]);
 

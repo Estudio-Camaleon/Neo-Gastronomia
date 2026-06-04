@@ -12,6 +12,8 @@ import {
   ChevronRight,
   List,
   Filter,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import { createClient } from "@/core/lib/supabase/client";
 import { toast } from "sonner";
@@ -24,25 +26,29 @@ import type { PedidoData } from "@/core/types/domain";
 const supabase = createClient();
 
 let audioBufferCache: AudioBuffer | null = null;
+let audioCtx: AudioContext | null = null;
 
 async function playSound() {
   try {
-    const ctx = new (
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof AudioContext })
-        .webkitAudioContext
-    )();
-    if (ctx.state === "suspended") await ctx.resume();
+    if (!audioCtx) {
+      const AudioCtor =
+        window.AudioContext ??
+        (window as { webkitAudioContext?: typeof AudioContext })
+          .webkitAudioContext;
+      if (!AudioCtor) return;
+      audioCtx = new AudioCtor();
+    }
+    if (audioCtx.state === "suspended") await audioCtx.resume();
 
     if (!audioBufferCache) {
       const res = await fetch("/sounds/new-order.mp3");
       const buf = await res.arrayBuffer();
-      audioBufferCache = await ctx.decodeAudioData(buf);
+      audioBufferCache = await audioCtx.decodeAudioData(buf);
     }
 
-    const source = ctx.createBufferSource();
+    const source = audioCtx.createBufferSource();
     source.buffer = audioBufferCache;
-    source.connect(ctx.destination);
+    source.connect(audioCtx.destination);
     source.start();
   } catch {
     // audio no crítico
@@ -51,13 +57,13 @@ async function playSound() {
 
 interface PedidosRadarProps {
   initialPedidos: PedidoData[];
-  negocioId: string;
+  negocioIds: string[];
   negocioNombre: string;
 }
 
 export function PedidosRadar({
   initialPedidos,
-  negocioId,
+  negocioIds,
   negocioNombre,
 }: PedidosRadarProps) {
   const [filter, setFilter] = useState("");
@@ -66,8 +72,12 @@ export function PedidosRadar({
   const [showAll, setShowAll] = useState(false);
   const [pedidos, setPedidos] = useState<PedidoData[]>(initialPedidos);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [subStatus, setSubStatus] = useState<
+    "connecting" | "connected" | "error"
+  >("connecting");
   const [page, setPage] = useState(0);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const audioInitRef = useRef(false);
 
   useEffect(() => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
@@ -118,15 +128,44 @@ export function PedidosRadar({
       );
 
   useEffect(() => {
+    const controller = new AbortController();
+    const initAudioOnClick = () => {
+      if (audioInitRef.current) return;
+      audioInitRef.current = true;
+      const AudioCtor =
+        window.AudioContext ??
+        (window as { webkitAudioContext?: typeof AudioContext })
+          .webkitAudioContext;
+      if (AudioCtor) {
+        try {
+          audioCtx = new AudioCtor();
+          audioCtx.resume();
+        } catch {
+          // no crítico
+        }
+      }
+    };
+    document.addEventListener("click", initAudioOnClick, {
+      signal: controller.signal,
+      once: true,
+    });
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    if (negocioIds.length === 0) return;
+    const negFilter = negocioIds.length === 1
+      ? `negocio_id=eq.${negocioIds[0]}`
+      : `negocio_id=in.(${negocioIds.join(",")})`;
     const channel = supabase
-      .channel(`live-radar-${negocioId}`)
+      .channel(`live-radar-${negocioIds.join("-")}`)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "pedidos",
-          filter: `negocio_id=eq.${negocioId}`,
+          filter: negFilter,
         },
         async (
           payload: RealtimePostgresChangesPayload<{
@@ -140,14 +179,12 @@ export function PedidosRadar({
               .from("pedidos")
               .select("*, pedido_items(*)")
               .eq("id", payload.new.id)
-              .limit(1);
+              .limit(1)
+              .returns<PedidoData[]>();
 
             const fullPedido = pedidos?.[0] ?? null;
             if (fullPedido) {
-              setPedidos((prev) => [
-                fullPedido as unknown as PedidoData,
-                ...prev,
-              ]);
+              setPedidos((prev) => [fullPedido, ...prev]);
 
               playSound();
 
@@ -167,12 +204,20 @@ export function PedidosRadar({
           }
         },
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") setSubStatus("connected");
+        else if (
+          status === "CHANNEL_ERROR" ||
+          status === "TIMED_OUT" ||
+          status === "CLOSED"
+        )
+          setSubStatus("error");
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [negocioId, supabase]);
+  }, [negocioIds.join(","), supabase]);
 
   const handleUpdateStatus = async (
     id: string,
@@ -187,9 +232,7 @@ export function PedidosRadar({
       if (pedidoAfectado) {
         try {
           enviarNotificacionWhatsApp(
-            pedidoAfectado as unknown as Parameters<
-              typeof enviarNotificacionWhatsApp
-            >[0],
+            pedidoAfectado,
             nuevoEstado,
             negocioNombre,
           );
@@ -250,6 +293,31 @@ export function PedidosRadar({
 
   return (
     <div className="space-y-6 pb-12">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-xs font-medium">
+          <span
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition-colors ${
+              subStatus === "connected"
+                ? "text-green-600 border-green-200 bg-green-50"
+                : subStatus === "error"
+                  ? "text-red-600 border-red-200 bg-red-50"
+                  : "text-amber-600 border-amber-200 bg-amber-50"
+            }`}
+          >
+            {subStatus === "connected" ? (
+              <Wifi size={12} />
+            ) : (
+              <WifiOff size={12} />
+            )}
+            {subStatus === "connected"
+              ? "Conectado"
+              : subStatus === "error"
+                ? "Error de conexión"
+                : "Conectando..."}
+          </span>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {radarItems.map((item, idx) => (
           <div

@@ -25,7 +25,8 @@ export default async function ConfiguracionPage(props: {
       `id, nombre, slug, whatsapp, direccion, localidad, direccion_notas, color_primary, logo_url, banner_url, horarios, instagram_url, facebook_url, tiktok_url`,
     )
     .eq("user_id", user?.id ?? "")
-    .limit(1);
+    .limit(1)
+    .returns<NegocioInitialData[]>();
 
   const negocio = negocios?.[0] ?? null;
 
@@ -51,7 +52,7 @@ export default async function ConfiguracionPage(props: {
 
       {/* FORMULARIO UNIFICADO DE RED */}
       <ConfigForm
-        initialData={(negocio as unknown as NegocioInitialData) || null}
+        initialData={negocio}
         userId={user?.id || ""}
       />
 

@@ -14,6 +14,7 @@ export async function getAuthenticatedTenant(supabase?: SupabaseClient) {
     .from("negocios")
     .select("id")
     .eq("user_id", user.id)
+    .order("created_at", { ascending: true })
     .limit(1);
 
   const negocio = negocios?.[0] ?? null;
@@ -41,6 +42,7 @@ export async function getAuthenticatedTenantWithUser(
     .from("negocios")
     .select("id")
     .eq("user_id", user.id)
+    .order("created_at", { ascending: true })
     .limit(1);
 
   const negocio = negocios?.[0] ?? null;

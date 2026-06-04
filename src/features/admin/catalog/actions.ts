@@ -6,6 +6,19 @@ import { getAuthenticatedTenant } from "@/core/lib/tenant";
 import { upsertProductSchema } from "@/core/lib/schemas";
 import { z } from "zod";
 
+async function revalidateMenus(tenantId: string) {
+  const supabase = await createClient();
+  const { data: negocio } = await supabase
+    .from("negocios")
+    .select("slug")
+    .eq("id", tenantId)
+    .limit(1)
+    .single();
+  if (negocio?.slug) {
+    revalidatePath(`/${negocio.slug}`);
+  }
+}
+
 export async function upsertProductAction(
   payload: z.infer<typeof upsertProductSchema>,
   productId?: string,
@@ -38,6 +51,7 @@ export async function upsertProductAction(
   if (error) throw new Error(`Fallo de persistencia: ${error.message}`);
 
   revalidatePath("/productos");
+  await revalidateMenus(tenantId);
   return { success: true };
 }
 
@@ -59,6 +73,7 @@ export async function deleteProductAction(productId: string) {
   if (error) throw new Error(error.message);
 
   revalidatePath("/productos");
+  await revalidateMenus(tenantId);
   return { success: true };
 }
 
@@ -85,6 +100,7 @@ export async function createCategoryAction(nombre: string, slug: string) {
   if (error) throw new Error(error.message);
 
   revalidatePath("/productos");
+  await revalidateMenus(tenantId);
   return { success: true };
 }
 
@@ -101,5 +117,6 @@ export async function deleteCategoryAction(categoriaId: string) {
   if (error) throw new Error(error.message);
 
   revalidatePath("/productos");
+  await revalidateMenus(tenantId);
   return { success: true };
 }

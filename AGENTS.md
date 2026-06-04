@@ -101,14 +101,14 @@ src/
 ├── __tests__/
 │   ├── setup.ts            # @testing-library/jest-dom/vitest + afterEach(cleanup)
 │   └── test-utils.tsx      # customRender with ThemeProvider + LoadingProvider
-└── globals.css             # Tailwind v4 @import "tailwindcss" + @theme + CSS variables + component styles
+└── app/globals.css         # Tailwind v4 @import "tailwindcss" + @theme + CSS variables + component styles
 ```
 
 ### Supabase clients
 
 | File | Client | Role | Usage |
 |------|--------|------|-------|
-| `client.ts` | `createBrowserClient` | Anon key | Browser components (cached module-level) |
+| `client.ts` | `createBrowserClient` | Anon key | Browser components |
 | `server.ts` | `createServerClient` | Anon key + cookie mgmt | Server Components, Server Actions |
 | `admin.ts` | `createClient` (raw) | Service role key | Admin route handlers, RLS bypass queries |
 
@@ -155,7 +155,7 @@ File: `src/proxy.ts`, exported function: `proxy(request: NextRequest)`.
 
 - **Server Actions** in `features/*/actions.ts` with `"use server"`
 - **Client components** use `"use client"` at the top
-- **`createClient()`** is cached at module level (not per-render) for browser client
+- **`createClient()`** for browser client returns a new client instance per call; `createBrowserClient` internally deduplicates by URL+key
 - **Storage paths** are extracted from public URLs using `extractStoragePath()` (strips query params, hash)
 - **Multi-tenant** isolation: every DB query scoped by `negocio_id` + `user_id` (server) or RLS (client)
 - **Auth routes** use CSS variables from `auth.css` (`--auth-*`), marketing uses `home.css` (`--theme-*`)

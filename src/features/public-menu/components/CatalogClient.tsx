@@ -176,9 +176,9 @@ export function CatalogClient({
   }, []);
 
   const menuConfig = {
-    moneda_simbolo: "$",
-    pedido_minimo: 0,
-    costo_envio: 0,
+    moneda_simbolo: negocio.moneda_simbolo ?? "$",
+    pedido_minimo: negocio.pedido_minimo ?? 0,
+    costo_envio: negocio.costo_envio ?? 0,
   };
 
   const renderScheduleGrid = () =>

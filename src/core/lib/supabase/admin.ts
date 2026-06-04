@@ -8,8 +8,12 @@ export const supabaseAdmin = createClient<Database>(
   env.SUPABASE_SERVICE_ROLE_KEY!,
   {
     auth: {
-      persistSession: false, // El cliente administrativo jamás debe persistir sesiones locales
+      persistSession: false,
       autoRefreshToken: false,
+    },
+    global: {
+      fetch: (url, opts) =>
+        fetch(url, { ...opts, cache: "no-store" }),
     },
   },
 );
