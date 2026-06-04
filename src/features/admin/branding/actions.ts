@@ -138,14 +138,15 @@ export async function deleteTenantBrandingAction(id: string) {
   }
 
   // 2. Consulta defensiva previa para capturar las URLs de los assets antes de eliminarlos
-  const { data: negocio, error: fetchError } = await supabase
+  const { data: negocios } = await supabase
     .from("negocios")
     .select("logo_url, banner_url, slug")
     .eq("id", id)
     .eq("user_id", user.id)
-    .single();
+    .limit(1);
 
-  if (fetchError || !negocio) {
+  const negocio = negocios?.[0] ?? null;
+  if (!negocio) {
     throw new Error(
       "No se pudo localizar el comercio o no posees los permisos necesarios.",
     );

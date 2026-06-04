@@ -80,12 +80,12 @@ export async function checkDuplicateAction(field: string, value: string) {
     }
 
     if (field === "slug" || field === "nombre" || field === "whatsapp") {
-      const { data } = await supabaseAdmin
+      const { data: resultados } = await supabaseAdmin
         .from("negocios")
         .select("id")
         .eq(field === "nombre" ? "nombre" : field, value)
-        .maybeSingle();
-      return { exists: !!data };
+        .limit(1);
+      return { exists: !!resultados?.[0] };
     }
 
     return { exists: false };
@@ -124,31 +124,31 @@ export async function registerAction(payload: {
     return { error: "El correo ya está registrado. Inicia sesión o usa otro correo." };
   }
 
-  const { data: existingNombre } = await supabaseAdmin
+  const { data: nombresEncontrados } = await supabaseAdmin
     .from("negocios")
     .select("id")
     .eq("nombre", nombreNegocio)
-    .maybeSingle();
-  if (existingNombre) {
+    .limit(1);
+  if (nombresEncontrados?.[0]) {
     return { error: "El nombre del negocio ya está registrado." };
   }
 
-  const { data: existingSlug } = await supabaseAdmin
+  const { data: slugsEncontrados } = await supabaseAdmin
     .from("negocios")
     .select("id")
     .eq("slug", slug)
-    .maybeSingle();
-  if (existingSlug) {
+    .limit(1);
+  if (slugsEncontrados?.[0]) {
     return { error: "El slug ya está en uso. Elegí otro." };
   }
 
   if (whatsapp) {
-    const { data: existingWhatsapp } = await supabaseAdmin
+    const { data: whatsappsEncontrados } = await supabaseAdmin
       .from("negocios")
       .select("id")
       .eq("whatsapp", whatsapp)
-      .maybeSingle();
-    if (existingWhatsapp) {
+      .limit(1);
+    if (whatsappsEncontrados?.[0]) {
       return { error: "El número de WhatsApp ya está registrado." };
     }
   }

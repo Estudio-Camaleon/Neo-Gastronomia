@@ -136,12 +136,13 @@ export function PedidosRadar({
           }>,
         ) => {
           if (payload.eventType === "INSERT" && payload.new) {
-            const { data: fullPedido } = await supabase
+            const { data: pedidos } = await supabase
               .from("pedidos")
               .select("*, pedido_items(*)")
               .eq("id", payload.new.id)
-              .single();
+              .limit(1);
 
+            const fullPedido = pedidos?.[0] ?? null;
             if (fullPedido) {
               setPedidos((prev) => [
                 fullPedido as unknown as PedidoData,

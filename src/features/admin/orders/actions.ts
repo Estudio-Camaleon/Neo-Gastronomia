@@ -49,7 +49,7 @@ export async function submitOrderPublicAction(
     );
   }
 
-  const { data: pedido, error: pedidoError } = await supabaseAdmin
+  const { data: pedidos, error: pedidoError } = await supabaseAdmin
     .from("pedidos")
     .insert({
       negocio_id: parsed.data.negocio_id,
@@ -65,8 +65,9 @@ export async function submitOrderPublicAction(
       notas: parsed.data.notas?.trim() ?? null,
     })
     .select("id")
-    .single();
+    .limit(1);
 
+  const pedido = pedidos?.[0] ?? null;
   if (pedidoError || !pedido) {
     throw new Error(
       pedidoError?.message || "Fallo crítico al inicializar la orden.",
@@ -75,12 +76,14 @@ export async function submitOrderPublicAction(
 
   // Crear o actualizar cliente por teléfono (no por nombre)
   const clienteTelefono = parsed.data.cliente_whatsapp.trim();
-  const { data: clienteExistente } = await supabaseAdmin
+  const { data: clientesEncontrados } = await supabaseAdmin
     .from("clientes")
     .select("id")
     .eq("negocio_id", parsed.data.negocio_id)
     .eq("telefono", clienteTelefono)
-    .maybeSingle();
+    .limit(1);
+
+  const clienteExistente = clientesEncontrados?.[0] ?? null;
 
   if (clienteExistente) {
     await supabaseAdmin
