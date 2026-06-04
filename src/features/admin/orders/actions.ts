@@ -102,7 +102,6 @@ export async function submitOrderPublicAction(
   );
 
   if (error || !pedidoId) {
-    console.error("[NEO ORDER ERROR]", error);
     throw new Error(
       "No pudimos procesar tu pedido. Intentá de nuevo en unos minutos.",
     );

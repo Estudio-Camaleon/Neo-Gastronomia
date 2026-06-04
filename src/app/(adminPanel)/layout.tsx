@@ -23,27 +23,38 @@ export default async function AdminPanelLayout({
     redirect("/login");
   }
 
-  // 2. Obtención de Contexto Multi-tenant (usa server client + RLS)
-  const { data: negocios, error: businessError } = await supabase
+  // 2. Obtención de Contexto Multi-tenant: owner o team member
+  let negocio: { slug: string; nombre: string } | null = null;
+
+  const { data: negocios } = await supabase
     .from("negocios")
     .select("slug, nombre")
     .eq("user_id", user.id)
     .order("created_at", { ascending: true })
     .limit(1);
 
-  const negocio = negocios?.[0] ?? null;
+  negocio = negocios?.[0] ?? null;
 
-  // 3. Debug: si falla la consulta del negocio
-  if (businessError || !negocio) {
-    console.error("[NEO ADMIN LAYOUT DEBUG]:", {
-      userId: user.id,
-      userEmail: user.email,
-      businessError: businessError?.message,
-      businessErrorCode: businessError?.code,
-      businessErrorDetails: businessError?.details,
-      negocioEncontrado: !!negocio,
-      timestamp: new Date().toISOString(),
-    });
+  // Si no es owner, check team_members
+  if (!negocio) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: memberships } = await (supabase.from("team_members" as any) as any)
+      .select("negocio_id")
+      .eq("user_id", user.id)
+      .limit(1);
+
+    if (memberships?.[0]?.negocio_id) {
+      const { data: teamNegocio } = await supabase
+        .from("negocios")
+        .select("slug, nombre")
+        .eq("id", memberships[0].negocio_id)
+        .limit(1)
+        .single();
+      negocio = teamNegocio ?? null;
+    }
+  }
+
+  if (!negocio) {
     redirect("/login");
   }
 

@@ -154,6 +154,7 @@ export function PedidosRadar({
 
   useEffect(() => {
     if (negocioIds.length === 0) return;
+
     const negFilter = negocioIds.length === 1
       ? `negocio_id=eq.${negocioIds[0]}`
       : `negocio_id=in.(${negocioIds.join(",")})`;
@@ -177,7 +178,7 @@ export function PedidosRadar({
           if (payload.eventType === "INSERT" && payload.new) {
             const { data: pedidos } = await supabase
               .from("pedidos")
-              .select("*, pedido_items(*)")
+              .select("*, pedido_items!fk_pedido_items_pedido(*)")
               .eq("id", payload.new.id)
               .limit(1)
               .returns<PedidoData[]>();

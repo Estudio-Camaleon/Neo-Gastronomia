@@ -1,7 +1,3 @@
-/**
- * NEO SYSTEM v3.0 - Centro Maestro de Monitoreo (Pedidos)
- * Server Component hidratador con soporte de buffer en tiempo real.
- */
 import { createClient } from "@/core/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { MapPin } from "lucide-react";
@@ -14,24 +10,45 @@ export default async function PedidosPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  if (!user) redirect("/login");
+
+  let negocioIds: string[] = [];
+  let negocioNombre = "";
+
   const { data: negocios } = await supabase
     .from("negocios")
     .select("id, nombre")
-    .eq("user_id", user?.id ?? "");
+    .eq("user_id", user.id);
 
-  if (!negocios || negocios.length === 0) redirect("/configuracion");
+  if (negocios && negocios.length > 0) {
+    negocioIds = negocios.map((n) => n.id);
+    negocioNombre = negocios.map((n) => n.nombre).join(", ");
+  } else {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: memberships } = await (supabase.from("team_members" as any) as any)
+      .select("negocio_id, rol")
+      .eq("user_id", user.id);
 
-  const negocioIds = negocios.map((n) => n.id);
-  const negocioNombre = negocios.map((n) => n.nombre).join(", ");
+    if (memberships && memberships.length > 0) {
+      negocioIds = memberships.map((m: { negocio_id: string }) => m.negocio_id);
+      const { data: teamNegocios } = await supabase
+        .from("negocios")
+        .select("id, nombre")
+        .in("id", negocioIds);
 
-  // Captura inicial indexada de TODOS los negocios del usuario
+      negocioNombre = teamNegocios?.map((n) => n.nombre).join(", ") ?? "Mi negocio";
+    } else {
+      redirect("/configuracion");
+    }
+  }
+
   const { data: pedidosIniciales } = await supabase
     .from("pedidos")
     .select(
       `
       id, estado, cliente_nombre, metodo_pago, total,
       cliente_whatsapp, es_delivery, direccion_entrega, notas,
-      pedido_items (id, cantidad, nombre_producto, precio_unitario, detalles)
+      pedido_items!fk_pedido_items_pedido (id, cantidad, nombre_producto, precio_unitario, detalles)
     `,
     )
     .in("negocio_id", negocioIds)
@@ -43,7 +60,6 @@ export default async function PedidosPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 relative z-10 ">
-      {/* HEADER DE MONITOREO VIVO */}
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-[var(--admin-border)]/50 ">
         <div className="space-y-2 ">
           <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-[var(--admin-text)]">
@@ -60,7 +76,6 @@ export default async function PedidosPage() {
         </div>
       </header>
 
-      {/* RADAR DE CONEXIONES SOCKET INTERACTIVAS */}
       <PedidosRadar
         initialPedidos={listaPedidos}
         negocioIds={negocioIds}

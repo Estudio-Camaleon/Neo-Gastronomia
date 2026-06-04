@@ -10,6 +10,7 @@ export async function getAuthenticatedTenant(supabase?: SupabaseClient) {
   } = await client.auth.getUser();
   if (authError || !user) throw new Error("Acceso denegado. No autenticado.");
 
+  // Check if user is owner
   const { data: negocios } = await client
     .from("negocios")
     .select("id")
@@ -17,11 +18,18 @@ export async function getAuthenticatedTenant(supabase?: SupabaseClient) {
     .order("created_at", { ascending: true })
     .limit(1);
 
-  const negocio = negocios?.[0] ?? null;
-  if (!negocio)
-    throw new Error("Inconsistencia Multi-tenant: Local no asignado.");
+  if (negocios?.[0]) return negocios[0].id;
 
-  return negocio.id;
+  // Check if user is team member
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: memberships } = await (client.from("team_members" as any) as any)
+    .select("negocio_id")
+    .eq("user_id", user.id)
+    .limit(1);
+
+  if (memberships?.[0]?.negocio_id) return memberships[0].negocio_id;
+
+  throw new Error("Inconsistencia Multi-tenant: Local no asignado.");
 }
 
 export async function getAuthenticatedTenantWithUser(
@@ -38,6 +46,7 @@ export async function getAuthenticatedTenantWithUser(
     throw new Error("Acceso denegado. No autenticado.");
   }
 
+  // Check if user is owner
   const { data: negocios } = await client
     .from("negocios")
     .select("id")
@@ -45,13 +54,20 @@ export async function getAuthenticatedTenantWithUser(
     .order("created_at", { ascending: true })
     .limit(1);
 
-  const negocio = negocios?.[0] ?? null;
+  if (negocios?.[0]) return { userId: user.id, negocioId: negocios[0].id };
 
-  if (!negocio) {
-    throw new Error("Inconsistencia Multi-tenant: Local no asignado.");
+  // Check if user is team member
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: memberships } = await (client.from("team_members" as any) as any)
+    .select("negocio_id, role")
+    .eq("user_id", user.id)
+    .limit(1);
+
+  if (memberships?.[0]?.negocio_id) {
+    return { userId: user.id, negocioId: memberships[0].negocio_id };
   }
 
-  return { userId: user.id, negocioId: negocio.id };
+  throw new Error("Inconsistencia Multi-tenant: Local no asignado.");
 }
 
 export function extractStoragePath(

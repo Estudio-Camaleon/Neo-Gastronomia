@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          accion: string
+          cambios_nuevos: Json | null
+          cambios_previos: Json | null
+          created_at: string
+          entidad: string
+          entidad_id: string | null
+          id: string
+          ip_address: string | null
+          negocio_id: string
+          user_id: string
+        }
+        Insert: {
+          accion: string
+          cambios_nuevos?: Json | null
+          cambios_previos?: Json | null
+          created_at?: string
+          entidad: string
+          entidad_id?: string | null
+          id?: string
+          ip_address?: string | null
+          negocio_id: string
+          user_id: string
+        }
+        Update: {
+          accion?: string
+          cambios_nuevos?: Json | null
+          cambios_previos?: Json | null
+          created_at?: string
+          entidad?: string
+          entidad_id?: string | null
+          id?: string
+          ip_address?: string | null
+          negocio_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_negocio_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "negocios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categorias: {
         Row: {
           icono: string | null
@@ -37,13 +84,6 @@ export type Database = {
           slug?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "categorias_negocio_id_fkey"
-            columns: ["negocio_id"]
-            isOneToOne: false
-            referencedRelation: "negocios"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "fk_categorias_negocio"
             columns: ["negocio_id"]
@@ -86,13 +126,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "clientes_negocio_id_fkey"
-            columns: ["negocio_id"]
-            isOneToOne: false
-            referencedRelation: "negocios"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "fk_clientes_negocio"
             columns: ["negocio_id"]
             isOneToOne: false
@@ -106,6 +139,7 @@ export type Database = {
           banner_url: string | null
           color_primary: string | null
           created_at: string | null
+          current_period_ends_at: string | null
           descripcion: string | null
           direccion: string | null
           direccion_notas: string | null
@@ -116,8 +150,13 @@ export type Database = {
           localidad: string | null
           logo_url: string | null
           nombre: string
+          plan_tier: string
           slug: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_status: string | null
           tiktok_url: string | null
+          trial_ends_at: string | null
           updated_at: string | null
           user_id: string | null
           whatsapp: string | null
@@ -126,6 +165,7 @@ export type Database = {
           banner_url?: string | null
           color_primary?: string | null
           created_at?: string | null
+          current_period_ends_at?: string | null
           descripcion?: string | null
           direccion?: string | null
           direccion_notas?: string | null
@@ -136,8 +176,13 @@ export type Database = {
           localidad?: string | null
           logo_url?: string | null
           nombre: string
+          plan_tier?: string
           slug: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
           tiktok_url?: string | null
+          trial_ends_at?: string | null
           updated_at?: string | null
           user_id?: string | null
           whatsapp?: string | null
@@ -146,6 +191,7 @@ export type Database = {
           banner_url?: string | null
           color_primary?: string | null
           created_at?: string | null
+          current_period_ends_at?: string | null
           descripcion?: string | null
           direccion?: string | null
           direccion_notas?: string | null
@@ -156,8 +202,13 @@ export type Database = {
           localidad?: string | null
           logo_url?: string | null
           nombre?: string
+          plan_tier?: string
           slug?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
           tiktok_url?: string | null
+          trial_ends_at?: string | null
           updated_at?: string | null
           user_id?: string | null
           whatsapp?: string | null
@@ -195,13 +246,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "fk_pedido_items_pedido"
-            columns: ["pedido_id"]
-            isOneToOne: false
-            referencedRelation: "pedidos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pedido_items_pedido_id_fkey"
             columns: ["pedido_id"]
             isOneToOne: false
             referencedRelation: "pedidos"
@@ -274,13 +318,6 @@ export type Database = {
             referencedRelation: "clientes"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "pedidos_negocio_id_fkey"
-            columns: ["negocio_id"]
-            isOneToOne: false
-            referencedRelation: "negocios"
-            referencedColumns: ["id"]
-          },
         ]
       }
       productos: {
@@ -335,8 +372,63 @@ export type Database = {
             referencedRelation: "categorias"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      rate_limits: {
+        Row: {
+          count: number
+          created_at: string
+          expires_at: string
+          id: string
+          key: string
+        }
+        Insert: {
+          count?: number
+          created_at?: string
+          expires_at: string
+          id?: string
+          key: string
+        }
+        Update: {
+          count?: number
+          created_at?: string
+          expires_at?: string
+          id?: string
+          key?: string
+        }
+        Relationships: []
+      }
+      team_members: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          id: string
+          invited_by: string | null
+          negocio_id: string
+          role: Database["public"]["Enums"]["team_role"]
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          negocio_id: string
+          role?: Database["public"]["Enums"]["team_role"]
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          negocio_id?: string
+          role?: Database["public"]["Enums"]["team_role"]
+          user_id?: string
+        }
+        Relationships: [
           {
-            foreignKeyName: "productos_negocio_id_fkey"
+            foreignKeyName: "team_members_negocio_id_fkey"
             columns: ["negocio_id"]
             isOneToOne: false
             referencedRelation: "negocios"
@@ -361,17 +453,11 @@ export type Database = {
             referencedRelation: "negocios"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "pedidos_negocio_id_fkey"
-            columns: ["negocio_id"]
-            isOneToOne: false
-            referencedRelation: "negocios"
-            referencedColumns: ["id"]
-          },
         ]
       }
     }
     Functions: {
+      cleanup_rate_limits: { Args: never; Returns: undefined }
       eliminar_negocio_completo: {
         Args: { p_negocio_id: string }
         Returns: Json
@@ -413,9 +499,14 @@ export type Database = {
         }
         Returns: string
       }
+      usuario_accede_negocio: {
+        Args: { p_negocio_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       estado_pedido: "pendiente" | "en_preparacion" | "entregado" | "cancelado"
+      team_role: "admin" | "staff" | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -544,6 +635,7 @@ export const Constants = {
   public: {
     Enums: {
       estado_pedido: ["pendiente", "en_preparacion", "entregado", "cancelado"],
+      team_role: ["admin", "staff", "viewer"],
     },
   },
 } as const
