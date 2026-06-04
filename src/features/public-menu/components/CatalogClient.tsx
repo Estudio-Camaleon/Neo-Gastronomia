@@ -636,10 +636,10 @@ export function CatalogClient({
             </section>
 
             <aside
-              className={`bg-[var(--color-custom-surface)] pt-7 hidden w-[380px] shrink-0 transition-all duration-300 lg:sticky lg:top-4 lg:self-start ${
+              className={`bg-[var(--color-custom-surface)] pt-7 w-[380px] shrink-0 transition-all duration-300 max-lg:hidden lg:sticky lg:top-4 lg:self-start ${
                 isCartOpen
-                  ? "lg:block opacity-100 translate-x-0"
-                  : "lg:hidden pointer-events-none opacity-0 translate-x-6"
+                  ? "lg:opacity-100 lg:translate-x-0 lg:pointer-events-auto"
+                  : "lg:opacity-0 lg:translate-x-6 lg:pointer-events-none lg:invisible"
               }`}
             >
               <PublicCart

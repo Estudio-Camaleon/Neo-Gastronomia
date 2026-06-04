@@ -19,13 +19,15 @@ export default async function ConfiguracionPage(props: {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: negocio } = await supabase
+  const { data: negocios } = await supabase
     .from("negocios")
     .select(
       `id, nombre, slug, whatsapp, direccion, localidad, direccion_notas, color_primary, logo_url, banner_url, horarios, instagram_url, facebook_url, tiktok_url`,
     )
     .eq("user_id", user?.id ?? "")
-    .single();
+    .limit(1);
+
+  const negocio = negocios?.[0] ?? null;
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-16 relative z-10">

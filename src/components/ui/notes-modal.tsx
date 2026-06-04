@@ -30,7 +30,7 @@ export function NotesModal({
       document.removeEventListener("keydown", handler);
       document.body.style.overflow = "";
     };
-  }, [onClose]);
+  }, []);
 
   const handleSave = async () => {
     setSaving(true);

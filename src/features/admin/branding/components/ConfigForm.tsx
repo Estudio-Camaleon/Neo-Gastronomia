@@ -298,7 +298,6 @@ export function ConfigForm({
       const errorMsg = err instanceof Error ? err.message : "Error de red.";
       toast.error(errorMsg);
     } finally {
-      setFormData((prev) => ({ ...prev, slug: formData.slug.trim() }));
       setIsPending(false);
     }
   };

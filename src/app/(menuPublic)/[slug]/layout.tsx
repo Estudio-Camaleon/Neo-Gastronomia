@@ -19,12 +19,13 @@ export default async function PublicLayout({
 
   if (slug) {
     const supabase = await createClient();
-    const { data: negocio } = await supabase
+    const { data: negocios } = await supabase
       .from("negocios")
       .select("color_primary")
       .eq("slug", slug.toLowerCase())
-      .single();
+      .limit(1);
 
+    const negocio = negocios?.[0] ?? null;
     if (negocio?.color_primary) {
       brandColor = negocio.color_primary;
     }

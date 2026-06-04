@@ -18,13 +18,14 @@ export async function updateTenantBrandingAction(
   const user = (await supabase.auth.getUser()).data.user;
   if (!user) throw new Error("Acceso denegado. Terminal no autenticada.");
 
-  const { data: negocioActual, error: currentError } = await supabase
+  const { data: negociosActuales, error: currentError } = await supabase
     .from("negocios")
     .select("logo_url, banner_url")
     .eq("id", payload.id)
     .eq("user_id", user.id)
-    .single();
+    .limit(1);
 
+  const negocioActual = negociosActuales?.[0] ?? null;
   if (currentError || !negocioActual) {
     throw new Error("No se pudo leer el estado actual del negocio.");
   }

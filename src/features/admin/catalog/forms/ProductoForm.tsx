@@ -49,7 +49,7 @@ export function ProductoForm({
   const [formData, setFormData] = useState({
     nombre: initialData?.nombre || "",
     descripcion: initialData?.descripcion || "",
-    precio: initialData?.precio || "",
+    precio: initialData?.precio ?? "",
     imagen_url: initialData?.imagen_url || null,
     categoria_id: initialData?.categoria_id || "",
     disponible: initialData?.disponible ?? true,
@@ -254,7 +254,7 @@ export function ProductoForm({
                 type="text"
                 value={formData.nombre}
                 onChange={(e) =>
-                  setFormData({ ...formData, nombre: e.target.value })
+                  setFormData((prev) => ({ ...prev, nombre: e.target.value }))
                 }
                 className="w-full p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-sm text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
                 placeholder="Ej: Triple Bacon Burger"
@@ -268,7 +268,7 @@ export function ProductoForm({
               <textarea
                 value={formData.descripcion || ""}
                 onChange={(e) =>
-                  setFormData({ ...formData, descripcion: e.target.value })
+                  setFormData((prev) => ({ ...prev, descripcion: e.target.value }))
                 }
                 className="w-full p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-sm text-[var(--admin-text)] resize-none h-24 focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
                 placeholder="Detalla los ingredientes del plato..."
@@ -279,10 +279,10 @@ export function ProductoForm({
               <ImageUpload
                 value={formData.imagen_url ?? ""}
                 onChange={(url) =>
-                  setFormData({
-                    ...formData,
+                  setFormData((prev) => ({
+                    ...prev,
                     imagen_url: url === "" ? null : url,
-                  })
+                  }))
                 }
               />
             </div>
@@ -298,7 +298,7 @@ export function ProductoForm({
                   step="0.01"
                   value={formData.precio}
                   onChange={(e) =>
-                    setFormData({ ...formData, precio: e.target.value })
+                    setFormData((prev) => ({ ...prev, precio: e.target.value }))
                   }
                   className="w-full p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] font-medium text-sm text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all rounded-lg"
                   placeholder="0.00"
@@ -310,7 +310,7 @@ export function ProductoForm({
                   negocioId={negocioId}
                   selectedId={formData.categoria_id || ""}
                   onChange={(id) =>
-                    setFormData({ ...formData, categoria_id: id })
+                    setFormData((prev) => ({ ...prev, categoria_id: id }))
                   }
                 />
               </div>
@@ -328,7 +328,7 @@ export function ProductoForm({
               <Switch
                 checked={formData.disponible}
                 onCheckedChange={(checked) =>
-                  setFormData({ ...formData, disponible: checked })
+                  setFormData((prev) => ({ ...prev, disponible: checked }))
                 }
               />
             </div>

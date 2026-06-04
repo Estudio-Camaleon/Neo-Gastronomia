@@ -10,12 +10,13 @@ export default async function ClientesPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: negocio } = await supabase
+  const { data: negocios } = await supabase
     .from("negocios")
     .select("id")
     .eq("user_id", user?.id ?? "")
-    .single();
+    .limit(1);
 
+  const negocio = negocios?.[0] ?? null;
   if (!negocio) {
     return (
       <div className="flex items-center justify-center min-h-[50vh] relative z-10 p-4">

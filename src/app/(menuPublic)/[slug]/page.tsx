@@ -18,12 +18,13 @@ export async function generateMetadata({
   const { slug } = await params;
   const supabase = await createClient();
 
-  const { data: negocio } = await supabase
+  const { data: negocios } = await supabase
     .from("negocios")
     .select("nombre, descripcion, banner_url")
     .eq("slug", slug.toLowerCase())
-    .single();
+    .limit(1);
 
+  const negocio = negocios?.[0] ?? null;
   if (!negocio) return { title: "Local no encontrado | NEO" };
 
   return {
@@ -41,7 +42,7 @@ export default async function PublicMenuPage({ params }: PublicPageProps) {
   const { slug } = await params;
   const supabase = await createClient();
 
-  const { data: negocio, error } = await supabase
+  const { data: negocios } = await supabase
     .from("negocios")
     .select(
       `
@@ -50,9 +51,10 @@ export default async function PublicMenuPage({ params }: PublicPageProps) {
     `,
     )
     .eq("slug", slug.toLowerCase())
-    .single();
+    .limit(1);
 
-  if (error || !negocio) return notFound();
+  const negocio = negocios?.[0] ?? null;
+  if (!negocio) return notFound();
 
   const categoriasFormateadas =
     (negocio.categorias as Categoria[])?.filter(

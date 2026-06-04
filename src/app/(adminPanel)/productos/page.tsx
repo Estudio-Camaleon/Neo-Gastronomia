@@ -13,12 +13,13 @@ export default async function ProductosAdminPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: negocio } = await supabase
+  const { data: negocios } = await supabase
     .from("negocios")
     .select("id, nombre")
     .eq("user_id", user?.id ?? "")
-    .single();
+    .limit(1);
 
+  const negocio = negocios?.[0] ?? null;
   if (!negocio) redirect("/configuracion");
 
   return (

@@ -175,12 +175,13 @@ export function OrderForm({
     setIsPending(true);
     try {
       const supabase = createClient();
-      const { data: negocio } = await supabase
+      const { data: negocios } = await supabase
         .from("negocios")
         .select("whatsapp")
         .eq("id", negocioId)
-        .single();
+        .limit(1);
 
+      const negocio = negocios?.[0] ?? null;
       if (!negocio?.whatsapp) {
         toast.error(
           "Este local aún no ha configurado un número de WhatsApp para recibir pedidos.",

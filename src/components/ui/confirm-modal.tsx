@@ -32,7 +32,7 @@ export function ConfirmModal({
       document.removeEventListener("keydown", handler);
       document.body.style.overflow = "";
     };
-  }, [onCancel]);
+  }, []);
 
   return (
     <div

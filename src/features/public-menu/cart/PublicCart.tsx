@@ -14,7 +14,7 @@ import {
   Printer,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useEffect, useRef, useCallback, useState, useMemo } from "react";
 import { OrderForm } from "./OrderForm";
 
 const receiptContainerVariants = {
@@ -129,7 +129,10 @@ export function PublicCart({
     };
   }, [isDrawer, handleEscape]);
 
-  const receiptId = `#${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+  const receiptId = useMemo(
+    () => `#${Math.random().toString(36).slice(2, 7).toUpperCase()}`,
+    [],
+  );
 
   const DashedDivider = () => (
     <div className="relative my-2 flex items-center justify-center overflow-hidden">

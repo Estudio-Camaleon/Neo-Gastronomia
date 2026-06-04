@@ -16,12 +16,13 @@ export default async function DashboardPage() {
   if (!user) redirect("/login");
 
   // Obtener contexto del negocio
-  const { data: negocio } = await supabase
+  const { data: negocios } = await supabase
     .from("negocios")
     .select("id, nombre")
     .eq("user_id", user.id)
-    .single();
+    .limit(1);
 
+  const negocio = negocios?.[0] ?? null;
   if (!negocio) redirect("/configuracion");
 
   const negocioId = negocio.id;
