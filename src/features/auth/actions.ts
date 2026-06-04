@@ -6,25 +6,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { supabaseAdmin } from "@/core/lib/supabase/admin";
 import { loginSchema, registerSchema } from "@/core/lib/schemas";
-
-// --- RATE LIMITER SIMPLE (en memoria) ---
-const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
-
-function checkRateLimit(
-  key: string,
-  maxAttempts = 10,
-  windowMs = 60000,
-): boolean {
-  const now = Date.now();
-  const entry = rateLimitStore.get(key);
-  if (!entry || now > entry.resetAt) {
-    rateLimitStore.set(key, { count: 1, resetAt: now + windowMs });
-    return true;
-  }
-  if (entry.count >= maxAttempts) return false;
-  entry.count++;
-  return true;
-}
+import { checkRateLimit } from "@/core/lib/rate-limit";
 
 export async function loginAction(payload: {
   email: string;
@@ -39,7 +21,7 @@ export async function loginAction(payload: {
   const { email, password } = parsed.data;
 
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
-  if (!checkRateLimit(`login:${ip}`)) {
+  if (!(await checkRateLimit(`login:${ip}`))) {
     return { error: "Demasiados intentos. Intentalo de nuevo en un minuto." };
   }
 
@@ -68,7 +50,7 @@ export async function checkDuplicateAction(field: string, value: string) {
   if (field === "email") return { exists: false };
 
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
-  if (!checkRateLimit(`check:${ip}`, 30)) {
+  if (!(await checkRateLimit(`check:${ip}`, 30))) {
     return { error: "Demasiadas solicitudes. Intentalo de nuevo." };
   }
 
@@ -111,7 +93,7 @@ export async function registerAction(payload: {
   } = parsed.data;
 
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
-  if (!checkRateLimit(`register:${ip}`, 5)) {
+  if (!(await checkRateLimit(`register:${ip}`, 5))) {
     return { error: "Demasiados intentos. Intentalo de nuevo en un minuto." };
   }
 
@@ -210,7 +192,7 @@ export async function signInWithGoogleAction() {
 
 export async function resetPasswordAction(email: string) {
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
-  if (!checkRateLimit(`reset:${ip}`, 3)) {
+  if (!(await checkRateLimit(`reset:${ip}`, 3))) {
     return { error: "Demasiados intentos. Intentalo de nuevo en un minuto." };
   }
 
@@ -227,7 +209,7 @@ export async function resetPasswordAction(email: string) {
 
 export async function updatePasswordAction(newPassword: string) {
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
-  if (!checkRateLimit(`update-password:${ip}`, 5)) {
+  if (!(await checkRateLimit(`update-password:${ip}`, 5))) {
     return { error: "Demasiados intentos. Intentalo de nuevo en un minuto." };
   }
 
