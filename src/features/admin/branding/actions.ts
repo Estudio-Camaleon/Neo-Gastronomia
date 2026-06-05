@@ -56,7 +56,7 @@ export async function updateTenantBrandingAction(
       direccion_notas: payload.direccion_notas.trim(),
       color_primary: payload.color_primary,
       logo_url: payload.logo_url,
-      logo_posicion: payload.logo_posicion,
+      logo_scale: payload.logo_scale,
       banner_url: payload.banner_url,
       banner_posicion: payload.banner_posicion,
       mostrar_nombre: payload.mostrar_nombre,

@@ -11,7 +11,7 @@ export interface NegocioPublico {
   banner_url: string | null;
   banner_posicion?: string;
   logo_url: string | null;
-  logo_posicion?: string;
+  logo_scale?: number;
   mostrar_nombre?: boolean;
   direccion: string | null;
   localidad: string | null;
@@ -126,7 +126,7 @@ export interface UpdateTenantBrandingPayload {
   direccion_notas: string;
   color_primary: string;
   logo_url: string;
-  logo_posicion: string;
+  logo_scale: number;
   banner_url: string;
   banner_posicion: string;
   mostrar_nombre: boolean;

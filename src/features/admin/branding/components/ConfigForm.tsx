@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -55,7 +55,7 @@ export interface NegocioInitialData {
   direccion_notas?: string;
   color_primary: string;
   logo_url: string;
-  logo_posicion?: string;
+  logo_scale?: number;
   banner_url: string;
   banner_posicion?: string;
   mostrar_nombre?: boolean;
@@ -74,7 +74,7 @@ export interface ConfigFormState {
   direccion_notas: string;
   color_primary: string;
   logo_url: string;
-  logo_posicion: string;
+  logo_scale: number;
   banner_url: string;
   banner_posicion: string;
   mostrar_nombre: boolean;
@@ -104,23 +104,11 @@ const PRESET_COLORS = [
   "#000000",
 ];
 
-const POSITION_OPTIONS = [
-  ["top-left", "top", "top-right"],
-  ["left", "center", "right"],
-  ["bottom-left", "bottom", "bottom-right"],
+const BANNER_VERTICAL_OPTIONS = [
+  { value: "top", label: "Arriba" },
+  { value: "center", label: "Centro" },
+  { value: "bottom", label: "Abajo" },
 ] as const;
-
-const POSITION_LABELS: Record<string, string> = {
-  "top-left": "Sup. Izq.",
-  top: "Sup. Centro",
-  "top-right": "Sup. Der.",
-  left: "Centro Izq.",
-  center: "Centro",
-  right: "Centro Der.",
-  "bottom-left": "Inf. Izq.",
-  bottom: "Inf. Centro",
-  "bottom-right": "Inf. Der.",
-};
 
 const MAX_IMAGE_SIZE_MB = 5;
 const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
@@ -154,7 +142,7 @@ export function ConfigForm({
     direccion_notas: initialData?.direccion_notas || "",
     color_primary: initialData?.color_primary || "#34a35f",
     logo_url: initialData?.logo_url || "",
-    logo_posicion: initialData?.logo_posicion || "center",
+    logo_scale: initialData?.logo_scale ?? 1,
     banner_url: initialData?.banner_url || "",
     banner_posicion: initialData?.banner_posicion || "center",
     mostrar_nombre: initialData?.mostrar_nombre ?? true,
@@ -185,7 +173,7 @@ export function ConfigForm({
       direccion_notas: initialData?.direccion_notas || "",
       color_primary: initialData?.color_primary || "#34a35f",
       logo_url: initialData?.logo_url || "",
-      logo_posicion: initialData?.logo_posicion || "center",
+      logo_scale: initialData?.logo_scale ?? 1,
       banner_url: initialData?.banner_url || "",
       banner_posicion: initialData?.banner_posicion || "center",
       mostrar_nombre: initialData?.mostrar_nombre ?? true,
@@ -224,10 +212,11 @@ export function ConfigForm({
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setFieldErrors((prev) => ({ ...prev, image: undefined }));
     if (file.size > MAX_IMAGE_SIZE_BYTES) {
-      return toast.error(
-        `El archivo excede el límite permitido de ${MAX_IMAGE_SIZE_MB}MB`,
-      );
+      const msg = `La imagen supera el límite permitido de ${MAX_IMAGE_SIZE_MB}MB`;
+      setFieldErrors((prev) => ({ ...prev, image: msg }));
+      return toast.error(msg);
     }
 
     const previousValue = formData[field];
@@ -272,6 +261,7 @@ export function ConfigForm({
         error instanceof Error
           ? error.message
           : "Fallo crítico en el pipeline de storage multimedia.";
+      setFieldErrors((prev) => ({ ...prev, image: errorMessage }));
       toast.error("No se pudo subir la imagen", {
         description: errorMessage,
       });
@@ -303,6 +293,15 @@ export function ConfigForm({
       );
     }
 
+    if (!validate()) {
+      setSaveStatus("error");
+      if (successTimerRef.current) clearTimeout(successTimerRef.current);
+      successTimerRef.current = setTimeout(() => setSaveStatus("idle"), 2500);
+      return toast.error("Corregí los errores marcados en el formulario.", {
+        duration: 3000,
+      });
+    }
+
     setSaveStatus("saving");
     try {
       const payload: UpdateTenantBrandingPayload = {
@@ -315,7 +314,7 @@ export function ConfigForm({
         direccion_notas: formData.direccion_notas,
         color_primary: formData.color_primary,
         logo_url: formData.logo_url,
-        logo_posicion: formData.logo_posicion,
+        logo_scale: formData.logo_scale,
         banner_url: formData.banner_url,
         banner_posicion: formData.banner_posicion,
         mostrar_nombre: formData.mostrar_nombre,
@@ -367,6 +366,30 @@ export function ConfigForm({
     }
   };
 
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof ConfigFormState | "image", string>>>({});
+
+  const clearFieldError = (field: keyof ConfigFormState) => {
+    setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
+
+  const validate = useCallback((): boolean => {
+    const errors: Partial<Record<keyof ConfigFormState, string>> = {};
+
+    if (!formData.nombre.trim()) errors.nombre = "El nombre del negocio es obligatorio.";
+    if (!formData.slug.trim()) errors.slug = "La URL del menú (slug) es obligatoria.";
+    else if (formData.slug.length < 3) errors.slug = "El slug debe tener al menos 3 caracteres.";
+    if (!formData.whatsapp.trim()) errors.whatsapp = "El WhatsApp es obligatorio para recibir pedidos.";
+    if (!formData.direccion.trim()) errors.direccion = "La dirección es obligatoria.";
+
+    const hex = /^#[0-9a-fA-F]{6}$/;
+    if (!hex.test(formData.color_primary)) {
+      errors.color_primary = "Formato hexadecimal inválido (ej: #34a35f)";
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  }, [formData]);
+
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-12 select-none">
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -394,20 +417,26 @@ export function ConfigForm({
         {/* BLOQUE MULTIMEDIA (BRANDING) */}
         <BrandingBlock
           logoUrl={imagePreviews.logo_url || formData.logo_url}
-          logoPosicion={formData.logo_posicion}
           bannerUrl={imagePreviews.banner_url || formData.banner_url}
           bannerPosicion={formData.banner_posicion}
+          logoScale={formData.logo_scale}
           uploading={uploading}
+          imageError={fieldErrors.image}
           onImageUpload={handleImageUpload}
-          onPosicionChange={(field, value) =>
-            setFormData((p) => ({ ...p, [field]: value }))
+          onLogoScaleChange={(val) =>
+            setFormData((p) => ({ ...p, logo_scale: val }))
+          }
+          onBannerPosicionChange={(val) =>
+            setFormData((p) => ({ ...p, banner_posicion: val }))
           }
         />
 
         {/* BLOQUE INFORMACIÓN GENERAL */}
         <GeneralInfoBlock
           formData={formData}
+          errors={fieldErrors}
           onChange={handleChange}
+          onClearError={clearFieldError}
           onToggleMostrarNombre={(val) =>
             setFormData((p) => ({ ...p, mostrar_nombre: val }))
           }
@@ -421,9 +450,11 @@ export function ConfigForm({
           <div className="lg:col-span-5">
             <CatalogDesignBlock
               colorPrimary={formData.color_primary}
-              onChange={(val) =>
-                setFormData((p) => ({ ...p, color_primary: val }))
-              }
+              error={fieldErrors.color_primary}
+              onChange={(val) => {
+                clearFieldError("color_primary");
+                setFormData((p) => ({ ...p, color_primary: val }));
+              }}
             />
           </div>
         </div>
@@ -565,60 +596,29 @@ export function ConfigForm({
   );
 }
 
-function PositionSelector({
-  value,
-  onChange,
-  label,
-}: {
-  value: string;
-  onChange: (pos: string) => void;
-  label: string;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
-        {label}
-      </span>
-      <div className="grid grid-cols-3 gap-0.5 w-fit">
-        {POSITION_OPTIONS.map((row, ri) =>
-          row.map((pos) => (
-            <button
-              key={pos}
-              type="button"
-              onClick={() => onChange(pos)}
-              title={POSITION_LABELS[pos]}
-              className={`w-5 h-5 rounded-[3px] transition-all ${
-                value === pos
-                  ? "bg-[var(--admin-accent)] border-[var(--admin-accent)]"
-                  : "bg-[var(--admin-bg)] border-[var(--admin-border)] hover:bg-[var(--admin-accent)]/10"
-              } border`}
-            />
-          )),
-        )}
-      </div>
-    </div>
-  );
-}
-
 function BrandingBlock({
   logoUrl,
-  logoPosicion,
   bannerUrl,
   bannerPosicion,
+  logoScale,
   uploading,
+  imageError,
   onImageUpload,
-  onPosicionChange,
+  onLogoScaleChange,
+  onBannerPosicionChange,
 }: {
   logoUrl: string;
-  logoPosicion: string;
   bannerUrl: string;
   bannerPosicion: string;
+  logoScale: number;
   uploading: string | null;
+  imageError?: string;
   onImageUpload: (
     e: React.ChangeEvent<HTMLInputElement>,
     field: "logo_url" | "banner_url",
   ) => void;
-  onPosicionChange: (field: string, value: string) => void;
+  onLogoScaleChange: (val: number) => void;
+  onBannerPosicionChange: (val: string) => void;
 }) {
   return (
     <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl overflow-hidden shadow-sm">
@@ -647,12 +647,14 @@ function BrandingBlock({
                     src={logoUrl}
                     alt="Logo"
                     className="h-full w-full object-cover animate-in fade-in duration-200"
+                    style={{ transform: `scale(${logoScale})` }}
                   />
                 ) : (
                   <Image
                     src={logoUrl}
                     fill
                     className="object-cover animate-in fade-in duration-200"
+                    style={{ transform: `scale(${logoScale})` }}
                     alt="Logo"
                     sizes="112px"
                     priority
@@ -683,14 +685,28 @@ function BrandingBlock({
               />
             </label>
           </div>
-          <div className="mt-2">
-            <PositionSelector
-              value={logoPosicion}
-              onChange={(v) => onPosicionChange("logo_posicion", v)}
-              label="Encuadre"
+
+          {/* LOGO ZOOM SLIDER */}
+          <div className="mt-3 w-full max-w-[180px] space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
+                Zoom
+              </span>
+              <span className="text-[10px] font-mono text-[var(--admin-text-muted)]">
+                {logoScale.toFixed(1)}x
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0.8"
+              max="1.5"
+              step="0.1"
+              value={logoScale}
+              onChange={(e) => onLogoScaleChange(parseFloat(e.target.value))}
+              className="w-full h-1.5 bg-[var(--admin-bg)] rounded-full appearance-none cursor-pointer accent-[var(--admin-accent)] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--admin-accent)] [&::-webkit-slider-thumb]:shadow-sm"
             />
           </div>
-          <p className="text-[9px] text-[var(--admin-text-muted)] mt-3 text-center leading-normal">
+          <p className="text-[9px] text-[var(--admin-text-muted)] mt-2 text-center leading-normal">
             Cuadrante estricto 1:1.
             <br />
             Máx {MAX_IMAGE_SIZE_MB}MB (JPG, PNG, WEBP).
@@ -746,18 +762,43 @@ function BrandingBlock({
               </div>
             )}
           </div>
+
+          {/* BANNER VERTICAL POSITION */}
           <div className="flex items-end justify-between gap-4">
-            <PositionSelector
-              value={bannerPosicion}
-              onChange={(v) => onPosicionChange("banner_posicion", v)}
-              label="Encuadre del banner"
-            />
+            <div className="space-y-1.5">
+              <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
+                Posición vertical
+              </span>
+              <div className="flex gap-1">
+                {BANNER_VERTICAL_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => onBannerPosicionChange(opt.value)}
+                    className={`px-2.5 py-1 text-[10px] font-medium rounded-md transition-all ${
+                      bannerPosicion === opt.value
+                        ? "bg-[var(--admin-accent)] text-white shadow-sm"
+                        : "bg-[var(--admin-bg)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-accent)]/10 border border-[var(--admin-border)]"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <p className="text-[9px] text-[var(--admin-text-muted)] leading-none shrink-0">
               Ratio panorámico: 1200x450px.
               <br />
               Máx {MAX_IMAGE_SIZE_MB}MB.
             </p>
           </div>
+
+          {imageError && (
+            <p className="text-[11px] text-red-500 flex items-center gap-1">
+              <XCircle size={12} />
+              {imageError}
+            </p>
+          )}
         </div>
       </div>
     </div>
@@ -766,13 +807,17 @@ function BrandingBlock({
 
 function GeneralInfoBlock({
   formData,
+  errors,
   onChange,
+  onClearError,
   onToggleMostrarNombre,
 }: {
   formData: ConfigFormState;
+  errors: Partial<Record<keyof ConfigFormState, string | undefined>>;
   onChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => void;
+  onClearError: (field: keyof ConfigFormState) => void;
   onToggleMostrarNombre: (val: boolean) => void;
 }) {
   return (
@@ -792,11 +837,18 @@ function GeneralInfoBlock({
           <input
             name="nombre"
             value={formData.nombre}
-            onChange={onChange}
-            className="w-full p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] transition-all font-medium text-xs"
+            onChange={(e) => { onChange(e); onClearError("nombre"); }}
+            className={`w-full p-2 bg-[var(--admin-bg)] border rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] transition-all font-medium text-xs ${
+              errors.nombre ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-[var(--admin-border)] focus:border-[var(--admin-accent)]"
+            }`}
             placeholder="Ej: Burger Station"
-            required
           />
+          {errors.nombre && (
+            <p className="text-[10px] text-red-500 flex items-center gap-1 mt-0.5">
+              <XCircle size={10} />
+              {errors.nombre}
+            </p>
+          )}
         </div>
 
         <div className="space-y-1">
@@ -808,18 +860,27 @@ function GeneralInfoBlock({
             <input
               name="slug"
               value={formData.slug}
-              onChange={onChange}
-              className="w-full p-2 pl-8 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] font-mono text-xs transition-all"
+              onChange={(e) => { onChange(e); onClearError("slug"); }}
+              className={`w-full p-2 pl-8 bg-[var(--admin-bg)] border rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-1 font-mono text-xs transition-all ${
+                errors.slug ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-[var(--admin-border)] focus:border-[var(--admin-accent)] focus:ring-[var(--admin-accent)]"
+              }`}
               placeholder="burger-station"
-              required
             />
           </div>
-          <p className="text-[9px] text-[var(--admin-text-muted)] mt-1 leading-normal">
-            Enlace público directo:{" "}
-            <span className="font-mono">
-              neo.app/<b>{formData.slug || "comercio"}</b>
-            </span>
-          </p>
+          {errors.slug && (
+            <p className="text-[10px] text-red-500 flex items-center gap-1 mt-0.5">
+              <XCircle size={10} />
+              {errors.slug}
+            </p>
+          )}
+          {!errors.slug && (
+            <p className="text-[9px] text-[var(--admin-text-muted)] mt-1 leading-normal">
+              Enlace público directo:{" "}
+              <span className="font-mono">
+                neo.app/<b>{formData.slug || "comercio"}</b>
+              </span>
+            </p>
+          )}
         </div>
 
         <div className="space-y-1">
@@ -829,15 +890,23 @@ function GeneralInfoBlock({
           <input
             name="whatsapp"
             value={formData.whatsapp}
-            onChange={onChange}
+            onChange={(e) => { onChange(e); onClearError("whatsapp"); }}
             type="tel"
-            className="w-full p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] transition-all font-medium text-xs"
+            className={`w-full p-2 bg-[var(--admin-bg)] border rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] transition-all font-medium text-xs ${
+              errors.whatsapp ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-[var(--admin-border)] focus:border-[var(--admin-accent)]"
+            }`}
             placeholder="5491123456789"
-            required
           />
-          <p className="text-[9px] text-[var(--admin-text-muted)] leading-tight">
-            Prefijo de país completo, sin espacios ni símbolos intermedios.
-          </p>
+          {errors.whatsapp ? (
+            <p className="text-[10px] text-red-500 flex items-center gap-1 mt-0.5">
+              <XCircle size={10} />
+              {errors.whatsapp}
+            </p>
+          ) : (
+            <p className="text-[9px] text-[var(--admin-text-muted)] leading-tight">
+              Prefijo de país completo, sin espacios ni símbolos intermedios.
+            </p>
+          )}
         </div>
 
         <div className="space-y-1">
@@ -860,11 +929,18 @@ function GeneralInfoBlock({
           <input
             name="direccion"
             value={formData.direccion}
-            onChange={onChange}
-            className="w-full p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] transition-all font-medium text-xs"
+            onChange={(e) => { onChange(e); onClearError("direccion"); }}
+            className={`w-full p-2 bg-[var(--admin-bg)] border rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] transition-all font-medium text-xs ${
+              errors.direccion ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-[var(--admin-border)] focus:border-[var(--admin-accent)]"
+            }`}
             placeholder="Ej: Av. Mate de Luna 1234"
-            required
           />
+          {errors.direccion && (
+            <p className="text-[10px] text-red-500 flex items-center gap-1 mt-0.5">
+              <XCircle size={10} />
+              {errors.direccion}
+            </p>
+          )}
         </div>
 
         <div className="space-y-1 sm:col-span-2">
@@ -1031,9 +1107,11 @@ function PalettePreview({ colorPrimary }: { colorPrimary: string }) {
 
 function CatalogDesignBlock({
   colorPrimary,
+  error,
   onChange,
 }: {
   colorPrimary: string;
+  error?: string;
   onChange: (val: string) => void;
 }) {
   return (
@@ -1067,9 +1145,17 @@ function CatalogDesignBlock({
                 type="text"
                 value={colorPrimary}
                 onChange={(e) => onChange(e.target.value)}
-                className="w-20 p-1 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-md font-mono text-[11px] uppercase text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)]"
+                className={`w-20 p-1 bg-[var(--admin-bg)] border rounded-md font-mono text-[11px] uppercase text-[var(--admin-text)] focus:outline-none focus:ring-1 ${
+                  error ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-[var(--admin-border)] focus:border-[var(--admin-accent)] focus:ring-[var(--admin-accent)]"
+                }`}
                 maxLength={7}
               />
+              {error && (
+                <p className="text-[10px] text-red-500 flex items-center gap-1 mt-0.5">
+                  <XCircle size={10} />
+                  {error}
+                </p>
+              )}
             </div>
           </div>
 

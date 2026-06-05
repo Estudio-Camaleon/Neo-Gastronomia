@@ -269,7 +269,7 @@ export function CatalogClient({
                       width={160}
                       height={160}
                       className="h-full w-full rounded-full object-cover"
-                      style={{ objectPosition: negocio.logo_posicion ?? "center" }}
+                      style={{ transform: `scale(${negocio.logo_scale ?? 1})` }}
                       priority
                     />
                   </motion.div>
