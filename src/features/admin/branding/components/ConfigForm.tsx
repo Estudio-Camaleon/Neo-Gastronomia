@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -29,6 +29,7 @@ import {
   updateTenantBrandingAction,
   deleteTenantBrandingAction,
 } from "../actions";
+import { buildBrandPalette, meetsWcagAA } from "@/core/lib/utils/color";
 import type { UpdateTenantBrandingPayload } from "@/core/types/domain";
 
 export interface FranjaHoraria {
@@ -54,7 +55,10 @@ export interface NegocioInitialData {
   direccion_notas?: string;
   color_primary: string;
   logo_url: string;
+  logo_posicion?: string;
   banner_url: string;
+  banner_posicion?: string;
+  mostrar_nombre?: boolean;
   instagram_url?: string;
   facebook_url?: string;
   tiktok_url?: string;
@@ -70,7 +74,10 @@ export interface ConfigFormState {
   direccion_notas: string;
   color_primary: string;
   logo_url: string;
+  logo_posicion: string;
   banner_url: string;
+  banner_posicion: string;
+  mostrar_nombre: boolean;
   instagram_url: string;
   facebook_url: string;
   tiktok_url: string;
@@ -96,6 +103,24 @@ const PRESET_COLORS = [
   "#ea580c",
   "#000000",
 ];
+
+const POSITION_OPTIONS = [
+  ["top-left", "top", "top-right"],
+  ["left", "center", "right"],
+  ["bottom-left", "bottom", "bottom-right"],
+] as const;
+
+const POSITION_LABELS: Record<string, string> = {
+  "top-left": "Sup. Izq.",
+  top: "Sup. Centro",
+  "top-right": "Sup. Der.",
+  left: "Centro Izq.",
+  center: "Centro",
+  right: "Centro Der.",
+  "bottom-left": "Inf. Izq.",
+  bottom: "Inf. Centro",
+  "bottom-right": "Inf. Der.",
+};
 
 const MAX_IMAGE_SIZE_MB = 5;
 const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
@@ -129,7 +154,10 @@ export function ConfigForm({
     direccion_notas: initialData?.direccion_notas || "",
     color_primary: initialData?.color_primary || "#34a35f",
     logo_url: initialData?.logo_url || "",
+    logo_posicion: initialData?.logo_posicion || "center",
     banner_url: initialData?.banner_url || "",
+    banner_posicion: initialData?.banner_posicion || "center",
+    mostrar_nombre: initialData?.mostrar_nombre ?? true,
     instagram_url: initialData?.instagram_url || "",
     facebook_url: initialData?.facebook_url || "",
     tiktok_url: initialData?.tiktok_url || "",
@@ -157,7 +185,10 @@ export function ConfigForm({
       direccion_notas: initialData?.direccion_notas || "",
       color_primary: initialData?.color_primary || "#34a35f",
       logo_url: initialData?.logo_url || "",
+      logo_posicion: initialData?.logo_posicion || "center",
       banner_url: initialData?.banner_url || "",
+      banner_posicion: initialData?.banner_posicion || "center",
+      mostrar_nombre: initialData?.mostrar_nombre ?? true,
       instagram_url: initialData?.instagram_url || "",
       facebook_url: initialData?.facebook_url || "",
       tiktok_url: initialData?.tiktok_url || "",
@@ -284,7 +315,10 @@ export function ConfigForm({
         direccion_notas: formData.direccion_notas,
         color_primary: formData.color_primary,
         logo_url: formData.logo_url,
+        logo_posicion: formData.logo_posicion,
         banner_url: formData.banner_url,
+        banner_posicion: formData.banner_posicion,
+        mostrar_nombre: formData.mostrar_nombre,
         instagram_url: formData.instagram_url,
         facebook_url: formData.facebook_url,
         tiktok_url: formData.tiktok_url,
@@ -360,13 +394,24 @@ export function ConfigForm({
         {/* BLOQUE MULTIMEDIA (BRANDING) */}
         <BrandingBlock
           logoUrl={imagePreviews.logo_url || formData.logo_url}
+          logoPosicion={formData.logo_posicion}
           bannerUrl={imagePreviews.banner_url || formData.banner_url}
+          bannerPosicion={formData.banner_posicion}
           uploading={uploading}
           onImageUpload={handleImageUpload}
+          onPosicionChange={(field, value) =>
+            setFormData((p) => ({ ...p, [field]: value }))
+          }
         />
 
         {/* BLOQUE INFORMACIÓN GENERAL */}
-        <GeneralInfoBlock formData={formData} onChange={handleChange} />
+        <GeneralInfoBlock
+          formData={formData}
+          onChange={handleChange}
+          onToggleMostrarNombre={(val) =>
+            setFormData((p) => ({ ...p, mostrar_nombre: val }))
+          }
+        />
 
         {/* BLOQUE MIXTO COMPACTO RESPONSIVE: REDES + CROMÁTICA */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
@@ -520,19 +565,60 @@ export function ConfigForm({
   );
 }
 
+function PositionSelector({
+  value,
+  onChange,
+  label,
+}: {
+  value: string;
+  onChange: (pos: string) => void;
+  label: string;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
+        {label}
+      </span>
+      <div className="grid grid-cols-3 gap-0.5 w-fit">
+        {POSITION_OPTIONS.map((row, ri) =>
+          row.map((pos) => (
+            <button
+              key={pos}
+              type="button"
+              onClick={() => onChange(pos)}
+              title={POSITION_LABELS[pos]}
+              className={`w-5 h-5 rounded-[3px] transition-all ${
+                value === pos
+                  ? "bg-[var(--admin-accent)] border-[var(--admin-accent)]"
+                  : "bg-[var(--admin-bg)] border-[var(--admin-border)] hover:bg-[var(--admin-accent)]/10"
+              } border`}
+            />
+          )),
+        )}
+      </div>
+    </div>
+  );
+}
+
 function BrandingBlock({
   logoUrl,
+  logoPosicion,
   bannerUrl,
+  bannerPosicion,
   uploading,
   onImageUpload,
+  onPosicionChange,
 }: {
   logoUrl: string;
+  logoPosicion: string;
   bannerUrl: string;
+  bannerPosicion: string;
   uploading: string | null;
   onImageUpload: (
     e: React.ChangeEvent<HTMLInputElement>,
     field: "logo_url" | "banner_url",
   ) => void;
+  onPosicionChange: (field: string, value: string) => void;
 }) {
   return (
     <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl overflow-hidden shadow-sm">
@@ -597,6 +683,13 @@ function BrandingBlock({
               />
             </label>
           </div>
+          <div className="mt-2">
+            <PositionSelector
+              value={logoPosicion}
+              onChange={(v) => onPosicionChange("logo_posicion", v)}
+              label="Encuadre"
+            />
+          </div>
           <p className="text-[9px] text-[var(--admin-text-muted)] mt-3 text-center leading-normal">
             Cuadrante estricto 1:1.
             <br />
@@ -627,12 +720,14 @@ function BrandingBlock({
                   src={bannerUrl}
                   alt="Portada"
                   className="h-full w-full object-cover animate-in fade-in duration-200"
+                  style={{ objectPosition: bannerPosicion }}
                 />
               ) : (
                 <Image
                   src={bannerUrl}
                   fill
                   className="object-cover animate-in fade-in duration-200"
+                  style={{ objectPosition: bannerPosicion }}
                   alt="Portada"
                   sizes="(max-width: 768px) 100vw, 650px"
                 />
@@ -651,11 +746,18 @@ function BrandingBlock({
               </div>
             )}
           </div>
-          <p className="text-[9px] text-[var(--admin-text-muted)] leading-none">
-            Ratio panorámico optimizado para LCP: 1200x450px.
-            <br />
-            Máx {MAX_IMAGE_SIZE_MB}MB (JPG, PNG, WEBP).
-          </p>
+          <div className="flex items-end justify-between gap-4">
+            <PositionSelector
+              value={bannerPosicion}
+              onChange={(v) => onPosicionChange("banner_posicion", v)}
+              label="Encuadre del banner"
+            />
+            <p className="text-[9px] text-[var(--admin-text-muted)] leading-none shrink-0">
+              Ratio panorámico: 1200x450px.
+              <br />
+              Máx {MAX_IMAGE_SIZE_MB}MB.
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -665,11 +767,13 @@ function BrandingBlock({
 function GeneralInfoBlock({
   formData,
   onChange,
+  onToggleMostrarNombre,
 }: {
   formData: ConfigFormState;
   onChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => void;
+  onToggleMostrarNombre: (val: boolean) => void;
 }) {
   return (
     <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-5 shadow-sm space-y-4">
@@ -775,6 +879,26 @@ function GeneralInfoBlock({
             placeholder="Ej: Portón gris oscuro de doble hoja, timbre superior..."
           />
         </div>
+
+        <div className="sm:col-span-2 flex items-center gap-3 pt-1">
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formData.mostrar_nombre}
+              onChange={(e) => onToggleMostrarNombre(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-9 h-5 bg-[var(--admin-text-muted)]/20 rounded-full peer peer-checked:bg-[var(--admin-accent)] peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all border border-[var(--admin-border)]" />
+          </label>
+          <div>
+            <span className="text-xs font-semibold text-[var(--admin-text)]">
+              Mostrar nombre del negocio
+            </span>
+            <p className="text-[10px] text-[var(--admin-text-muted)]">
+              Desactivá si tu logo ya incluye el nombre.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -856,6 +980,55 @@ function SocialLinksBlock({
   );
 }
 
+function PalettePreview({ colorPrimary }: { colorPrimary: string }) {
+  const palette = useMemo(() => buildBrandPalette(colorPrimary), [colorPrimary]);
+  const textColor = palette.textOnBase;
+  const contrastOk = meetsWcagAA(textColor, palette.base);
+  const contrastLargeOk = meetsWcagAA(textColor, palette.base, true);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-1 items-center">
+        {["50", "100", "200", "300", "400", "500", "600", "700", "800", "900", "950"].map(
+          (shade) => (
+            <div
+              key={shade}
+              className="h-6 flex-1 rounded-[3px] first:rounded-l-md last:rounded-r-md"
+              style={{ backgroundColor: palette[shade as keyof typeof palette] as string }}
+              title={`${shade}: ${palette[shade as keyof typeof palette]}`}
+            />
+          ),
+        )}
+      </div>
+
+      <div className="flex gap-2">
+        <div className="flex-1 p-2 rounded-lg text-center text-[10px] font-bold"
+          style={{ backgroundColor: palette.base, color: palette.textOnBase }}>
+          Botón principal
+        </div>
+        <div className="flex-1 p-2 rounded-lg text-center text-[10px] font-bold border"
+          style={{ borderColor: palette.base, color: palette.base }}>
+          Outline
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 text-[10px]">
+        <span className="text-[var(--admin-text-muted)]">Contraste texto/botón:</span>
+        <span className={`font-bold flex items-center gap-1 ${
+          contrastOk ? "text-green-600" : "text-red-500"
+        }`}>
+          {contrastOk ? "✅ AA" : "⚠️ No cumple AA"}
+        </span>
+        {!contrastOk && contrastLargeOk && (
+          <span className="text-amber-500 font-semibold">
+            (solo texto grande ≥18px)
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function CatalogDesignBlock({
   colorPrimary,
   onChange,
@@ -921,6 +1094,13 @@ function CatalogDesignBlock({
               ))}
             </div>
           </div>
+
+          <div className="border-t border-[var(--admin-border)] pt-3">
+            <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block mb-2">
+              Vista previa en vivo
+            </span>
+            <PalettePreview colorPrimary={colorPrimary} />
+          </div>
         </div>
       </div>
 
@@ -930,8 +1110,8 @@ function CatalogDesignBlock({
           className="shrink-0 text-[var(--admin-text-muted)] mt-0.5"
         />
         <p className="text-[10px] text-[var(--admin-text-muted)] leading-normal">
-          Inyección directa a la variable CSS reactiva{" "}
-          <code>--color-custom</code> del catálogo del cliente.
+          La paleta se genera automáticamente y se inyecta como variables CSS{" "}
+          <code>--color-custom-*</code> en el catálogo público.
         </p>
       </div>
     </div>

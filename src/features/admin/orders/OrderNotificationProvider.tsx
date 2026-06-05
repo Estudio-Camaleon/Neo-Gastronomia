@@ -172,7 +172,7 @@ export function OrderNotificationProvider({
           filter: negFilter,
         },
         async (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
-          const pedidoId = payload.new.id as string | undefined;
+          const pedidoId = (payload.new as { id?: string }).id;
           if (!pedidoId) return;
 
           log("NEW ORDER EVENT");

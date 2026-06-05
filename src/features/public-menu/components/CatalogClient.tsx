@@ -236,6 +236,7 @@ export function CatalogClient({
                 className="object-cover scale-105"
                 sizes="100vw"
                 priority
+                style={{ objectPosition: negocio.banner_posicion ?? "center" }}
               />
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_60%,var(--color-custom-surface)_95%)]" />
             </div>
@@ -267,14 +268,17 @@ export function CatalogClient({
                       width={160}
                       height={160}
                       className="h-full w-full rounded-full object-cover"
+                      style={{ objectPosition: negocio.logo_posicion ?? "center" }}
                       priority
                     />
                   </motion.div>
                 )}
                 <div className="text-center sm:text-left">
-                  <h1 className="text-5xl font-black leading-none tracking-[-0.06em] text-[var(--color-custom-900)] sm:text-5xl">
-                    {negocio.nombre}
-                  </h1>
+                  {(negocio.mostrar_nombre ?? true) && (
+                    <h1 className="text-5xl font-black leading-none tracking-[-0.06em] text-[var(--color-custom-900)] sm:text-5xl">
+                      {negocio.nombre}
+                    </h1>
+                  )}
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}

@@ -22,7 +22,7 @@ export default async function ConfiguracionPage(props: {
   const { data: negocios } = await supabase
     .from("negocios")
     .select(
-      `id, nombre, slug, whatsapp, direccion, localidad, direccion_notas, color_primary, logo_url, banner_url, horarios, instagram_url, facebook_url, tiktok_url`,
+      `id, nombre, slug, whatsapp, direccion, localidad, direccion_notas, color_primary, logo_url, logo_posicion, banner_url, banner_posicion, mostrar_nombre, horarios, instagram_url, facebook_url, tiktok_url`,
     )
     .eq("user_id", user?.id ?? "")
     .limit(1)

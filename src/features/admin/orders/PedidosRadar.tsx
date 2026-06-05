@@ -137,8 +137,8 @@ export function PedidosRadar({
         (
           payload: RealtimePostgresChangesPayload<Record<string, unknown>>,
         ) => {
-          const newId = payload.new.id as string | undefined;
-          const newEstado = payload.new.estado as PedidoData["estado"] | undefined;
+          const newId = (payload.new as { id?: string }).id;
+          const newEstado = (payload.new as { estado?: PedidoData["estado"] }).estado;
           if (newId && newEstado) {
             setPedidos((prev) =>
               prev.map((p) =>

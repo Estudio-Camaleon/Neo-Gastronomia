@@ -65,6 +65,32 @@ export function getContrastYIQ(hexColor: string): string {
   return yiq >= 148 ? "#111111" : "#ffffff";
 }
 
+function linearize(channel: number): number {
+  const s = channel / 255;
+  return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+}
+
+function relativeLuminance(hex: string): number {
+  const { r, g, b } = hexToRgb(hex);
+  return 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b);
+}
+
+export function contrastRatio(foreground: string, background: string): number {
+  const l1 = relativeLuminance(foreground);
+  const l2 = relativeLuminance(background);
+  const lighter = Math.max(l1, l2);
+  const darker = Math.min(l1, l2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+export function meetsWcagAA(
+  foreground: string,
+  background: string,
+  largeText = false,
+): boolean {
+  return contrastRatio(foreground, background) >= (largeText ? 3 : 4.5);
+}
+
 export function buildBrandPalette(inputHex: string) {
   const base = `#${normalizeHexColor(inputHex)}`;
   const soft = `#${mixHexColor(base, "#ffffff", 0.82)}`;
