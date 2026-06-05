@@ -64,8 +64,8 @@ export async function loginAction(payload: {
 }
 
 export async function checkDuplicateAction(field: string, value: string) {
-  // Solo chequea nombre/slug/whatsapp para evitar email enumeration
-  if (field === "email") return { exists: false };
+  // Chequea nombre/slug/whatsapp y ahora también email (por petición de UX)
+  // Nota: protegemos con rate limiting para evitar abuso.
 
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
   if (!(await checkRateLimit(`check:${ip}`, 30))) {
@@ -73,10 +73,23 @@ export async function checkDuplicateAction(field: string, value: string) {
   }
 
   try {
+    if (field === "email") {
+      try {
+        // Usar admin API para listar usuarios por email
+        const { data: usuarios, error } = await supabaseAdmin.auth.admin.listUsers();
+        if (error) return { exists: false };
+        const found = usuarios?.users?.some((u: any) => (u.email || "").toLowerCase() === value.toLowerCase());
+        return { exists: !!found };
+      } catch {
+        return { exists: false };
+      }
+    }
+
+    const column = field === "nombre" ? "nombre" : field;
     const { data: resultados } = await supabaseAdmin
       .from("negocios")
       .select("id")
-      .eq(field === "nombre" ? "nombre" : field, value)
+      .eq(column, value)
       .limit(1);
     return { exists: !!resultados?.[0] };
   } catch {
@@ -113,6 +126,17 @@ export async function registerAction(payload: {
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
   if (!(await checkRateLimit(`register:${ip}`, 5))) {
     return { error: "Demasiados intentos. Intentalo de nuevo en un minuto." };
+  }
+
+  // Comprobación explícita de email existente para dar feedback inmediato
+  try {
+    const { data: listResp, error: listErr } = await supabaseAdmin.auth.admin.listUsers();
+    if (!listErr) {
+      const exists = listResp?.users?.some((u: any) => (u.email || "").toLowerCase() === email.toLowerCase());
+      if (exists) return { error: "El correo electrónico ya está registrado." };
+    }
+  } catch (e) {
+    // silencioso: en caso de fallo, dejamos que createUser maneje la validación
   }
 
   // Verificar duplicados (server-side)

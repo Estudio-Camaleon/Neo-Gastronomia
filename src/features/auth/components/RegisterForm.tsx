@@ -68,6 +68,7 @@ export function RegisterForm() {
     nombre: null,
     slug: null,
     whatsapp: null,
+    email: null,
   });
   const [checkingFields, setCheckingFields] = useState<Record<string, boolean>>(
     {},
@@ -142,9 +143,11 @@ export function RegisterForm() {
   }, []);
 
   const handleNombreChange = (val: string) => {
+    // preserve previous generated slug to detect manual edits
+    const prevGenerated = generateSlug(nombreNegocio);
     setNombreNegocio(val);
     const autoSlug = generateSlug(val);
-    if (!slug || slug === generateSlug(nombreNegocio)) {
+    if (!slug || slug === prevGenerated) {
       setSlug(autoSlug);
     }
     if (val.length >= 2) {
@@ -182,7 +185,8 @@ export function RegisterForm() {
     const hasDuplicates =
       duplicates["nombre"] === true ||
       duplicates["slug"] === true ||
-      duplicates["whatsapp"] === true;
+      duplicates["whatsapp"] === true ||
+      duplicates["email"] === true;
 
     if (hasDuplicates) {
       setErrorMsg("Corregí los campos marcados en rojo antes de continuar.");
@@ -224,7 +228,7 @@ export function RegisterForm() {
   const passwordsMatch =
     password === confirmPassword && confirmPassword.length > 0;
   const passwordReady = strength.score >= 2 && passwordsMatch;
-  const canProceedToStep2 = emailSchemaCheck && passwordReady;
+  const canProceedToStep2 = emailSchemaCheck && passwordReady && duplicates["email"] !== true;
 
   return (
     <div className="w-full">
@@ -247,19 +251,39 @@ export function RegisterForm() {
                   disabled={loading}
                   value={email}
                   onChange={(e) => {
-                    setEmail(e.target.value);
+                    const val = e.target.value;
+                    setEmail(val);
+                    if (val.length >= 5) {
+                      debouncedCheck("email", val);
+                    } else {
+                      setDuplicates((prev) => ({ ...prev, email: null }));
+                    }
                   }}
                   placeholder="socio@tu-negocio.com"
                   className={`auth-input pr-10 ${
-                    emailSchemaCheck && email.length > 5
+                    emailSchemaCheck &&
+                    email.length > 5 &&
+                    duplicates["email"] === false
                       ? "border-green-400 focus-visible:ring-green-400"
                       : email.length > 0
                         ? ""
                         : ""
                   }`}
                 />
-                {emailSchemaCheck && email.length > 5 && (
-                  <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+                {checkingFields["email"] && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-[var(--auth-text-muted)]" />
+                )}
+                {!checkingFields["email"] && duplicates["email"] === true && (
+                  <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-red-500" />
+                )}
+                {!checkingFields["email"] &&
+                  duplicates["email"] === false &&
+                  emailSchemaCheck &&
+                  email.length > 5 && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+                  )}
+                {duplicates["email"] === true && (
+                  <p className="text-[11px] text-red-500 font-medium mt-1">Este correo ya está registrado.</p>
                 )}
               </div>
             </div>

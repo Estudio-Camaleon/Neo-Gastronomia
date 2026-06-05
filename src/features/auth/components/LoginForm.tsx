@@ -64,7 +64,7 @@ function ResetPasswordModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 bg-black/40 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200"
       onClick={(e) => {
         if (e.target === e.currentTarget) handleClose();
       }}
@@ -72,7 +72,7 @@ function ResetPasswordModal({
       <div
         role="dialog"
         aria-modal="true"
-        className="bg-white dark:bg-zinc-950 rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl border border-gray-200 dark:border-zinc-800 animate-in zoom-in-95 duration-150"
+        className="bg-[var(--auth-surface-form)] rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl border border-[var(--auth-border)] animate-in zoom-in-95 duration-150"
       >
         <div className="flex items-center justify-between mb-5">
           <h3 className="font-bold text-lg text-[var(--auth-text)] tracking-tight">
