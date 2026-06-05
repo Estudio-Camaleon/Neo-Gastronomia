@@ -3,6 +3,7 @@ import "./globals.css";
 import { LoadingProvider } from "@/core/providers/LoadingProvider";
 import { Geist } from "next/font/google";
 import { cn } from "@core/lib/utils";
+import { Analytics } from "@vercel/analytics/react";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -36,6 +37,7 @@ export default function RootLayout({
     >
       <body className="antialiased m-0 p-0 border-none">
         <LoadingProvider>{children}</LoadingProvider>
+        <Analytics />
       </body>
     </html>
   );
