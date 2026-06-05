@@ -236,6 +236,7 @@ export function CatalogClient({
                 className="object-cover scale-105"
                 sizes="100vw"
                 priority
+                loading="eager"
                 style={{ objectPosition: negocio.banner_posicion ?? "center" }}
               />
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_60%,var(--color-custom-surface)_95%)]" />

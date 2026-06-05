@@ -177,16 +177,7 @@ export async function deleteTenantBrandingAction(id: string) {
   if (logoPath) brandingPathsToPurge.push(logoPath);
   if (bannerPath) brandingPathsToPurge.push(bannerPath);
 
-  // 5. Eliminar la cuenta de usuario de auth PRIMERO para evitar residuos si esto falla
-  const { error: deleteUserError } =
-    await supabaseAdmin.auth.admin.deleteUser(user.id);
-  if (deleteUserError) {
-    throw new Error(
-      `No se pudo purgar la cuenta de acceso: ${deleteUserError.message}. Intenta de nuevo.`,
-    );
-  }
-
-  // 6. Purga en bloque de Cloud Storage (Productos + Identidad)
+  // 5. Purga en bloque de Cloud Storage (Productos + Identidad)
   if (mediaPathsToPurge.length > 0) {
     const { error: mediaStorageError } = await supabaseAdmin.storage
       .from(MEDIA_BUCKET)
@@ -209,7 +200,7 @@ export async function deleteTenantBrandingAction(id: string) {
     }
   }
 
-  // 7. Purga Manual en Cascada de Base de Datos para asegurar borrado absoluto sin depender de FK constraints
+  // 6. Purga Manual en Cascada de Base de Datos para asegurar borrado absoluto sin depender de FK constraints
   const { data: pedidos } = await supabase
     .from("pedidos")
     .select("id")
@@ -224,7 +215,7 @@ export async function deleteTenantBrandingAction(id: string) {
   await supabase.from("productos").delete().eq("negocio_id", id);
   await supabase.from("categorias").delete().eq("negocio_id", id);
 
-  // 8. Operación destructiva final acotada al binomio id + user_id para blindar aislamiento total
+  // 7. Operación destructiva final acotada al binomio id + user_id para blindar aislamiento total
   const { error: deleteError } = await supabase
     .from("negocios")
     .delete()
@@ -234,6 +225,15 @@ export async function deleteTenantBrandingAction(id: string) {
   if (deleteError) {
     throw new Error(
       `Fallo de consistencia Core al eliminar el negocio: ${deleteError.message}`,
+    );
+  }
+
+  // 8. Eliminar la cuenta de usuario de auth — va al final para evitar FK (user_id → auth.users)
+  const { error: deleteUserError } =
+    await supabaseAdmin.auth.admin.deleteUser(user.id);
+  if (deleteUserError) {
+    console.error(
+      `[NEO RECOVERY WARN]: No se pudo purgar la cuenta de acceso: ${deleteUserError.message}.`,
     );
   }
 
