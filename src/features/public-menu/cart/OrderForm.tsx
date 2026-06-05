@@ -118,6 +118,19 @@ export function OrderForm({
 
     const formatearExtras = (i: (typeof cart)[0]) => {
       if (!i.extras || i.extras.length === 0) return "";
+      if (i.producto_id.startsWith("combo-")) {
+        try {
+          const comboItems = JSON.parse(i.detalles || "[]") as Array<{
+            nombre_producto: string;
+            cantidad: number;
+          }>;
+          return comboItems
+            .map((ci) => `${ci.cantidad}x ${ci.nombre_producto}`)
+            .join(", ");
+        } catch {
+          return "";
+        }
+      }
       return i.extras.map((e) => `${e.item_nombre}`).join(", ");
     };
 
@@ -199,14 +212,31 @@ export function OrderForm({
           : null,
         metodo_pago: formData.metodoPago,
         notas: formData.notas ? sanitize(formData.notas) : null,
-        items: cart.map((i) => ({
-          producto_id: i.producto_id,
-          cantidad: i.cantidad,
-          detalles:
-            i.extras && i.extras.length > 0
-              ? JSON.stringify(i.extras)
-              : i.detalles,
-        })),
+        items: cart.flatMap((i) => {
+          if (i.producto_id.startsWith("combo-")) {
+            try {
+              const comboItems = JSON.parse(i.detalles || "[]") as Array<{
+                producto_id: string;
+                cantidad: number;
+              }>;
+              return comboItems.map((ci) => ({
+                producto_id: ci.producto_id,
+                cantidad: ci.cantidad * i.cantidad,
+                detalles: null,
+              }));
+            } catch {
+              return [];
+            }
+          }
+          return {
+            producto_id: i.producto_id,
+            cantidad: i.cantidad,
+            detalles:
+              i.extras && i.extras.length > 0
+                ? JSON.stringify(i.extras)
+                : i.detalles,
+          };
+        }),
       };
 
       const orderId = await submitOrderPublicAction(payload);

@@ -23,13 +23,18 @@ export interface CartItem {
 export function generateItemId(
   producto_id: string,
   extras: CartExtra[],
+  variant?: string,
 ): string {
-  if (!extras || extras.length === 0) return producto_id;
-  const key = extras
-    .map((e) => `${e.grupo_id}:${e.item_id}`)
-    .sort()
-    .join("|");
-  return `${producto_id}__${key}`;
+  let id = producto_id;
+  if (variant) id += `__v:${variant}`;
+  if (extras && extras.length > 0) {
+    const key = extras
+      .map((e) => `${e.grupo_id}:${e.item_id}`)
+      .sort()
+      .join("|");
+    id += `__${key}`;
+  }
+  return id;
 }
 
 interface CartState {

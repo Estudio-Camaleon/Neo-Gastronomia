@@ -4,7 +4,13 @@ import { motion } from "framer-motion";
 import { ShoppingBag, Tag } from "lucide-react";
 import type { PromoRow } from "@/features/public-menu/types";
 
-function ComboCard({ promo }: { promo: PromoRow }) {
+function ComboCard({
+  promo,
+  onClick,
+}: {
+  promo: PromoRow;
+  onClick: () => void;
+}) {
   const items = (promo.items_combo as Array<{
     producto_id: string;
     nombre_producto: string;
@@ -16,8 +22,18 @@ function ComboCard({ promo }: { promo: PromoRow }) {
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="overflow-hidden rounded-2xl border border-[var(--color-custom-200)] bg-[var(--color-custom-surface-strong)] shadow-sm"
+      onClick={onClick}
+      className="overflow-hidden rounded-2xl border border-[var(--color-custom-200)] bg-[var(--color-custom-surface-strong)] shadow-sm cursor-pointer"
     >
+      {promo.imagen_url && (
+        <div className="aspect-[2/1] overflow-hidden">
+          <img
+            src={promo.imagen_url}
+            alt={promo.nombre}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
       <div className="flex items-center gap-3 bg-[var(--color-custom-500)]/10 px-4 py-3 border-b border-[var(--color-custom-200)]">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-custom-500)] text-white">
           <ShoppingBag size={16} />
@@ -86,7 +102,13 @@ function PromoBanner({ promo }: { promo: PromoRow }) {
   );
 }
 
-export function CombosSection({ promos }: { promos: PromoRow[] }) {
+export function CombosSection({
+  promos,
+  onComboClick,
+}: {
+  promos: PromoRow[];
+  onComboClick?: (promo: PromoRow) => void;
+}) {
   if (promos.length === 0) return null;
 
   const combos = promos.filter((p) => p.tipo_descuento === "combo");
@@ -109,7 +131,11 @@ export function CombosSection({ promos }: { promos: PromoRow[] }) {
           </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {combos.map((promo) => (
-              <ComboCard key={promo.id} promo={promo} />
+              <ComboCard
+                key={promo.id}
+                promo={promo}
+                onClick={() => onComboClick?.(promo)}
+              />
             ))}
           </div>
         </div>

@@ -70,16 +70,29 @@ export async function getAuthenticatedTenantWithUser(
   throw new Error("Inconsistencia Multi-tenant: Local no asignado.");
 }
 
+export function parseStorageUrl(
+  url: string | null | undefined,
+): { bucket: string; path: string } | null {
+  if (!url || url.trim() === "") return null;
+  const marker = "/storage/v1/object/public/";
+  const index = url.indexOf(marker);
+  if (index === -1) return null;
+  const afterMarker = url.substring(index + marker.length);
+  const slashIdx = afterMarker.indexOf("/");
+  if (slashIdx === -1) return null;
+  const bucket = afterMarker.substring(0, slashIdx);
+  const path = afterMarker
+    .substring(slashIdx + 1)
+    .split("?")[0]
+    .split("#")[0];
+  return { bucket, path };
+}
+
 export function extractStoragePath(
   url: string | null | undefined,
   bucketName: string,
 ): string | null {
-  if (!url || url.trim() === "") return null;
-  const marker = `/public/${bucketName}/`;
-  const index = url.indexOf(marker);
-  if (index === -1) return null;
-  return url
-    .substring(index + marker.length)
-    .split("?")[0]
-    .split("#")[0];
+  const parsed = parseStorageUrl(url);
+  if (!parsed || parsed.bucket !== bucketName) return null;
+  return parsed.path;
 }

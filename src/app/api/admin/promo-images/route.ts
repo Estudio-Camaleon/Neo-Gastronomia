@@ -41,7 +41,7 @@ export async function POST(request: Request) {
 
     const fileExt = file.name.split(".").pop() || "png";
     const filename = generateStorageFilename(fileExt);
-    const filePath = buildStoragePath(negocioId, "producto", filename);
+    const filePath = buildStoragePath(negocioId, "combo", filename);
 
     const { error: uploadError } = await supabaseAdmin.storage
       .from(getStorageBucket())

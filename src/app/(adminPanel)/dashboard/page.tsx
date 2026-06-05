@@ -182,7 +182,7 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         <div className="lg:col-span-2 admin-card p-6">
           <h2 className="text-lg font-bold text-[var(--admin-text)] mb-5 flex items-center gap-2">
             <Layers size={18} className="text-[var(--admin-accent)]" />
@@ -290,7 +290,7 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
         <PromoCard />
         <QuickActionsCard />
       </div>

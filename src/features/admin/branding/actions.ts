@@ -2,7 +2,7 @@
 
 import { createClient } from "@/core/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { extractStoragePath } from "@/core/lib/tenant";
+import { parseStorageUrl } from "@/core/lib/tenant";
 import { supabaseAdmin } from "@/core/lib/supabase/admin";
 import type { UpdateTenantBrandingPayload } from "@/core/types/domain";
 import type { Json } from "@/core/types/database.types";
@@ -78,37 +78,24 @@ export async function updateTenantBrandingAction(
     throw new Error(`Error de persistencia Core: ${error.message}`);
   }
 
-  const brandingFilesToRemove: string[] = [];
-  const previousLogoPath = extractStoragePath(
-    negocioActual.logo_url,
-    "imagenes-negocios",
-  );
-  const previousBannerPath = extractStoragePath(
-    negocioActual.banner_url,
-    "imagenes-negocios",
-  );
-  const nextLogoPath = extractStoragePath(
-    payload.logo_url,
-    "imagenes-negocios",
-  );
-  const nextBannerPath = extractStoragePath(
-    payload.banner_url,
-    "imagenes-negocios",
-  );
+  const brandingFilesToRemove: Array<{ bucket: string; path: string }> = [];
+  const prevLogo = parseStorageUrl(negocioActual.logo_url);
+  const prevBanner = parseStorageUrl(negocioActual.banner_url);
+  const nextLogo = parseStorageUrl(payload.logo_url);
+  const nextBanner = parseStorageUrl(payload.banner_url);
 
-  if (previousLogoPath && previousLogoPath !== nextLogoPath) {
-    brandingFilesToRemove.push(previousLogoPath);
+  if (prevLogo && (!nextLogo || prevLogo.path !== nextLogo.path)) {
+    brandingFilesToRemove.push(prevLogo);
   }
 
-  if (previousBannerPath && previousBannerPath !== nextBannerPath) {
-    brandingFilesToRemove.push(previousBannerPath);
+  if (prevBanner && (!nextBanner || prevBanner.path !== nextBanner.path)) {
+    brandingFilesToRemove.push(prevBanner);
   }
 
-  if (brandingFilesToRemove.length > 0) {
+  for (const { bucket, path } of brandingFilesToRemove) {
     const { error: removeError } = await supabaseAdmin.storage
-      .from("imagenes-negocios")
-      .remove(brandingFilesToRemove);
-
+      .from(bucket)
+      .remove([path]);
     if (removeError) {
       console.error(
         `[NEO RECOVERY WARN]: Error purga branding anterior: ${removeError.message}`,
@@ -128,8 +115,6 @@ export async function updateTenantBrandingAction(
  */
 export async function deleteTenantBrandingAction(id: string) {
   const supabase = await createClient();
-  const BRANDING_BUCKET = "imagenes-negocios";
-  const MEDIA_BUCKET = "media";
 
   // 1. Reaseguro estricto de identidad en sesión activa
   const {
@@ -161,41 +146,32 @@ export async function deleteTenantBrandingAction(id: string) {
     .select("imagen_url")
     .eq("negocio_id", id);
 
-  const mediaPathsToPurge: string[] = [];
+  const storagePathsToPurge: Array<{ bucket: string; path: string }> = [];
   if (productos) {
     for (const prod of productos) {
-      const path = extractStoragePath(prod.imagen_url, MEDIA_BUCKET);
-      if (path) mediaPathsToPurge.push(path);
+      const parsed = parseStorageUrl(prod.imagen_url);
+      if (parsed) storagePathsToPurge.push(parsed);
     }
   }
 
   // 4. Analizar y preparar el array de archivos de identidad a remover
-  const brandingPathsToPurge: string[] = [];
-  const logoPath = extractStoragePath(negocio.logo_url, BRANDING_BUCKET);
-  const bannerPath = extractStoragePath(negocio.banner_url, BRANDING_BUCKET);
+  const logo = parseStorageUrl(negocio.logo_url);
+  const banner = parseStorageUrl(negocio.banner_url);
+  if (logo) storagePathsToPurge.push(logo);
+  if (banner) storagePathsToPurge.push(banner);
 
-  if (logoPath) brandingPathsToPurge.push(logoPath);
-  if (bannerPath) brandingPathsToPurge.push(bannerPath);
-
-  // 5. Purga en bloque de Cloud Storage (Productos + Identidad)
-  if (mediaPathsToPurge.length > 0) {
-    const { error: mediaStorageError } = await supabaseAdmin.storage
-      .from(MEDIA_BUCKET)
-      .remove(mediaPathsToPurge);
-    if (mediaStorageError) {
-      console.error(
-        `[NEO RECOVERY WARN]: Error purga media: ${mediaStorageError.message}`,
-      );
-    }
+  // 5. Purga en bloque de Cloud Storage (por bucket agrupado para optimizar)
+  const byBucket = new Map<string, string[]>();
+  for (const { bucket, path } of storagePathsToPurge) {
+    const arr = byBucket.get(bucket);
+    if (arr) arr.push(path);
+    else byBucket.set(bucket, [path]);
   }
-
-  if (brandingPathsToPurge.length > 0) {
-    const { error: brandingStorageError } = await supabaseAdmin.storage
-      .from(BRANDING_BUCKET)
-      .remove(brandingPathsToPurge);
-    if (brandingStorageError) {
+  for (const [bucket, paths] of byBucket) {
+    const { error } = await supabaseAdmin.storage.from(bucket).remove(paths);
+    if (error) {
       console.error(
-        `[NEO RECOVERY WARN]: Error purga branding: ${brandingStorageError.message}`,
+        `[NEO RECOVERY WARN]: Error purga storage (${bucket}): ${error.message}`,
       );
     }
   }

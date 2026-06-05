@@ -1,14 +1,18 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/core/lib/supabase/admin";
 import {
-  extractStoragePath,
+  parseStorageUrl,
   getAuthenticatedTenantWithUser,
 } from "@/core/lib/tenant";
+import {
+  getStorageBucket,
+  buildStoragePath,
+} from "@/core/lib/utils/storage";
 
-const BUCKET = "imagenes-negocios";
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 
 const ALLOWED_FIELDS = ["logo_url", "banner_url"] as const;
+const FIELD_TO_ENTITY = { logo_url: "logo", banner_url: "banner" } as const;
 
 export async function POST(request: Request) {
   try {
@@ -48,10 +52,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const filePath = `identidad/${negocioId}/${field}`;
+    const fileExt = file.name.split(".").pop() || "webp";
+    const entity = FIELD_TO_ENTITY[field as keyof typeof FIELD_TO_ENTITY];
+    const filename = `${entity}.${fileExt}`;
+    const filePath = buildStoragePath(negocioId, entity, filename);
 
     const { error: uploadError } = await supabaseAdmin.storage
-      .from(BUCKET)
+      .from(getStorageBucket())
       .upload(filePath, file, {
         cacheControl: "3600",
         upsert: true,
@@ -64,7 +71,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const { data } = supabaseAdmin.storage.from(BUCKET).getPublicUrl(filePath);
+    const { data } = supabaseAdmin.storage
+      .from(getStorageBucket())
+      .getPublicUrl(filePath);
 
     return NextResponse.json({
       publicUrl: `${data.publicUrl}?v=${Date.now()}`,
@@ -80,13 +89,15 @@ export async function DELETE(request: Request) {
   try {
     await getAuthenticatedTenantWithUser();
     const body = (await request.json().catch(() => ({}))) as { url?: string };
-    const path = extractStoragePath(body.url, BUCKET);
+    const parsed = parseStorageUrl(body.url);
 
-    if (!path) {
+    if (!parsed) {
       return NextResponse.json({ error: "URL inválida." }, { status: 400 });
     }
 
-    const { error } = await supabaseAdmin.storage.from(BUCKET).remove([path]);
+    const { error } = await supabaseAdmin.storage
+      .from(parsed.bucket)
+      .remove([parsed.path]);
 
     if (error) {
       return NextResponse.json(

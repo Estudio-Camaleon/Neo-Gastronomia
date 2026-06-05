@@ -381,6 +381,7 @@ export type Database = {
           created_at: string | null
           descripcion: string | null
           id: string
+          imagen_url: string | null
           items_combo: Json | null
           negocio_id: string
           nombre: string
@@ -394,6 +395,7 @@ export type Database = {
           created_at?: string | null
           descripcion?: string | null
           id?: string
+          imagen_url?: string | null
           items_combo?: Json | null
           negocio_id: string
           nombre: string
@@ -407,6 +409,7 @@ export type Database = {
           created_at?: string | null
           descripcion?: string | null
           id?: string
+          imagen_url?: string | null
           items_combo?: Json | null
           negocio_id?: string
           nombre?: string

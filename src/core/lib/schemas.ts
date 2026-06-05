@@ -109,6 +109,7 @@ export const upsertPromoSchema = z
       .min(1, "El nombre de la promo es requerido")
       .max(100, "El nombre es demasiado largo"),
     descripcion: z.string().max(300, "La descripción es demasiado larga").nullable().optional(),
+    imagen_url: z.string().nullable().optional(),
     tipo_descuento: discountTypeSchema,
     valor_descuento: z
       .number()

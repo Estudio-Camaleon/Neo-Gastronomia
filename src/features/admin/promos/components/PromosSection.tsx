@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Percent,
   Plus,
@@ -13,6 +13,8 @@ import {
   XCircle,
   ShoppingBag,
   Minus,
+  Upload,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { upsertPromoSchema } from "@/core/lib/schemas";
@@ -41,6 +43,7 @@ interface ProductOption {
 const EMPTY_FORM: PromoFormData = {
   nombre: "",
   descripcion: null,
+  imagen_url: null,
   tipo_descuento: "porcentaje",
   valor_descuento: 10,
   codigo: null,
@@ -94,6 +97,7 @@ export function PromosSection({ negocioId }: PromosSectionProps) {
     setFormData({
       nombre: promo.nombre,
       descripcion: promo.descripcion,
+      imagen_url: promo.imagen_url,
       tipo_descuento: promo.tipo_descuento as "porcentaje" | "monto_fijo" | "combo",
       valor_descuento: promo.valor_descuento,
       codigo: promo.codigo,
@@ -300,6 +304,15 @@ export function PromosSection({ negocioId }: PromosSectionProps) {
                       </p>
                     )}
                   </div>
+                  {promo.imagen_url && (
+                    <div className="shrink-0 w-14 h-14 rounded-lg overflow-hidden border border-[var(--admin-border)]">
+                      <img
+                        src={promo.imagen_url}
+                        alt={promo.nombre}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2 mb-3">
@@ -412,6 +425,100 @@ export function PromosSection({ negocioId }: PromosSectionProps) {
   );
 }
 
+function ImageUploadInline({
+  value,
+  onChange,
+  uploading,
+  setUploading,
+}: {
+  value: string | null;
+  onChange: (url: string | null) => void;
+  uploading: boolean;
+  setUploading: (v: boolean) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("La imagen supera el límite de 5MB");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/admin/promo-images", { method: "POST", body: fd });
+      const data = (await res.json().catch(() => ({}))) as { publicUrl?: string; error?: string };
+      if (!res.ok) throw new Error(data.error || "Error al subir");
+      if (!data.publicUrl) throw new Error("No se recibió URL");
+      onChange(data.publicUrl);
+      toast.success("Imagen cargada");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Error al subir imagen");
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  };
+
+  const handleRemove = async () => {
+    if (value) {
+      try {
+        await fetch("/api/admin/promo-images", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: value }),
+        });
+      } catch {
+        // ignore cleanup errors
+      }
+    }
+    onChange(null);
+  };
+
+  return (
+    <div className="flex items-center gap-3">
+      {value ? (
+        <div className="relative w-20 h-20 rounded-lg overflow-hidden border border-[var(--admin-border)] group">
+          <img src={value} alt="" className="w-full h-full object-cover" />
+          <button
+            type="button"
+            onClick={handleRemove}
+            disabled={uploading}
+            className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <X size={16} className="text-white" />
+          </button>
+        </div>
+      ) : (
+        <label className="flex items-center justify-center w-20 h-20 rounded-lg border-2 border-dashed border-[var(--admin-border)] cursor-pointer hover:border-[var(--admin-accent)] transition-colors">
+          {uploading ? (
+            <Loader2 size={18} className="animate-spin text-[var(--admin-text-muted)]" />
+          ) : (
+            <Upload size={18} className="text-[var(--admin-text-muted)]" />
+          )}
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            className="hidden"
+            onChange={handleUpload}
+            disabled={uploading}
+          />
+        </label>
+      )}
+      {!value && !uploading && (
+        <span className="text-[11px] text-[var(--admin-text-muted)]">
+          Subí una foto para esta promo
+        </span>
+      )}
+    </div>
+  );
+}
+
 function PromoModal({
   formData,
   onChange,
@@ -440,6 +547,7 @@ function PromoModal({
   comboTotal: number;
 }) {
   const [selectedProduct, setSelectedProduct] = useState("");
+  const [uploading, setUploading] = useState(false);
   const isCombo = formData.tipo_descuento === "combo";
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -569,6 +677,19 @@ function PromoModal({
             <p className="text-[10px] text-[var(--admin-text-muted)]">
               Código que el cliente ingresa al hacer un pedido.
             </p>
+          </div>
+
+          {/* Image upload */}
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-[var(--admin-text)]">
+              Imagen (opcional)
+            </label>
+            <ImageUploadInline
+              value={formData.imagen_url ?? null}
+              onChange={(url) => onChange({ ...formData, imagen_url: url || null })}
+              uploading={uploading}
+              setUploading={setUploading}
+            />
           </div>
 
           {/* Combo items */}

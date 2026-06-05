@@ -2,7 +2,8 @@
 
 import { createClient } from "@/core/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { getAuthenticatedTenant } from "@/core/lib/tenant";
+import { getAuthenticatedTenant, parseStorageUrl } from "@/core/lib/tenant";
+import { supabaseAdmin } from "@/core/lib/supabase/admin";
 import { upsertPromoSchema } from "@/core/lib/schemas";
 import { z } from "zod";
 
@@ -48,6 +49,7 @@ export async function upsertPromoAction(
     negocio_id: negocioId,
     nombre: parsed.data.nombre,
     descripcion: parsed.data.descripcion ?? null,
+    imagen_url: parsed.data.imagen_url ?? null,
     tipo_descuento: parsed.data.tipo_descuento,
     valor_descuento: parsed.data.valor_descuento,
     codigo: parsed.data.codigo ?? null,
@@ -73,6 +75,20 @@ export async function deletePromoAction(promoId: string) {
 
   const supabase = await createClient();
   const negocioId = await getAuthenticatedTenant(supabase);
+
+  const { data: promo } = await supabase
+    .from("promos")
+    .select("imagen_url")
+    .eq("id", promoId)
+    .eq("negocio_id", negocioId)
+    .single();
+
+  if (promo?.imagen_url) {
+    const parsed = parseStorageUrl(promo.imagen_url);
+    if (parsed) {
+      await supabaseAdmin.storage.from(parsed.bucket).remove([parsed.path]);
+    }
+  }
 
   const { error } = await supabase
     .from("promos")

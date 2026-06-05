@@ -455,6 +455,12 @@ export function ConfigForm({
                 clearFieldError("color_primary");
                 setFormData((p) => ({ ...p, color_primary: val }));
               }}
+              bannerUrl={imagePreviews.banner_url || formData.banner_url}
+              logoUrl={imagePreviews.logo_url || formData.logo_url}
+              mostrarNombre={formData.mostrar_nombre}
+              nombreForm={formData.nombre}
+              logoScale={formData.logo_scale}
+              bannerPosicion={formData.banner_posicion}
             />
           </div>
         </div>
@@ -735,14 +741,14 @@ function BrandingBlock({
                 <img
                   src={bannerUrl}
                   alt="Portada"
-                  className="h-full w-full object-cover animate-in fade-in duration-200"
+                  className="h-full w-full object-cover scale-105 animate-in fade-in duration-200"
                   style={{ objectPosition: bannerPosicion }}
                 />
               ) : (
                 <Image
                   src={bannerUrl}
                   fill
-                  className="object-cover animate-in fade-in duration-200"
+                  className="object-cover scale-105 animate-in fade-in duration-200"
                   style={{ objectPosition: bannerPosicion }}
                   alt="Portada"
                   sizes="(max-width: 768px) 100vw, 650px"
@@ -753,6 +759,7 @@ function BrandingBlock({
                 <ImageIcon size={28} />
               </div>
             )}
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_60%,var(--admin-surface)_95%)]" />
             {uploading === "banner_url" && (
               <div className="absolute inset-0 bg-[var(--admin-surface)]/80 backdrop-blur-sm flex items-center justify-center">
                 <Loader2
@@ -1056,7 +1063,23 @@ function SocialLinksBlock({
   );
 }
 
-function PalettePreview({ colorPrimary }: { colorPrimary: string }) {
+function PalettePreview({
+  colorPrimary,
+  bannerUrl,
+  logoUrl,
+  mostrarNombre,
+  nombreForm,
+  logoScale,
+  bannerPosicion,
+}: {
+  colorPrimary: string;
+  bannerUrl?: string | null;
+  logoUrl?: string | null;
+  mostrarNombre?: boolean;
+  nombreForm?: string;
+  logoScale?: number;
+  bannerPosicion?: string;
+}) {
   const palette = useMemo(() => buildBrandPalette(colorPrimary), [colorPrimary]);
   const textColor = palette.textOnBase;
   const contrastOk = meetsWcagAA(textColor, palette.base);
@@ -1064,6 +1087,48 @@ function PalettePreview({ colorPrimary }: { colorPrimary: string }) {
 
   return (
     <div className="space-y-3">
+      {/* Public menu header mockup */}
+      <div className="overflow-hidden rounded-lg border border-[var(--admin-border)] bg-white/5">
+        {bannerUrl && (
+          <div className="relative aspect-[21/8] overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700">
+            <img
+              src={bannerUrl}
+              alt=""
+              className="h-full w-full object-cover scale-105"
+              style={{ objectPosition: bannerPosicion ?? "center" }}
+            />
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `radial-gradient(ellipse at center, transparent 60%, ${palette.surface} 95%)`,
+              }}
+            />
+          </div>
+        )}
+        <div className="flex items-center gap-3 p-3">
+          {logoUrl && (
+            <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full ring-2 ring-white/10 shadow-xl">
+              <img
+                src={logoUrl}
+                alt=""
+                className="h-full w-full rounded-full object-cover"
+                style={{ transform: `scale(${logoScale ?? 1})` }}
+              />
+            </div>
+          )}
+          {(mostrarNombre ?? true) && (
+            <div>
+              <div
+                className="text-base font-black leading-none tracking-[-0.06em]"
+                style={{ color: palette["900"] as string }}
+              >
+                {nombreForm || "Nombre del negocio"}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="flex gap-1 items-center">
         {["50", "100", "200", "300", "400", "500", "600", "700", "800", "900", "950"].map(
           (shade) => (
@@ -1093,7 +1158,7 @@ function PalettePreview({ colorPrimary }: { colorPrimary: string }) {
         <span className={`font-bold flex items-center gap-1 ${
           contrastOk ? "text-green-600" : "text-red-500"
         }`}>
-          {contrastOk ? "✅ AA" : "⚠️ No cumple AA"}
+          {contrastOk ? "AA" : "No cumple AA"}
         </span>
         {!contrastOk && contrastLargeOk && (
           <span className="text-amber-500 font-semibold">
@@ -1109,10 +1174,22 @@ function CatalogDesignBlock({
   colorPrimary,
   error,
   onChange,
+  bannerUrl,
+  logoUrl,
+  mostrarNombre,
+  nombreForm,
+  logoScale,
+  bannerPosicion,
 }: {
   colorPrimary: string;
   error?: string;
   onChange: (val: string) => void;
+  bannerUrl?: string | null;
+  logoUrl?: string | null;
+  mostrarNombre?: boolean;
+  nombreForm?: string;
+  logoScale?: number;
+  bannerPosicion?: string;
 }) {
   return (
     <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
@@ -1185,7 +1262,15 @@ function CatalogDesignBlock({
             <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block mb-2">
               Vista previa en vivo
             </span>
-            <PalettePreview colorPrimary={colorPrimary} />
+            <PalettePreview
+              colorPrimary={colorPrimary}
+              bannerUrl={bannerUrl}
+              logoUrl={logoUrl}
+              mostrarNombre={mostrarNombre}
+              nombreForm={nombreForm}
+              logoScale={logoScale}
+              bannerPosicion={bannerPosicion}
+            />
           </div>
         </div>
       </div>

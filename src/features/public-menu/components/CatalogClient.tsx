@@ -12,20 +12,17 @@ import {
   Search,
   ImageIcon,
 } from "lucide-react";
-import {
-  useCartStore,
-  generateItemId,
-} from "@/features/public-menu/cart/useCartStore";
+import { useCartStore } from "@/features/public-menu/cart/useCartStore";
 import { CartFloatingButton } from "@/features/public-menu/cart/CartFloatingButton";
 import { PublicCart } from "@/features/public-menu/cart/PublicCart";
 import { FloatingFood } from "@/features/public-menu/components/FloatingFood";
-import { ExtrasSelector } from "@/features/public-menu/components/ExtrasSelector";
+import { ProductDetailModal } from "@/features/public-menu/components/ProductDetailModal";
+import { ComboDetailModal } from "@/features/public-menu/components/ComboDetailModal";
 import { CombosSection } from "@/features/public-menu/components/CombosSection";
 import { estaAbierto } from "@/core/lib/utils/horarios";
 import type {
   Categoria,
   NegocioPublico,
-  ExtraGroup,
   Producto,
   PromoRow,
 } from "@/features/public-menu/types";
@@ -84,10 +81,8 @@ export function CatalogClient({
   const isCartOpen = useCartStore((state) => state.isCartOpen);
   const setCartOpen = useCartStore((state) => state.setCartOpen);
   const setNegocioId = useCartStore((state) => state.setNegocioId);
-  const [extrasProduct, setExtrasProduct] = useState<{
-    product: Producto;
-    groups: ExtraGroup[];
-  } | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Producto | null>(null);
+  const [selectedCombo, setSelectedCombo] = useState<PromoRow | null>(null);
   const isOpenNow = estaAbierto(negocio.horarios);
   const todayKey = getTodayKey();
 
@@ -464,10 +459,13 @@ export function CatalogClient({
                 ))}
               </motion.div>
 
-              <CombosSection promos={promos} />
+              <CombosSection
+                promos={promos}
+                onComboClick={(promo) => setSelectedCombo(promo)}
+              />
 
               <div className="mt-6 space-y-8">
-                <AnimatePresence mode="wait">
+                <AnimatePresence>
                   {categoriasFiltradas.length === 0 ? (
                     <motion.div
                       key="empty"
@@ -530,7 +528,10 @@ export function CatalogClient({
                                   boxShadow: "0 12px 24px rgba(0,0,0,0.1)",
                                 }}
                                 layout
-                                className={`overflow-hidden rounded-2xl bg-[var(--color-custom-surface-strong)] shadow-sm ring-1 ring-black/5 ${
+                                onClick={() => {
+                                  if (prod.disponible) setSelectedProduct(prod);
+                                }}
+                                className={`overflow-hidden rounded-2xl bg-[var(--color-custom-surface-strong)] shadow-sm ring-1 ring-black/5 cursor-pointer ${
                                   !prod.disponible ? "opacity-50 grayscale" : ""
                                 }`}
                                 aria-disabled={!prod.disponible}
@@ -554,7 +555,7 @@ export function CatalogClient({
                                   )}
                                 </div>
 
-                                <div className="flex min-h-[170px] flex-col justify-between p-4">
+                                <div className="flex flex-col justify-between p-4">
                                   <div>
                                     <p className="text-sm font-bold uppercase tracking-[0.12em] text-[var(--color-custom-900)]">
                                       {prod.nombre}
@@ -582,7 +583,10 @@ export function CatalogClient({
                                         <button
                                           type="button"
                                           aria-label={`Disminuir cantidad de ${prod.nombre}`}
-                                          onClick={() => removeItem(prod.id)}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            removeItem(prod.id);
+                                          }}
                                           className="flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40 sm:h-8 sm:w-8"
                                           disabled={cantidad === 0}
                                         >
@@ -599,21 +603,21 @@ export function CatalogClient({
                                         <button
                                           type="button"
                                           aria-label={`Aumentar cantidad de ${prod.nombre}`}
-                                          onClick={() => {
-                                            const grupos =
-                                              prod.configuracion
-                                                ?.grupos_opciones;
-                                            if (
-                                              grupos &&
-                                              grupos.length > 0 &&
-                                              grupos.some(
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            const config =
+                                              prod.configuracion;
+                                            const hasVariants =
+                                              config?.variantes &&
+                                              config.variantes.length > 0;
+                                            const hasExtras =
+                                              config?.grupos_opciones &&
+                                              config.grupos_opciones.length > 0 &&
+                                              config.grupos_opciones.some(
                                                 (g) => g.items.length > 0,
-                                              )
-                                            ) {
-                                              setExtrasProduct({
-                                                product: prod,
-                                                groups: grupos,
-                                              });
+                                              );
+                                            if (hasVariants || hasExtras) {
+                                              setSelectedProduct(prod);
                                             } else {
                                               addItem({
                                                 id: prod.id,
@@ -716,30 +720,32 @@ export function CatalogClient({
         </motion.footer>
       </div>
 
-      {/* EXTRAS SELECTOR */}
+      {/* PRODUCT DETAIL MODAL */}
       <AnimatePresence>
-        {extrasProduct && (
-          <ExtrasSelector
-            productName={extrasProduct.product.nombre}
-            basePrice={extrasProduct.product.precio}
-            groups={extrasProduct.groups}
+        {selectedProduct && (
+          <ProductDetailModal
+            product={selectedProduct}
             simbolo={menuConfig.moneda_simbolo}
-            onConfirm={(extras, extraTotal) => {
-              const id = generateItemId(extrasProduct.product.id, extras);
-              const precioFinal = extrasProduct.product.precio + extraTotal;
-              addItem({
-                id,
-                producto_id: extrasProduct.product.id,
-                nombre: extrasProduct.product.nombre,
-                imagen_url: extrasProduct.product.imagen_url,
-                precio: precioFinal,
-                cantidad: 1,
-                detalles: null,
-                extras,
-              });
-              setExtrasProduct(null);
+            onConfirm={(item) => {
+              addItem(item);
+              setSelectedProduct(null);
             }}
-            onCancel={() => setExtrasProduct(null)}
+            onCancel={() => setSelectedProduct(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* COMBO DETAIL MODAL */}
+      <AnimatePresence>
+        {selectedCombo && (
+          <ComboDetailModal
+            promo={selectedCombo}
+            simbolo={menuConfig.moneda_simbolo}
+            onConfirm={(item) => {
+              addItem(item);
+              setSelectedCombo(null);
+            }}
+            onCancel={() => setSelectedCombo(null)}
           />
         )}
       </AnimatePresence>

@@ -279,14 +279,14 @@ export function PedidosRadar({
         </button>
       </div>
 
-      <div className="admin-card !p-1 flex items-center">
-        <div className="pl-4 pr-3 text-[var(--admin-text-muted)]">
+      <div className="admin-card flex items-center p-2 gap-3">
+        <div className="px-3 text-[var(--admin-text-muted)]">
           <Search size={18} />
         </div>
         <input
           type="text"
           placeholder="Buscar pedido por cliente o código..."
-          className="admin-input !border-none !shadow-none !bg-transparent"
+          className="flex-1 admin-input !border-none !shadow-none !bg-transparent"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         />
