@@ -112,4 +112,17 @@
     color: var(--admin-text-muted);
     opacity: 0.7;
   }
+
+  /* Utility classes for consistent themed colors */
+  .admin-success-text { color: var(--admin-success); }
+  .admin-success-bg { background: var(--admin-success-bg); }
+  .admin-success-border { border-color: var(--admin-success-border); }
+
+  .admin-warning-text { color: var(--admin-warning); }
+  .admin-warning-bg { background: var(--admin-warning-bg); }
+  .admin-warning-border { border-color: var(--admin-warning-border); }
+
+  .admin-accent-text { color: var(--admin-accent); }
+  .admin-accent-bg { background: var(--admin-accent); }
+  .admin-accent-border { border-color: var(--admin-accent); }
 }

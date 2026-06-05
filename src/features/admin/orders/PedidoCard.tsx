@@ -65,7 +65,7 @@ export function PedidoCard({
                 {pedido.metodo_pago.replace(/\b\w/g, (c) => c.toUpperCase())}
               </span>{" "}
               •{" "}
-              <span className="font-semibold text-[var(--admin-accent)] text-sm">
+            <span className="font-semibold admin-accent-text text-sm">
                 ${Number(pedido.total).toFixed(2)}
               </span>
             </p>

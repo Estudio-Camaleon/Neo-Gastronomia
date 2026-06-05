@@ -162,39 +162,39 @@ export function PedidosRadar({
     {
       label: "Nuevos Pendientes",
       value: stats.nuevos,
-      color: "bg-blue-500",
+      color: "admin-accent-bg",
       glow: "shadow-blue-500/20",
-      border: "border-blue-200/60 dark:border-blue-900/30",
+      border: "border-[var(--admin-border)]",
       icon: Clock,
-      textColor: "text-blue-600 dark:text-blue-400",
-      bgLight: "bg-blue-50/50 dark:bg-blue-950/10",
+      textColor: "admin-accent-text",
+      bgLight: "admin-accent-bg",
     },
     {
       label: "En Cocina",
       value: stats.cocina,
-      color: "bg-amber-500",
+      color: "admin-warning-bg",
       glow: "shadow-amber-500/20",
-      border: "border-amber-200/60 dark:border-amber-900/30",
+      border: "border-[var(--admin-border)]",
       icon: ChefHat,
-      textColor: "text-amber-600 dark:text-amber-400",
-      bgLight: "bg-amber-50/50 dark:bg-amber-950/10",
+      textColor: "admin-warning-text",
+      bgLight: "admin-warning-bg",
     },
     {
       label: "Entregados",
       value: stats.listos,
-      color: "bg-green-500",
+      color: "admin-success-bg",
       glow: "shadow-green-500/20",
-      border: "border-green-200/60 dark:border-green-900/30",
+      border: "border-[var(--admin-border)]",
       icon: CheckCircle2,
-      textColor: "text-green-600 dark:text-green-400",
-      bgLight: "bg-green-50/50 dark:bg-green-950/10",
+      textColor: "admin-success-text",
+      bgLight: "admin-success-bg",
     },
     {
       label: "Cancelados",
       value: stats.cancelados,
       color: "bg-red-500",
       glow: "shadow-red-500/20",
-      border: "border-red-200/60 dark:border-red-900/30",
+      border: "border-[var(--admin-border)]",
       icon: XCircle,
       textColor: "text-red-600 dark:text-red-400",
       bgLight: "bg-red-50/50 dark:bg-red-950/10",
@@ -208,16 +208,14 @@ export function PedidosRadar({
         {radarItems.map((item, idx) => (
           <div
             key={idx}
-            className={`admin-card !p-5 border ${item.border} transition-all duration-300 rounded-2xl hover:shadow-lg ${item.glow}`}
+            className={`admin-card !p-5 ${item.border} transition-all duration-300 rounded-2xl hover:shadow-lg ${item.glow}`}
           >
             <div className="flex justify-between items-start mb-2">
               <span className="text-xs font-black uppercase tracking-wider text-[var(--admin-text-muted)]">
                 {item.label}
               </span>
-              <div
-                className={`p-2 rounded-xl ${item.bgLight} ${item.textColor} transition-all duration-200`}
-              >
-                <item.icon size={18} />
+               <div className={`p-2 rounded-xl ${item.bgLight} ${item.textColor} transition-all duration-200`}>
+                 <item.icon size={18} />
               </div>
             </div>
             <div className="flex items-center gap-3">
