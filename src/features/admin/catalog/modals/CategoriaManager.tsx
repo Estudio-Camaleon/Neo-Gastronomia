@@ -92,6 +92,9 @@ export function CategoriaManager({
       try {
         await createCategoryAction(nombreLimpio, slugificar(nombreLimpio));
         setNuevoNombre("");
+        // refresh local list immediately so user sees the new category without waiting for realtime
+        setLoadingList(true);
+        await cargarCategorias();
         toast.success("Categoría creada con éxito");
       } catch (err) {
         const msg =
@@ -114,6 +117,9 @@ export function CategoriaManager({
       try {
         await deleteCategoryAction(deleteConfirm.id);
         setDeleteConfirm(null);
+        // refresh local list so deletion is reflected immediately
+        setLoadingList(true);
+        await cargarCategorias();
         toast.success("Categoría eliminada");
       } catch {
         toast.error("Error al eliminar la categoría");
