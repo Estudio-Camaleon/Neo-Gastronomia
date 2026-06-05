@@ -37,9 +37,10 @@ export function PedidoCard({
       >
         <div className="flex items-center gap-2 text-sm font-semibold text-[var(--admin-text)]">
           {pedido.es_delivery ? (
-            <Truck size={16} className="text-blue-500" />
+            // Use color-friendly variants for light/dark themes
+            <Truck size={16} className="text-[var(--admin-accent)]" />
           ) : (
-            <Smartphone size={16} className="text-orange-500" />
+            <Smartphone size={16} className="text-[var(--admin-accent-secondary)]" />
           )}
           <span className="truncate max-w-[200px]">
             {pedido.es_delivery
@@ -74,7 +75,7 @@ export function PedidoCard({
               href={`https://wa.me/${pedido.cliente_whatsapp.replace(/\D/g, "")}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-xl bg-green-50/80 text-green-600 hover:bg-green-100 border border-green-200/60 transition-all duration-200 shrink-0 hover:shadow-sm hover:scale-105 active:scale-95"
+            className="p-2 rounded-xl bg-[var(--admin-success-bg)] text-[var(--admin-success)] dark:text-[var(--admin-success)] hover:bg-opacity-90 border border-[var(--admin-success-border)] dark:border-[var(--admin-success-border)] transition-all duration-200 shrink-0 hover:shadow-sm hover:scale-105 active:scale-95"
               title="Contactar por WhatsApp"
             >
               <MessageCircle size={18} />
@@ -136,11 +137,11 @@ export function PedidoCard({
         </div>
 
         {pedido.notas && (
-          <div className="bg-amber-50/80 dark:bg-amber-950/15 rounded-2xl border border-amber-200/60 dark:border-amber-900/30 p-3 text-sm">
-            <span className="text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-400 block mb-1">
+          <div className="rounded-2xl p-3 text-sm" style={{ background: 'var(--admin-warning-bg)', border: '1px solid var(--admin-warning-border)' }}>
+            <span className="text-[10px] font-black uppercase tracking-widest block mb-1" style={{ color: 'var(--admin-warning)' }}>
               Aclaraciones extra
             </span>
-            <p className="text-amber-900 dark:text-amber-300 leading-relaxed font-medium text-xs">
+            <p className="leading-relaxed font-medium text-xs" style={{ color: 'var(--admin-warning)' }}>
               {pedido.notas}
             </p>
           </div>

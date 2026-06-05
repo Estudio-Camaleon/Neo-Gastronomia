@@ -24,6 +24,13 @@
   --admin-accent-secondary: #c05c3e;
   --admin-danger: #c05c3e;
   --admin-shadow: 0 8px 30px rgba(31, 107, 61, 0.06);
+  /* Success / warning tokens for components like WhatsApp, notes */
+  --admin-success: #16a34a; /* green-600 */
+  --admin-success-bg: rgba(22, 163, 74, 0.08);
+  --admin-success-border: rgba(22, 163, 74, 0.15);
+  --admin-warning: #b45309; /* amber-700 equivalent */
+  --admin-warning-bg: rgba(180, 83, 9, 0.06);
+  --admin-warning-border: rgba(180, 83, 9, 0.12);
 }
 
 .admin-theme-wrapper.dark {
@@ -38,6 +45,13 @@
   --admin-accent-secondary: #d47a5a;
   --admin-danger: #f87171;
   --admin-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  /* Dark theme success/warning */
+  --admin-success: #34d399; /* green-400 */
+  --admin-success-bg: rgba(52, 211, 153, 0.08);
+  --admin-success-border: rgba(52, 211, 153, 0.12);
+  --admin-warning: #f6ad55; /* amber-ish */
+  --admin-warning-bg: rgba(246, 173, 85, 0.06);
+  --admin-warning-border: rgba(246, 173, 85, 0.12);
 }
 
 @layer components {
