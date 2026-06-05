@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useCallback, useTransition } from "react";
 import { createClient } from "@/core/lib/supabase/client";
-import { Tag, Plus, Trash2, Loader2, Hash, X } from "lucide-react";
+import { Tag, Plus, Trash2, Hash, X } from "lucide-react";
+import { FoodMini } from "@/components/ui/food-loading";
 import { toast } from "sonner";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { createCategoryAction, deleteCategoryAction } from "../actions";
@@ -182,11 +183,7 @@ export function CategoriaManager({
                 disabled={isPending || !nuevoNombre.trim() || loadingList}
                 className="bg-[var(--admin-accent)] hover:opacity-90 text-white font-semibold text-sm px-4 rounded-lg shadow-sm transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isPending ? (
-                  <Loader2 className="animate-spin" size={18} />
-                ) : (
-                  <Plus size={18} />
-                )}
+                {isPending ? <FoodMini size={16} /> : <Plus size={18} />}
               </button>
             </div>
           </form>
@@ -203,10 +200,7 @@ export function CategoriaManager({
 
             {loadingList ? (
               <div className="py-8 flex flex-col items-center justify-center text-sm text-[var(--admin-text-muted)] gap-3">
-                <Loader2
-                  className="animate-spin text-[var(--admin-accent)]"
-                  size={24}
-                />
+                <FoodMini size={24} />
                 <span>Cargando secciones...</span>
               </div>
             ) : (

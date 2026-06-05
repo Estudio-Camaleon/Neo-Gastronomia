@@ -7,7 +7,7 @@ import {
   CheckCircle2,
   ArrowRight,
   ArrowLeft,
-  Loader2,
+  // Loader2 removed; using FoodMini
   AlertCircle,
   Hash,
   MapPin,
@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { StepIndicator } from "./StepIndicator";
 import { registerAction, checkDuplicateAction } from "../actions";
+import { FoodMini } from "@/components/ui/food-loading";
 
 const step1Schema = z
   .object({
@@ -271,7 +272,7 @@ export function RegisterForm() {
                   }`}
                 />
                 {checkingFields["email"] && (
-                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-[var(--auth-text-muted)]" />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 flex items-center justify-center"><FoodMini size={14} /></span>
                 )}
                 {!checkingFields["email"] && duplicates["email"] === true && (
                   <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-red-500" />
@@ -416,7 +417,7 @@ export function RegisterForm() {
                   }`}
                 />
                 {checkingFields["nombre"] && (
-                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-[var(--auth-text-muted)]" />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 flex items-center justify-center"><FoodMini size={14} /></span>
                 )}
                 {!checkingFields["nombre"] && isNombreRegistered && (
                   <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-red-500" />
@@ -456,7 +457,7 @@ export function RegisterForm() {
                   }`}
                 />
                 {checkingFields["slug"] && (
-                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-[var(--auth-text-muted)]" />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 flex items-center justify-center"><FoodMini size={14} /></span>
                 )}
                 {!checkingFields["slug"] && isSlugTaken && (
                   <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-red-500" />
@@ -508,7 +509,7 @@ export function RegisterForm() {
                   }`}
                 />
                 {checkingFields["whatsapp"] && (
-                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-[var(--auth-text-muted)]" />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 flex items-center justify-center"><FoodMini size={14} /></span>
                 )}
                 {!checkingFields["whatsapp"] && isWhatsappTaken && (
                   <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-red-500" />
@@ -595,7 +596,7 @@ export function RegisterForm() {
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> Creando
+                    <FoodMini size={14} /> Creando
                     cuenta...
                   </>
                 ) : (

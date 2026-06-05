@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Percent,
   Plus,
-  Loader2,
   Tag,
   Pencil,
   Trash2,
@@ -27,6 +26,7 @@ import {
   getComboProductsAction,
 } from "../actions";
 import { z } from "zod";
+import { FoodMini } from "@/components/ui/food-loading";
 
 interface PromosSectionProps {
   negocioId: string;
@@ -186,7 +186,7 @@ export function PromosSection({ negocioId }: PromosSectionProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-[var(--admin-accent)]" />
+        <FoodMini size={18} />
       </div>
     );
   }
@@ -392,7 +392,7 @@ export function PromosSection({ negocioId }: PromosSectionProps) {
                       className="p-1.5 rounded-lg text-[var(--admin-text-muted)] hover:text-red-500 hover:bg-red-500/10 transition-all disabled:opacity-40"
                     >
                       {deletingId === promo.id ? (
-                        <Loader2 size={14} className="animate-spin" />
+                        <FoodMini size={14} />
                       ) : (
                         <Trash2 size={14} />
                       )}
@@ -496,7 +496,7 @@ function ImageUploadInline({
       ) : (
         <label className="flex items-center justify-center w-20 h-20 rounded-lg border-2 border-dashed border-[var(--admin-border)] cursor-pointer hover:border-[var(--admin-accent)] transition-colors">
           {uploading ? (
-            <Loader2 size={18} className="animate-spin text-[var(--admin-text-muted)]" />
+            <FoodMini size={16} />
           ) : (
             <Upload size={18} className="text-[var(--admin-text-muted)]" />
           )}
@@ -811,7 +811,7 @@ function PromoModal({
               className="flex-1 py-2.5 bg-[var(--admin-accent)] text-white rounded-xl text-sm font-bold hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
               {saving ? (
-                <Loader2 size={14} className="animate-spin" />
+                <FoodMini size={14} />
               ) : (
                 <CheckCircle2 size={14} />
               )}

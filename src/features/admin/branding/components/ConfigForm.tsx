@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   Save,
-  Loader2,
   CheckCircle2,
   XCircle,
   AlertTriangle,
@@ -25,6 +24,7 @@ import {
   Trash2,
   Copy,
 } from "lucide-react";
+import { FoodMini } from "@/components/ui/food-loading";
 import {
   updateTenantBrandingAction,
   deleteTenantBrandingAction,
@@ -395,10 +395,10 @@ export function ConfigForm({
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* ALERTA CRÍTICA: MUTACIÓN DE URL */}
         {hasSlugChanged && (
-          <div className="bg-amber-500/10 text-amber-500 border border-amber-500/20 p-4 rounded-xl flex items-start gap-3 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
-            <AlertTriangle className="h-5 w-5 shrink-0 text-amber-500 mt-0.5" />
+          <div className="admin-warning-bg admin-warning-border p-4 rounded-xl flex items-start gap-3 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
+            <AlertTriangle className="h-5 w-5 shrink-0 admin-warning-text mt-0.5" />
             <div className="text-xs leading-relaxed">
-              <span className="font-semibold block mb-0.5 text-sm text-amber-600 dark:text-amber-400">
+              <span className="font-semibold block mb-0.5 text-sm admin-warning-text">
                 Advertencia: Modificación de la ruta estática (Slug)
               </span>
               La URL histórica{" "}
@@ -497,12 +497,12 @@ export function ConfigForm({
               saveStatus === "success"
                 ? "bg-emerald-500 text-white scale-105"
                 : saveStatus === "error"
-                  ? "bg-red-500 text-white animate-[shake_0.4s_ease-in-out]"
+                  ? "admin-danger-bg text-white animate-[shake_0.4s_ease-in-out]"
                   : "bg-[var(--admin-accent)] text-white hover:opacity-90 active:scale-[0.98]"
             }`}
           >
             {saveStatus === "saving" ? (
-              <Loader2 className="animate-spin" size={14} />
+              <FoodMini size={14} />
             ) : saveStatus === "success" ? (
               <CheckCircle2
                 className="animate-in zoom-in-50 duration-200"
@@ -586,11 +586,7 @@ export function ConfigForm({
                   }
                   className="bg-red-500 hover:bg-red-600 text-white font-medium text-xs px-4 py-2 rounded-lg shadow-sm transition-all disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center gap-1.5 shrink-0"
                 >
-                  {isDeleting ? (
-                    <Loader2 className="animate-spin" size={13} />
-                  ) : (
-                    <Trash2 size={13} />
-                  )}
+                   {isDeleting ? <FoodMini size={12} /> : <Trash2 size={13} />}
                   <span>Destruir Negocio</span>
                 </button>
               </div>
@@ -671,14 +667,11 @@ function BrandingBlock({
                   <ImageIcon size={24} />
                 </div>
               )}
-              {uploading === "logo_url" && (
-                <div className="absolute inset-0 bg-[var(--admin-surface)]/80 backdrop-blur-sm flex items-center justify-center">
-                  <Loader2
-                    className="animate-spin text-[var(--admin-accent)]"
-                    size={16}
-                  />
-                </div>
-              )}
+               {uploading === "logo_url" && (
+                 <div className="absolute inset-0 bg-[var(--admin-surface)]/80 backdrop-blur-sm flex items-center justify-center">
+                   <FoodMini size={18} />
+                 </div>
+               )}
             </div>
             <label className="absolute -bottom-1 -right-1 bg-[var(--admin-surface)] text-[var(--admin-text)] p-2 rounded-full border border-[var(--admin-border)] shadow-sm cursor-pointer hover:border-[var(--admin-accent)] transition-all">
               <Upload size={12} />
@@ -762,10 +755,7 @@ function BrandingBlock({
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_60%,var(--admin-surface)_95%)]" />
             {uploading === "banner_url" && (
               <div className="absolute inset-0 bg-[var(--admin-surface)]/80 backdrop-blur-sm flex items-center justify-center">
-                <Loader2
-                  className="animate-spin text-[var(--admin-accent)]"
-                  size={20}
-                />
+                <FoodMini size={22} />
               </div>
             )}
           </div>

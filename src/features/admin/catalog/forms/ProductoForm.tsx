@@ -11,9 +11,9 @@ import {
   Plus,
   Trash2,
   CheckCircle,
-  Loader2,
   ListPlus,
 } from "lucide-react";
+import { FoodMini } from "@/components/ui/food-loading";
 import { CategorySelect } from "../components/CategorySelect";
 import type { UnifiedProduct } from "../components/ProductTable";
 import { Switch } from "@/components/ui/switch";
@@ -408,7 +408,7 @@ export function ProductoForm({
                     <button
                       type="button"
                       onClick={() => eliminarVariante(idx)}
-                      className="p-2 text-[var(--admin-text-muted)] hover:text-red-500 hover:bg-red-500/10 rounded-md transition-colors"
+                      className="p-2 text-[var(--admin-text-muted)] hover-admin-danger rounded-md transition-colors"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -465,7 +465,7 @@ export function ProductoForm({
                         <button
                           type="button"
                           onClick={() => eliminarGrupoOpcion(grupo.id)}
-                          className="px-3 py-2 text-xs font-semibold bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-md text-red-500 hover:border-red-500/50 hover:bg-red-500/10 transition-colors"
+                          className="px-3 py-2 text-xs font-semibold bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-md admin-danger-text hover-admin-danger transition-colors"
                         >
                           Eliminar Grupo
                         </button>
@@ -516,7 +516,7 @@ export function ProductoForm({
                             onClick={() =>
                               eliminarItemDeGrupo(grupo.id, item.id)
                             }
-                            className="p-2 text-[var(--admin-text-muted)] hover:text-red-500 hover:bg-red-500/10 rounded-md transition-colors"
+                            className="p-2 text-[var(--admin-text-muted)] hover-admin-danger rounded-md transition-colors"
                           >
                             <Trash2 size={16} />
                           </button>
@@ -556,7 +556,7 @@ export function ProductoForm({
         >
           {isPending ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" /> {submitLabel}...
+                      <FoodMini size={14} /> {submitLabel}...
             </>
           ) : (
             <>

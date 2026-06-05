@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Loader2 } from "lucide-react";
+// removed Loader2 - using FoodMini
+import { FoodMini } from "@/components/ui/food-loading";
 import { signInWithGoogleAction } from "../actions";
 
 export function GoogleSignInButton() {
@@ -26,7 +27,7 @@ export function GoogleSignInButton() {
       className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 border border-[var(--auth-border)] rounded-xl text-[var(--auth-text)] bg-white/80 backdrop-blur-sm text-xs font-medium hover:bg-white hover:border-[var(--auth-border-strong)] transition-all duration-200 cursor-pointer shadow-sm active:scale-[0.97] disabled:opacity-60 disabled:cursor-not-allowed"
     >
       {loading ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
+        <FoodMini size={14} />
       ) : (
         <div className="relative h-4 w-4">
           <Image

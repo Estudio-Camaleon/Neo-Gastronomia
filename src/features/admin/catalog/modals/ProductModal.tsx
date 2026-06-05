@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/core/lib/supabase/client";
-import { X, Loader2 } from "lucide-react";
+import { X } from "lucide-react";
+import { FoodMini } from "@/components/ui/food-loading";
 import { ProductoForm } from "../forms/ProductoForm";
 import type { UnifiedProduct } from "../components/ProductTable";
 
@@ -81,10 +82,7 @@ export function ProductModal({
         <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-2xl">
           {loadingCats ? (
             <div className="flex flex-col justify-center items-center h-[50vh] text-[var(--admin-text-muted)] gap-3 bg-[var(--admin-surface)]">
-              <Loader2
-                className="animate-spin text-[var(--admin-accent)]"
-                size={32}
-              />
+              <FoodMini size={28} />
               <p className="text-sm font-medium">Cargando formulario...</p>
             </div>
           ) : (

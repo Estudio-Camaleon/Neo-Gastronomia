@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
-  Loader2,
   Store,
   Truck,
   Banknote,
@@ -492,7 +491,7 @@ export function OrderForm({
         >
           {isPending ? (
             <>
-              <Loader2 className="animate-spin" size={18} /> Procesando...
+              <FoodMini size={16} /> Procesando...
             </>
           ) : (
             "Confirmar Pedido por WhatsApp"

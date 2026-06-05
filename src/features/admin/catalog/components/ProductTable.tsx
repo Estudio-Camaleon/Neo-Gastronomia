@@ -196,7 +196,7 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
                         ${Number(prod.precio).toFixed(2)}
                       </span>
                       {prod.disponible ? (
-                        <span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">
+                        <span className="text-xs font-medium admin-success-text admin-success-bg px-2 py-0.5 rounded-full border admin-success-border">
                           Activo
                         </span>
                       ) : (
@@ -220,7 +220,7 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
                 {prod.disponible ? (
                   <Badge
                     variant="default"
-                    className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20"
+                    className="admin-success-bg admin-success-text admin-success-border"
                   >
                     Activo
                   </Badge>

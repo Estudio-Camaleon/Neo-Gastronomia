@@ -7,9 +7,9 @@ import {
   XCircle,
   Check,
   CheckCircle2,
-  Loader2,
   UtensilsCrossed,
 } from "lucide-react";
+import { FoodMini } from "@/components/ui/food-loading";
 import type { PedidoData } from "@/core/types/domain";
 
 interface PedidoCardProps {
@@ -157,11 +157,7 @@ export function PedidoCard({
               disabled={isLoading}
               className="btn-danger flex-1"
             >
-              {isLoading ? (
-                <Loader2 className="animate-spin" size={16} />
-              ) : (
-                <XCircle size={16} />
-              )}
+              {isLoading ? <FoodMini size={14} /> : <XCircle size={16} />}
               Rechazar
             </button>
             <button
@@ -169,11 +165,7 @@ export function PedidoCard({
               disabled={isLoading}
               className="btn-primary flex-[2]"
             >
-              {isLoading ? (
-                <Loader2 className="animate-spin" size={16} />
-              ) : (
-                <Check size={16} />
-              )}
+              {isLoading ? <FoodMini size={14} /> : <Check size={16} />}
               Preparar
             </button>
           </>
@@ -181,13 +173,9 @@ export function PedidoCard({
           <button
             onClick={() => onUpdateStatus(pedido.id, "entregado")}
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold tracking-wide transition-all duration-200 bg-[var(--admin-text)] text-white hover:opacity-90 active:scale-95 disabled:opacity-50 shadow-md"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold tracking-wide transition-all duration-200 bg-[var(--admin-text)] text-white  hover:opacity-90 active:scale-95 disabled:opacity-50 shadow-md"
           >
-            {isLoading ? (
-              <Loader2 className="animate-spin" size={18} />
-            ) : (
-              <CheckCircle2 size={18} />
-            )}
+            {isLoading ? <FoodMini size={16} /> : <CheckCircle2 size={18} />}
             Marcar como Entregado
           </button>
         )}

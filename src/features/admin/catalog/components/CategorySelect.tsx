@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/core/lib/supabase/client";
-import { Loader2 } from "lucide-react";
+// removed Loader2 (replaced with FoodMini)
+import { FoodMini } from "@/components/ui/food-loading";
 import { toast } from "sonner";
 
 const supabase = createClient();
@@ -101,7 +102,7 @@ export function CategorySelect({
 
         {loading && (
           <div className="absolute right-8 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)]">
-            <Loader2 size={14} className="animate-spin" />
+            <FoodMini size={14} />
           </div>
         )}
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Loader2, X, UploadCloud } from "lucide-react";
+import { X, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 
 interface ImageUploadProps {
@@ -173,7 +173,7 @@ export function ImageUpload({
           >
             {isUploading ? (
               <div className="flex flex-col items-center gap-2">
-                <Loader2 className="animate-spin text-gray-500" size={24} />
+                <FoodMini size={24} />
                 <span className="text-sm font-medium text-gray-500">
                   Subiendo...
                 </span>

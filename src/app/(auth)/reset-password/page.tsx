@@ -5,7 +5,6 @@ import { z } from "zod";
 import {
   ShieldAlert,
   CheckCircle2,
-  Loader2,
   Eye,
   EyeOff,
   ArrowRight,
@@ -48,6 +47,8 @@ const BENEFITS = [
     text: "Panel de gestión intuitivo",
   },
 ];
+
+import { FoodMini } from "@/components/ui/food-loading";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -399,7 +400,7 @@ export default function ResetPasswordPage() {
               >
                 {loading ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Actualizando...
+                    <FoodMini size={14} /> Actualizando...
                   </>
                 ) : (
                   <>

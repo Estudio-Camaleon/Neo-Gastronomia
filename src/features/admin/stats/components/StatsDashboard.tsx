@@ -11,6 +11,7 @@ import {
   Wallet,
   AlertCircle,
 } from "lucide-react";
+import { FoodMini } from "@/components/ui/food-loading";
 import { getStats, exportOrdersCSV } from "../actions";
 import type { StatsData, StatsSummary } from "../actions";
 import { toast } from "sonner";
@@ -165,7 +166,9 @@ export function StatsDashboard({ negocioId }: StatsDashboardProps) {
       {loading && (
         <div className="flex items-center justify-center py-20">
           <div className="flex flex-col items-center gap-3">
-            <div className="w-8 h-8 border-2 border-[var(--admin-accent)] border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 flex items-center justify-center">
+              <FoodMini size={20} />
+            </div>
             <p className="text-sm font-medium text-[var(--admin-text-muted)]">
               Cargando estadísticas...
             </p>

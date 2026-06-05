@@ -125,4 +125,16 @@
   .admin-accent-text { color: var(--admin-accent); }
   .admin-accent-bg { background: var(--admin-accent); }
   .admin-accent-border { border-color: var(--admin-accent); }
+  .admin-danger-text { color: var(--admin-danger); }
+  .admin-danger-bg { background: rgba(240, 82, 82, 0.06); }
+  .admin-danger-border { border-color: rgba(240, 82, 82, 0.15); }
+  .admin-info-text { color: #2563eb; }
+  .admin-info-bg { background: rgba(37, 99, 235, 0.06); }
+  .admin-info-border { border-color: rgba(37, 99, 235, 0.15); }
+
+  /* Hover helpers */
+  .hover-admin-danger:hover { color: var(--admin-danger); background: var(--admin-danger-bg); }
+  .hover-admin-success:hover { color: var(--admin-success); background: var(--admin-success-bg); }
+  .hover-admin-warning:hover { color: var(--admin-warning); background: var(--admin-warning-bg); }
+  .hover-admin-info:hover { color: #2563eb; background: var(--admin-info-bg); }
 }

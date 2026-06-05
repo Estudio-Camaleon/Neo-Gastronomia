@@ -5,7 +5,6 @@ import { z } from "zod";
 import {
   LogIn,
   AlertTriangle,
-  Loader2,
   Mail,
   X,
   ShieldCheck,
@@ -144,7 +143,7 @@ function ResetPasswordModal({
               >
                 {loading ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Enviando...
+                    <FoodMini size={14} /> Enviando...
                   </>
                 ) : (
                   <>
@@ -258,7 +257,7 @@ export function LoginForm() {
         >
           {loading ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" /> Autenticando...
+              <FoodMini size={14} /> Autenticando...
             </>
           ) : (
             <>

@@ -1,3 +1,5 @@
+import { FoodLoading } from "./food-loading";
+
 type LoadingVariant = "root" | "admin" | "auth" | "public";
 
 type LoadingScreenProps = {
@@ -194,7 +196,7 @@ export function LoadingScreen({ variant = "root" }: LoadingScreenProps) {
             <SkeletonLine className="h-8 w-full max-w-lg" />
             <SkeletonLine className="h-4 w-full max-w-xl" />
           </div>
-          <NeoSpinner />
+            <FoodLoading size={28} />
         </div>
         <div className="mt-10 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
