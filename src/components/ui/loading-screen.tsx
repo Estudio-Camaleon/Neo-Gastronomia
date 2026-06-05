@@ -116,43 +116,65 @@ export function LoadingScreen({ variant = "root" }: LoadingScreenProps) {
 
   if (variant === "public") {
     return (
-      <div className="neo-screen">
-        <main className="neo-main">
-          <div className="flex items-center gap-6">
-            <NeoLogo />
-            <div className="h-8 w-px bg-[var(--neo-border)]" />
-            <div className="space-y-1">
-              <p className="text-sm font-bold tracking-wide text-[var(--neo-text)]">
-                {config.title}
-              </p>
-              <p className="text-sm text-[var(--neo-muted)]">
-                {config.subtitle}
-              </p>
+      <div className="min-h-screen bg-[var(--color-custom-surface,#f4f4f5)]">
+        {/* Banner skeleton */}
+        <div className="relative h-48 sm:h-56 md:h-64 w-full neo-shimmer bg-[var(--neo-muted)]/10" />
+
+        {/* Header: logo + info */}
+        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 -mt-16 sm:-mt-20">
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center">
+              {/* Logo circle */}
+              <div className="h-40 w-40 sm:h-30 sm:w-30 lg:h-50 lg:w-50 rounded-full neo-shimmer bg-[var(--neo-muted)]/15 ring-2 ring-white/10" />
+              <div className="space-y-2 text-center sm:text-left">
+                <SkeletonLine className="h-8 w-48 sm:h-10" />
+                <SkeletonLine className="h-5 w-28 rounded-full" />
+              </div>
+            </div>
+            {/* Info pills */}
+            <div className="flex flex-wrap justify-center gap-2 sm:justify-end">
+              <SkeletonLine className="h-8 w-36 rounded-2xl" />
+              <SkeletonLine className="h-8 w-32 rounded-2xl" />
             </div>
           </div>
-          <div className="mt-10 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              <SkeletonCard />
-              <SkeletonCard />
-              <SkeletonCard compact />
+        </div>
+
+        {/* Catalog area */}
+        <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6">
+          {/* Search + filters */}
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="space-y-1">
+              <SkeletonLine className="h-8 w-20" />
+              <SkeletonLine className="h-4 w-44" />
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-              <div className="neo-skeleton-card">
-                <SkeletonLine className="h-4 w-36" />
-                <div className="mt-4 grid gap-3">
-                  <SkeletonLine className="h-10" />
-                  <SkeletonLine className="h-10" />
-                  <SkeletonLine className="h-10" />
+            <SkeletonLine className="h-11 w-full lg:max-w-sm rounded-full" />
+          </div>
+
+          {/* Category tabs */}
+          <div className="mt-4 flex gap-2 overflow-hidden">
+            <SkeletonLine className="h-9 w-20 rounded-full shrink-0" />
+            <SkeletonLine className="h-9 w-28 rounded-full shrink-0" />
+            <SkeletonLine className="h-9 w-24 rounded-full shrink-0" />
+          </div>
+
+          {/* Product cards grid */}
+          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="overflow-hidden rounded-2xl bg-[var(--color-custom-surface-strong,var(--neo-surface))] shadow-sm ring-1 ring-black/5">
+                <div className="aspect-square w-full neo-shimmer bg-[var(--neo-muted)]/10" />
+                <div className="p-4 space-y-3">
+                  <SkeletonLine className="h-4 w-3/4" />
+                  <SkeletonLine className="h-3 w-full" />
+                  <SkeletonLine className="h-3 w-2/3" />
+                  <div className="flex items-center justify-between pt-2">
+                    <SkeletonLine className="h-5 w-16" />
+                    <SkeletonLine className="h-9 w-24 rounded-full" />
+                  </div>
                 </div>
               </div>
-              <div className="neo-skeleton-card-solid">
-                <SkeletonLine className="h-3.5 w-20" />
-                <SkeletonLine className="mt-3 h-7 w-4/5" />
-                <SkeletonLine className="mt-4 h-20" />
-              </div>
-            </div>
+            ))}
           </div>
-        </main>
+        </div>
       </div>
     );
   }
