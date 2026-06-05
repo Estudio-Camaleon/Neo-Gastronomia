@@ -7,12 +7,14 @@ import {
   ClipboardList,
   Package,
   Users,
+  Percent,
 } from "lucide-react";
 
 const TAB_ITEMS = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Pedidos", href: "/pedidos", icon: ClipboardList },
   { name: "Productos", href: "/productos", icon: Package },
+  { name: "Promos", href: "/promos", icon: Percent },
   { name: "Clientes", href: "/clientes", icon: Users },
 ];
 

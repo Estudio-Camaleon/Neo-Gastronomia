@@ -62,7 +62,9 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/configuracion") ||
     pathname.startsWith("/admin") ||
     pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/clientes");
+    pathname.startsWith("/clientes") ||
+    pathname.startsWith("/estadisticas") ||
+    pathname.startsWith("/promos");
 
   // Definición rigurosa de perímetros seguros
   const requiresAuth = !isStaticPublic && !isApiOrAsset && isReservedRoute;

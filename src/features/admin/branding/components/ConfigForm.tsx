@@ -314,6 +314,7 @@ export function ConfigForm({
 
   const handleDeleteBusiness = async () => {
     if (!initialData?.id) return;
+    if (isDeleting) return;
     if (confirmName !== initialData.nombre) {
       return toast.error(
         "El nombre ingresado no coincide con el registro original.",
@@ -324,11 +325,10 @@ export function ConfigForm({
     try {
       await deleteTenantBrandingAction(initialData.id);
       toast.success("Estructura comercial purgada por completo del SaaS.");
-      router.push("/login");
+      window.location.href = "/login";
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : "Fallo en borrado.";
       toast.error(errorMsg);
-    } finally {
       setIsDeleting(false);
     }
   };
@@ -407,7 +407,7 @@ export function ConfigForm({
         </div>
 
         {/* BOTÓN FLOTANTE ACCIONABLE ULTRA-LIMPIO */}
-        <div className="sticky bottom-5 z-40 flex justify-end">
+        <div className="sticky bottom-20 md:bottom-5 z-40 flex justify-end">
           <button
             type="submit"
             disabled={saveStatus !== "idle" || isDeleting || !!uploading}

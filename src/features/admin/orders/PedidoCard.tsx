@@ -69,15 +69,17 @@ export function PedidoCard({
               </span>
             </p>
           </div>
-          <a
-            href={`https://wa.me/${pedido.cliente_whatsapp?.replace(/\D/g, "")}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-2 rounded-xl bg-green-50/80 text-green-600 hover:bg-green-100 border border-green-200/60 transition-all duration-200 shrink-0 hover:shadow-sm hover:scale-105 active:scale-95"
-            title="Contactar por WhatsApp"
-          >
-            <MessageCircle size={18} />
-          </a>
+          {pedido.cliente_whatsapp ? (
+            <a
+              href={`https://wa.me/${pedido.cliente_whatsapp.replace(/\D/g, "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-xl bg-green-50/80 text-green-600 hover:bg-green-100 border border-green-200/60 transition-all duration-200 shrink-0 hover:shadow-sm hover:scale-105 active:scale-95"
+              title="Contactar por WhatsApp"
+            >
+              <MessageCircle size={18} />
+            </a>
+          ) : null}
         </div>
 
         {/* COMANDA INTERNA */}

@@ -167,18 +167,22 @@ export function ClientRadar({ initialClientes }: ClientRadarProps) {
 
                     <td className="p-4 pr-6 text-right">
                       <div className="flex justify-end gap-1.5">
-                        <button
-                          onClick={() =>
-                            setEditingCliente({
-                              id: cliente.id,
-                              notas: cliente.notas,
-                            })
-                          }
-                          className="p-2 text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] hover:bg-[var(--admin-accent)]/10 rounded-xl transition-all duration-200 border border-transparent hover:border-[var(--admin-accent)]/20 active:scale-90"
-                          title="Auditar historial"
-                        >
-                          <StickyNote size={16} />
-                        </button>
+                  <button
+                    onClick={() => {
+                      if (cliente.id.startsWith("virtual_")) {
+                        toast.info("Registra al cliente desde un pedido para gestionar sus notas.");
+                        return;
+                      }
+                      setEditingCliente({
+                        id: cliente.id,
+                        notas: cliente.notas,
+                      })
+                    }}
+                    className="p-2 text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] hover:bg-[var(--admin-accent)]/10 rounded-xl transition-all duration-200 border border-transparent hover:border-[var(--admin-accent)]/20 active:scale-90"
+                    title="Auditar historial"
+                  >
+                    <StickyNote size={16} />
+                  </button>
                         {cliente.telefono && (
                           <a
                             href={`https://wa.me/${cliente.telefono.replace(/\D/g, "")}`}
@@ -250,12 +254,16 @@ export function ClientRadar({ initialClientes }: ClientRadarProps) {
 
                 <div className="grid grid-cols-2 gap-3 pt-1 shrink-0">
                   <button
-                    onClick={() =>
+                    onClick={() => {
+                      if (cliente.id.startsWith("virtual_")) {
+                        toast.info("Registra al cliente desde un pedido para gestionar sus notas.");
+                        return;
+                      }
                       setEditingCliente({
                         id: cliente.id,
                         notas: cliente.notas,
                       })
-                    }
+                    }}
                     className="btn-secondary flex-1 text-xs"
                   >
                     <StickyNote size={14} /> Anotaciones

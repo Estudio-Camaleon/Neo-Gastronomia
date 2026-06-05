@@ -1,11 +1,23 @@
 import { z } from "zod";
 
+const passwordSchema = z
+  .string()
+  .min(8, "La contraseña debe tener al menos 8 caracteres")
+  .regex(/[A-Z]/, "Debe incluir al menos una mayúscula")
+  .regex(/[0-9]/, "Debe incluir al menos un número")
+  .regex(
+    /[^A-Za-z0-9]/,
+    "Debe incluir al menos un símbolo especial",
+  );
+
 export const loginSchema = z.object({
   email: z
     .string()
     .min(1, "El correo es obligatorio")
     .email("El correo no tiene un formato válido"),
-  password: z.string().min(1, "La contraseña es obligatoria"),
+  password: z
+    .string()
+    .min(1, "La contraseña es obligatoria"),
 });
 
 export const registerSchema = z.object({
@@ -13,7 +25,7 @@ export const registerSchema = z.object({
     .string()
     .email("El correo no tiene un formato válido")
     .transform((v) => v.trim().toLowerCase()),
-  password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
+  password: passwordSchema,
   nombreNegocio: z
     .string()
     .min(2, "El nombre debe tener al menos 2 caracteres")
@@ -80,6 +92,65 @@ export const upsertProductSchema = z.object({
   disponible: z.boolean(),
   configuracion: productConfigSchema,
 });
+
+const discountTypeSchema = z.enum(["porcentaje", "monto_fijo", "combo"]);
+
+export const comboItemSchema = z.object({
+  producto_id: z.string().min(1, "Producto requerido"),
+  nombre_producto: z.string().min(1, "Nombre del producto requerido"),
+  cantidad: z.number().int().positive("La cantidad debe ser positiva"),
+  precio: z.number().min(0, "Precio no puede ser negativo"),
+});
+
+export const upsertPromoSchema = z
+  .object({
+    nombre: z
+      .string()
+      .min(1, "El nombre de la promo es requerido")
+      .max(100, "El nombre es demasiado largo"),
+    descripcion: z.string().max(300, "La descripción es demasiado larga").nullable().optional(),
+    tipo_descuento: discountTypeSchema,
+    valor_descuento: z
+      .number()
+      .min(0, "El valor no puede ser negativo")
+      .max(999999, "El valor es demasiado alto"),
+    codigo: z
+      .string()
+      .max(30, "El código es demasiado largo")
+      .regex(/^[A-Za-z0-9_-]+$/, "Solo letras, números, guiones y guión bajo")
+      .nullable()
+      .optional(),
+    activo: z.boolean().default(true),
+    items_combo: z.array(comboItemSchema).default([]),
+  })
+  .superRefine((data, ctx) => {
+    if (data.tipo_descuento === "porcentaje") {
+      if (data.valor_descuento <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["valor_descuento"],
+          message: "El porcentaje debe ser mayor a 0",
+        });
+      }
+      if (data.valor_descuento > 100) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["valor_descuento"],
+          message: "El porcentaje no puede ser mayor a 100",
+        });
+      }
+    }
+    if (
+      (data.tipo_descuento === "monto_fijo" || data.tipo_descuento === "combo") &&
+      data.valor_descuento <= 0
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["valor_descuento"],
+        message: "El valor debe ser mayor a 0",
+      });
+    }
+  });
 
 export const orderStatusSchema = z.enum([
   "pendiente",

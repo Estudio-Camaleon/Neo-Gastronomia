@@ -55,33 +55,9 @@
     transform: translateY(-3px);
   }
 
-  /* Mobile-first: sin padding ni border-radius por defecto (mobile) */
-  .neo-home {
-    padding-inline: 0;
-    padding-block: 0;
-  }
-
   .neo-home-shell {
     min-height: 100vh;
     border-radius: 0;
-  }
-
-  /* Tablet+ */
-  @media (min-width: 640px) {
-    .neo-home {
-      padding-inline: 1.5rem;
-      padding-block: 1rem;
-    }
-    .neo-home-shell {
-      border-radius: 24px;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .neo-home {
-      padding-inline: 2rem;
-      padding-block: 1.5rem;
-    }
   }
 }
 

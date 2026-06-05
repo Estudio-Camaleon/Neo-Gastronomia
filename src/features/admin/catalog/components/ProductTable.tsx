@@ -120,14 +120,14 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
             key={i}
             className="admin-card p-4 flex items-center gap-4 animate-pulse"
           >
-            <div className="w-12 h-12 rounded-xl shimmer-loader" />
+            <div className="w-12 h-12 rounded-xl neo-shimmer" />
             <div className="flex-1 space-y-2">
-              <div className="h-4 w-48 rounded-lg shimmer-loader" />
-              <div className="h-3 w-32 rounded-lg shimmer-loader" />
+              <div className="h-4 w-48 rounded-lg neo-shimmer" />
+              <div className="h-3 w-32 rounded-lg neo-shimmer" />
             </div>
-            <div className="h-4 w-20 rounded-lg shimmer-loader" />
-            <div className="h-6 w-16 rounded-lg shimmer-loader" />
-            <div className="h-8 w-20 rounded-lg shimmer-loader" />
+            <div className="h-4 w-20 rounded-lg neo-shimmer" />
+            <div className="h-6 w-16 rounded-lg neo-shimmer" />
+            <div className="h-8 w-20 rounded-lg neo-shimmer" />
           </div>
         ))}
       </div>
@@ -136,7 +136,7 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left border-collapse min-w-[700px]">
+      <table className="w-full text-left border-collapse">
         <thead>
           <tr className="text-[10px] font-black uppercase tracking-widest text-[var(--admin-text-muted)]">
             <th className="p-4 pl-6 border-b border-[var(--admin-border)]">
@@ -145,10 +145,10 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
             <th className="p-4 hidden md:table-cell border-b border-[var(--admin-border)]">
               Sección
             </th>
-            <th className="p-4 border-b border-[var(--admin-border)]">
+            <th className="p-4 border-b border-[var(--admin-border)] hidden sm:table-cell">
               Precio
             </th>
-            <th className="p-4 border-b border-[var(--admin-border)]">
+            <th className="p-4 border-b border-[var(--admin-border)] hidden sm:table-cell">
               Estado
             </th>
             <th className="p-4 pr-6 text-right border-b border-[var(--admin-border)]">
@@ -187,9 +187,24 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
                       </span>
                     </p>
                     <IngredientBadge configuracion={prod.configuracion} />
-                    <p className="text-xs text-[var(--admin-text-muted)] line-clamp-1 max-w-[240px]">
+                    <p className="text-xs text-[var(--admin-text-muted)] line-clamp-1 max-w-[180px] sm:max-w-[240px]">
                       {prod.descripcion || "Sin descripción"}
                     </p>
+
+                    <div className="flex sm:hidden items-center gap-3 mt-2">
+                      <span className="text-sm font-semibold text-[var(--admin-text)]">
+                        ${Number(prod.precio).toFixed(2)}
+                      </span>
+                      {prod.disponible ? (
+                        <span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">
+                          Activo
+                        </span>
+                      ) : (
+                        <span className="text-xs font-medium text-[var(--admin-text-muted)] bg-[var(--admin-bg)] px-2 py-0.5 rounded-full border border-[var(--admin-border)]">
+                          Pausado
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </td>
@@ -198,10 +213,10 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
                   <Tag size={12} /> {prod.categorias?.nombre || "General"}
                 </span>
               </td>
-              <td className="p-4 font-semibold text-[var(--admin-text)]">
+              <td className="p-4 font-semibold text-[var(--admin-text)] hidden sm:table-cell">
                 ${Number(prod.precio).toFixed(2)}
               </td>
-              <td className="p-4">
+              <td className="p-4 hidden sm:table-cell">
                 {prod.disponible ? (
                   <Badge
                     variant="default"

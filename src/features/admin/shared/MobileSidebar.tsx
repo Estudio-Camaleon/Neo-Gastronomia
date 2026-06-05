@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { TransitionLink } from "@/components/ui/transition-link";
-import { createClient } from "@/core/lib/supabase/client";
 import { useTheme } from "@/core/providers/ThemeProvider";
 import {
   Settings,
@@ -24,8 +23,13 @@ interface MobileSidebarProps {
 export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
   const [open, setOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
   const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const close = useCallback(() => setOpen(false), []);
 
@@ -48,9 +52,9 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
     return () => document.removeEventListener("keydown", handler);
   }, [close]);
 
-  const supabase = createClient();
-
   const handleSignOut = async () => {
+    const { createClient } = await import("@/core/lib/supabase/client");
+    const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/login");
     router.refresh();
@@ -125,7 +129,7 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
                   onClick={() => setTheme("light")}
                   aria-label="Tema claro"
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-[0.97] ${
-                    theme === "light"
+                    mounted && theme === "light"
                       ? "bg-[var(--admin-accent)] text-white shadow-sm"
                       : "bg-[var(--admin-bg)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"
                   }`}
@@ -137,7 +141,7 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
                   onClick={() => setTheme("dark")}
                   aria-label="Tema oscuro"
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-[0.97] ${
-                    theme === "dark"
+                    mounted && theme === "dark"
                       ? "bg-[var(--admin-accent)] text-white shadow-sm"
                       : "bg-[var(--admin-bg)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"
                   }`}

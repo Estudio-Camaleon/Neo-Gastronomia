@@ -5,8 +5,31 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { supabaseAdmin } from "@/core/lib/supabase/admin";
+import { z } from "zod";
 import { loginSchema, registerSchema } from "@/core/lib/schemas";
 import { checkRateLimit } from "@/core/lib/rate-limit";
+
+const SUPABASE_SAFE_ERRORS: Record<string, string> = {
+  "Invalid login credentials":
+    "El correo electrónico o la contraseña son incorrectos.",
+  "Email not confirmed":
+    "El correo electrónico no está verificado. Revisá tu bandeja de entrada.",
+  "User is banned": "La cuenta ha sido desactivada. Contactá a soporte.",
+  "Email rate limit exceeded":
+    "Demasiados intentos. Esperá unos minutos y volvé a intentar.",
+  "User already registered":
+    "El correo electrónico ya está registrado.",
+  "Signup requires a valid password":
+    "La contraseña no cumple con los requisitos de seguridad.",
+  "Password should be at least 6 characters":
+    "La contraseña debe tener al menos 8 caracteres.",
+  "new password should be different from the old password":
+    "La nueva contraseña debe ser diferente a la anterior.",
+};
+
+function sanitizeAuthError(errorMessage: string): string {
+  return SUPABASE_SAFE_ERRORS[errorMessage] ?? errorMessage;
+}
 
 export async function loginAction(payload: {
   email: string;
@@ -33,12 +56,7 @@ export async function loginAction(payload: {
   });
 
   if (error) {
-    return {
-      error:
-        error.message === "Invalid login credentials"
-          ? "El correo electrónico o la contraseña son incorrectos."
-          : error.message,
-    };
+    return { error: sanitizeAuthError(error.message) };
   }
 
   revalidatePath("/", "layout");
@@ -137,10 +155,7 @@ export async function registerAction(payload: {
     });
 
   if (createError) {
-    if (createError.message.includes("already exists")) {
-      return { error: "El correo ya está registrado. Inicia sesión." };
-    }
-    return { error: createError.message };
+    return { error: sanitizeAuthError(createError.message) };
   }
   if (!authData.user) return { error: "No se pudo crear el usuario." };
 
@@ -152,7 +167,7 @@ export async function registerAction(payload: {
   });
 
   if (signInError) {
-    return { error: signInError.message };
+    return { error: sanitizeAuthError(signInError.message) };
   }
 
   const { error: negocioError } = await supabase.from("negocios").insert({
@@ -203,9 +218,16 @@ export async function resetPasswordAction(email: string) {
     redirectTo: `${origin}/callback?type=recovery`,
   });
 
-  if (error) return { error: error.message };
+  if (error) return { error: sanitizeAuthError(error.message) };
   return { success: true };
 }
+
+const updatePasswordSchema = z
+  .string()
+  .min(8, "La contraseña debe tener al menos 8 caracteres")
+  .regex(/[A-Z]/, "Debe incluir al menos una mayúscula")
+  .regex(/[0-9]/, "Debe incluir al menos un número")
+  .regex(/[^A-Za-z0-9]/, "Debe incluir al menos un símbolo");
 
 export async function updatePasswordAction(newPassword: string) {
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
@@ -213,8 +235,11 @@ export async function updatePasswordAction(newPassword: string) {
     return { error: "Demasiados intentos. Intentalo de nuevo en un minuto." };
   }
 
-  if (newPassword.length < 8) {
-    return { error: "La contraseña debe tener al menos 8 caracteres." };
+  const parsed = updatePasswordSchema.safeParse(newPassword);
+  if (!parsed.success) {
+    return {
+      error: parsed.error.issues[0]?.message || "Contraseña inválida.",
+    };
   }
 
   const supabase = await createClient();
@@ -222,7 +247,7 @@ export async function updatePasswordAction(newPassword: string) {
     password: newPassword,
   });
 
-  if (error) return { error: error.message };
+  if (error) return { error: sanitizeAuthError(error.message) };
   return { success: true };
 }
 

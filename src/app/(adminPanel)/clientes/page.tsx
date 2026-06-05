@@ -10,13 +10,34 @@ export default async function ClientesPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  let negocio: { id: string } | null = null;
+
   const { data: negocios } = await supabase
     .from("negocios")
     .select("id")
     .eq("user_id", user?.id ?? "")
     .limit(1);
 
-  const negocio = negocios?.[0] ?? null;
+  negocio = negocios?.[0] ?? null;
+
+  if (!negocio) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: memberships } = await (supabase.from("team_members" as any) as any)
+      .select("negocio_id")
+      .eq("user_id", user?.id ?? "")
+      .limit(1);
+
+    if (memberships?.[0]?.negocio_id) {
+      const { data: teamNegocio } = await supabase
+        .from("negocios")
+        .select("id")
+        .eq("id", memberships[0].negocio_id)
+        .limit(1)
+        .single();
+      negocio = teamNegocio ?? null;
+    }
+  }
+
   if (!negocio) {
     return (
       <div className="flex items-center justify-center min-h-[50vh] relative z-10 p-4">
@@ -65,7 +86,7 @@ export default async function ClientesPage() {
       existente.pedidos += 1;
     } else {
       clientesMap.set(nombreLimpio, {
-        id: crypto.randomUUID(),
+        id: `virtual_${crypto.randomUUID()}`,
         nombre: nombreLimpio,
         telefono: pedido.cliente_whatsapp || null,
         email: null,
@@ -81,7 +102,7 @@ export default async function ClientesPage() {
   );
 
   return (
-    <div className="space-y-10 max-w-7xl mx-auto relative z-10 transition-colors duration-200">
+    <div className="space-y-8 max-w-7xl mx-auto relative z-10 transition-colors duration-200">
       {/* HEADER DE COMUNIDAD */}
       <header className="space-y-4 border-b border-[var(--admin-border)] pb-6">
         <div className="flex items-center gap-3">

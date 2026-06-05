@@ -11,6 +11,8 @@ import {
   Package,
   ClipboardList,
   Users,
+  BarChart3,
+  Percent,
   Settings,
   Sun,
   Moon,
@@ -26,6 +28,8 @@ const NAVIGATION_LINKS = [
   { name: "Pedidos", href: "/pedidos", icon: ClipboardList },
   { name: "Productos", href: "/productos", icon: Package },
   { name: "Clientes", href: "/clientes", icon: Users },
+  { name: "Estadísticas", href: "/estadisticas", icon: BarChart3 },
+   { name: "Promos", href: "/promos", icon: Percent },
   { name: "Ajustes", href: "/configuracion", icon: Settings },
 ];
 

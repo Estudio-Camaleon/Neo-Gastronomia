@@ -214,7 +214,6 @@ export function RegisterForm() {
       setErrorMsg(response.error);
       setLoading(false);
     }
-    setTimeout(() => setLoading(false), 10000);
   };
 
   const isNombreRegistered = duplicates["nombre"] === true;
@@ -244,6 +243,7 @@ export function RegisterForm() {
                 <Input
                   required
                   type="email"
+                  autoComplete="email"
                   disabled={loading}
                   value={email}
                   onChange={(e) => {

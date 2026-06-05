@@ -9,6 +9,8 @@ import {
   Mail,
   X,
   ShieldCheck,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { loginAction, resetPasswordAction } from "../actions";
@@ -165,6 +167,7 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showReset, setShowReset] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -198,6 +201,7 @@ export function LoginForm() {
           <label className="auth-label">Correo Electrónico</label>
           <Input
             type="email"
+            autoComplete="email"
             disabled={loading}
             placeholder="admin@tucomercio.com"
             value={email}
@@ -218,15 +222,26 @@ export function LoginForm() {
               ¿Olvidaste tu contraseña?
             </button>
           </div>
-          <Input
-            type="password"
-            disabled={loading}
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="auth-input"
-          />
+          <div className="relative">
+            <Input
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              disabled={loading}
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="auth-input pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--auth-text-muted)] hover:text-[var(--auth-text)] transition-colors"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
         </div>
 
         {error && (

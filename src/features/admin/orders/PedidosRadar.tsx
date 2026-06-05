@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import {
   Clock,
   CheckCircle2,
+  XCircle,
   Search,
   ShoppingBag,
   BellDot,
@@ -101,8 +102,11 @@ export function PedidosRadar({
   );
 
   const pedidosFiltrados = useMemo(
-    () =>
-      pedidosActivos
+    () => {
+      const source = ["entregado", "cancelado"].includes(statusFilter)
+        ? pedidos
+        : pedidosActivos;
+      return source
         .filter((p) =>
           statusFilter === "todos" ? true : p.estado === statusFilter,
         )
@@ -112,8 +116,9 @@ export function PedidosRadar({
               .toLowerCase()
               .includes(debouncedFilter.toLowerCase()) ||
             p.id.includes(debouncedFilter),
-        ),
-    [pedidosActivos, debouncedFilter, statusFilter],
+        );
+    },
+    [pedidos, pedidosActivos, debouncedFilter, statusFilter],
   );
 
   const totalPages = showAll
@@ -255,6 +260,7 @@ export function PedidosRadar({
       nuevos: pedidos.filter((p) => p.estado === "pendiente").length,
       cocina: pedidos.filter((p) => p.estado === "en_preparacion").length,
       listos: pedidos.filter((p) => p.estado === "entregado").length,
+      cancelados: pedidos.filter((p) => p.estado === "cancelado").length,
     }),
     [pedidos],
   );
@@ -290,6 +296,16 @@ export function PedidosRadar({
       textColor: "text-green-600 dark:text-green-400",
       bgLight: "bg-green-50/50 dark:bg-green-950/10",
     },
+    {
+      label: "Cancelados",
+      value: stats.cancelados,
+      color: "bg-red-500",
+      glow: "shadow-red-500/20",
+      border: "border-red-200/60 dark:border-red-900/30",
+      icon: XCircle,
+      textColor: "text-red-600 dark:text-red-400",
+      bgLight: "bg-red-50/50 dark:bg-red-950/10",
+    },
   ];
 
   return (
@@ -319,7 +335,7 @@ export function PedidosRadar({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {radarItems.map((item, idx) => (
           <div
             key={idx}
@@ -357,6 +373,8 @@ export function PedidosRadar({
             { value: "todos", label: "Todos", icon: List },
             { value: "pendiente", label: "Pendientes", icon: Clock },
             { value: "en_preparacion", label: "En Cocina", icon: ChefHat },
+            { value: "entregado", label: "Entregados", icon: CheckCircle2 },
+            { value: "cancelado", label: "Cancelados", icon: XCircle },
           ].map((opt) => (
             <button
               key={opt.value}
@@ -439,16 +457,20 @@ export function PedidosRadar({
         </div>
       )}
 
-      {pedidosActivos.length === 0 && (
+      {pedidosFiltrados.length === 0 && (
         <div className="flex flex-col items-center justify-center py-20 admin-card border-dashed">
           <div className="p-4 rounded-2xl bg-[var(--admin-accent)]/5 text-[var(--admin-text-muted)] mb-4">
             <ShoppingBag size={48} strokeWidth={1.5} />
           </div>
           <p className="text-lg font-black tracking-tight text-[var(--admin-text)] mb-1">
-            Radar despejado
+            {["entregado", "cancelado"].includes(statusFilter)
+              ? `Sin pedidos ${statusFilter === "entregado" ? "entregados" : "cancelados"}`
+              : "Radar despejado"}
           </p>
           <p className="text-sm font-medium text-[var(--admin-text-muted)]">
-            No hay pedidos activos en este momento.
+            {pedidos.length === 0
+              ? "Aún no hay pedidos registrados."
+              : "No se encontraron pedidos con este filtro."}
           </p>
         </div>
       )}

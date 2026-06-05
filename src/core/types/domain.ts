@@ -130,6 +130,9 @@ export interface UpdateTenantBrandingPayload {
   horarios: Record<string, unknown>;
 }
 
+// ── Promo ────────────────────────────────────────────
+export type PromoRow = Tables<"promos">;
+
 // ── Enums ────────────────────────────────────────────
 export interface CatalogClientProps {
   negocio: NegocioPublico;

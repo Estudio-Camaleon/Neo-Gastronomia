@@ -374,6 +374,56 @@ export type Database = {
           },
         ]
       }
+      promos: {
+        Row: {
+          activo: boolean | null
+          codigo: string | null
+          created_at: string | null
+          descripcion: string | null
+          id: string
+          items_combo: Json | null
+          negocio_id: string
+          nombre: string
+          tipo_descuento: string
+          updated_at: string | null
+          valor_descuento: number
+        }
+        Insert: {
+          activo?: boolean | null
+          codigo?: string | null
+          created_at?: string | null
+          descripcion?: string | null
+          id?: string
+          items_combo?: Json | null
+          negocio_id: string
+          nombre: string
+          tipo_descuento: string
+          updated_at?: string | null
+          valor_descuento: number
+        }
+        Update: {
+          activo?: boolean | null
+          codigo?: string | null
+          created_at?: string | null
+          descripcion?: string | null
+          id?: string
+          items_combo?: Json | null
+          negocio_id?: string
+          nombre?: string
+          tipo_descuento?: string
+          updated_at?: string | null
+          valor_descuento?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promos_negocio_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "negocios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rate_limits: {
         Row: {
           count: number
