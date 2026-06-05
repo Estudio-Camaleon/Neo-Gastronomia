@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { CatalogClient } from "@/features/public-menu/components/CatalogClient";
 import type { Categoria, NegocioPublico } from "@/features/public-menu/types";
+import type { PromoRow } from "@/core/types/domain";
 
 export const revalidate = 60;
 
@@ -83,10 +84,19 @@ export default async function PublicMenuPage({ params }: PublicPageProps) {
       (cat) => cat.productos && cat.productos.length > 0,
     ) || [];
 
+  const { data: promos } = await supabase
+    .from("promos")
+    .select("*")
+    .eq("negocio_id", negocio.id)
+    .eq("activo", true)
+    .order("created_at", { ascending: false })
+    .returns<PromoRow[]>();
+
   return (
     <CatalogClient
       negocio={negocio}
       categorias={categoriasFormateadas}
+      promos={promos ?? []}
     />
   );
 }

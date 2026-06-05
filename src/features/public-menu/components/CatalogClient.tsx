@@ -20,12 +20,14 @@ import { CartFloatingButton } from "@/features/public-menu/cart/CartFloatingButt
 import { PublicCart } from "@/features/public-menu/cart/PublicCart";
 import { FloatingFood } from "@/features/public-menu/components/FloatingFood";
 import { ExtrasSelector } from "@/features/public-menu/components/ExtrasSelector";
+import { CombosSection } from "@/features/public-menu/components/CombosSection";
 import { estaAbierto } from "@/core/lib/utils/horarios";
 import type {
   Categoria,
   NegocioPublico,
   ExtraGroup,
   Producto,
+  PromoRow,
 } from "@/features/public-menu/types";
 import {
   DAYS_ORDER,
@@ -64,9 +66,11 @@ const categoryVariants = {
 export function CatalogClient({
   negocio,
   categorias,
+  promos = [],
 }: {
   negocio: NegocioPublico;
   categorias: Categoria[];
+  promos?: PromoRow[];
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("all");
@@ -459,6 +463,8 @@ export function CatalogClient({
                   </motion.button>
                 ))}
               </motion.div>
+
+              <CombosSection promos={promos} />
 
               <div className="mt-6 space-y-8">
                 <AnimatePresence mode="wait">
