@@ -136,6 +136,8 @@ export type Database = {
       }
       negocios: {
         Row: {
+          banner_height: string
+          banner_posicion: string
           banner_url: string | null
           color_primary: string | null
           created_at: string | null
@@ -148,7 +150,12 @@ export type Database = {
           id: string
           instagram_url: string | null
           localidad: string | null
+          logo_fit: string
+          logo_posicion: string
+          logo_scale: number
+          logo_shape: string
           logo_url: string | null
+          mostrar_nombre: boolean
           nombre: string
           plan_tier: string
           slug: string
@@ -162,6 +169,8 @@ export type Database = {
           whatsapp: string | null
         }
         Insert: {
+          banner_height?: string
+          banner_posicion?: string
           banner_url?: string | null
           color_primary?: string | null
           created_at?: string | null
@@ -174,7 +183,12 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           localidad?: string | null
+          logo_fit?: string
+          logo_posicion?: string
+          logo_scale?: number
+          logo_shape?: string
           logo_url?: string | null
+          mostrar_nombre?: boolean
           nombre: string
           plan_tier?: string
           slug: string
@@ -188,6 +202,8 @@ export type Database = {
           whatsapp?: string | null
         }
         Update: {
+          banner_height?: string
+          banner_posicion?: string
           banner_url?: string | null
           color_primary?: string | null
           created_at?: string | null
@@ -200,7 +216,12 @@ export type Database = {
           id?: string
           instagram_url?: string | null
           localidad?: string | null
+          logo_fit?: string
+          logo_posicion?: string
+          logo_scale?: number
+          logo_shape?: string
           logo_url?: string | null
+          mostrar_nombre?: boolean
           nombre?: string
           plan_tier?: string
           slug?: string

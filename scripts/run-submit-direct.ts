@@ -16,7 +16,7 @@ async function main() {
   const supabase = createClient(url, key, { auth: { persistSession: false } });
 
   const payload = {
-    p_negocio_id: process.env.TEST_NEGOCIO_ID || "00000000-0000-0000-0000-000000000000",
+    p_negocio_id: process.env['TEST_NEGOCIO_ID'] || "00000000-0000-0000-0000-000000000000",
     p_cliente_nombre: "Script Test",
     p_cliente_whatsapp: "+5491123456789",
     p_es_delivery: false,
@@ -24,7 +24,7 @@ async function main() {
     p_metodo_pago: "efectivo",
     p_notas: "Prueba RPC directa",
     p_items: [
-      { producto_id: process.env.TEST_PRODUCTO_ID || "00000000-0000-0000-0000-000000000000", cantidad: 1, detalles: null },
+      { producto_id: process.env['TEST_PRODUCTO_ID'] || "00000000-0000-0000-0000-000000000000", cantidad: 1, detalles: null },
     ],
   } as any;
 

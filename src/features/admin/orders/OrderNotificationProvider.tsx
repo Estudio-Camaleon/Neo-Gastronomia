@@ -21,58 +21,13 @@ function log(...args: unknown[]) {
   if (DEBUG) console.log("[NEO-NOTIFICATION]", ...args);
 }
 
-// ── Audio (module-level, shared across all instances) ──
-let audioBufferCache: AudioBuffer | null = null;
-let audioCtx: AudioContext | null = null;
-let audioInitialized = false;
-
-async function initAudio() {
-  if (audioInitialized) return;
-  audioInitialized = true;
-  log("INIT AUDIO");
-
-  const AudioCtor =
-    window.AudioContext ??
-    (window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-  if (!AudioCtor) {
-    log("NO AUDIO CTOR AVAILABLE");
-    return;
-  }
-
+// ── Audio (simple HTMLAudioElement) ──
+function playSound(src: string = "/sounds/new-order.mp3") {
   try {
-    audioCtx = new AudioCtor();
-    await audioCtx.resume();
-    log("AUDIO CONTEXT STATE:", audioCtx.state);
-  } catch {
-    log("AUDIO INIT FAILED");
-  }
-}
-
-async function playSound() {
-  if (!audioCtx) {
-    log("PLAY SOUND SKIPPED — no audio context");
-    return;
-  }
-
-  try {
-    if (audioCtx.state === "suspended") {
-      log("AUDIO CONTEXT SUSPENDED — resuming");
-      await audioCtx.resume();
-    }
-
-    if (!audioBufferCache) {
-      log("FETCHING AUDIO");
-      const res = await fetch("/sounds/new-order.mp3");
-      const buf = await res.arrayBuffer();
-      audioBufferCache = await audioCtx.decodeAudioData(buf);
-      log("AUDIO DECODED");
-    }
-
-    const source = audioCtx.createBufferSource();
-    source.buffer = audioBufferCache;
-    source.connect(audioCtx.destination);
-    source.start();
-    log("PLAY SOUND");
+    const audio = new Audio(src);
+    audio.volume = 0.6;
+    audio.play().catch(() => {});
+    log("PLAY SOUND", src);
   } catch (err) {
     log("PLAY SOUND FAILED:", err);
   }
@@ -85,7 +40,6 @@ interface NotificationContextValue {
   latestUpdateEvent: { id: string; estado: string } | null;
   acknowledgeNewOrders: () => void;
   acknowledgeUpdateEvent: () => void;
-  audioUnlocked: boolean;
 }
 
 const NotificationContext = createContext<NotificationContextValue>({
@@ -94,7 +48,6 @@ const NotificationContext = createContext<NotificationContextValue>({
   latestUpdateEvent: null,
   acknowledgeNewOrders: () => {},
   acknowledgeUpdateEvent: () => {},
-  audioUnlocked: false,
 });
 
 export function useOrderNotifications() {
@@ -114,40 +67,39 @@ export function OrderNotificationProvider({
   const [unreadCount, setUnreadCount] = useState(0);
   const [latestNewPedido, setLatestNewPedido] = useState<PedidoData | null>(null);
   const [latestUpdateEvent, setLatestUpdateEvent] = useState<{ id: string; estado: string } | null>(null);
-  const [audioUnlocked, setAudioUnlocked] = useState(false);
+  const [soundEnabled] = useState(true);
   const lastPlayedRef = useRef<Set<string>>(new Set());
   const supabaseRef = useRef(createClient());
+  const audioUnlockedRef = useRef(false);
 
-  // ── Initialize audio on first user interaction ──
+  // ── Unlock audio on first user interaction ──
   useEffect(() => {
-    const controller = new AbortController();
-    const unlock = async () => {
-      if (audioInitialized) return;
-      await initAudio();
-      setAudioUnlocked(true);
-      log("AUDIO UNLOCKED");
+    const unlock = () => {
+      if (audioUnlockedRef.current) return;
+      audioUnlockedRef.current = true;
+      const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      ctx.resume();
+      ctx.close();
+      document.removeEventListener("pointerdown", unlock);
+      document.removeEventListener("keydown", unlock);
     };
-
-    document.addEventListener("click", unlock, { signal: controller.signal, once: true });
-    document.addEventListener("touchstart", unlock, { signal: controller.signal, once: true });
-    document.addEventListener("keydown", unlock, { signal: controller.signal, once: true });
-
-    return () => controller.abort();
+    document.addEventListener("pointerdown", unlock, { once: true });
+    document.addEventListener("keydown", unlock, { once: true });
+    return () => {
+      document.removeEventListener("pointerdown", unlock);
+      document.removeEventListener("keydown", unlock);
+    };
   }, []);
 
-  // ── Resume audio on visibility change ──
+  // ── Periodic cleanup of lastPlayedRef (prevents memory leak) ──
   useEffect(() => {
-    const handleVisibility = () => {
-      if (document.visibilityState === "visible" && audioCtx?.state === "suspended") {
-        log("VISIBILITY CHANGE — resuming audio context");
-        audioCtx.resume().then(() => {
-          log("AUDIO CONTEXT STATE:", audioCtx?.state);
-        });
+    const interval = setInterval(() => {
+      if (lastPlayedRef.current.size > 500) {
+        lastPlayedRef.current.clear();
+        log("lastPlayedRef CLEARED (size > 500)");
       }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibility);
-    return () => document.removeEventListener("visibilitychange", handleVisibility);
+    }, 300_000); // every 5 min
+    return () => clearInterval(interval);
   }, []);
 
   // ── Acknowledge new orders ──
@@ -207,7 +159,7 @@ export function OrderNotificationProvider({
             setUnreadCount((prev) => prev + 1);
 
             // Play sound
-            await playSound();
+            if (soundEnabled) playSound("/sounds/new-order.mp3");
 
             // Visual fallback: toast
             toast.info("Nuevo pedido entrante", {
@@ -238,7 +190,6 @@ export function OrderNotificationProvider({
         latestUpdateEvent,
         acknowledgeNewOrders,
         acknowledgeUpdateEvent,
-        audioUnlocked,
       }}
     >
       {children}

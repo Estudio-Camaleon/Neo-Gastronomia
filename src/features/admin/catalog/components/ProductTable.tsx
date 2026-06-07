@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { Edit3, Trash2, Tag, Package } from "lucide-react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { Edit3, Trash2, Tag, Package, Search } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/core/lib/supabase/client";
 import Image from "next/image";
@@ -33,35 +33,56 @@ interface ProductTableProps {
   onEdit: (producto: UnifiedProduct) => void;
 }
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 20;
 
 export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
   const [productos, setProductos] = useState<UnifiedProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
+  const [rawSearch, setRawSearch] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<{
     id: string;
     nombre: string;
   } | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
+  // Debounce search
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSearchQuery(rawSearch);
+      setPage(0);
+    }, 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [rawSearch]);
+
   const cargarProductos = useCallback(
-    async (pageNum: number) => {
+    async (pageNum: number, query?: string) => {
       setLoading(true);
       try {
         const from = pageNum * PAGE_SIZE;
         const to = from + PAGE_SIZE - 1;
 
-        const { data, error, count } = await supabase
+        let request = supabase
           .from("productos")
           .select(
             `id, nombre, descripcion, precio, imagen_url, disponible, categoria_id, configuracion, categorias(nombre)`,
             { count: "exact" },
           )
           .eq("negocio_id", negocioId)
-          .order("created_at", { ascending: false })
+          .order("created_at", { ascending: false });
+
+        if (query) {
+          request = request.ilike("nombre", `%${query}%`);
+        }
+
+        const { data, error, count } = await request
           .range(from, to)
           .returns<UnifiedProduct[]>();
 
@@ -75,12 +96,11 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
         setLoading(false);
       }
     },
-    [supabase, negocioId],
+    [negocioId],
   );
 
+  // Separate channel subscription — stable, doesn't depend on page/search
   useEffect(() => {
-    cargarProductos(page);
-
     const canal: RealtimeChannel = supabase
       .channel(`realtime-catalog-${negocioId}`)
       .on(
@@ -92,7 +112,7 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
           filter: `negocio_id=eq.${negocioId}`,
         },
         () => {
-          cargarProductos(page);
+          cargarProductos(page, searchQuery);
         },
       )
       .subscribe();
@@ -100,7 +120,11 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
     return () => {
       supabase.removeChannel(canal);
     };
-  }, [cargarProductos, supabase, negocioId, page]);
+  }, [negocioId]); // only re-subscribe if negocioId changes
+
+  useEffect(() => {
+    cargarProductos(page, searchQuery);
+  }, [page, searchQuery, cargarProductos]);
 
   const handleEliminar = async () => {
     if (!deleteConfirm) return;
@@ -136,6 +160,18 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
 
   return (
     <div className="overflow-x-auto">
+      <div className="px-4 py-3 border-b border-[var(--admin-border)] bg-[var(--admin-bg)]/30">
+        <div className="flex items-center gap-2 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-lg px-3 py-2">
+          <Search size={16} className="text-[var(--admin-text-muted)] shrink-0" />
+          <input
+            type="text"
+            placeholder="Buscar producto por nombre…"
+            value={rawSearch}
+            onChange={(e) => setRawSearch(e.target.value)}
+            className="flex-1 bg-transparent border-none outline-none text-sm text-[var(--admin-text)] placeholder:text-[var(--admin-text-muted)]"
+          />
+        </div>
+      </div>
       <table className="w-full text-left border-collapse">
         <thead>
           <tr className="text-[10px] font-black uppercase tracking-widest text-[var(--admin-text-muted)]">

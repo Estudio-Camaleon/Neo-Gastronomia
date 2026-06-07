@@ -11,6 +11,7 @@ describe("domain types", () => {
       metodo_pago: "efectivo",
       total: 200,
       es_delivery: false,
+      created_at: "2026-06-06T10:00:00Z",
       pedido_items: [
         {
           id: "i1",
@@ -35,6 +36,7 @@ describe("domain types", () => {
       total: 0,
       es_delivery: true,
       direccion_entrega: "Calle Falsa 123",
+      created_at: "2026-06-06T10:00:00Z",
       pedido_items: [],
     };
     expect(pedido.direccion_entrega).toBe("Calle Falsa 123");
@@ -49,6 +51,7 @@ describe("domain types", () => {
       metodo_pago: "efectivo",
       total: 0,
       es_delivery: false,
+      created_at: "2026-06-06T10:00:00Z",
       pedido_items: [
         {
           id: "i1",

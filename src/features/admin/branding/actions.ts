@@ -4,6 +4,7 @@ import { createClient } from "@/core/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { parseStorageUrl } from "@/core/lib/tenant";
 import { supabaseAdmin } from "@/core/lib/supabase/admin";
+import { generateSlug } from "@/core/lib/slug";
 import type { UpdateTenantBrandingPayload } from "@/core/types/domain";
 import type { Json } from "@/core/types/database.types";
 
@@ -30,15 +31,7 @@ export async function updateTenantBrandingAction(
     throw new Error("No se pudo leer el estado actual del negocio.");
   }
 
-  // Sanitización determinista del identificador web para URLs públicas
-  const slugSaneado = payload.slug
-    .toLowerCase()
-    .trim()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9-]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/(^-|-$)+/g, "");
+  const slugSaneado = generateSlug(payload.slug);
 
   if (slugSaneado.length < 3) {
     throw new Error("El identificador URL (Slug) es demasiado corto.");
@@ -57,8 +50,12 @@ export async function updateTenantBrandingAction(
       color_primary: payload.color_primary,
       logo_url: payload.logo_url,
       logo_scale: payload.logo_scale,
+      logo_posicion: payload.logo_posicion,
+      logo_fit: payload.logo_fit,
+      logo_shape: payload.logo_shape,
       banner_url: payload.banner_url,
       banner_posicion: payload.banner_posicion,
+      banner_height: payload.banner_height,
       mostrar_nombre: payload.mostrar_nombre,
       instagram_url: payload.instagram_url.trim(),
       facebook_url: payload.facebook_url.trim(),

@@ -21,6 +21,7 @@ interface ProductDetailModalProps {
   }) => void;
   onCancel: () => void;
   simbolo?: string;
+  isOpenNow?: boolean;
 }
 
 export function ProductDetailModal({
@@ -28,6 +29,7 @@ export function ProductDetailModal({
   onConfirm,
   onCancel,
   simbolo = "$",
+  isOpenNow = true,
 }: ProductDetailModalProps) {
   const config = product.configuracion;
   const variants = config?.variantes ?? [];
@@ -166,11 +168,11 @@ export function ProductDetailModal({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.92, y: 20 }}
         transition={{ type: "spring", stiffness: 250, damping: 25 }}
-        className="relative w-full max-w-sm rounded-2xl bg-[var(--color-custom-surface-strong)] shadow-2xl overflow-hidden"
+        className="relative w-[calc(100vw-2rem)] max-w-md sm:max-w-sm rounded-2xl bg-[var(--color-custom-surface-strong)] shadow-2xl overflow-hidden"
       >
         {/* Image */}
         {product.imagen_url ? (
-          <div className="aspect-square w-full overflow-hidden bg-[var(--color-custom-100)]">
+          <div className="aspect-video sm:aspect-square w-full overflow-hidden bg-[var(--color-custom-100)]">
             <img
               src={product.imagen_url}
               alt={product.nombre}
@@ -178,7 +180,7 @@ export function ProductDetailModal({
             />
           </div>
         ) : (
-          <div className="flex aspect-square w-full items-center justify-center bg-[var(--color-custom-100)] text-[var(--color-custom-text-muted)]">
+          <div className="flex aspect-video sm:aspect-square w-full items-center justify-center bg-[var(--color-custom-100)] text-[var(--color-custom-text-muted)]">
             <ImageIcon size={48} />
           </div>
         )}
@@ -205,7 +207,7 @@ export function ProductDetailModal({
           </button>
         </div>
 
-        <div className="max-h-[45vh] overflow-y-auto px-5 py-4 space-y-5">
+        <div className="max-h-[55vh] sm:max-h-[60vh] overflow-y-auto px-5 py-4 space-y-5">
           {/* Price */}
           <div className="flex items-baseline gap-2">
             <span className="text-xl font-black text-[var(--color-custom-900)]">
@@ -213,7 +215,7 @@ export function ProductDetailModal({
               {formatMoney(basePrice + extraTotal)}
             </span>
             {extraTotal > 0 && (
-              <span className="text-xs text-[var(--color-custom-text-muted)]">
+              <span className="text-[10px] sm:text-xs text-[var(--color-custom-text-muted)] block sm:inline">
                 ({simbolo}
                 {formatMoney(basePrice)} + {simbolo}
                 {formatMoney(extraTotal)} extras)
@@ -238,7 +240,7 @@ export function ProductDetailModal({
                     key={idx}
                     type="button"
                     onClick={() => setSelectedVariantIdx(idx)}
-                    className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm transition-all ${
+                    className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm transition-all min-w-0 ${
                       selectedVariantIdx === idx
                         ? "border-[var(--color-custom-500)] bg-[var(--color-custom-500)]/5 text-[var(--color-custom-900)]"
                         : "border-[var(--color-custom-border)] text-[var(--color-custom-text-muted)] hover:border-[var(--color-custom-300)]"
@@ -255,7 +257,7 @@ export function ProductDetailModal({
                         <span className="block h-2 w-2 rounded-full bg-white" />
                       )}
                     </span>
-                    <span className="font-medium">{v.nombre}</span>
+                    <span className="font-medium truncate">{v.nombre}</span>
                     <span className="text-xs font-semibold text-[var(--color-custom-600)]">
                       {simbolo}
                       {formatMoney(v.precio)}
@@ -321,7 +323,7 @@ export function ProductDetailModal({
                               <span className="block h-2 w-2 rounded-full bg-white" />
                             ) : null}
                           </span>
-                          <span className="flex-1 text-sm font-medium">
+                          <span className="flex-1 text-sm font-medium truncate">
                             {item.nombre}
                           </span>
                           {item.precio > 0 && (
@@ -400,19 +402,30 @@ export function ProductDetailModal({
 
           <motion.button
             type="button"
-            disabled={!!hasRequiredError}
-            onClick={handleConfirm}
-            whileHover={!hasRequiredError ? { scale: 1.01 } : {}}
-            whileTap={!hasRequiredError ? { scale: 0.99 } : {}}
+            disabled={!!hasRequiredError || !product}
+            onClick={(e) => {
+              if (!isOpenNow) return;
+              handleConfirm();
+            }}
+            whileHover={!hasRequiredError && isOpenNow ? { scale: 1.01 } : {}}
+            whileTap={!hasRequiredError && isOpenNow ? { scale: 0.99 } : {}}
             className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold transition-colors ${
-              hasRequiredError
+              !isOpenNow
+                ? "bg-[var(--color-custom-100)] text-[var(--color-custom-text-muted)] cursor-not-allowed opacity-40"
+                : hasRequiredError
                 ? "bg-[var(--color-custom-100)] text-[var(--color-custom-text-muted)] cursor-not-allowed"
                 : "bg-[var(--color-custom-900)] text-white hover:bg-[var(--color-custom-800)]"
             }`}
           >
             <ShoppingBag size={16} />
-            Agregar al pedido · {simbolo}
-            {formatMoney(total * cantidad)}
+            {isOpenNow ? (
+              <>
+                Agregar al pedido · {simbolo}
+                {formatMoney(total * cantidad)}
+              </>
+            ) : (
+              "Local cerrado"
+            )}
           </motion.button>
         </div>
       </motion.div>

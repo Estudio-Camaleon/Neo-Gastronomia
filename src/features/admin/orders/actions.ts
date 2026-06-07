@@ -84,58 +84,34 @@ export async function submitOrderPublicAction(
     detalles: item.detalles ?? null,
   }));
 
-  const rpcRes = await supabaseAdmin.rpc("submit_order_atomic", {
-    p_negocio_id: parsed.data.negocio_id,
-    p_cliente_nombre: parsed.data.cliente_nombre,
-    p_cliente_whatsapp: parsed.data.cliente_whatsapp,
-    p_es_delivery: parsed.data.es_delivery,
-    p_direccion_entrega:
-      parsed.data.es_delivery && parsed.data.direccion_entrega
-        ? parsed.data.direccion_entrega
-        : "",
-    p_metodo_pago: parsed.data.metodo_pago,
-    p_notas: parsed.data.notas ?? "",
-    p_items: itemsJson,
-  });
-
-  const { data, error } = rpcRes as { data: unknown; error: any };
+  const { data, error } = await supabaseAdmin.rpc(
+    "submit_order_atomic",
+    {
+      p_negocio_id: parsed.data.negocio_id,
+      p_cliente_nombre: parsed.data.cliente_nombre,
+      p_cliente_whatsapp: parsed.data.cliente_whatsapp,
+      p_es_delivery: parsed.data.es_delivery,
+      p_direccion_entrega:
+        parsed.data.es_delivery && parsed.data.direccion_entrega
+          ? parsed.data.direccion_entrega
+          : "",
+      p_metodo_pago: parsed.data.metodo_pago,
+      p_notas: parsed.data.notas ?? "",
+      p_items: itemsJson,
+    },
+  );
 
   if (error) {
-    // Provide more context from DB error when available
-    const msg = error.message ? `${error.message}` : JSON.stringify(error);
+    const msg = error.message ?? JSON.stringify(error);
     throw new Error(`No pudimos procesar tu pedido: ${msg}`);
   }
 
-  if (!data) {
-    throw new Error(
-      `No se obtuvo respuesta del servicio de pedidos. Intenta de nuevo más tarde. (rpc returned null)`,
-    );
-  }
-
-  // The RPC might return different shapes depending on implementation (scalar, record, array)
-  let pedidoId: string | undefined;
-  try {
-    if (Array.isArray(data)) {
-      const first = data[0];
-      if (typeof first === "object" && first !== null) {
-        pedidoId = (first as any).id ?? (first as any).pedido_id ?? String(Object.values(first)[0]);
-      } else {
-        pedidoId = String(first);
-      }
-    } else if (typeof data === "object") {
-      pedidoId = (data as any).id ?? (data as any).pedido_id ?? String(Object.values(data as any)[0]);
-    } else {
-      pedidoId = String(data);
-    }
-  } catch (e) {
-    // fallthrough
-  }
-
+  const pedidoId = typeof data === "string" ? data : null;
   if (!pedidoId) {
     throw new Error(
-      `No pudimos procesar tu pedido. Respuesta inválida del servicio: ${JSON.stringify(data)}`,
+      "No se obtuvo respuesta del servicio de pedidos. Intenta de nuevo más tarde.",
     );
   }
 
-  return pedidoId as string;
+  return pedidoId;
 }

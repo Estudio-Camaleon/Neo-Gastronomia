@@ -7,6 +7,7 @@ import { FoodMini } from "@/components/ui/food-loading";
 import { toast } from "sonner";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { createCategoryAction, deleteCategoryAction } from "../actions";
+import { generateSlug } from "@/core/lib/slug";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import type { CategoriaRow } from "@/core/types/domain";
 
@@ -32,17 +33,6 @@ export function CategoriaManager({
     nombre: string;
   } | null>(null);
 
-  const slugificar = (texto: string): string => {
-    return texto
-      .toLowerCase()
-      .trim()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/[\s-]+/g, "-")
-      .replace(/(^-|-$)+/g, "");
-  };
-
   const cargarCategorias = useCallback(async () => {
     try {
       const { data, error } = await supabase
@@ -58,7 +48,7 @@ export function CategoriaManager({
     } finally {
       setLoadingList(false);
     }
-  }, [supabase, negocioId]);
+  }, [negocioId]);
 
   useEffect(() => {
     cargarCategorias();
@@ -82,7 +72,7 @@ export function CategoriaManager({
     return () => {
       supabase.removeChannel(canal);
     };
-  }, [cargarCategorias, supabase, negocioId]);
+  }, [cargarCategorias, negocioId]);
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,7 +81,7 @@ export function CategoriaManager({
 
     startTransition(async () => {
       try {
-        await createCategoryAction(nombreLimpio, slugificar(nombreLimpio));
+        await createCategoryAction(nombreLimpio, generateSlug(nombreLimpio));
         setNuevoNombre("");
         // refresh local list immediately so user sees the new category without waiting for realtime
         setLoadingList(true);

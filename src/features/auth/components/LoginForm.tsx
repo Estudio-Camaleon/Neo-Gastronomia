@@ -12,6 +12,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { FoodMini } from "@/components/ui/food-loading";
 import { loginAction, resetPasswordAction } from "../actions";
 
 const loginSchema = z.object({
@@ -63,7 +64,7 @@ function ResetPasswordModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 bg-black/40 backdrop-blur-md z-[999999] flex items-center justify-center p-4 animate-in fade-in duration-200"
       onClick={(e) => {
         if (e.target === e.currentTarget) handleClose();
       }}

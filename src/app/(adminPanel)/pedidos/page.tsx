@@ -47,7 +47,7 @@ export default async function PedidosPage() {
     .select(
       `
       id, estado, cliente_nombre, metodo_pago, total,
-      cliente_whatsapp, es_delivery, direccion_entrega, notas,
+      cliente_whatsapp, es_delivery, direccion_entrega, notas, created_at,
       pedido_items (id, cantidad, nombre_producto, precio_unitario, detalles)
     `,
     )
@@ -62,15 +62,15 @@ export default async function PedidosPage() {
     <div className="max-w-7xl mx-auto space-y-8 relative z-10 ">
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-[var(--admin-border)]/50 ">
         <div className="space-y-2 ">
-          <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-[var(--admin-text)]">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-[var(--admin-text)]">
             Pedidos en vivo
           </h1>
-          <p className="text-[var(--admin-text-muted)] font-medium text-sm ">
+          <p className="text-xs sm:text-sm text-[var(--admin-text-muted)] font-medium">
             Control de órdenes y despacho inmediato en tiempo real
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-[var(--admin-accent)] text-white px-4 py-2 rounded-xl shadow-md shadow-[var(--admin-accent)]/20 font-semibold text-xs tracking-wide">
+        <div className="flex items-center gap-2 bg-[var(--admin-accent)] text-white px-3 sm:px-4 py-2 rounded-xl shadow-md shadow-[var(--admin-accent)]/20 font-semibold text-xs tracking-wide">
           <MapPin size={16} />
           {negocioNombre}
         </div>

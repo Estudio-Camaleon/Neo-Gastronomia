@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { StepIndicator } from "./StepIndicator";
 import { registerAction, checkDuplicateAction } from "../actions";
 import { FoodMini } from "@/components/ui/food-loading";
+import { generateSlug } from "@/core/lib/slug";
 
 const step1Schema = z
   .object({
@@ -35,19 +36,6 @@ const step1Schema = z
     message: "Las contraseñas no coinciden.",
     path: ["confirmPassword"],
   });
-
-function generateSlug(text: string): string {
-  return (
-    text
-      .toLowerCase()
-      .trim()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9-]/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/(^-|-$)+/g, "") || ""
-  );
-}
 
 const DEFAULT_COLOR = "#10b981";
 

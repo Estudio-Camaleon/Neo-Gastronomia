@@ -30,6 +30,7 @@ import {
   deleteTenantBrandingAction,
 } from "../actions";
 import { buildBrandPalette, meetsWcagAA } from "@/core/lib/utils/color";
+import { generateSlug } from "@/core/lib/slug";
 import type { UpdateTenantBrandingPayload } from "@/core/types/domain";
 
 export interface FranjaHoraria {
@@ -56,8 +57,12 @@ export interface NegocioInitialData {
   color_primary: string;
   logo_url: string;
   logo_scale?: number;
+  logo_posicion?: string;
+  logo_fit?: string;
+  logo_shape?: string;
   banner_url: string;
   banner_posicion?: string;
+  banner_height?: string;
   mostrar_nombre?: boolean;
   instagram_url?: string;
   facebook_url?: string;
@@ -75,8 +80,12 @@ export interface ConfigFormState {
   color_primary: string;
   logo_url: string;
   logo_scale: number;
+  logo_posicion: string;
+  logo_fit: string;
+  logo_shape: string;
   banner_url: string;
   banner_posicion: string;
+  banner_height: string;
   mostrar_nombre: boolean;
   instagram_url: string;
   facebook_url: string;
@@ -110,6 +119,29 @@ const BANNER_VERTICAL_OPTIONS = [
   { value: "bottom", label: "Abajo" },
 ] as const;
 
+const LOGO_POSITION_OPTIONS = [
+  { value: "top", label: "Arriba" },
+  { value: "center", label: "Centro" },
+  { value: "bottom", label: "Abajo" },
+] as const;
+
+const LOGO_FIT_OPTIONS = [
+  { value: "contain", label: "Ajustar" },
+  { value: "cover", label: "Cubrir" },
+] as const;
+
+const LOGO_SHAPE_OPTIONS = [
+  { value: "circle", label: "Círculo" },
+  { value: "rounded", label: "Redondeado" },
+  { value: "square", label: "Cuadrado" },
+] as const;
+
+const BANNER_HEIGHT_OPTIONS = [
+  { value: "compact", label: "Compacto" },
+  { value: "normal", label: "Normal" },
+  { value: "large", label: "Grande" },
+] as const;
+
 const MAX_IMAGE_SIZE_MB = 5;
 const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
 
@@ -127,6 +159,7 @@ export function ConfigForm({
   const [isDeleting, setIsDeleting] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
   const successTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const blobUrlsRef = useRef<string[]>([]);
   const [confirmName, setConfirmName] = useState("");
   const [imagePreviews, setImagePreviews] = useState({
     logo_url: initialData?.logo_url || "",
@@ -143,8 +176,12 @@ export function ConfigForm({
     color_primary: initialData?.color_primary || "#34a35f",
     logo_url: initialData?.logo_url || "",
     logo_scale: initialData?.logo_scale ?? 1,
+    logo_posicion: initialData?.logo_posicion || "center",
+    logo_fit: initialData?.logo_fit || "contain",
+    logo_shape: initialData?.logo_shape || "circle",
     banner_url: initialData?.banner_url || "",
     banner_posicion: initialData?.banner_posicion || "center",
+    banner_height: initialData?.banner_height || "normal",
     mostrar_nombre: initialData?.mostrar_nombre ?? true,
     instagram_url: initialData?.instagram_url || "",
     facebook_url: initialData?.facebook_url || "",
@@ -153,11 +190,13 @@ export function ConfigForm({
   });
 
   const initialIdRef = useRef(initialData?.id);
+  const isDirtyRef = useRef(false);
 
   useEffect(() => {
     const idCambio = initialData?.id && initialData.id !== initialIdRef.current;
     if (!idCambio && initialIdRef.current) return;
     if (initialData?.id) initialIdRef.current = initialData.id;
+    isDirtyRef.current = false;
 
     setImagePreviews({
       logo_url: initialData?.logo_url || "",
@@ -174,8 +213,12 @@ export function ConfigForm({
       color_primary: initialData?.color_primary || "#34a35f",
       logo_url: initialData?.logo_url || "",
       logo_scale: initialData?.logo_scale ?? 1,
+      logo_posicion: initialData?.logo_posicion || "center",
+      logo_fit: initialData?.logo_fit || "contain",
+      logo_shape: initialData?.logo_shape || "circle",
       banner_url: initialData?.banner_url || "",
       banner_posicion: initialData?.banner_posicion || "center",
+      banner_height: initialData?.banner_height || "normal",
       mostrar_nombre: initialData?.mostrar_nombre ?? true,
       instagram_url: initialData?.instagram_url || "",
       facebook_url: initialData?.facebook_url || "",
@@ -191,15 +234,10 @@ export function ConfigForm({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
+    isDirtyRef.current = true;
 
     if (name === "slug") {
-      const sanitizedSlug = value
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9-_]/g, "");
-
-      setFormData((prev) => ({ ...prev, [name]: sanitizedSlug }));
+      setFormData((prev) => ({ ...prev, [name]: generateSlug(value) }));
       return;
     }
 
@@ -212,6 +250,7 @@ export function ConfigForm({
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    isDirtyRef.current = true;
     setFieldErrors((prev) => ({ ...prev, image: undefined }));
     if (file.size > MAX_IMAGE_SIZE_BYTES) {
       const msg = `La imagen supera el límite permitido de ${MAX_IMAGE_SIZE_MB}MB`;
@@ -225,6 +264,7 @@ export function ConfigForm({
       URL.revokeObjectURL(previousPreview);
     }
     const objectUrl = URL.createObjectURL(file);
+    blobUrlsRef.current.push(objectUrl);
 
     setImagePreviews((prev) => ({ ...prev, [field]: objectUrl }));
     setUploading(field);
@@ -253,6 +293,7 @@ export function ConfigForm({
 
       setFormData((prev) => ({ ...prev, [field]: payload.publicUrl }));
       setImagePreviews((prev) => ({ ...prev, [field]: payload.publicUrl }));
+      blobUrlsRef.current = blobUrlsRef.current.filter((u) => u !== objectUrl);
       URL.revokeObjectURL(objectUrl);
       toast.success("Archivo multimedia sincronizado y protegido en Cloud.");
     } catch (error: unknown) {
@@ -274,13 +315,21 @@ export function ConfigForm({
   useEffect(() => {
     return () => {
       if (successTimerRef.current) clearTimeout(successTimerRef.current);
-      [imagePreviews.logo_url, imagePreviews.banner_url].forEach((url) => {
-        if (url?.startsWith("blob:")) {
-          URL.revokeObjectURL(url);
-        }
-      });
+      blobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      blobUrlsRef.current = [];
     };
-  }, [imagePreviews.banner_url, imagePreviews.logo_url]);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirtyRef.current) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -315,8 +364,12 @@ export function ConfigForm({
         color_primary: formData.color_primary,
         logo_url: formData.logo_url,
         logo_scale: formData.logo_scale,
+        logo_posicion: formData.logo_posicion,
+        logo_fit: formData.logo_fit,
+        logo_shape: formData.logo_shape,
         banner_url: formData.banner_url,
         banner_posicion: formData.banner_posicion,
+        banner_height: formData.banner_height,
         mostrar_nombre: formData.mostrar_nombre,
         instagram_url: formData.instagram_url,
         facebook_url: formData.facebook_url,
@@ -419,16 +472,38 @@ export function ConfigForm({
           logoUrl={imagePreviews.logo_url || formData.logo_url}
           bannerUrl={imagePreviews.banner_url || formData.banner_url}
           bannerPosicion={formData.banner_posicion}
+          bannerHeight={formData.banner_height}
           logoScale={formData.logo_scale}
+          logoPosicion={formData.logo_posicion}
+          logoFit={formData.logo_fit}
+          logoShape={formData.logo_shape}
           uploading={uploading}
           imageError={fieldErrors.image}
           onImageUpload={handleImageUpload}
-          onLogoScaleChange={(val) =>
-            setFormData((p) => ({ ...p, logo_scale: val }))
-          }
-          onBannerPosicionChange={(val) =>
-            setFormData((p) => ({ ...p, banner_posicion: val }))
-          }
+          onLogoScaleChange={(val) => {
+            isDirtyRef.current = true;
+            setFormData((p) => ({ ...p, logo_scale: val }));
+          }}
+          onLogoPosicionChange={(val) => {
+            isDirtyRef.current = true;
+            setFormData((p) => ({ ...p, logo_posicion: val }));
+          }}
+          onLogoFitChange={(val) => {
+            isDirtyRef.current = true;
+            setFormData((p) => ({ ...p, logo_fit: val }));
+          }}
+          onLogoShapeChange={(val) => {
+            isDirtyRef.current = true;
+            setFormData((p) => ({ ...p, logo_shape: val }));
+          }}
+          onBannerPosicionChange={(val) => {
+            isDirtyRef.current = true;
+            setFormData((p) => ({ ...p, banner_posicion: val }));
+          }}
+          onBannerHeightChange={(val) => {
+            isDirtyRef.current = true;
+            setFormData((p) => ({ ...p, banner_height: val }));
+          }}
         />
 
         {/* BLOQUE INFORMACIÓN GENERAL */}
@@ -437,9 +512,10 @@ export function ConfigForm({
           errors={fieldErrors}
           onChange={handleChange}
           onClearError={clearFieldError}
-          onToggleMostrarNombre={(val) =>
-            setFormData((p) => ({ ...p, mostrar_nombre: val }))
-          }
+          onToggleMostrarNombre={(val) => {
+            isDirtyRef.current = true;
+            setFormData((p) => ({ ...p, mostrar_nombre: val }));
+          }}
         />
 
         {/* BLOQUE MIXTO COMPACTO RESPONSIVE: REDES + CROMÁTICA */}
@@ -452,6 +528,7 @@ export function ConfigForm({
               colorPrimary={formData.color_primary}
               error={fieldErrors.color_primary}
               onChange={(val) => {
+                isDirtyRef.current = true;
                 clearFieldError("color_primary");
                 setFormData((p) => ({ ...p, color_primary: val }));
               }}
@@ -460,7 +537,11 @@ export function ConfigForm({
               mostrarNombre={formData.mostrar_nombre}
               nombreForm={formData.nombre}
               logoScale={formData.logo_scale}
+              logoPosicion={formData.logo_posicion}
+              logoFit={formData.logo_fit}
+              logoShape={formData.logo_shape}
               bannerPosicion={formData.banner_posicion}
+              bannerHeight={formData.banner_height}
             />
           </div>
         </div>
@@ -482,9 +563,10 @@ export function ConfigForm({
           </div>
           <ScheduleBlock
             schedule={formData.horarios}
-            onChange={(newSchedule) =>
-              setFormData((p) => ({ ...p, horarios: newSchedule }))
-            }
+            onChange={(newSchedule) => {
+              isDirtyRef.current = true;
+              setFormData((p) => ({ ...p, horarios: newSchedule }));
+            }}
           />
         </div>
 
@@ -602,17 +684,29 @@ function BrandingBlock({
   logoUrl,
   bannerUrl,
   bannerPosicion,
+  bannerHeight,
   logoScale,
+  logoPosicion,
+  logoFit,
+  logoShape,
   uploading,
   imageError,
   onImageUpload,
   onLogoScaleChange,
+  onLogoPosicionChange,
+  onLogoFitChange,
+  onLogoShapeChange,
   onBannerPosicionChange,
+  onBannerHeightChange,
 }: {
   logoUrl: string;
   bannerUrl: string;
   bannerPosicion: string;
+  bannerHeight: string;
   logoScale: number;
+  logoPosicion: string;
+  logoFit: string;
+  logoShape: string;
   uploading: string | null;
   imageError?: string;
   onImageUpload: (
@@ -620,8 +714,19 @@ function BrandingBlock({
     field: "logo_url" | "banner_url",
   ) => void;
   onLogoScaleChange: (val: number) => void;
+  onLogoPosicionChange: (val: string) => void;
+  onLogoFitChange: (val: string) => void;
+  onLogoShapeChange: (val: string) => void;
   onBannerPosicionChange: (val: string) => void;
+  onBannerHeightChange: (val: string) => void;
 }) {
+  const shapeClass = (s: string) =>
+    s === "circle"
+      ? "rounded-full"
+      : s === "rounded"
+        ? "rounded-2xl"
+        : "rounded-none";
+
   return (
     <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl overflow-hidden shadow-sm">
       <div className="px-5 py-3.5 border-b border-[var(--admin-border)] bg-[var(--admin-bg)]/50 flex items-center gap-2.5">
@@ -637,26 +742,38 @@ function BrandingBlock({
       </div>
 
       <div className="p-5 grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-        <div className="md:col-span-4 flex flex-col items-center border-b md:border-b-0 md:border-r border-[var(--admin-border)] pb-5 md:pb-0 md:pr-6">
+        {/* LOGO */}
+        <div className="md:col-span-5 flex flex-col items-center border-b md:border-b-0 md:border-r border-[var(--admin-border)] pb-5 md:pb-0 md:pr-6">
           <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider mb-3">
             Isotipo Comercial
           </span>
+
           <div className="relative group">
-            <div className="w-28 h-28 rounded-full bg-[var(--admin-bg)] overflow-hidden relative flex items-center justify-center shadow-md transition-all hover:shadow-lg ring-1 ring-transparent hover:ring-[var(--admin-accent)]">
+            <div
+              className={`w-28 h-28 ${shapeClass(logoShape)} bg-[var(--admin-bg)] overflow-hidden relative flex items-center justify-center shadow-md transition-all hover:shadow-lg ring-1 ring-transparent hover:ring-[var(--admin-accent)]`}
+            >
               {logoUrl ? (
                 logoUrl.startsWith("blob:") ? (
                   <img
                     src={logoUrl}
                     alt="Logo"
-                    className="h-full w-full object-cover animate-in fade-in duration-200"
-                    style={{ transform: `scale(${logoScale})` }}
+                    className="h-full w-full animate-in fade-in duration-200"
+                    style={{
+                      objectFit: logoFit as "contain" | "cover",
+                      objectPosition: logoPosicion,
+                      transform: `scale(${logoScale})`,
+                    }}
                   />
                 ) : (
                   <Image
                     src={logoUrl}
                     fill
-                    className="object-cover animate-in fade-in duration-200"
-                    style={{ transform: `scale(${logoScale})` }}
+                    className="animate-in fade-in duration-200"
+                    style={{
+                      objectFit: logoFit as "contain" | "cover",
+                      objectPosition: logoPosicion,
+                      transform: `scale(${logoScale})`,
+                    }}
                     alt="Logo"
                     sizes="112px"
                     priority
@@ -667,13 +784,13 @@ function BrandingBlock({
                   <ImageIcon size={24} />
                 </div>
               )}
-               {uploading === "logo_url" && (
-                 <div className="absolute inset-0 bg-[var(--admin-surface)]/80 backdrop-blur-sm flex items-center justify-center">
-                   <FoodMini size={18} />
-                 </div>
-               )}
+              {uploading === "logo_url" && (
+                <div className="absolute inset-0 bg-[var(--admin-surface)]/80 backdrop-blur-sm flex items-center justify-center">
+                  <FoodMini size={18} />
+                </div>
+              )}
             </div>
-            <label className="absolute -bottom-1 -right-1 bg-[var(--admin-surface)] text-[var(--admin-text)] p-2 rounded-full border border-[var(--admin-border)] shadow-sm cursor-pointer hover:border-[var(--admin-accent)] transition-all">
+            <label className="absolute -bottom-1 -right-1 bg-[var(--admin-surface)] text-[var(--admin-text)] p-2 rounded-full border border-[var(--admin-border)] shadow-sm cursor-pointer hover:border-[var(--admin-accent)] transition-all z-10">
               <Upload size={12} />
               <input
                 type="file"
@@ -685,40 +802,118 @@ function BrandingBlock({
             </label>
           </div>
 
-          {/* LOGO ZOOM SLIDER */}
-          <div className="mt-3 w-full max-w-[180px] space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
-                Zoom
+          {/* LOGO CONTROLS */}
+          <div className="mt-4 w-full max-w-[220px] space-y-3">
+            {/* Shape selector */}
+            <div className="space-y-1">
+              <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
+                Forma del contenedor
               </span>
-              <span className="text-[10px] font-mono text-[var(--admin-text-muted)]">
-                {logoScale.toFixed(1)}x
-              </span>
+              <div className="flex gap-1">
+                {LOGO_SHAPE_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => onLogoShapeChange(opt.value)}
+                    className={`flex-1 px-2 py-1 text-[10px] font-medium rounded-md transition-all ${
+                      logoShape === opt.value
+                        ? "bg-[var(--admin-accent)] text-white shadow-sm"
+                        : "bg-[var(--admin-bg)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-accent)]/10 border border-[var(--admin-border)]"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
-            <input
-              type="range"
-              min="0.8"
-              max="1.5"
-              step="0.1"
-              value={logoScale}
-              onChange={(e) => onLogoScaleChange(parseFloat(e.target.value))}
-              className="w-full h-1.5 bg-[var(--admin-bg)] rounded-full appearance-none cursor-pointer accent-[var(--admin-accent)] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--admin-accent)] [&::-webkit-slider-thumb]:shadow-sm"
-            />
+
+            {/* Fit selector */}
+            <div className="space-y-1">
+              <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
+                Ajuste de imagen
+              </span>
+              <div className="flex gap-1">
+                {LOGO_FIT_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => onLogoFitChange(opt.value)}
+                    className={`flex-1 px-2 py-1 text-[10px] font-medium rounded-md transition-all ${
+                      logoFit === opt.value
+                        ? "bg-[var(--admin-accent)] text-white shadow-sm"
+                        : "bg-[var(--admin-bg)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-accent)]/10 border border-[var(--admin-border)]"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Position selector */}
+            <div className="space-y-1">
+              <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
+                Posición vertical
+              </span>
+              <div className="flex gap-1">
+                {LOGO_POSITION_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => onLogoPosicionChange(opt.value)}
+                    className={`flex-1 px-2 py-1 text-[10px] font-medium rounded-md transition-all ${
+                      logoPosicion === opt.value
+                        ? "bg-[var(--admin-accent)] text-white shadow-sm"
+                        : "bg-[var(--admin-bg)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-accent)]/10 border border-[var(--admin-border)]"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Zoom slider */}
+            <div className="space-y-1 pt-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
+                  Escala
+                </span>
+                <span className="text-[10px] font-mono text-[var(--admin-text-muted)]">
+                  {logoScale.toFixed(1)}x
+                </span>
+              </div>
+              <input
+                type="range"
+                min="0.5"
+                max="2"
+                step="0.1"
+                value={logoScale}
+                onChange={(e) => onLogoScaleChange(parseFloat(e.target.value))}
+                className="w-full h-1.5 bg-[var(--admin-bg)] rounded-full appearance-none cursor-pointer accent-[var(--admin-accent)] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--admin-accent)] [&::-webkit-slider-thumb]:shadow-sm"
+              />
+            </div>
           </div>
-          <p className="text-[9px] text-[var(--admin-text-muted)] mt-2 text-center leading-normal">
-            Cuadrante estricto 1:1.
+
+          <p className="text-[9px] text-[var(--admin-text-muted)] mt-3 text-center leading-normal">
+            Espacio {logoShape === "circle" ? "1:1" : "flexible"}.
+            <br />
+            {logoFit === "contain"
+              ? "Muestra el logo completo sin recortes."
+              : "Llena el contenedor. Puede recortar bordes."}
             <br />
             Máx {MAX_IMAGE_SIZE_MB}MB (JPG, PNG, WEBP).
           </p>
         </div>
 
-        <div className="md:col-span-8 flex flex-col justify-between h-full space-y-3">
+        {/* BANNER */}
+        <div className="md:col-span-7 flex flex-col justify-between h-full space-y-3">
           <div className="flex justify-between items-center">
             <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
               Banner de Cabecera
             </span>
             <label className="text-[11px] font-medium text-[var(--admin-text)] hover:bg-[var(--admin-bg)] border border-[var(--admin-border)] px-2 py-1 rounded-lg cursor-pointer transition-all flex items-center gap-1.5 shadow-sm">
-              <Upload size={11} /> Cargar lienzo
+              <Upload size={11} /> Cargar
               <input
                 type="file"
                 hidden
@@ -728,7 +923,16 @@ function BrandingBlock({
               />
             </label>
           </div>
-          <div className="relative w-full aspect-[21/8] rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg)] overflow-hidden shadow-sm">
+
+          <div
+            className={`relative w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg)] overflow-hidden shadow-sm ${
+              bannerHeight === "compact"
+                ? "aspect-[21/6]"
+                : bannerHeight === "large"
+                  ? "aspect-[21/10]"
+                  : "aspect-[21/8]"
+            }`}
+          >
             {bannerUrl ? (
               bannerUrl.startsWith("blob:") ? (
                 <img
@@ -760,8 +964,30 @@ function BrandingBlock({
             )}
           </div>
 
-          {/* BANNER VERTICAL POSITION */}
-          <div className="flex items-end justify-between gap-4">
+          {/* Banner controls */}
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="space-y-1.5">
+              <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
+                Altura
+              </span>
+              <div className="flex gap-1">
+                {BANNER_HEIGHT_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => onBannerHeightChange(opt.value)}
+                    className={`px-2.5 py-1 text-[10px] font-medium rounded-md transition-all ${
+                      bannerHeight === opt.value
+                        ? "bg-[var(--admin-accent)] text-white shadow-sm"
+                        : "bg-[var(--admin-bg)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-accent)]/10 border border-[var(--admin-border)]"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="space-y-1.5">
               <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
                 Posición vertical
@@ -783,11 +1009,6 @@ function BrandingBlock({
                 ))}
               </div>
             </div>
-            <p className="text-[9px] text-[var(--admin-text-muted)] leading-none shrink-0">
-              Ratio panorámico: 1200x450px.
-              <br />
-              Máx {MAX_IMAGE_SIZE_MB}MB.
-            </p>
           </div>
 
           {imageError && (
@@ -1056,31 +1277,53 @@ function SocialLinksBlock({
 function PalettePreview({
   colorPrimary,
   bannerUrl,
+  bannerPosicion,
+  bannerHeight,
   logoUrl,
+  logoPosicion,
+  logoFit,
+  logoShape,
   mostrarNombre,
   nombreForm,
   logoScale,
-  bannerPosicion,
 }: {
   colorPrimary: string;
   bannerUrl?: string | null;
+  bannerPosicion?: string;
+  bannerHeight?: string;
   logoUrl?: string | null;
+  logoPosicion?: string;
+  logoFit?: string;
+  logoShape?: string;
   mostrarNombre?: boolean;
   nombreForm?: string;
   logoScale?: number;
-  bannerPosicion?: string;
 }) {
   const palette = useMemo(() => buildBrandPalette(colorPrimary), [colorPrimary]);
   const textColor = palette.textOnBase;
   const contrastOk = meetsWcagAA(textColor, palette.base);
   const contrastLargeOk = meetsWcagAA(textColor, palette.base, true);
 
+  const shapeClass = (s: string) =>
+    s === "circle"
+      ? "rounded-full"
+      : s === "rounded"
+        ? "rounded-xl"
+        : "";
+
+  const bannerAspect =
+    bannerHeight === "compact"
+      ? "aspect-[21/6]"
+      : bannerHeight === "large"
+        ? "aspect-[21/10]"
+        : "aspect-[21/8]";
+
   return (
     <div className="space-y-3">
       {/* Public menu header mockup */}
       <div className="overflow-hidden rounded-lg border border-[var(--admin-border)] bg-white/5">
         {bannerUrl && (
-          <div className="relative aspect-[21/8] overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700">
+          <div className={`relative ${bannerAspect} overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700`}>
             <img
               src={bannerUrl}
               alt=""
@@ -1097,12 +1340,18 @@ function PalettePreview({
         )}
         <div className="flex items-center gap-3 p-3">
           {logoUrl && (
-            <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full ring-2 ring-white/10 shadow-xl">
+            <div
+              className={`h-12 w-12 shrink-0 overflow-hidden ${shapeClass(logoShape || "circle")} ring-2 ring-white/10 shadow-xl`}
+            >
               <img
                 src={logoUrl}
                 alt=""
-                className="h-full w-full rounded-full object-cover"
-                style={{ transform: `scale(${logoScale ?? 1})` }}
+                className={`h-full w-full ${shapeClass(logoShape || "circle")}`}
+                style={{
+                  objectFit: (logoFit || "contain") as "contain" | "cover",
+                  objectPosition: logoPosicion ?? "center",
+                  transform: `scale(${logoScale ?? 1})`,
+                }}
               />
             </div>
           )}
@@ -1165,21 +1414,29 @@ function CatalogDesignBlock({
   error,
   onChange,
   bannerUrl,
+  bannerPosicion,
+  bannerHeight,
   logoUrl,
+  logoPosicion,
+  logoFit,
+  logoShape,
   mostrarNombre,
   nombreForm,
   logoScale,
-  bannerPosicion,
 }: {
   colorPrimary: string;
   error?: string;
   onChange: (val: string) => void;
   bannerUrl?: string | null;
+  bannerPosicion?: string;
+  bannerHeight?: string;
   logoUrl?: string | null;
+  logoPosicion?: string;
+  logoFit?: string;
+  logoShape?: string;
   mostrarNombre?: boolean;
   nombreForm?: string;
   logoScale?: number;
-  bannerPosicion?: string;
 }) {
   return (
     <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
@@ -1255,11 +1512,15 @@ function CatalogDesignBlock({
             <PalettePreview
               colorPrimary={colorPrimary}
               bannerUrl={bannerUrl}
+              bannerPosicion={bannerPosicion}
+              bannerHeight={bannerHeight}
               logoUrl={logoUrl}
+              logoPosicion={logoPosicion}
+              logoFit={logoFit}
+              logoShape={logoShape}
               mostrarNombre={mostrarNombre}
               nombreForm={nombreForm}
               logoScale={logoScale}
-              bannerPosicion={bannerPosicion}
             />
           </div>
         </div>

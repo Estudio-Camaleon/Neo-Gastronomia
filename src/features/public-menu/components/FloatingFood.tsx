@@ -40,7 +40,7 @@ export function FloatingFood() {
 
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-60 overflow-hidden"
+        className="pointer-events-none fixed inset-0 z-20 overflow-hidden"
       >
         {foodIcons.map(({ Icon, size, top, left, right, delay }, idx) => (
           <div

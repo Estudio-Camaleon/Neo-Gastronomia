@@ -115,7 +115,7 @@ export function ExtrasSelector({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.92, y: 20 }}
         transition={{ type: "spring", stiffness: 250, damping: 25 }}
-        className="relative w-full max-w-sm rounded-2xl bg-[var(--color-custom-surface-strong)] shadow-2xl overflow-hidden"
+        className="relative w-[calc(100vw-2rem)] max-w-md sm:max-w-sm rounded-2xl bg-[var(--color-custom-surface-strong)] shadow-2xl overflow-hidden"
       >
         <div className="flex items-center justify-between border-b border-[var(--color-custom-border)] px-5 py-4">
           <div className="min-w-0 flex-1 pr-2">
@@ -185,7 +185,7 @@ export function ExtrasSelector({
                           <span className="block h-2 w-2 rounded-full bg-white" />
                         ) : null}
                       </span>
-                      <span className="flex-1 text-sm font-medium">
+                      <span className="flex-1 text-sm font-medium truncate">
                         {item.nombre}
                       </span>
                       {item.precio > 0 && (

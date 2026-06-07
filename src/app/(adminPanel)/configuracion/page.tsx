@@ -42,9 +42,9 @@ export default async function ConfiguracionPage(props: {
             Identidad y Configuración
           </span>
         </div>
-        <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-[var(--admin-text)] flex items-center gap-3">
+        <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-[var(--admin-text)] flex items-center gap-3">
           Panel de
-          <span className="bg-[var(--admin-accent)] text-white px-3 py-1 rounded-xl text-3xl md:text-5xl shadow-md shadow-[var(--admin-accent)]/20">
+          <span className="bg-[var(--admin-accent)] text-white px-2 sm:px-3 py-1 rounded-xl text-2xl sm:text-3xl md:text-5xl shadow-md shadow-[var(--admin-accent)]/20">
             Control
           </span>
         </h1>

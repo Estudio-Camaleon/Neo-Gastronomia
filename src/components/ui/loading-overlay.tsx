@@ -27,7 +27,7 @@ export function LoadingOverlay({
   if (!isVisible) return null;
 
   return (
-    <div className="relative z-[9999]" role="dialog" aria-modal="true">
+    <div className="relative z-[999999]" role="dialog" aria-modal="true">
       <div
         className={`fixed inset-0 bg-white/60 dark:bg-zinc-950/60 backdrop-blur-sm transition-opacity duration-300 ease-out ${
           isActive ? "opacity-100" : "opacity-0 pointer-events-none"

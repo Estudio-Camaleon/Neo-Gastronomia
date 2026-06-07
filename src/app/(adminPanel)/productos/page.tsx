@@ -32,7 +32,7 @@ export default async function ProductosAdminPage() {
             Gestión de Catálogo
           </span>
         </div>
-        <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-[var(--admin-text)]">
+        <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-[var(--admin-text)]">
           Menú & Stock
         </h1>
         <p className="text-[var(--admin-text-muted)] text-sm font-medium">

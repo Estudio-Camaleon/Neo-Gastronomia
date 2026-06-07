@@ -56,46 +56,37 @@ export default async function DashboardPage() {
 
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
+  const todayISO = todayStart.toISOString();
 
-  const [
-    { data: pedidosHoy },
-    { data: ventasData },
-    { data: clientesNombres },
-    { count: totalProductos },
-    { count: totalCategorias },
-  ] = await Promise.all([
-    supabase
-      .from("pedidos")
-      .select("id, estado, total, cliente_nombre, created_at")
-      .eq("negocio_id", negocioId)
-      .gte("created_at", todayStart.toISOString())
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("pedidos")
-      .select("total")
-      .eq("negocio_id", negocioId)
-      .gte("created_at", todayStart.toISOString()),
-    supabase
-      .from("pedidos")
-      .select("cliente_nombre")
-      .eq("negocio_id", negocioId)
-      .not("cliente_nombre", "is", null),
-    supabase
-      .from("productos")
-      .select("*", { count: "exact", head: true })
-      .eq("negocio_id", negocioId),
-    supabase
-      .from("categorias")
-      .select("*", { count: "exact", head: true })
-      .eq("negocio_id", negocioId),
-  ]);
+  const [pedidosRes, clientesCountRes, productosRes, categoriasRes] =
+    await Promise.all([
+      supabase
+        .from("pedidos")
+        .select("id, estado, total, cliente_nombre, created_at, es_delivery")
+        .eq("negocio_id", negocioId)
+        .gte("created_at", todayISO)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("clientes")
+        .select("id", { count: "exact", head: true })
+        .eq("negocio_id", negocioId),
+      supabase
+        .from("productos")
+        .select("*", { count: "exact", head: true })
+        .eq("negocio_id", negocioId),
+      supabase
+        .from("categorias")
+        .select("*", { count: "exact", head: true })
+        .eq("negocio_id", negocioId),
+    ]);
 
-  const listaPedidos = pedidosHoy ?? [];
-  const ventasHoy =
-    ventasData?.reduce((sum, p) => sum + (Number(p.total) || 0), 0) ?? 0;
-  const totalClientes = new Set(
-    clientesNombres?.map((c) => c.cliente_nombre).filter(Boolean),
-  ).size;
+  const listaPedidos = pedidosRes.data ?? [];
+  const ventasHoy = listaPedidos
+    .filter((p) => p.estado !== "cancelado")
+    .reduce((sum, p) => sum + (Number(p.total) || 0), 0);
+  const totalClientes = clientesCountRes.count ?? 0;
+  const totalProductos = productosRes.count ?? 0;
+  const totalCategorias = categoriasRes.count ?? 0;
 
   const pendientes = listaPedidos.filter(
     (p) => p.estado === "pendiente",
@@ -123,8 +114,8 @@ export default async function DashboardPage() {
     <div className="max-w-7xl mx-auto space-y-8 relative z-10">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-[var(--admin-text)]">
-            Hola, {negocio.nombre} 👋
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-[var(--admin-text)]">
+            Hola, {negocio.nombre}
           </h1>
           <p className="text-[var(--admin-text-muted)] text-sm font-medium capitalize">
             {new Date().toLocaleDateString("es-AR", {
@@ -165,7 +156,7 @@ export default async function DashboardPage() {
         <div className="admin-card p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-gradient-to-br from-[var(--admin-accent)]/5 to-transparent">
           <div className="space-y-2">
             <h2 className="text-xl font-bold text-[var(--admin-text)]">
-              ¡Bienvenido a NEO! 🚀
+              Bienvenido a NEO
             </h2>
             <p className="text-sm font-medium text-[var(--admin-text-muted)] max-w-lg">
               Comienza configurando tu menú para recibir tus primeros pedidos.
@@ -237,8 +228,12 @@ export default async function DashboardPage() {
               value={`$${ticketPromedio.toFixed(2)}`}
             />
             <ResumenRow
-              label="Delivery / Local"
-              value={`${listaPedidos.filter((p) => p.estado !== "cancelado").length} activos`}
+              label="Delivery"
+              value={String(listaPedidos.filter((p) => p.es_delivery && p.estado !== "cancelado").length)}
+            />
+            <ResumenRow
+              label="Local"
+              value={String(listaPedidos.filter((p) => !p.es_delivery && p.estado !== "cancelado").length)}
             />
           </div>
         </div>

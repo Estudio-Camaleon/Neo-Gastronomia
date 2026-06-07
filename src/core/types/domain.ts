@@ -10,8 +10,12 @@ export interface NegocioPublico {
   color_primary: string | null;
   banner_url: string | null;
   banner_posicion?: string;
+  banner_height?: string;
   logo_url: string | null;
   logo_scale?: number;
+  logo_posicion?: string;
+  logo_fit?: string;
+  logo_shape?: string;
   mostrar_nombre?: boolean;
   direccion: string | null;
   localidad: string | null;
@@ -94,14 +98,16 @@ export interface PedidoItem {
 
 export interface PedidoData {
   id: string;
+  negocio_id?: string;
   estado: OrderStatus;
   cliente_nombre: string;
+  cliente_whatsapp: string;
   metodo_pago: string;
   total: number;
-  cliente_whatsapp: string;
   es_delivery: boolean;
   direccion_entrega?: string | null;
   notas?: string | null;
+  created_at: string;
   pedido_items: PedidoItem[];
 }
 
@@ -127,8 +133,12 @@ export interface UpdateTenantBrandingPayload {
   color_primary: string;
   logo_url: string;
   logo_scale: number;
+  logo_posicion: string;
+  logo_fit: string;
+  logo_shape: string;
   banner_url: string;
   banner_posicion: string;
+  banner_height: string;
   mostrar_nombre: boolean;
   instagram_url: string;
   facebook_url: string;

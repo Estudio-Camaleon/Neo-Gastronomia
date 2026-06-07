@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { X, UploadCloud } from "lucide-react";
+import { FoodMini } from "@/components/ui/food-loading";
 import { toast } from "sonner";
 
 interface ImageUploadProps {

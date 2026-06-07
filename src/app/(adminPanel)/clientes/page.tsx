@@ -115,7 +115,7 @@ export default async function ClientesPage() {
         </div>
 
         <div className="space-y-3">
-          <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-[var(--admin-text)]">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-[var(--admin-text)]">
             Tus Clientes
           </h1>
           <p className="max-w-2xl text-sm font-medium text-[var(--admin-text-muted)] border-l-2 border-[var(--admin-accent)] pl-4 leading-relaxed">

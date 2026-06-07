@@ -46,6 +46,33 @@ const receiptEmptyVariants = {
   },
 };
 
+function DashedDivider() {
+  return (
+    <div className="relative my-2 flex items-center justify-center overflow-hidden">
+      <div className="h-px w-full bg-[length:8px_1px] bg-[repeating-linear-gradient(90deg,#aaa_0px,#aaa_4px,transparent_4px,transparent_8px)] opacity-60" />
+      <Scissors
+        size={10}
+        className="absolute text-[#aaa] rotate-90 opacity-40"
+      />
+    </div>
+  );
+}
+
+function ReceiptHeader({ receiptId }: { receiptId: string }) {
+  return (
+    <motion.div
+      variants={receiptLineVariants}
+      className="text-center space-y-1 pb-2"
+    >
+      <div className="flex justify-center gap-1 text-[11px] font-mono tracking-[0.25em] text-[#555] uppercase opacity-60">
+        <Printer size={11} />
+        TICKET
+      </div>
+      <p className="font-mono text-[11px] text-[#555]">{receiptId}</p>
+    </motion.div>
+  );
+}
+
 interface PublicCartProps {
   negocioId: string;
   negocioNombre?: string;
@@ -135,29 +162,6 @@ export function PublicCart({
     [],
   );
 
-  const DashedDivider = () => (
-    <div className="relative my-2 flex items-center justify-center overflow-hidden">
-      <div className="h-px w-full bg-[length:8px_1px] bg-[repeating-linear-gradient(90deg,#aaa_0px,#aaa_4px,transparent_4px,transparent_8px)] opacity-60" />
-      <Scissors
-        size={10}
-        className="absolute text-[#aaa] rotate-90 opacity-40"
-      />
-    </div>
-  );
-
-  const ReceiptHeader = () => (
-    <motion.div
-      variants={receiptLineVariants}
-      className="text-center space-y-1 pb-2"
-    >
-      <div className="flex justify-center gap-1 text-[11px] font-mono tracking-[0.25em] text-[#555] uppercase opacity-60">
-        <Printer size={11} />
-        TICKET
-      </div>
-      <p className="font-mono text-[11px] text-[#555]">{receiptId}</p>
-    </motion.div>
-  );
-
   const renderCartContent = () => (
     <div className="flex h-full flex-col justify-between font-mono text-[14px] leading-relaxed text-[#111]">
       {cart.length === 0 ? (
@@ -214,7 +218,7 @@ export function PublicCart({
           className="flex h-full flex-col justify-between"
         >
           <div>
-            <ReceiptHeader />
+            <ReceiptHeader receiptId={receiptId} />
             <DashedDivider />
 
             <div className="max-h-[340px] overflow-y-auto pr-1 receipt-scrollbar">

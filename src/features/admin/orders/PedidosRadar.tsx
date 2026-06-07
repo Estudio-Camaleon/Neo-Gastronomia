@@ -12,6 +12,7 @@ import {
   ChevronRight,
   List,
   Filter,
+  Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PedidoCard } from "./PedidoCard";
@@ -34,10 +35,12 @@ export function PedidosRadar({
   const [filter, setFilter] = useState("");
   const [debouncedFilter, setDebouncedFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
+  const [dateFilter, setDateFilter] = useState<"today" | "all">("today");
   const [showAll, setShowAll] = useState(false);
   const [pedidos, setPedidos] = useState<PedidoData[]>(initialPedidos);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const knownIdsRef = useRef<Set<string>>(new Set(initialPedidos.map((p) => p.id)));
   const { latestNewPedido, latestUpdateEvent, acknowledgeNewOrders, acknowledgeUpdateEvent } = useOrderNotifications();
@@ -53,7 +56,7 @@ export function PedidosRadar({
     };
   }, [filter]);
 
-  const ORDERS_PER_PAGE = 6;
+  const ORDERS_PER_PAGE = 18;
 
   const pedidosActivos = useMemo(
     () =>
@@ -65,22 +68,36 @@ export function PedidosRadar({
 
   const pedidosFiltrados = useMemo(
     () => {
-      const source = ["entregado", "cancelado"].includes(statusFilter)
+      let source = ["entregado", "cancelado"].includes(statusFilter)
         ? pedidos
         : pedidosActivos;
+
+      // Date filter
+      if (dateFilter === "today") {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        source = source.filter((p) => new Date(p.created_at) >= today);
+      }
+
       return source
         .filter((p) =>
           statusFilter === "todos" ? true : p.estado === statusFilter,
         )
-        .filter(
-          (p) =>
-            p.cliente_nombre
-              .toLowerCase()
-              .includes(debouncedFilter.toLowerCase()) ||
-            p.id.includes(debouncedFilter),
-        );
+        .filter((p) => {
+          if (!debouncedFilter) return true;
+          const q = debouncedFilter.toLowerCase();
+          return (
+            p.cliente_nombre.toLowerCase().includes(q) ||
+            p.id.includes(debouncedFilter) ||
+            (p.cliente_whatsapp || "").includes(debouncedFilter) ||
+            p.metodo_pago.toLowerCase().includes(q) ||
+            (p.pedido_items || []).some((item) =>
+              item.nombre_producto.toLowerCase().includes(q),
+            )
+          );
+        });
     },
-    [pedidos, pedidosActivos, debouncedFilter, statusFilter],
+    [pedidos, pedidosActivos, debouncedFilter, statusFilter, dateFilter],
   );
 
   const totalPages = showAll
@@ -93,6 +110,54 @@ export function PedidosRadar({
         currentPage * ORDERS_PER_PAGE,
         (currentPage + 1) * ORDERS_PER_PAGE,
       );
+
+  // ── Keyboard shortcuts ──
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Don't trigger when typing in the search input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      // Show only visible pedidos on screen (paginated)
+      const visiblePedidos = pedidosPagina.filter((p) => p.estado === "pendiente" || p.estado === "en_preparacion");
+      if (visiblePedidos.length === 0) return;
+
+      const first = visiblePedidos[0];
+      switch (e.key) {
+        case "1":
+          if (first.estado === "pendiente") {
+            e.preventDefault();
+            handleUpdateStatus(first.id, "en_preparacion");
+          }
+          break;
+        case "2":
+          if (first.estado === "en_preparacion") {
+            e.preventDefault();
+            handleUpdateStatus(first.id, "entregado");
+          }
+          break;
+        case "3":
+          if (first.estado === "pendiente") {
+            e.preventDefault();
+            handleUpdateStatus(first.id, "cancelado");
+          }
+          break;
+        case "s":
+        case "S":
+          if (e.metaKey || e.ctrlKey) break;
+          e.preventDefault();
+          searchInputRef.current?.focus();
+          break;
+        case "t":
+        case "T":
+          e.preventDefault();
+          setDateFilter((prev) => (prev === "today" ? "all" : "today"));
+          break;
+      }
+    };
+
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [pedidosPagina]);
 
   // ── Acknowledge pending notifications on mount ──
   useEffect(() => {
@@ -208,7 +273,7 @@ export function PedidosRadar({
         {radarItems.map((item, idx) => (
           <div
             key={idx}
-            className={`admin-card !p-5 ${item.border} transition-all duration-300 rounded-2xl hover:shadow-lg ${item.glow}`}
+            className={`admin-card !p-4 sm:!p-5 ${item.border} transition-all duration-300 rounded-2xl hover:shadow-lg ${item.glow}`}
           >
             <div className="flex justify-between items-start mb-2">
               <span className="text-xs font-black uppercase tracking-wider text-[var(--admin-text-muted)]">
@@ -220,7 +285,7 @@ export function PedidosRadar({
             </div>
             <div className="flex items-center gap-3">
               <span
-                className={`text-4xl font-black tracking-tight ${item.textColor}`}
+                className={`text-2xl sm:text-4xl font-black tracking-tight ${item.textColor}`}
               >
                 {item.value}
               </span>
@@ -263,6 +328,20 @@ export function PedidosRadar({
 
         <button
           onClick={() => {
+            setDateFilter((prev) => (prev === "today" ? "all" : "today"));
+            setPage(0);
+          }}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl border transition-all ${
+            dateFilter === "today"
+              ? "bg-[var(--admin-accent)]/10 text-[var(--admin-accent)] border-[var(--admin-accent)]/30"
+              : "border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"
+          }`}
+        >
+          <Calendar size={14} />
+          {dateFilter === "today" ? "Hoy" : "Todos"}
+        </button>
+        <button
+          onClick={() => {
             setShowAll(!showAll);
             setPage(0);
           }}
@@ -282,12 +361,14 @@ export function PedidosRadar({
           <Search size={18} />
         </div>
         <input
+          ref={searchInputRef}
           type="text"
-          placeholder="Buscar pedido por cliente o código..."
+          placeholder="Buscar por cliente, código, teléfono, producto…"
           className="flex-1 admin-input !border-none !shadow-none !bg-transparent"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         />
+        <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-1 text-[10px] font-mono text-[var(--admin-text-muted)] bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-md">S</kbd>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -337,7 +418,9 @@ export function PedidosRadar({
           <p className="text-sm font-medium text-[var(--admin-text-muted)]">
             {pedidos.length === 0
               ? "Aún no hay pedidos registrados."
-              : "No se encontraron pedidos con este filtro."}
+              : dateFilter === "today"
+                ? "No hay pedidos para hoy con este filtro."
+                : "No se encontraron pedidos con este filtro."}
           </p>
         </div>
       )}

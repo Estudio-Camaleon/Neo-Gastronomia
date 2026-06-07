@@ -327,7 +327,7 @@ function LogoutModal({
   negocioNombre?: string;
 }) {
   return (
-    <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md z-[999999] flex items-center justify-center p-4 animate-in fade-in duration-200">
       <div className="bg-[var(--admin-surface)] rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl relative border border-[var(--admin-border)] animate-in zoom-in-95 duration-150">
         <div className="mx-auto w-12 h-12 bg-red-50 dark:bg-red-950/20 text-[var(--admin-danger)] flex items-center justify-center mb-5 rounded-full border border-red-200 dark:border-red-900/30">
           <AlertCircle size={24} />

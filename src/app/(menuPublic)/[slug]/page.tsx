@@ -61,7 +61,7 @@ export default async function PublicMenuPage({ params }: PublicPageProps) {
   const { data: negocios } = await supabase
     .from("negocios")
     .select(
-      "id, nombre, slug, color_primary, banner_url, banner_posicion, logo_url, logo_scale, mostrar_nombre, direccion, localidad, direccion_notas, whatsapp, instagram_url, facebook_url, tiktok_url, horarios",
+      "id, nombre, slug, color_primary, banner_url, banner_posicion, banner_height, logo_url, logo_scale, logo_posicion, logo_fit, logo_shape, mostrar_nombre, direccion, localidad, direccion_notas, whatsapp, instagram_url, facebook_url, tiktok_url, horarios",
     )
     .eq("slug", slug.toLowerCase())
     .limit(1)
@@ -84,6 +84,15 @@ export default async function PublicMenuPage({ params }: PublicPageProps) {
       (cat) => cat.productos && cat.productos.length > 0,
     ) || [];
 
+  // Productos sin categoria - para mostrarlos en "Todos"
+  const { data: uncategorized } = await supabase
+    .from("productos")
+    .select("id, nombre, descripcion, precio, imagen_url, disponible, configuracion")
+    .is("categoria_id", null)
+    .eq("negocio_id", negocio.id)
+    .order("nombre")
+    .returns<any[]>();
+
   const { data: promos } = await supabase
     .from("promos")
     .select("*")
@@ -97,6 +106,7 @@ export default async function PublicMenuPage({ params }: PublicPageProps) {
       negocio={negocio}
       categorias={categoriasFormateadas}
       promos={promos ?? []}
+      uncategorizedProducts={uncategorized ?? []}
     />
   );
 }

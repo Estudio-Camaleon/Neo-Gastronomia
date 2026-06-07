@@ -72,16 +72,16 @@ export default async function AdminPanelLayout({
         <div className="fixed bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-[var(--admin-accent-secondary)]/60 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none animate-blob-reverse" />
 
         {/* Sidebar expandido (md+ y lg+) */}
-        <aside className="hidden md:flex md:w-60 lg:w-72 md:flex-col md:fixed md:inset-y-0 z-20">
+        <aside className="hidden lg:flex lg:w-1/5 lg:min-w-[200px] lg:max-w-[320px] lg:flex-col lg:fixed lg:inset-y-0 z-20">
           <Sidebar slug={negocio.slug} negocioNombre={negocio.nombre} />
         </aside>
 
         {/* Contenedor de Trabajo Principal */}
-        <div className="flex-1 flex flex-col md:pl-60 lg:pl-72 pb-[4.5rem] md:pb-0">
+        <div className="flex-1 flex flex-col lg:pl-[20%] pb-[5rem] lg:pb-0">
           {/* Header - solo visible en mobile (< md) */}
-          <header className="flex md:hidden items-center justify-between px-3 py-3 border-b border-[var(--admin-border)] bg-[var(--admin-surface)] backdrop-blur-lg sticky top-0 z-[60] transition-all duration-300 safe-top">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-[var(--admin-accent)] flex items-center justify-center text-white font-bold shadow-sm shrink-0">
+          <header className="flex lg:hidden items-center justify-between px-4 py-3 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]/95 backdrop-blur-lg sticky top-0 z-[60] transition-all duration-300 safe-top">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-[var(--admin-accent)] flex items-center justify-center text-white font-bold shadow-sm shrink-0">
                 N
               </div>
               <span className="font-bold text-base sm:text-lg text-[var(--admin-text)] tracking-tight">
@@ -94,7 +94,7 @@ export default async function AdminPanelLayout({
             <MobileSidebar slug={negocio.slug} negocioNombre={negocio.nombre} />
           </header>
 
-          <main className="flex-1 p-3 sm:p-4 md:p-6 lg:p-10 w-full max-w-7xl mx-auto animate-in fade-in duration-300 relative">
+          <main className="flex-1 p-3 sm:p-4 lg:p-6 xl:p-10 w-full max-w-7xl mx-auto animate-in fade-in duration-300 relative">
             <Suspense
               fallback={
                 <div className="flex items-center justify-center h-[60vh]">

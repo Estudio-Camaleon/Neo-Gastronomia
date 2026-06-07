@@ -76,7 +76,7 @@ export function ComboDetailModal({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.92, y: 20 }}
         transition={{ type: "spring", stiffness: 250, damping: 25 }}
-        className="relative w-full max-w-sm rounded-2xl bg-[var(--color-custom-surface-strong)] shadow-2xl overflow-hidden"
+        className="relative w-[calc(100vw-2rem)] max-w-md sm:max-w-sm rounded-2xl bg-[var(--color-custom-surface-strong)] shadow-2xl overflow-hidden"
       >
         {/* Image */}
         {promo.imagen_url ? (
@@ -138,7 +138,7 @@ export function ComboDetailModal({
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--color-custom-500)]/15 text-[11px] font-bold text-[var(--color-custom-700)]">
                     {item.cantidad}
                   </span>
-                  <span className="flex-1 text-sm font-medium text-[var(--color-custom-900)]">
+                  <span className="flex-1 text-sm font-medium text-[var(--color-custom-900)] truncate">
                     {item.nombre_producto}
                   </span>
                   {item.precio > 0 && (

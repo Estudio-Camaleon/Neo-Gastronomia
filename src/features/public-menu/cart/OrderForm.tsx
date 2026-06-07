@@ -12,6 +12,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import { toast } from "sonner";
+import { FoodMini } from "@/components/ui/food-loading";
 import { z } from "zod";
 import { createClient } from "@/core/lib/supabase/client";
 import { submitOrderPublicAction } from "../../admin/orders/actions";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { upsertProductAction } from "@/features/admin/catalog/actions";
 import type { ExtraGroup, ExtraItem } from "@/core/types/domain";
 import { ImageUpload } from "@/components/ui/image-upload";
@@ -49,7 +49,7 @@ export function ProductoForm({
   const [formData, setFormData] = useState({
     nombre: initialData?.nombre || "",
     descripcion: initialData?.descripcion || "",
-    precio: initialData?.precio ?? "",
+    precio: initialData?.precio ?? 0,
     imagen_url: initialData?.imagen_url || null,
     categoria_id: initialData?.categoria_id || "",
     disponible: initialData?.disponible ?? true,
@@ -82,7 +82,7 @@ export function ProductoForm({
     const hasChanges =
       formData.nombre !== (initialData?.nombre || "") ||
       formData.descripcion !== (initialData?.descripcion || "") ||
-      formData.precio !== (initialData?.precio || "") ||
+      formData.precio !== (initialData?.precio ?? 0) ||
       formData.imagen_url !== (initialData?.imagen_url || null) ||
       formData.categoria_id !== (initialData?.categoria_id || "") ||
       formData.disponible !== (initialData?.disponible ?? true) ||
@@ -92,16 +92,6 @@ export function ProductoForm({
         JSON.stringify(initialData?.configuracion?.grupos_opciones || []);
     onUnsavedChange(hasChanges);
   }, [formData, variantes, gruposOpciones, initialData, onUnsavedChange]);
-
-  const variantIds = useRef<string[]>([]);
-  const syncVariantIds = (len: number) => {
-    while (variantIds.current.length < len) {
-      variantIds.current.push(crypto.randomUUID());
-    }
-    if (variantIds.current.length > len) {
-      variantIds.current = variantIds.current.slice(0, len);
-    }
-  };
 
   const agregarVariante = () => {
     setVariantes([...variantes, { nombre: "", precio: 0 }]);
@@ -179,8 +169,6 @@ export function ProductoForm({
     );
   };
 
-  syncVariantIds(variantes.length);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!negocioId) return toast.error("Error crítico: Negocio ID ausente.");
@@ -188,10 +176,19 @@ export function ProductoForm({
     setIsPending(true);
 
     try {
+      const precio = Number(formData.precio);
+      if (isNaN(precio) || precio < 0) {
+        toast.error("Precio inválido", {
+          description: "Ingresá un número válido mayor o igual a 0.",
+        });
+        setIsPending(false);
+        return;
+      }
+
       const payload = {
         nombre: formData.nombre.trim(),
         descripcion: formData.descripcion.trim() || null,
-        precio: Number(formData.precio),
+        precio,
         imagen_url: formData.imagen_url || null,
         categoria_id: formData.categoria_id || null,
         disponible: formData.disponible,
@@ -219,10 +216,9 @@ export function ProductoForm({
       });
 
       if (onSuccess) onSuccess();
-    } catch {
-      toast.error("Error al guardar el producto", {
-        description: "Hubo un problema de conexión.",
-      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Hubo un problema de conexión.";
+      toast.error("Error al guardar el producto", { description: msg });
     } finally {
       setIsPending(false);
     }
@@ -315,9 +311,10 @@ export function ProductoForm({
                   min="0"
                   step="0.01"
                   value={formData.precio}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, precio: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    const val = e.target.valueAsNumber;
+                    setFormData((prev) => ({ ...prev, precio: isNaN(val) ? 0 : val }));
+                  }}
                   className="w-full p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] font-medium text-sm text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all rounded-lg"
                   placeholder="0.00"
                 />
@@ -372,7 +369,7 @@ export function ProductoForm({
               <div className="space-y-3">
                 {variantes.map((v, idx) => (
                   <div
-                    key={variantIds.current[idx]}
+                    key={idx}
                     className="flex flex-wrap gap-2 items-center bg-[var(--admin-surface)] p-2 border border-[var(--admin-border)] rounded-lg shadow-sm"
                   >
                     <input
