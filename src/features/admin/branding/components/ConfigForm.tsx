@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -29,7 +29,6 @@ import {
   updateTenantBrandingAction,
   deleteTenantBrandingAction,
 } from "../actions";
-import { buildBrandPalette, meetsWcagAA } from "@/core/lib/utils/color";
 import { generateSlug } from "@/core/lib/slug";
 import type { UpdateTenantBrandingPayload, DireccionFisica } from "@/core/types/domain";
 import { useUnsavedChanges } from "@/core/hooks/useUnsavedChanges";
@@ -1000,23 +999,31 @@ function BrandingBlock({
             }`}
           >
             {bannerUrl ? (
-              bannerUrl.startsWith("blob:") ? (
-                <img
-                  src={bannerUrl}
-                  alt="Portada"
-                  className="h-full w-full object-cover scale-105 animate-in fade-in duration-200"
-                  style={{ objectPosition: bannerPosicion }}
-                />
-              ) : (
-                <Image
-                  src={bannerUrl}
-                  fill
-                  className="object-cover scale-105 animate-in fade-in duration-200"
-                  style={{ objectPosition: bannerPosicion }}
-                  alt="Portada"
-                  sizes="(max-width: 768px) 100vw, 650px"
-                />
-              )
+              <div
+                className="absolute inset-0"
+                style={{
+                  transform: `scale(${bannerScale ?? 1})`,
+                  transformOrigin: "center top",
+                }}
+              >
+                {bannerUrl.startsWith("blob:") ? (
+                  <img
+                    src={bannerUrl}
+                    alt="Portada"
+                    className="h-full w-full object-cover animate-in fade-in duration-200"
+                    style={{ objectPosition: bannerPosicion }}
+                  />
+                ) : (
+                  <Image
+                    src={bannerUrl}
+                    fill
+                    className="object-cover animate-in fade-in duration-200"
+                    style={{ objectPosition: bannerPosicion }}
+                    alt="Portada"
+                    sizes="(max-width: 768px) 100vw, 650px"
+                  />
+                )}
+              </div>
             ) : (
               <div className="w-full h-full flex items-center justify-center text-[var(--admin-text-muted)] opacity-50">
                 <ImageIcon size={28} />
@@ -1307,153 +1314,6 @@ function SocialLinksBlock({
   );
 }
 
-function PalettePreview({
-  colorPrimary,
-  bannerUrl,
-  bannerPosicion,
-  bannerHeight,
-  bannerScale,
-  logoUrl,
-  logoPosicion,
-  logoFit,
-  logoShape,
-  mostrarNombre,
-  nombreForm,
-  logoScale,
-}: {
-  colorPrimary: string;
-  bannerUrl?: string | null;
-  bannerPosicion?: string;
-  bannerHeight?: string;
-  bannerScale?: number;
-  logoUrl?: string | null;
-  logoPosicion?: string;
-  logoFit?: string;
-  logoShape?: string;
-  mostrarNombre?: boolean;
-  nombreForm?: string;
-  logoScale?: number;
-}) {
-  const palette = useMemo(() => buildBrandPalette(colorPrimary), [colorPrimary]);
-  const textColor = palette.textOnBase;
-  const contrastOk = meetsWcagAA(textColor, palette.base);
-  const contrastLargeOk = meetsWcagAA(textColor, palette.base, true);
-
-  const shapeClass = (s: string) =>
-    s === "circle"
-      ? "rounded-full"
-      : s === "rounded"
-        ? "rounded-xl"
-        : "";
-
-  const bannerAspect =
-    bannerHeight === "compact"
-      ? "aspect-[21/6]"
-      : bannerHeight === "large"
-        ? "aspect-[21/10]"
-        : "aspect-[21/8]";
-
-  return (
-    <div className="space-y-3">
-      {/* Public menu header mockup */}
-      <div className="overflow-hidden rounded-lg border border-[var(--admin-border)] bg-white/5">
-        {bannerUrl && (
-          <div className={`relative ${bannerAspect} overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700`}>
-            <div
-              className="absolute inset-0"
-              style={{
-                transform: `scale(${bannerScale ?? 1})`,
-                transformOrigin: "center top",
-              }}
-            >
-              <img
-                src={bannerUrl}
-                alt=""
-                className="h-full w-full object-cover"
-                style={{
-                  objectPosition: bannerPosicion ?? "center",
-                }}
-              />
-            </div>
-            <div
-              className="absolute inset-0"
-              style={{
-                background: `radial-gradient(ellipse at center, transparent 60%, ${palette.surface} 95%)`,
-              }}
-            />
-          </div>
-        )}
-        <div className="flex items-center gap-3 p-3">
-          {logoUrl && (
-            <div
-              className={`h-12 w-12 shrink-0 overflow-hidden ${shapeClass(logoShape || "circle")} ring-2 ring-white/10 shadow-xl`}
-            >
-              <img
-                src={logoUrl}
-                alt=""
-                className={`h-full w-full ${shapeClass(logoShape || "circle")}`}
-                style={{
-                  objectFit: (logoFit || "contain") as "contain" | "cover",
-                  objectPosition: logoPosicion ?? "center",
-                  transform: `scale(${logoScale ?? 1})`,
-                }}
-              />
-            </div>
-          )}
-          {(mostrarNombre ?? true) && (
-            <div>
-              <div
-                className="text-base font-black leading-none tracking-[-0.06em]"
-                style={{ color: palette["900"] as string }}
-              >
-                {nombreForm || "Nombre del negocio"}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="flex gap-1 items-center">
-        {["50", "100", "200", "300", "400", "500", "600", "700", "800", "900", "950"].map(
-          (shade) => (
-            <div
-              key={shade}
-              className="h-6 flex-1 rounded-[3px] first:rounded-l-md last:rounded-r-md"
-              style={{ backgroundColor: palette[shade as keyof typeof palette] as string }}
-              title={`${shade}: ${palette[shade as keyof typeof palette]}`}
-            />
-          ),
-        )}
-      </div>
-
-      <div className="flex gap-2">
-        <div className="flex-1 p-2 rounded-lg text-center text-[10px] font-bold"
-          style={{ backgroundColor: palette.base, color: palette.textOnBase }}>
-          Botón principal
-        </div>
-        <div className="flex-1 p-2 rounded-lg text-center text-[10px] font-bold border"
-          style={{ borderColor: palette.base, color: palette.base }}>
-          Outline
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2 text-[10px]">
-        <span className="text-[var(--admin-text-muted)]">Contraste texto/botón:</span>
-        <span className={`font-bold flex items-center gap-1 ${
-          contrastOk ? "text-green-600" : "text-red-500"
-        }`}>
-          {contrastOk ? "AA" : "No cumple AA"}
-        </span>
-        {!contrastOk && contrastLargeOk && (
-          <span className="text-amber-500 font-semibold">
-            (solo texto grande ≥18px)
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function CatalogDesignBlock({
   colorPrimary,
   error,
@@ -1552,25 +1412,7 @@ function CatalogDesignBlock({
             </div>
           </div>
 
-          <div className="border-t border-[var(--admin-border)] pt-3">
-            <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block mb-2">
-              Vista previa en vivo
-            </span>
-            <PalettePreview
-              colorPrimary={colorPrimary}
-              bannerUrl={bannerUrl}
-              bannerPosicion={bannerPosicion}
-              bannerHeight={bannerHeight}
-              bannerScale={bannerScale}
-              logoUrl={logoUrl}
-              logoPosicion={logoPosicion}
-              logoFit={logoFit}
-              logoShape={logoShape}
-              mostrarNombre={mostrarNombre}
-              nombreForm={nombreForm}
-              logoScale={logoScale}
-            />
-          </div>
+          {/* Vista previa eliminada — los cambios se ven en vivo en BrandingBlock */}
         </div>
       </div>
 
