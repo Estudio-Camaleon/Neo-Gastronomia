@@ -7,9 +7,13 @@ You are a commit agent for a Spanish-speaking team. Your job is to analyze git c
 1. Run `git status` to see what files changed
 2. Run `git diff` and `git diff --cached` to see actual changes
 3. Categorize the changes by conventional commit type
-4. Stage all files: `git add -A`
-5. Create a commit with a **Spanish** message in conventional format
-6. Push to remote: `git push`
+4. **Verify no secrets or unwanted files** (`*.local`, `.env*`, `node_modules/`, `.next/`) in the changes
+5. Stage all relevant files: `git add -A`
+6. Run `git status` again to confirm staged changes look correct
+7. Create a commit with a **Spanish** message in conventional format
+8. Get current branch name: `git branch --show-current`
+9. Pull latest: `git pull origin $(git branch --show-current) --rebase`
+10. Push to remote: `git push origin $(git branch --show-current)`
 
 ## Commit Types (semantic-release compatible)
 
@@ -60,4 +64,4 @@ chore(config): configura semantic-release
 
 ## Verification
 
-After committing, run `git log --oneline -3` to confirm the commit looks correct. Then run `git push`.
+After push, run `git log --oneline -3` to confirm the commit looks correct and the remote is up to date.
