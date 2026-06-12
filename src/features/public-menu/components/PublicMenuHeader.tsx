@@ -23,6 +23,7 @@ export function PublicMenuHeader({
 }) {
   // Show modal on every page load if the business is closed
   const [showClosedModal, setShowClosedModal] = useState(false);
+  const [showAddresses, setShowAddresses] = useState(false);
 
   useEffect(() => {
     if (!isOpenNow) {
@@ -50,19 +51,26 @@ export function PublicMenuHeader({
                 : "100%",
           }}
         >
-          <Image
-            src={negocio.banner_url}
-            alt=""
-            fill
-            className="object-cover"
-            sizes="100vw"
-            priority
-            loading="eager"
+          <div
+            className="absolute inset-0"
             style={{
-              objectPosition: negocio.banner_posicion ?? "center",
               transform: `scale(${negocio.banner_scale ?? 1})`,
+              transformOrigin: "center top",
             }}
-          />
+          >
+            <Image
+              src={negocio.banner_url}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="100vw"
+              priority
+              loading="eager"
+              style={{
+                objectPosition: negocio.banner_posicion ?? "center",
+              }}
+            />
+          </div>
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_60%,var(--color-custom-surface)_95%)]" />
         </div>
       )}
@@ -261,7 +269,7 @@ export function PublicMenuHeader({
               <motion.div
                 whileHover={{ y: -3 }}
                 className="relative flex items-center gap-2 rounded-2xl bg-[var(--color-custom-900)]/70 p-2 text-sm text-white cursor-pointer"
-                onClick={() => setShowSchedule(!showSchedule)}
+                onClick={() => setShowAddresses(!showAddresses)}
               >
                 <MapPin className="h-4 w-4 shrink-0" />
                 <span className="hidden sm:inline max-w-[160px] truncate">
@@ -270,7 +278,7 @@ export function PublicMenuHeader({
                     : negocio.localidad || "Sucursal Centro"}
                 </span>
                 {negocio.direcciones && negocio.direcciones.length > 1 && (
-                  <ChevronDown size={12} className="shrink-0 opacity-60" />
+                  <ChevronDown size={12} className={`shrink-0 opacity-60 transition-transform ${showAddresses ? "rotate-180" : ""}`} />
                 )}
               </motion.div>
 
@@ -279,6 +287,83 @@ export function PublicMenuHeader({
                 <span className="hidden sm:inline">{showSchedule ? "Ocultar horarios" : "Ver horarios"}</span>
               </motion.button>
             </div>
+
+            {/* Addresses dropdown */}
+            <AnimatePresence>
+              {showAddresses && negocio.direcciones && negocio.direcciones.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.25, ease: "easeInOut" }}
+                  className="w-full max-w-sm overflow-hidden"
+                >
+                  <div className="flex flex-col gap-2 rounded-2xl bg-[var(--color-custom-900)]/70 p-3 text-sm text-white/90">
+                    {negocio.direcciones.map((dir) => (
+                      <div key={dir.id} className="flex items-start gap-2">
+                        <span className="mt-1 shrink-0 w-1.5 h-1.5 rounded-full bg-[var(--color-custom-500)]" />
+                        <div>
+                          <span className="font-semibold text-white">{dir.nombre}</span>
+                          {", "}
+                          {dir.direccion}
+                          {dir.localidad && <span className="text-white/60">, {dir.localidad}</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Schedule dropdown */}
+            <AnimatePresence>
+              {showSchedule && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.25, ease: "easeInOut" }}
+                  className="w-full max-w-sm overflow-hidden"
+                >
+                  <div className="grid grid-cols-2 gap-2 rounded-2xl bg-[var(--color-custom-900)]/70 p-3 text-sm">
+                    {(() => {
+                      const days = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"];
+                      const labels: Record<string, string> = {
+                        lunes: "Lun", martes: "Mar", miercoles: "Mié", jueves: "Jue", viernes: "Vie", sabado: "Sáb", domingo: "Dom",
+                      };
+                      return days.map((day) => {
+                        const config = negocio.horarios?.[day] || null;
+                        const isToday = day === todayKey;
+                        return (
+                          <div
+                            key={day}
+                            className={`flex flex-col gap-0.5 rounded-xl px-3 py-2 ${
+                              isToday
+                                ? "bg-[var(--color-custom-500)]/20 ring-1 ring-[var(--color-custom-500)]/40"
+                                : "bg-white/5"
+                            }`}
+                          >
+                            <span className="font-semibold text-[11px] text-white/90 uppercase tracking-wider">
+                              {labels[day]}
+                              {isToday && (
+                                <span className="ml-1.5 text-[9px] text-[var(--color-custom-400)] font-bold">
+                                  HOY
+                                </span>
+                              )}
+                            </span>
+                            {config ? (
+                              <span className="text-[11px] text-white/60">{formatTurnos(config)}</span>
+                            ) : (
+                              <span className="text-[11px] text-white/30 italic">Cerrado</span>
+                            )}
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {(negocio.whatsapp || negocio.instagram_url || negocio.facebook_url) && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.45 }} className="flex gap-2">

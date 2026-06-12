@@ -142,12 +142,6 @@ const LOGO_SHAPE_OPTIONS = [
   { value: "square", label: "Cuadrado" },
 ] as const;
 
-const BANNER_HEIGHT_OPTIONS = [
-  { value: "compact", label: "Compacto" },
-  { value: "normal", label: "Normal" },
-  { value: "large", label: "Grande" },
-] as const;
-
 const MAX_IMAGE_SIZE_MB = 5;
 const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
 
@@ -553,10 +547,6 @@ export function ConfigForm({
             setIsDirty(true);
             setFormData((p) => ({ ...p, banner_posicion: val }));
           }}
-          onBannerHeightChange={(val) => {
-            setIsDirty(true);
-            setFormData((p) => ({ ...p, banner_height: val }));
-          }}
           onBannerScaleChange={(val) => {
             setIsDirty(true);
             setFormData((p) => ({ ...p, banner_scale: val }));
@@ -772,7 +762,6 @@ function BrandingBlock({
   onLogoFitChange,
   onLogoShapeChange,
   onBannerPosicionChange,
-  onBannerHeightChange,
   onBannerScaleChange,
 }: {
   logoUrl: string;
@@ -795,7 +784,6 @@ function BrandingBlock({
   onLogoFitChange: (val: string) => void;
   onLogoShapeChange: (val: string) => void;
   onBannerPosicionChange: (val: string) => void;
-  onBannerHeightChange: (val: string) => void;
   onBannerScaleChange: (val: number) => void;
 }) {
   const shapeClass = (s: string) =>
@@ -1046,28 +1034,6 @@ function BrandingBlock({
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div className="space-y-1.5">
               <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
-                Altura
-              </span>
-              <div className="flex gap-1">
-                {BANNER_HEIGHT_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => onBannerHeightChange(opt.value)}
-                    className={`px-2.5 py-1 text-[10px] font-medium rounded-md transition-all ${
-                      bannerHeight === opt.value
-                        ? "bg-[var(--admin-accent)] text-white shadow-sm"
-                        : "bg-[var(--admin-bg)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-accent)]/10 border border-[var(--admin-border)]"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
                 Posición vertical
               </span>
               <div className="flex gap-1">
@@ -1239,39 +1205,7 @@ function GeneralInfoBlock({
           />
         </div>
 
-        <div className="space-y-1 sm:col-span-2">
-          <label className="font-medium text-[var(--admin-text-muted)] flex items-center gap-1">
-            <MapPin size={12} /> Eje Principal / Dirección Física
-          </label>
-          <input
-            name="direccion"
-            value={formData.direccion}
-            onChange={(e) => { onChange(e); onClearError("direccion"); }}
-            className={`w-full p-2 bg-[var(--admin-bg)] border rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] transition-all font-medium text-xs ${
-              errors.direccion ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-[var(--admin-border)] focus:border-[var(--admin-accent)]"
-            }`}
-            placeholder="Ej: Av. Mate de Luna 1234"
-          />
-          {errors.direccion && (
-            <p className="text-[10px] text-red-500 flex items-center gap-1 mt-0.5">
-              <XCircle size={10} />
-              {errors.direccion}
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-1 sm:col-span-2">
-          <label className="font-medium text-[var(--admin-text-muted)]">
-            Aclaraciones de Despacho u Ubicación (Opcional)
-          </label>
-          <textarea
-            name="direccion_notas"
-            value={formData.direccion_notas}
-            onChange={onChange}
-            className="w-full p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] resize-none h-14 transition-all text-xs"
-            placeholder="Ej: Portón gris oscuro de doble hoja, timbre superior..."
-          />
-        </div>
+        {/* Direcciones field removed — ahora se gestiona desde DireccionesBlock */}
 
         <div className="sm:col-span-2 flex items-center gap-3 pt-1">
           <label className="relative inline-flex items-center cursor-pointer">
@@ -1425,15 +1359,22 @@ function PalettePreview({
       <div className="overflow-hidden rounded-lg border border-[var(--admin-border)] bg-white/5">
         {bannerUrl && (
           <div className={`relative ${bannerAspect} overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700`}>
-            <img
-              src={bannerUrl}
-              alt=""
-              className="h-full w-full object-cover"
+            <div
+              className="absolute inset-0"
               style={{
-                objectPosition: bannerPosicion ?? "center",
                 transform: `scale(${bannerScale ?? 1})`,
+                transformOrigin: "center top",
               }}
-            />
+            >
+              <img
+                src={bannerUrl}
+                alt=""
+                className="h-full w-full object-cover"
+                style={{
+                  objectPosition: bannerPosicion ?? "center",
+                }}
+              />
+            </div>
             <div
               className="absolute inset-0"
               style={{
