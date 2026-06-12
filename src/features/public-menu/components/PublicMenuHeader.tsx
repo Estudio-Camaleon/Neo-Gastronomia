@@ -233,34 +233,23 @@ export function PublicMenuHeader({
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.45, delay: 0.25 }}
-                  className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight text-[var(--color-custom-900)]"
+                  className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight"
                   style={{ WebkitFontSmoothing: "antialiased" }}
                 >
-                  <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(90deg,var(--color-custom-700),var(--color-custom-500))' }}>
-                    {negocio.nombre}
+                  <span className="relative inline-block rounded-2xl px-4 py-2 -mx-2">
+                    <span
+                      className="absolute inset-0 rounded-2xl backdrop-blur-md"
+                      style={{ backgroundColor: "color-mix(in srgb, var(--color-custom-surface) 35%, transparent)" }}
+                    />
+                    <span
+                      className="relative bg-clip-text text-transparent"
+                      style={{ backgroundImage: 'linear-gradient(90deg,var(--color-custom-700),var(--color-custom-500))' }}
+                    >
+                      {negocio.nombre}
+                    </span>
                   </span>
                 </motion.h1>
               )}
-
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }} className="mt-2 flex items-center gap-3">
-                <div aria-hidden className={`relative flex items-center rounded-full px-3 py-1 text-sm font-semibold uppercase tracking-wide ${isOpenNow ? "bg-[color:var(--color-custom-500)/0.12] text-[var(--color-custom-700)]" : "bg-[rgba(190,36,20,0.08)] text-[#be2414]"}`} title={isOpenNow ? "Abierto ahora" : "Cerrado ahora"}>
-                  <motion.span animate={isOpenNow ? { scale: [1, 1.35, 1] } : { scale: 1 }} transition={{ repeat: Infinity, duration: 1.8 }} className={`mr-2 h-2.5 w-2.5 rounded-full ${isOpenNow ? "bg-[var(--color-custom-500)]" : "bg-white"}`} />
-                  {isOpenNow ? "Abierto" : "Cerrado"}
-                </div>
-
-                <div className="text-sm text-[var(--color-custom-text-muted)]">
-                  <span className="font-medium">Hoy:</span>{" "}
-                  {negocio.horarios && todayKey ? (
-                    <span>
-                      {negocio.horarios[todayKey]
-                        ? formatTurnos(negocio.horarios[todayKey])
-                        : "Cerrado"}
-                    </span>
-                  ) : (
-                    <span>Sin horarios</span>
-                  )}
-                </div>
-              </motion.div>
             </div>
           </motion.div>
 

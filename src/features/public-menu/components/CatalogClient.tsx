@@ -132,7 +132,12 @@ export function CatalogClient({
         .channel(`negocios_slug_watch_${negocio.id}`)
         .on(
           "postgres_changes",
-          { event: "UPDATE", schema: "public", table: "negocios", filter: `id=eq.${negocio.id}` },
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "negocios",
+            filter: `id=eq.${negocio.id}`,
+          },
           (payload: unknown) => {
             // payload shape from postgres_changes: { schema, table, commit_timestamp, new, old }
             const p = payload as { new?: { slug?: string } } | undefined;
@@ -229,7 +234,13 @@ export function CatalogClient({
       } as unknown as Categoria,
       ...categoriasFiltradas,
     ];
-  }, [activeCategory, categorias, categoriasFiltradas, uncategorizedProducts, searchQuery]);
+  }, [
+    activeCategory,
+    categorias,
+    categoriasFiltradas,
+    uncategorizedProducts,
+    searchQuery,
+  ]);
 
   const scrollToCategory = useCallback((id: string) => {
     setActiveCategory(id);
@@ -290,7 +301,13 @@ export function CatalogClient({
       <FloatingFood />
       <div className="min-h-screen flex flex-col text-[var(--color-custom-text)] selection:bg-[var(--color-custom-deep)] selection:text-white relative z-10">
         {/* HEADER UNIFICADO */}
-        <PublicMenuHeader negocio={negocio} isOpenNow={isOpenNow} todayKey={todayKey} showSchedule={showSchedule} setShowSchedule={setShowSchedule} />
+        <PublicMenuHeader
+          negocio={negocio}
+          isOpenNow={isOpenNow}
+          todayKey={todayKey}
+          showSchedule={showSchedule}
+          setShowSchedule={setShowSchedule}
+        />
 
         {/* CATALOGO */}
         <div className="w-full flex-1">
@@ -315,16 +332,54 @@ export function CatalogClient({
                   </p>
                 </div>
 
-                <div className="relative w-full lg:max-w-sm">
-                  <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-custom-500)]" />
-                  <input
-                    type="text"
-                    placeholder="Buscar producto..."
-                    aria-label="Buscar producto"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full rounded-full border border-[var(--color-custom-200)] bg-[var(--color-custom-surface-strong)] py-3 pl-11 pr-4 text-sm text-[var(--color-custom-text)] outline-none placeholder:text-[var(--color-custom-text-muted)] focus:border-[var(--color-custom-500)]"
-                  />
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center w-full lg:max-w-max">
+                  {/* Estado del local — inline con buscador */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.35 }}
+                    className="flex items-center gap-3 shrink-0"
+                  >
+                    <div
+                      aria-hidden
+                      className={`relative flex items-center rounded-full px-3 py-1 text-sm font-semibold uppercase tracking-wide ${isOpenNow ? "bg-[color:var(--color-custom-500)/0.12] text-[var(--color-custom-700)]" : "bg-[rgba(190,36,20,0.08)] text-[#be2414]"}`}
+                      title={isOpenNow ? "Abierto ahora" : "Cerrado ahora"}
+                    >
+                      <motion.span
+                        animate={
+                          isOpenNow ? { scale: [1, 1.35, 1] } : { scale: 1 }
+                        }
+                        transition={{ repeat: Infinity, duration: 1.8 }}
+                        className={`mr-2 h-2.5 w-2.5 rounded-full ${isOpenNow ? "bg-[var(--color-custom-500)]" : "bg-white"}`}
+                      />
+                      {isOpenNow ? "Abierto" : "Cerrado"}
+                    </div>
+
+                    <div className="whitespace-nowrap text-sm text-[var(--color-custom-text-muted)]">
+                      {negocio.horarios && todayKey ? (
+                        <span>
+                          {negocio.horarios[todayKey]
+                            ? formatTurnos(negocio.horarios[todayKey])
+                            : "Cerrado hoy"}
+                        </span>
+                      ) : (
+                        <span>Sin horarios</span>
+                      )}
+                    </div>
+                  </motion.div>
+
+                  {/* Buscador */}
+                  <div className="relative flex-1 min-w-0">
+                    <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-custom-500)]" />
+                    <input
+                      type="text"
+                      placeholder="Buscar producto..."
+                      aria-label="Buscar producto"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full rounded-full border border-[var(--color-custom-200)] bg-[var(--color-custom-surface-strong)] py-3 pl-11 pr-4 text-sm text-[var(--color-custom-text)] outline-none placeholder:text-[var(--color-custom-text-muted)] focus:border-[var(--color-custom-500)]"
+                    />
+                  </div>
                 </div>
               </motion.div>
 
@@ -380,9 +435,9 @@ export function CatalogClient({
 
               <div className="mt-6 space-y-8">
                 <AnimatePresence>
-                {categoriasToShow.length === 0 ? (
-                  <motion.div
-                    key="empty"
+                  {categoriasToShow.length === 0 ? (
+                    <motion.div
+                      key="empty"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
@@ -429,12 +484,12 @@ export function CatalogClient({
                               : "lg:grid-cols-4 xl:grid-cols-5"
                           }`}
                         >
-            {cat.productos.map((prod) => {
-              const cantidad =
-                cartQuantityByProduct.get(prod.id) || 0;
+                          {cat.productos.map((prod) => {
+                            const cantidad =
+                              cartQuantityByProduct.get(prod.id) || 0;
 
-              return (
-                <motion.article
+                            return (
+                              <motion.article
                                 key={prod.id}
                                 variants={cardVariants}
                                 whileHover={{
@@ -480,14 +535,14 @@ export function CatalogClient({
                                     </p>
                                   </div>
 
-                                <div className="mt-4 flex items-center justify-between gap-3">
-                                  <div className="text-base font-black text-[var(--color-custom-900)]">
-                                    $
-                                    {Number(prod.precio).toLocaleString(
-                                      "es-AR",
-                                      { minimumFractionDigits: 0 },
-                                    )}
-                                  </div>
+                                  <div className="mt-4 flex items-center justify-between gap-3">
+                                    <div className="text-base font-black text-[var(--color-custom-900)]">
+                                      $
+                                      {Number(prod.precio).toLocaleString(
+                                        "es-AR",
+                                        { minimumFractionDigits: 0 },
+                                      )}
+                                    </div>
 
                                     {prod.disponible ? (
                                       <motion.div
@@ -526,7 +581,8 @@ export function CatalogClient({
                                               config.variantes.length > 0;
                                             const hasExtras =
                                               config?.grupos_opciones &&
-                                              config.grupos_opciones.length > 0 &&
+                                              config.grupos_opciones.length >
+                                                0 &&
                                               config.grupos_opciones.some(
                                                 (g) => g.items.length > 0,
                                               );
@@ -545,7 +601,7 @@ export function CatalogClient({
                                               });
                                             }
                                           }}
-                                className={`flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-80 sm:h-8 sm:w-8 ${!isOpenNow ? "opacity-40 cursor-not-allowed" : ""}`}
+                                          className={`flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-80 sm:h-8 sm:w-8 ${!isOpenNow ? "opacity-40 cursor-not-allowed" : ""}`}
                                           disabled={!isOpenNow}
                                         >
                                           <Plus size={16} />

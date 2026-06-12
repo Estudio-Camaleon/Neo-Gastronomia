@@ -18,7 +18,7 @@ export function CartFloatingButton() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 40, scale: 0.8 }}
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
-          className="fixed bottom-5 right-5 z-[70] sm:right-6 sm:bottom-6 safe-bottom"
+          className="fixed bottom-5 right-8 z-[70] sm:right-12 sm:bottom-6 safe-bottom"
         >
           <motion.button
             type="button"
