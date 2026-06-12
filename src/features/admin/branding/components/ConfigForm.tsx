@@ -623,6 +623,9 @@ export function ConfigForm({
           logoPosicion={formData.logo_posicion}
           logoFit={formData.logo_fit}
           logoShape={formData.logo_shape}
+          nombre={formData.nombre}
+          mostrarNombre={formData.mostrar_nombre}
+          colorPrimary={formData.color_primary}
           uploading={uploading}
           imageError={fieldErrors.image}
           onImageUpload={handleImageUpload}
@@ -862,6 +865,9 @@ function BrandingBlock({
   logoPosicion,
   logoFit,
   logoShape,
+  nombre,
+  mostrarNombre,
+  colorPrimary,
   uploading,
   imageError,
   onImageUpload,
@@ -881,6 +887,9 @@ function BrandingBlock({
   logoPosicion: string;
   logoFit: string;
   logoShape: string;
+  nombre: string;
+  mostrarNombre: boolean;
+  colorPrimary: string;
   uploading: string | null;
   imageError?: string;
   onImageUpload: (
@@ -895,17 +904,13 @@ function BrandingBlock({
   onBannerScaleChange: (val: number) => void;
 }) {
   const isSticker = logoShape === "none";
-  const containerClass = isSticker
-    ? "relative flex items-center justify-center"
-    : `w-28 h-28 ${shapeClass(logoShape)} bg-[var(--admin-bg)] overflow-hidden relative flex items-center justify-center shadow-md transition-all hover:shadow-lg ring-1 ring-transparent hover:ring-[var(--admin-accent)]`;
+  const isRoundedShape = logoShape === "rounded";
+  const isCircularShape = logoShape === "circle";
 
-  function shapeClass(s: string) {
-    return s === "circle"
-      ? "rounded-full"
-      : s === "rounded"
-        ? "rounded-2xl"
-        : "rounded-none";
-  }
+  // Dynamic card background: darken primary color, fallback to green
+  const cardBgStyle = colorPrimary
+    ? `color-mix(in srgb, ${colorPrimary}, black 75%)`
+    : "#163B2D";
 
   return (
     <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl overflow-hidden shadow-sm">
@@ -913,36 +918,183 @@ function BrandingBlock({
         <Camera size={16} className="text-[var(--admin-text-muted)]" />
         <div>
           <h2 className="font-semibold text-xs text-[var(--admin-text)]">
-            Lienzo e Identidad Visual
+            Previsualización en vivo del encabezado
           </h2>
           <p className="text-[10px] text-[var(--admin-text-muted)]">
-            Sincronización geométrica de activos multimedia de marca.
+            Todos los cambios se reflejan instantáneamente como se verán en el menú público.
           </p>
         </div>
       </div>
 
+      {/* ── Live preview ── */}
+      <div className="relative overflow-hidden bg-[var(--admin-bg)]">
+        {/* Banner background */}
+        <div
+          className="relative w-full"
+          style={{
+            aspectRatio:
+              bannerHeight === "compact"
+                ? "21/6"
+                : bannerHeight === "large"
+                  ? "21/10"
+                  : "21/8",
+          }}
+        >
+          {bannerUrl ? (
+            <div
+              className="absolute inset-0"
+              style={{
+                transform: `scale(${bannerScale ?? 1})`,
+                transformOrigin: "center top",
+              }}
+            >
+              {bannerUrl.startsWith("blob:") ? (
+                <img
+                  src={bannerUrl}
+                  alt=""
+                  className="h-full w-full object-cover"
+                  style={{ objectPosition: bannerPosicion }}
+                />
+              ) : (
+                <Image
+                  src={bannerUrl}
+                  fill
+                  className="object-cover"
+                  style={{ objectPosition: bannerPosicion }}
+                  alt=""
+                  sizes="(max-width: 768px) 100vw, 700px"
+                />
+              )}
+            </div>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-[var(--admin-text-muted)] opacity-30">
+              <ImageIcon size={36} />
+            </div>
+          )}
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-black/50" />
+
+          {/* ── Brand Card floating on banner ── */}
+          <div className="absolute inset-0 flex items-center justify-center px-6">
+            <div className="relative w-[280px] sm:w-[380px]">
+              {/* Logo — protrudes from top of card */}
+              <div className="absolute left-1/2 -translate-x-1/2 -top-[44px] z-20">
+                <div
+                  className={
+                    isSticker
+                      ? "relative flex items-center justify-center"
+                      : `w-[88px] h-[88px] sm:w-[104px] sm:h-[104px] overflow-hidden bg-white ${
+                          isRoundedShape ? "rounded-2xl" : "rounded-full"
+                        }`
+                  }
+                  style={
+                    isSticker
+                      ? undefined
+                      : {
+                          boxShadow: `0 0 0 5px ${cardBgStyle}, 0 20px 40px -12px rgba(0,0,0,0.5)`,
+                        }
+                  }
+                >
+                  {logoUrl ? (
+                    <img
+                      src={logoUrl}
+                      alt={nombre}
+                      className={
+                        isSticker
+                          ? "max-h-28 max-w-28 sm:max-h-32 sm:max-w-32 drop-shadow-xl"
+                          : "h-full w-full object-cover"
+                      }
+                    />
+                  ) : (
+                    <div
+                      className={`flex items-center justify-center text-white font-black text-xl sm:text-2xl ${
+                        isSticker
+                          ? "w-[88px] h-[88px]"
+                          : "h-full w-full"
+                      } ${isCircularShape ? "rounded-full" : ""}`}
+                      style={{
+                        background: colorPrimary || "var(--color-custom-500)",
+                      }}
+                    >
+                      {nombre
+                        ? nombre
+                            .split(" ")
+                            .map((s) => s[0])
+                            .slice(0, 2)
+                            .join("")
+                        : "?"}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Card body */}
+              <div
+                className="backdrop-blur-xl rounded-[24px] shadow-2xl pt-[56px] pb-5 px-5"
+                style={{
+                  backgroundColor: `color-mix(in srgb, ${cardBgStyle}, transparent 15%)`,
+                }}
+              >
+                {/* Business name */}
+                {mostrarNombre && (
+                  <h1 className="text-center text-white text-xl sm:text-2xl font-extrabold leading-tight tracking-tight truncate">
+                    {nombre || "Nombre del negocio"}
+                  </h1>
+                )}
+
+                {/* Social & Contact pill buttons */}
+                <div className="flex justify-center gap-2 mt-3">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-white/70 text-[10px]">
+                    <MapPin size={13} />
+                    <span className="truncate max-w-[80px]">Ubicación</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-white/70 text-[10px]">
+                    <Clock size={13} />
+                    <span>Horarios</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Upload overlay for banner */}
+          {uploading === "banner_url" && (
+            <div className="absolute inset-0 bg-[var(--admin-surface)]/80 backdrop-blur-sm flex items-center justify-center z-30">
+              <FoodMini size={22} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Controls ── */}
       <div className="p-5 grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-        {/* LOGO */}
+        {/* LOGO CONTROLS */}
         <div className="md:col-span-5 flex flex-col items-center border-b md:border-b-0 md:border-r border-[var(--admin-border)] pb-5 md:pb-0 md:pr-6">
           <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider mb-3">
             Isotipo Comercial
           </span>
 
           <div className="relative group">
-            <div className={containerClass}>
+            <div
+              className={
+                isSticker
+                  ? "relative flex items-center justify-center w-24 h-24"
+                  : `w-24 h-24 ${isCircularShape ? "rounded-full" : isRoundedShape ? "rounded-2xl" : ""} bg-[var(--admin-bg)] overflow-hidden relative flex items-center justify-center shadow-md ring-1 ring-transparent hover:ring-[var(--admin-accent)]`
+              }
+            >
               {logoUrl ? (
                 isSticker ? (
                   <img
                     src={logoUrl}
                     alt="Logo"
-                    className="max-h-32 max-w-32 animate-in fade-in duration-200 drop-shadow-lg"
+                    className="max-h-24 max-w-24 drop-shadow-lg"
                     style={{ objectFit: "contain" as const }}
                   />
                 ) : logoUrl.startsWith("blob:") ? (
                   <img
                     src={logoUrl}
                     alt="Logo"
-                    className="h-full w-full animate-in fade-in duration-200"
+                    className="h-full w-full"
                     style={{
                       objectFit: logoFit as "contain" | "cover",
                       objectPosition: logoPosicion,
@@ -953,19 +1105,19 @@ function BrandingBlock({
                   <Image
                     src={logoUrl}
                     fill
-                    className="animate-in fade-in duration-200"
+                    className=""
                     style={{
                       objectFit: logoFit as "contain" | "cover",
                       objectPosition: logoPosicion,
                       transform: `scale(${logoScale})`,
                     }}
                     alt="Logo"
-                    sizes="112px"
+                    sizes="96px"
                     priority
                   />
                 )
               ) : (
-                <div className={isSticker ? "w-28 h-28 flex items-center justify-center text-[var(--admin-text-muted)]" : "w-full h-full flex items-center justify-center text-[var(--admin-text-muted)]"}>
+                <div className={`flex items-center justify-center text-[var(--admin-text-muted)] ${isSticker ? "w-24 h-24" : "w-full h-full"}`}>
                   <ImageIcon size={24} />
                 </div>
               )}
@@ -987,7 +1139,6 @@ function BrandingBlock({
             </label>
           </div>
 
-          {/* LOGO CONTROLS */}
           <div className="mt-4 w-full max-w-[220px] space-y-3">
             {/* Shape selector */}
             <div className="space-y-1">
@@ -1013,85 +1164,94 @@ function BrandingBlock({
             </div>
 
             {/* Fit selector */}
-            <div className="space-y-1">
-              <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
-                Ajuste de imagen
-              </span>
-              <div className="flex gap-1">
-                {LOGO_FIT_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => onLogoFitChange(opt.value)}
-                    className={`flex-1 px-2 py-1 text-[10px] font-medium rounded-md transition-all ${
-                      logoFit === opt.value
-                        ? "bg-[var(--admin-accent)] text-white shadow-sm"
-                        : "bg-[var(--admin-bg)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-accent)]/10 border border-[var(--admin-border)]"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
+            {!isSticker && (
+              <div className="space-y-1">
+                <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
+                  Ajuste de imagen
+                </span>
+                <div className="flex gap-1">
+                  {LOGO_FIT_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => onLogoFitChange(opt.value)}
+                      className={`flex-1 px-2 py-1 text-[10px] font-medium rounded-md transition-all ${
+                        logoFit === opt.value
+                          ? "bg-[var(--admin-accent)] text-white shadow-sm"
+                          : "bg-[var(--admin-bg)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-accent)]/10 border border-[var(--admin-border)]"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Position selector */}
-            <div className="space-y-1">
-              <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
-                Posición vertical
-              </span>
-              <div className="flex gap-1">
-                {LOGO_POSITION_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => onLogoPosicionChange(opt.value)}
-                    className={`flex-1 px-2 py-1 text-[10px] font-medium rounded-md transition-all ${
-                      logoPosicion === opt.value
-                        ? "bg-[var(--admin-accent)] text-white shadow-sm"
-                        : "bg-[var(--admin-bg)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-accent)]/10 border border-[var(--admin-border)]"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
+            {!isSticker && (
+              <div className="space-y-1">
+                <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
+                  Posición vertical
+                </span>
+                <div className="flex gap-1">
+                  {LOGO_POSITION_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => onLogoPosicionChange(opt.value)}
+                      className={`flex-1 px-2 py-1 text-[10px] font-medium rounded-md transition-all ${
+                        logoPosicion === opt.value
+                          ? "bg-[var(--admin-accent)] text-white shadow-sm"
+                          : "bg-[var(--admin-bg)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-accent)]/10 border border-[var(--admin-border)]"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Zoom slider */}
-            <div className="space-y-1 pt-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
-                  Escala
-                </span>
-                <span className="text-[10px] font-mono text-[var(--admin-text-muted)]">
-                  {logoScale.toFixed(1)}x
-                </span>
+            {!isSticker && (
+              <div className="space-y-1 pt-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
+                    Escala
+                  </span>
+                  <span className="text-[10px] font-mono text-[var(--admin-text-muted)]">
+                    {logoScale.toFixed(1)}x
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="2"
+                  step="0.1"
+                  value={logoScale}
+                  onChange={(e) => onLogoScaleChange(parseFloat(e.target.value))}
+                  className="w-full h-1.5 bg-[var(--admin-bg)] rounded-full appearance-none cursor-pointer accent-[var(--admin-accent)] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--admin-accent)] [&::-webkit-slider-thumb]:shadow-sm"
+                />
               </div>
-              <input
-                type="range"
-                min="0.5"
-                max="2"
-                step="0.1"
-                value={logoScale}
-                onChange={(e) => onLogoScaleChange(parseFloat(e.target.value))}
-                className="w-full h-1.5 bg-[var(--admin-bg)] rounded-full appearance-none cursor-pointer accent-[var(--admin-accent)] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--admin-accent)] [&::-webkit-slider-thumb]:shadow-sm"
-              />
-            </div>
+            )}
           </div>
 
           <p className="text-[9px] text-[var(--admin-text-muted)] mt-3 text-center leading-normal">
-            Espacio {logoShape === "circle" ? "1:1" : "flexible"}.
+            {isSticker
+              ? "Sin contenedor. El logo flota libremente."
+              : `Espacio ${logoShape === "circle" ? "1:1" : "flexible"}.`}
             <br />
-            {logoFit === "contain"
-              ? "Muestra el logo completo sin recortes."
-              : "Llena el contenedor. Puede recortar bordes."}
+            {!isSticker &&
+              (logoFit === "contain"
+                ? "Muestra el logo completo sin recortes."
+                : "Llena el contenedor. Puede recortar bordes.")}
             <br />
             Máx {MAX_IMAGE_SIZE_MB}MB (JPG, PNG, WEBP).
           </p>
         </div>
 
-        {/* BANNER */}
+        {/* BANNER CONTROLS */}
         <div className="md:col-span-7 flex flex-col justify-between h-full space-y-3">
           <div className="flex justify-between items-center">
             <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
@@ -1107,54 +1267,6 @@ function BrandingBlock({
                 disabled={!!uploading}
               />
             </label>
-          </div>
-
-          <div
-            className={`relative w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg)] overflow-hidden shadow-sm ${
-              bannerHeight === "compact"
-                ? "aspect-[21/6]"
-                : bannerHeight === "large"
-                  ? "aspect-[21/10]"
-                  : "aspect-[21/8]"
-            }`}
-          >
-            {bannerUrl ? (
-              <div
-                className="absolute inset-0"
-                style={{
-                  transform: `scale(${bannerScale ?? 1})`,
-                  transformOrigin: "center top",
-                }}
-              >
-                {bannerUrl.startsWith("blob:") ? (
-                  <img
-                    src={bannerUrl}
-                    alt="Portada"
-                    className="h-full w-full object-cover animate-in fade-in duration-200"
-                    style={{ objectPosition: bannerPosicion }}
-                  />
-                ) : (
-                  <Image
-                    src={bannerUrl}
-                    fill
-                    className="object-cover animate-in fade-in duration-200"
-                    style={{ objectPosition: bannerPosicion }}
-                    alt="Portada"
-                    sizes="(max-width: 768px) 100vw, 650px"
-                  />
-                )}
-              </div>
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-[var(--admin-text-muted)] opacity-50">
-                <ImageIcon size={28} />
-              </div>
-            )}
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_60%,var(--admin-surface)_95%)]" />
-            {uploading === "banner_url" && (
-              <div className="absolute inset-0 bg-[var(--admin-surface)]/80 backdrop-blur-sm flex items-center justify-center">
-                <FoodMini size={22} />
-              </div>
-            )}
           </div>
 
           {/* Banner controls */}
