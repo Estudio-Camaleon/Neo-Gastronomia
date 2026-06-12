@@ -108,14 +108,72 @@ const DIAS = [
   { id: "domingo", label: "Domingo" },
 ];
 
-const PRESET_COLORS = [
-  "#34a35f",
-  "#0f172a",
-  "#dc2626",
-  "#2563eb",
-  "#7c3aed",
-  "#ea580c",
-  "#000000",
+interface ColorPaletteGroup {
+  label: string;
+  colors: string[];
+}
+
+const COLOR_PALETTES: ColorPaletteGroup[] = [
+  {
+    label: "Fríos",
+    colors: [
+      "#2563eb",
+      "#06b6d4",
+      "#0891b2",
+      "#4f46e5",
+      "#6366f1",
+      "#0ea5e9",
+      "#14b8a6",
+    ],
+  },
+  {
+    label: "Cálidos",
+    colors: [
+      "#dc2626",
+      "#ea580c",
+      "#f59e0b",
+      "#eab308",
+      "#f97316",
+      "#b91c1c",
+      "#d97706",
+    ],
+  },
+  {
+    label: "Pasteles",
+    colors: [
+      "#f472b6",
+      "#60a5fa",
+      "#818cf8",
+      "#facc15",
+      "#34d399",
+      "#f87171",
+      "#a78bfa",
+    ],
+  },
+  {
+    label: "Vibrantes",
+    colors: [
+      "#ff006e",
+      "#8338ec",
+      "#3a86ff",
+      "#34a35f",
+      "#ffbe0b",
+      "#fb5607",
+      "#06d6a0",
+    ],
+  },
+  {
+    label: "Neutros",
+    colors: [
+      "#0f172a",
+      "#1e293b",
+      "#475569",
+      "#64748b",
+      "#78716c",
+      "#292524",
+      "#000000",
+    ],
+  },
 ];
 
 const BANNER_VERTICAL_OPTIONS = [
@@ -1390,26 +1448,33 @@ function CatalogDesignBlock({
             </div>
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-3">
             <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
-              Acentos Homologados
+              Paletas de Colores
             </span>
-            <div className="flex flex-wrap gap-1.5">
-              {PRESET_COLORS.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => onChange(color)}
-                  className={`w-5 h-5 rounded-md border transition-all ${
-                    colorPrimary.toLowerCase() === color.toLowerCase()
-                      ? "border-[var(--admin-text)] scale-110 ring-2 ring-[var(--admin-border)] shadow-sm"
-                      : "border-transparent hover:scale-105"
-                  }`}
-                  style={{ backgroundColor: color }}
-                  title={color}
-                />
-              ))}
-            </div>
+            {COLOR_PALETTES.map((group) => (
+              <div key={group.label} className="space-y-1">
+                <span className="text-[10px] font-medium text-[var(--admin-text-muted)]/70 block">
+                  {group.label}
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {group.colors.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => onChange(color)}
+                      className={`w-5 h-5 rounded-md border transition-all ${
+                        colorPrimary.toLowerCase() === color.toLowerCase()
+                          ? "border-[var(--admin-text)] scale-110 ring-2 ring-[var(--admin-border)] shadow-sm"
+                          : "border-transparent hover:scale-105"
+                      }`}
+                      style={{ backgroundColor: color }}
+                      title={color}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Vista previa eliminada — los cambios se ven en vivo en BrandingBlock */}
