@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   Pizza,
   Beef,
@@ -16,31 +17,118 @@ import {
 interface FoodIconDef {
   key: string;
   Icon: LucideIcon;
-  size: number;
-  top: string;
-  left?: string;
-  right?: string;
-  delay: string;
 }
 
-const allFoodIcons: FoodIconDef[] = [
-  { key: "Pizza", Icon: Pizza, size: 64, top: "8%", left: "5%", delay: "0s" },
-  { key: "Beef", Icon: Beef, size: 72, top: "18%", right: "6%", delay: "1.2s" },
-  { key: "Coffee", Icon: Coffee, size: 56, top: "40%", left: "3%", delay: "0.6s" },
-  { key: "CupSoda", Icon: CupSoda, size: 68, top: "52%", right: "4%", delay: "2s" },
-  { key: "Sandwich", Icon: Sandwich, size: 60, top: "68%", left: "6%", delay: "0.9s" },
-  { key: "IceCream", Icon: IceCream, size: 52, top: "78%", right: "8%", delay: "1.5s" },
-  { key: "ShoppingBag", Icon: ShoppingBag, size: 58, top: "28%", left: "40%", delay: "0.3s" },
-  { key: "UtensilsCrossed", Icon: UtensilsCrossed, size: 70, top: "62%", left: "38%", delay: "1.8s" },
-  { key: "Ticket", Icon: Ticket, size: 50, top: "12%", right: "20%", delay: "2.4s" },
-];
+const ICON_MAP: Record<string, LucideIcon> = {
+  Pizza,
+  Beef,
+  Coffee,
+  CupSoda,
+  Sandwich,
+  IceCream,
+  ShoppingBag,
+  UtensilsCrossed,
+  Ticket,
+};
 
 const DEFAULT_SHAPES = ["Pizza", "Beef", "Coffee", "CupSoda", "Sandwich", "IceCream", "UtensilsCrossed"];
+
+// Simple seeded pseudo-random (mulberry32)
+function mulberry32(seed: number) {
+  return () => {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+interface PlacedIcon {
+  key: string;
+  Icon: LucideIcon;
+  size: number;
+  top: number;
+  left: number;
+  delay: number;
+  duration: number;
+  wobble: number;
+}
+
+// Generate a deterministic but organic-looking layout
+function generateLayout(shapeKeys: string[]): PlacedIcon[] {
+  const seed = shapeKeys.reduce((acc, k) => acc + k.charCodeAt(0), 42);
+  const rng = mulberry32(seed);
+  const count = shapeKeys.length;
+  const minSize = 40;
+  const maxSize = 84;
+
+  // Generate non-overlapping positions using a simple grid-aware approach
+  const placed: PlacedIcon[] = [];
+  const occupied: Array<{ x: number; y: number; r: number }> = [];
+  const maxAttempts = 60;
+
+  for (const key of shapeKeys) {
+    const Icon = ICON_MAP[key];
+    if (!Icon) continue;
+
+    const size = Math.round(minSize + rng() * (maxSize - minSize));
+    const radius = size / 2 + 8; // collision radius with padding
+
+    let top = 0;
+    let left = 0;
+    let placedOk = false;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      // Keep away from edges (10% inner margin)
+      top = 5 + rng() * 80;
+      left = 5 + rng() * 80;
+
+      // Check collision with previously placed icons
+      let collides = false;
+      for (const o of occupied) {
+        const dx = left - o.x;
+        const dy = top - o.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < radius + o.r) {
+          collides = true;
+          break;
+        }
+      }
+
+      if (!collides) {
+        placedOk = true;
+        break;
+      }
+    }
+
+    // If can't place without collision, force it in last resort position
+    if (!placedOk) {
+      top = 5 + rng() * 80;
+      left = 5 + rng() * 80;
+    }
+
+    occupied.push({ x: left, y: top, r: radius });
+
+    placed.push({
+      key,
+      Icon,
+      size,
+      top,
+      left,
+      delay: Math.round(rng() * 3000),
+      duration: 6000 + Math.round(rng() * 4000),
+      wobble: -6 + Math.round(rng() * 12),
+    });
+  }
+
+  return placed;
+}
 
 export function FloatingFood({ shapes }: { shapes?: string[] }) {
   const activeShapes = shapes && shapes.length > 0 ? shapes : DEFAULT_SHAPES;
 
-  const foodIcons = allFoodIcons.filter((icon) => activeShapes.includes(icon.key));
+  const placedIcons = useMemo(() => generateLayout(activeShapes), [activeShapes]);
 
   return (
     <>
@@ -51,7 +139,7 @@ export function FloatingFood({ shapes }: { shapes?: string[] }) {
           66%      { transform: translateY(-6px) rotate(-1deg); }
         }
         .icon-float {
-          animation: iconFloat 8s ease-in-out infinite;
+          animation: iconFloat var(--float-duration, 8s) ease-in-out infinite;
         }
       `}</style>
 
@@ -59,20 +147,20 @@ export function FloatingFood({ shapes }: { shapes?: string[] }) {
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-20 overflow-hidden"
       >
-        {foodIcons.map(({ Icon, size, top, left, right, delay }, idx) => (
+        {placedIcons.map((icon) => (
           <div
-            key={idx}
+            key={icon.key}
             className="icon-float absolute text-[var(--color-custom-500)]/15"
             style={{
-              top,
-              left,
-              right,
-              width: size,
-              height: size,
-              animationDelay: delay,
-            }}
+              top: `${icon.top}%`,
+              left: `${icon.left}%`,
+              width: icon.size,
+              height: icon.size,
+              animationDelay: `${icon.delay}ms`,
+              "--float-duration": `${icon.duration}ms`,
+            } as React.CSSProperties}
           >
-            <Icon size={size} strokeWidth={1.2} />
+            <icon.Icon size={icon.size} strokeWidth={1.2} />
           </div>
         ))}
       </div>

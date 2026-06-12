@@ -41,6 +41,16 @@ export function PublicMenuHeader({
     negocio.youtube_url ||
     negocio.tripadvisor_url;
 
+  // Dynamic card background: darken primary color, fallback to green
+  const cardBgStyle = negocio.color_primary
+    ? `color-mix(in srgb, ${negocio.color_primary}, black 75%)`
+    : "#163B2D";
+
+  const logoShape = negocio.logo_shape ?? "circle";
+  const isRoundedShape = logoShape === "rounded";
+  const isCircularShape = logoShape === "circle";
+  const isSticker = logoShape === "none";
+
   return (
     <>
       {/* ── Closed modal ── */}
@@ -205,19 +215,40 @@ export function PublicMenuHeader({
                 }}
                 className="relative"
               >
-                <div className="w-[104px] h-[104px] sm:w-[120px] sm:h-[120px] rounded-full ring-[6px] ring-[#163B2D] shadow-2xl overflow-hidden bg-white">
+                <div
+                  className={
+                    isSticker
+                      ? "relative flex items-center justify-center"
+                      : `w-[104px] h-[104px] sm:w-[120px] sm:h-[120px] shadow-2xl overflow-hidden bg-white ${
+                          isRoundedShape ? "rounded-2xl" : "rounded-full"
+                        }`
+                  }
+                  style={
+                    isSticker ? undefined : {
+                      boxShadow: `0 0 0 6px ${cardBgStyle}, 0 25px 50px -12px rgba(0,0,0,0.5)`,
+                    }
+                  }
+                >
                   {negocio.logo_url ? (
                     <Image
                       src={negocio.logo_url}
                       alt={negocio.nombre}
-                      width={200}
-                      height={200}
-                      className="h-full w-full object-cover"
+                      width={isSticker ? 200 : 200}
+                      height={isSticker ? 200 : 200}
+                      className={
+                        isSticker
+                          ? "max-h-32 max-w-32 sm:max-h-36 sm:max-w-36 drop-shadow-2xl"
+                          : "h-full w-full object-cover"
+                      }
                       priority
                     />
                   ) : (
                     <div
-                      className="h-full w-full flex items-center justify-center text-white font-black text-2xl sm:text-3xl"
+                      className={`flex items-center justify-center text-white font-black text-2xl sm:text-3xl ${
+                        isSticker ? "w-[104px] h-[104px]" : "h-full w-full"
+                      } ${
+                        isCircularShape ? "rounded-full" : ""
+                      }`}
                       style={{
                         background:
                           negocio.color_primary ?? "var(--color-custom-500)",
@@ -235,7 +266,10 @@ export function PublicMenuHeader({
             </div>
 
             {/* Card body */}
-            <div className="bg-[#163B2D]/85 backdrop-blur-xl rounded-[28px] shadow-2xl pt-[68px] pb-6 px-5 sm:px-8">
+            <div
+              className="backdrop-blur-xl rounded-[28px] shadow-2xl pt-[68px] pb-6 px-5 sm:px-8"
+              style={{ backgroundColor: `color-mix(in srgb, ${cardBgStyle}, transparent 15%)` }}
+            >
               {/* Business name */}
               {(negocio.mostrar_nombre ?? true) && (
                 <motion.h1
@@ -408,7 +442,10 @@ export function PublicMenuHeader({
                     transition={{ duration: 0.25, ease: "easeInOut" }}
                     className="overflow-hidden"
                   >
-                    <div className="bg-[#163B2D]/85 backdrop-blur-xl rounded-2xl p-4 text-sm text-white/90 shadow-lg mt-2">
+                    <div
+                      className="backdrop-blur-xl rounded-2xl p-4 text-sm text-white/90 shadow-lg mt-2"
+                      style={{ backgroundColor: `color-mix(in srgb, ${cardBgStyle}, transparent 15%)` }}
+                    >
                       {negocio.direcciones.map((dir) => (
                         <div key={dir.id} className="flex items-start gap-2.5 py-1.5">
                           <span className="mt-1.5 shrink-0 w-1.5 h-1.5 rounded-full bg-white/30" />
@@ -443,7 +480,8 @@ export function PublicMenuHeader({
                 >
                   <div
                     id="schedule-grid"
-                    className="bg-[#163B2D]/85 backdrop-blur-xl rounded-2xl p-4 shadow-lg mt-2"
+                    className="backdrop-blur-xl rounded-2xl p-4 shadow-lg mt-2"
+                    style={{ backgroundColor: `color-mix(in srgb, ${cardBgStyle}, transparent 15%)` }}
                   >
                     <div className="grid grid-cols-2 gap-2">
                       {(() => {

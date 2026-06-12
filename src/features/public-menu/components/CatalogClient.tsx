@@ -70,7 +70,6 @@ export function CatalogClient({
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [showSchedule, setShowSchedule] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [scheduleInited, setScheduleInited] = useState(false);
 
   const cart = useCartStore((state) => state.cart);
   const addItem = useCartStore((state) => state.addItem);
@@ -100,17 +99,12 @@ export function CatalogClient({
 
   useEffect(() => {
     const checkMobile = () => {
-      const mobile = window.innerWidth < 1024;
-      setIsMobile(mobile);
-      if (!scheduleInited) {
-        setShowSchedule(!mobile);
-        setScheduleInited(true);
-      }
+      setIsMobile(window.innerWidth < 1024);
     };
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
-  }, [scheduleInited]);
+  }, []);
 
   useEffect(() => {
     const syncCartVisibility = () => {
