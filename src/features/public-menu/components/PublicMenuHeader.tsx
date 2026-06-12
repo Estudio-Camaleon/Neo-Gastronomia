@@ -71,7 +71,7 @@ export function PublicMenuHeader({
               }}
             />
           </div>
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_60%,var(--color-custom-surface)_95%)]" />
+          <div className="absolute inset-0 bg-black/50" />
         </div>
       )}
 
@@ -175,86 +175,103 @@ export function PublicMenuHeader({
           )}
         </AnimatePresence>
         <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <motion.div
-            initial={{ opacity: 0, x: -24 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.45, delay: 0.15 }}
-            className="flex items-center gap-4"
-          >
             <motion.div
-              initial={{ scale: 0, rotate: -140 }}
-              animate={{ scale: 1, rotate: 0 }}
-              whileHover={{ scale: 1.03, rotate: -2 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 160, damping: 14 }}
-              className={`relative flex items-center justify-center h-28 w-28 sm:h-32 sm:w-32 lg:h-40 lg:w-40 overflow-hidden ring-2 ring-white/10 shadow-2xl bg-white/5 ${
-                (negocio.logo_shape ?? "circle") === "circle"
-                  ? "rounded-full"
-                  : (negocio.logo_shape ?? "circle") === "rounded"
-                    ? "rounded-2xl"
-                    : (negocio.logo_shape ?? "circle") === "none"
-                      ? ""
-                      : ""
-              }`}
+              initial={{ opacity: 0, x: -24 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.45, delay: 0.15 }}
+              className="flex items-center gap-4"
             >
-              {negocio.logo_url ? (
-                <Image
-                  src={negocio.logo_url}
-                  alt={negocio.nombre}
-                  width={160}
-                  height={160}
-                  className={`h-full w-full ${
-                    (negocio.logo_shape ?? "circle") === "circle"
-                      ? "rounded-full"
-                      : (negocio.logo_shape ?? "circle") === "rounded"
-                        ? "rounded-2xl"
-                        : ""
-                  }`}
-                  style={{
-                    objectFit: (negocio.logo_fit ?? "contain") as "contain" | "cover",
-                    objectPosition: negocio.logo_posicion ?? "center",
-                    transform: `scale(${negocio.logo_scale ?? 1})`,
-                  }}
-                  priority
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full w-full bg-[var(--color-custom-500)] text-white font-black text-xl">
-                  {negocio.nombre
-                    .split(" ")
-                    .map((s) => s[0])
-                    .slice(0, 2)
-                    .join("")}
-                </div>
-              )}
-              <div className="absolute -inset-2 rounded-full opacity-40 blur-2xl" style={{ background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.06), transparent)' }} />
-            </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 12, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 140, damping: 16 }}
+                className={
+                  (negocio.logo_shape ?? "circle") === "none"
+                    ? "relative flex items-center justify-center"
+                    : `relative flex items-center justify-center h-28 w-28 sm:h-32 sm:w-32 lg:h-40 lg:w-40 overflow-hidden ring-2 ring-white/10 shadow-2xl bg-white/5 ${
+                        (negocio.logo_shape ?? "circle") === "circle"
+                          ? "rounded-full"
+                          : "rounded-2xl"
+                      }`
+                }
+              >
+                {negocio.logo_url ? (
+                  <Image
+                    src={negocio.logo_url}
+                    alt={negocio.nombre}
+                    width={negocio.logo_shape === "none" ? 200 : 160}
+                    height={negocio.logo_shape === "none" ? 200 : 160}
+                    className={`h-auto w-auto ${
+                      (negocio.logo_shape ?? "circle") === "none"
+                        ? "max-h-48 max-w-48 sm:max-h-56 sm:max-w-56 lg:max-h-64 lg:max-w-64 drop-shadow-2xl"
+                        : "h-full w-full"
+                    } ${
+                      (negocio.logo_shape ?? "circle") === "circle"
+                        ? "rounded-full"
+                        : (negocio.logo_shape ?? "circle") === "rounded"
+                          ? "rounded-2xl"
+                          : ""
+                    }`}
+                    style={
+                      (negocio.logo_shape ?? "circle") === "none"
+                        ? { objectFit: "contain" as const }
+                        : {
+                            objectFit: (negocio.logo_fit ?? "contain") as "contain" | "cover",
+                            objectPosition: negocio.logo_posicion ?? "center",
+                            transform: `scale(${negocio.logo_scale ?? 1})`,
+                          }
+                    }
+                    priority
+                  />
+                ) : (
+                  <div className={`flex items-center justify-center ${
+                    (negocio.logo_shape ?? "circle") === "none"
+                      ? "h-28 w-28 sm:h-32 sm:w-32 lg:h-40 lg:w-40"
+                      : "h-full w-full"
+                  } bg-[var(--color-custom-500)] text-white font-black text-xl ${
+                    (negocio.logo_shape ?? "circle") === "circle" ? "rounded-full" : ""
+                  }`}>
+                    {negocio.nombre
+                      .split(" ")
+                      .map((s) => s[0])
+                      .slice(0, 2)
+                      .join("")}
+                  </div>
+                )}
+                {(negocio.logo_shape ?? "circle") !== "none" && (
+                  <div className="absolute -inset-2 rounded-full opacity-40 blur-2xl" style={{ background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.06), transparent)' }} />
+                )}
+              </motion.div>
 
             <div className="text-center sm:text-left">
               {(negocio.mostrar_nombre ?? true) && (
                 <motion.h1
-                  initial={{ opacity: 0, y: 6 }}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.45, delay: 0.25 }}
+                  transition={{ duration: 0.5, delay: 0.25 }}
                   className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight"
                   style={{ WebkitFontSmoothing: "antialiased" }}
                 >
-                  <span className="relative inline-block rounded-2xl px-4 py-2 -mx-2">
+                  <span className="relative inline-block px-4 py-2 -mx-2">
                     <span
-                      className="absolute inset-0 rounded-2xl backdrop-blur-lg"
+                      className="absolute inset-0 rounded-2xl backdrop-blur-xl"
                       style={{
                         backgroundColor: "color-mix(in srgb, var(--color-custom-950) 70%, transparent)",
-                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
+                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12)",
                       }}
                     />
-                    <span
-                      className="relative bg-clip-text text-transparent"
+                    <motion.span
+                      initial={{ backgroundPosition: "200% center" }}
+                      animate={{ backgroundPosition: "0% center" }}
+                      transition={{ duration: 1.2, delay: 0.4, ease: "easeOut" }}
+                      className="relative bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-custom-200)] via-white to-[var(--color-custom-200)] bg-[length:200%_auto]"
                       style={{
-                        backgroundImage: 'linear-gradient(135deg,var(--color-custom-200),var(--color-custom-50))',
-                        textShadow: "0 2px 8px rgba(0,0,0,0.25)",
+                        textShadow: "0 2px 12px rgba(0,0,0,0.35)",
                       }}
                     >
                       {negocio.nombre}
-                    </span>
+                    </motion.span>
                   </span>
                 </motion.h1>
               )}

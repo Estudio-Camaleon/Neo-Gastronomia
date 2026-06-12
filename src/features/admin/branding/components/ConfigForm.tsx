@@ -894,12 +894,18 @@ function BrandingBlock({
   onBannerPosicionChange: (val: string) => void;
   onBannerScaleChange: (val: number) => void;
 }) {
-  const shapeClass = (s: string) =>
-    s === "circle"
+  const isSticker = logoShape === "none";
+  const containerClass = isSticker
+    ? "relative flex items-center justify-center"
+    : `w-28 h-28 ${shapeClass(logoShape)} bg-[var(--admin-bg)] overflow-hidden relative flex items-center justify-center shadow-md transition-all hover:shadow-lg ring-1 ring-transparent hover:ring-[var(--admin-accent)]`;
+
+  function shapeClass(s: string) {
+    return s === "circle"
       ? "rounded-full"
       : s === "rounded"
         ? "rounded-2xl"
         : "rounded-none";
+  }
 
   return (
     <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl overflow-hidden shadow-sm">
@@ -923,11 +929,16 @@ function BrandingBlock({
           </span>
 
           <div className="relative group">
-            <div
-              className={`w-28 h-28 ${shapeClass(logoShape)} bg-[var(--admin-bg)] overflow-hidden relative flex items-center justify-center shadow-md transition-all hover:shadow-lg ring-1 ring-transparent hover:ring-[var(--admin-accent)]`}
-            >
+            <div className={containerClass}>
               {logoUrl ? (
-                logoUrl.startsWith("blob:") ? (
+                isSticker ? (
+                  <img
+                    src={logoUrl}
+                    alt="Logo"
+                    className="max-h-32 max-w-32 animate-in fade-in duration-200 drop-shadow-lg"
+                    style={{ objectFit: "contain" as const }}
+                  />
+                ) : logoUrl.startsWith("blob:") ? (
                   <img
                     src={logoUrl}
                     alt="Logo"
@@ -954,7 +965,7 @@ function BrandingBlock({
                   />
                 )
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-[var(--admin-text-muted)]">
+                <div className={isSticker ? "w-28 h-28 flex items-center justify-center text-[var(--admin-text-muted)]" : "w-full h-full flex items-center justify-center text-[var(--admin-text-muted)]"}>
                   <ImageIcon size={24} />
                 </div>
               )}
