@@ -1,0 +1,5 @@
+ALTER TABLE promos
+ADD COLUMN IF NOT EXISTS imagen_url TEXT;
+
+ALTER TABLE promos
+ALTER COLUMN activo SET DEFAULT true;

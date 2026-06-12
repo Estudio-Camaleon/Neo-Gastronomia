@@ -1,110 +1,149 @@
-## 🚀 Cómo empezar
+# NEO — Plataforma Gastronómica SaaS Multi-Tenant
 
-1. Requisitos previos
-   Node.js (v18 o superior recomendado).
+NEO es un SaaS para la industria gastronómica. Permite a cada comercio gestionar su menú digital, catálogo de productos, pedidos en tiempo real e identidad de marca desde un panel unificado, con un menú público accesible por QR.
 
-Git.
+---
 
-Una cuenta en Supabase.
+## Stack
 
-2. Instalación
-   Bash
+| Capa | Tecnología |
+|---|---|
+| Framework | Next.js 16 (App Router, Server Actions, Turbopack) |
+| Lenguaje | TypeScript 5 |
+| Estilos | Tailwind CSS v4 + CSS variables dinámicas |
+| UI | shadcn/ui (Radix), lucide-react, framer-motion |
+| Backend/DB | Supabase (PostgreSQL, Auth SSR, Storage, RLS) |
+| Estado cliente | Zustand (carrito) |
+| Validación | Zod |
+| Notificaciones | Sonner |
+| Testing | Vitest + Testing Library + jsdom |
 
-# Clonar el repositorio
+---
 
-git clone <tu-url-del-repositorio>
+## Empezar
 
-# Entrar a la carpeta
+```bash
+npm install              # instalar dependencias
+npm run dev              # entorno desarrollo (Turbopack)
+npm run build            # build producción
+npm run test             # tests (CI)
+npm run impecable        # lint → typecheck → format (pre-commit)
+```
 
-cd neo-app
+## Comandos
 
-# Instalar dependencias
+| Comando | Descripción |
+|---|---|
+| `npm run dev` | `tsx scripts/dev.ts` (banner personalizado + `next dev --turbo`) |
+| `npm run dev:next` | `next dev --turbo` (sin script personalizado) |
+| `npm run build` | Producción |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run format` | Prettier (`src/**/*.{ts,tsx,css}`) |
+| `npm run test` | Vitest (CI) |
+| `npm run test:watch` | Vitest (watch) |
+| `npm run impecable` | `lint && typecheck && format` |
+| `npm run db:pull` | Pull schema remoto Supabase |
+| `npm run db:types` | Generar tipos TS desde Supabase |
+| `npm run clean` | Limpiar `.next` |
 
-npm install
+---
 
-3. Configuración de variables de entorno
-   Crea un archivo .env.local en la raíz del proyecto basándote en el archivo .env.example:
+## Variables de entorno (`.env.local`)
 
-Fragmento de código
-NEXT_PUBLIC_SUPABASE_URL=tu_url_de_supabase
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key_de_supabase
+```
+NEXT_PUBLIC_SUPABASE_URL=<required>
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<required>
+SUPABASE_SERVICE_ROLE_KEY=<required>
+NEXT_PUBLIC_SITE_URL=<opcional, default localhost:3000>
+```
 
-4. Ejecución en desarrollo
-   Bash
-   npm run dev
-   Luego, abre http://localhost:3000 en tu navegador.
+Validadas con Zod en `src/core/config/env.ts`.
 
-## Notas para el equipo (Estudio Camaleón):
+---
 
-No toques lib/supabase/server.ts a menos que sea estrictamente necesario para cambios en la autenticación. Es el núcleo de seguridad.
+## Arquitectura
 
-Uso de componentes: Siempre verifica si estás en un componente de cliente ("use client") antes de elegir la importación:
-
-import { supabase } from "@/lib/supabase/client" (Cliente)
-
-import { createClient } from "@/lib/supabase/server" (Servidor)
-
-CSS: Estamos utilizando Tailwind CSS. Si agregas componentes nuevos, mantén la consistencia usando las clases de utilidades existentes (espaciados, colores, bordes).
-
-## Estructura Actual de Carpetas
-
-neo-app/
-├── app/
-│ ├── (auth)/ # Rutas de autenticación (Login/Registro)
-│ │ ├── login/page.tsx
-│ │ └── registro/page.tsx
-│ ├── (adminPanel)/ # Rutas privadas (Admin, Productos, Config)
-│ │ ├── admin/
-│ │ │ ├── loading.tsx
-│ │ │ └── page.tsx # Server Component (usa lib/supabase/server)
-│ │ ├── configuracion/
-│ │ │ └── page.tsx
-│ │ ├── productos/
-│ │ │ └── page.tsx
-│ │ └── layout.tsx # Contiene el Sidebar (Client Component)
-│ ├── (public)/ # Vista pública del catálogo
-│ │ ├── [slug]/
-│ │ │ └── page.tsx
-│ │ └── layout.tsx
-│ ├── globals.css
-│ ├── layout.tsx # Layout raíz global
-│ └── page.tsx # Landing Page principal
+```
+src/
+├── app/                        # Next.js App Router
+│   ├── (adminPanel)/           # Dashboard protegido (pedidos, productos, config, clientes)
+│   │   ├── layout.tsx          # Auth guard + sidebar + ThemeProvider
+│   │   ├── dashboard/          # KPIs: pedidos hoy, ventas, clientes, productos
+│   │   ├── pedidos/            # Pedidos en tiempo real con PedidosRadar
+│   │   ├── productos/          # Gestión de catálogo (AddProductSection)
+│   │   ├── configuracion/      # Configuración del negocio (branding)
+│   │   └── clientes/           # Radar de clientes
+│   ├── (auth)/                 # Login, registro, onboarding, callback OAuth
+│   ├── (menuPublic)/           # Menú público por slug /[slug]
+│   └── api/admin/              # Route handlers (imágenes)
+│
 ├── components/
-│ ├── auth/ # Formularios de acceso
-│ ├── adminPanel/ # Componentes del panel (Sidebar, Tablas, Forms)
-│ ├── menu/ # Componentes de la vista pública
-│ └── shared/ # Navbar/Footer globales
-├── lib/
-│ ├── supabase/
-│ │ ├── client.ts # Para "use client" (Navegador)
-│ │ └── server.ts # Para Server Components (Cookies/Auth)
-│ ├── schemas.ts # Validaciones
-│ └── utils.ts # Utilidades generales
-└── middleware.ts # Protección de rutas
+│   └── ui/                     # Átomos shadcn/ui (button, input, badge, switch, modals, etc.)
+│
+├── core/
+│   ├── config/env.ts           # Validación Zod de entorno
+│   ├── lib/
+│   │   ├── supabase/           # 3 clientes: client.ts / server.ts / admin.ts
+│   │   ├── utils.ts            # cn() utility
+│   │   ├── schemas.ts          # Esquemas Zod (login, register, productos, pedidos)
+│   │   ├── tenant.ts           # Helpers multi-tenant
+│   │   └── utils/              # color.ts, horarios.ts, whatsappActions.ts
+│   ├── hooks/                  # useActiveSection, useIsScrolled, useScrollReveal
+│   ├── providers/              # ThemeProvider, LoadingProvider
+│   └── types/                  # database.types.ts, domain.ts
+│
+├── features/
+│   ├── auth/                   # Server actions + formularios (login, registro, Google OAuth)
+│   ├── admin/                  # Panel: órdenes, catálogo, branding, clientes
+│   │   ├── orders/             # PedidosRadar, PedidoCard, actions
+│   │   ├── catalog/            # AddProductSection, ProductTable, ProductoForm, modals
+│   │   ├── branding/           # ConfigForm, actions
+│   │   ├── clients/            # ClientRadar, actions
+│   │   └── shared/             # Sidebar, MobileSidebar, FirstTimeTutorial
+│   ├── marketing/              # Landing page (Hero, Features, Pricing, Testimonials, etc.)
+│   └── public-menu/            # Catálogo público, carrito Zustand, order form
+│
+├── proxy.ts                    # Reemplaza middleware.ts (Next.js 16)
+└── __tests__/                  # setup.ts, test-utils.tsx
+```
 
-## Tecnologías y Herramientas
+## Clientes Supabase
 
-El proyecto está construido bajo una arquitectura moderna centrada en el rendimiento y la seguridad, utilizando Next.js 16 (App Router) y Supabase.
+| Archivo | Cliente | Rol | Uso |
+|---|---|---|---|
+| `client.ts` | `createBrowserClient` | Anon key | Componentes browser |
+| `server.ts` | `createServerClient` | Anon key + cookies | Server Components, Server Actions |
+| `admin.ts` | `createClient` (raw) | Service role key | Route handlers admin (imágenes) |
 
-1. Stack Tecnológico
-   Framework: Next.js 16 (App Router) - Utilizado por su capacidad de renderizado híbrido (Server/Client Components) y optimización SEO.
+- `admin.ts` tiene `import "server-only"` — no importar en cliente
+- Server actions usan `createClient` de `server.ts`
+- Storage (upload/delete imágenes) usa `supabaseAdmin` para operaciones cross-RLS
 
-Autenticación y Backend: Supabase - Provee la base de datos (PostgreSQL), autenticación de usuarios y almacenamiento.
+## Proxy (antes Middleware)
 
-Gestión de Sesión: @supabase/ssr - Librería oficial para manejar la autenticación en el servidor y sincronizarla con el cliente mediante cookies.
+`src/proxy.ts` exporta `proxy(request: NextRequest)`.
+- Protege `/pedidos`, `/productos`, `/configuracion`, `/admin`, `/dashboard`, `/clientes`
+- Redirige no-autenticados a `/login`
+- Redirige autenticados fuera de `/login` y `/registro` hacia `/pedidos`
+- Usa `createServerClient` de `@supabase/ssr` con doble pasada de cookies
 
-Estilos: Tailwind CSS - Framework de utilidades para un diseño rápido, responsivo y mantenible.
+## Convenciones
 
-2. Herramientas Clave
-   TypeScript: Garantiza la seguridad de tipos en todo el código, reduciendo bugs en tiempo de ejecución.
+- **Server Actions** en `features/*/actions.ts` con `"use server"`
+- **Componentes cliente** usan `"use client"` al inicio
+- **createClient()** se cachea a nivel de módulo (no por render)
+- **Multi-tenant**: toda query scoped por `negocio_id` + `user_id` (server) o RLS (cliente)
+- **Tests** colocalizados: `*.test.ts` / `*.test.tsx` al lado del source
+- **Zod** para validación client-side + `env.ts` para entorno
+- **Rate limiting** es in-memory (`Map`), se reinicia al reiniciar el servidor
 
-Middleware: Implementado para proteger rutas privadas (/admin, /productos, /configuracion) asegurando que solo usuarios autenticados tengan acceso.
+## DB local (Supabase CLI)
 
-Route Groups: Estructura de carpetas ((auth), (adminPanel), (public)) para organizar el proyecto sin afectar la estructura de URLs.
+```bash
+npm run db:start        # requiere Docker
+npm run db:pull         # pull schema remoto
+npm run db:types        # regenerar tipos TS
+```
 
-3. Arquitectura del Cliente vs. Servidor
-   Para evitar conflictos de sesión y optimizar la carga, se separaron las responsabilidades:
-
-Server Components (lib/supabase/server.ts): Utilizados para lectura de datos y protección de rutas. Acceden directamente a cookies() de Next.js.
-
-Client Components (lib/supabase/client.ts): Utilizados para formularios e interactividad, gestionando el estado de la sesión directamente en el navegador.
+Migraciones en `supabase/migrations/`.

@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "target": "ES2022",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -12,15 +13,23 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
     "plugins": [
       {
         "name": "next"
       }
     ],
     "paths": {
-      "@/*": ["./*"]
-    },
-    "target": "ES2017"
+      "@/*": ["./src/*"],
+      "@core/*": ["./src/core/*"],
+      "@ui/*": ["./src/components/ui/*"],
+      "@auth/*": ["./src/features/auth/*"],
+      "@marketing/*": ["./src/features/marketing/*"],
+      "@admin/*": ["./src/features/admin/*"],
+      "@public-menu/*": ["./src/features/public-menu/*"]
+    }
   },
   "include": [
     "next-env.d.ts",

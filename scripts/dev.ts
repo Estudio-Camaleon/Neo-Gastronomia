@@ -2,17 +2,16 @@ import { spawn } from "child_process";
 
 /**
  * Script de arranque personalizado para NEO
- * Limpia el ruido de la terminal y presenta un banner profesional.
+ * Limpia el ruido de la terminal, presenta un banner profesional
+ * y maneja el cierre seguro de procesos.
  */
 
-// Limpiamos la consola al iniciar
 console.clear();
 
-// Banner de identidad de NEO / Estudio Camaleon
 const banner = `
-\x1b[32m   _  _________ 
-  / |/ / __/ __ \\
- /    / _// /_/ /
+\x1b[32m  _  _________ 
+ / |/ / __/ __ \\
+/    / _// /_/ /
 /_/|_/___/\\____/  \x1b[0m \x1b[90mDEVELOPMENT ENGINE v1.0\x1b[0m
 `;
 
@@ -26,18 +25,15 @@ console.log(
   "  -------------------------------------------------------",
 );
 
-// Iniciamos el proceso de Next.js
 const child = spawn("next", ["dev", "--turbo"], {
   stdio: "pipe",
   shell: true,
   env: process.env,
 });
 
-// Manejo de la salida estándar (stdout)
 child.stdout?.on("data", (data: Buffer) => {
   const line = data.toString();
 
-  // Filtrar y mostrar solo la información relevante para el desarrollador
   if (line.includes("Local:")) {
     console.log(
       "\x1b[32m  ✔ Acceso Local:  \x1b[0m",
@@ -57,11 +53,9 @@ child.stdout?.on("data", (data: Buffer) => {
   }
 });
 
-// Manejo de errores y advertencias (stderr)
 child.stderr?.on("data", (data: Buffer) => {
   const message = data.toString();
 
-  // Bloqueamos los warnings conocidos del Workspace Root para mantener la limpieza
   const isWorkspaceWarning = message.includes(
     "Warning: Next.js inferred your workspace root",
   );
@@ -74,10 +68,25 @@ child.stderr?.on("data", (data: Buffer) => {
   }
 });
 
+// --- NUEVO: Manejo de cierre seguro ---
+
+// Si el proceso de Next.js se cierra por su cuenta
 child.on("close", (code) => {
-  if (code !== 0) {
+  if (code !== 0 && code !== null) {
     console.log(
-      `\n\x1b[32m  ✖ El proceso terminó con el código: ${code}\x1b[0m`,
+      `\n\x1b[31m  ✖ El motor se detuvo inesperadamente (Código: ${code})\x1b[0m`,
     );
   }
+  process.exit(code ?? 0);
+});
+
+// Capturamos el Ctrl + C del usuario en la terminal
+process.on("SIGINT", () => {
+  console.log("\n\x1b[90m  Apagando motor de desarrollo...\x1b[0m");
+  child.kill("SIGINT"); // Le pasamos la señal al proceso hijo
+});
+
+// Capturamos señales de terminación del sistema
+process.on("SIGTERM", () => {
+  child.kill("SIGTERM");
 });

@@ -1,0 +1,293 @@
+@layer base {
+  .neo-home {
+    --theme-background: #f7f4ec;
+    --theme-surface: rgba(255, 255, 255, 0.72);
+    --theme-surface-strong: #ffffff;
+    --theme-surface-soft: #eef5e9;
+    --theme-border: rgba(28, 72, 42, 0.18);
+    --theme-border-strong: rgba(28, 72, 42, 0.28);
+    --theme-primary: #1f6b3d;
+    --theme-primary-soft: #d8e8d4;
+    --theme-primary-soft-2: #bfd8b7;
+    --theme-accent: #8dbb7a;
+    --theme-accent-secondary: #c05c3e;
+    --theme-accent-secondary-soft: #f5e0d9;
+    --theme-text: #163225;
+    --theme-text-muted: #4a5a50;
+    --theme-shadow: 0 18px 50px rgba(31, 107, 61, 0.08);
+
+    background-color: var(--theme-background);
+    color: var(--theme-text);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(
+        circle at top left,
+        rgba(141, 187, 122, 0.08),
+        transparent 20%
+      ),
+      radial-gradient(
+        circle at top right,
+        rgba(31, 107, 61, 0.05),
+        transparent 18%
+      ),
+      linear-gradient(180deg, #faf8f2 0%, #f7f4ec 38%, #f3efe6 100%);
+  }
+
+  .neo-home-shell {
+    isolation: isolate;
+  }
+
+  .neo-home .glass-card {
+    background: var(--theme-surface);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--theme-border);
+    border-radius: 20px;
+    box-shadow: var(--theme-shadow);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .neo-home .glass-card:hover {
+    border-color: var(--theme-border-strong);
+    box-shadow: 0 20px 60px rgba(31, 107, 61, 0.12);
+    transform: translateY(-3px);
+  }
+
+  .neo-home-shell {
+    min-height: 100vh;
+    border-radius: 0;
+  }
+}
+
+@layer utilities {
+  /* Efecto de aparición hacia arriba (Fade In Up) */
+  .animate-fade-in-up {
+    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  /* Efecto de levitación continua (Float) */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  /* Efecto acordeón para el Navbar móvil */
+  .animate-slide-down {
+    animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transform-origin: top;
+  }
+
+  /* Retrasos (Delays) para el efecto cascada (Stagger) */
+  .delay-100 {
+    animation-delay: 100ms;
+  }
+  .delay-200 {
+    animation-delay: 200ms;
+  }
+  .delay-300 {
+    animation-delay: 300ms;
+  }
+  .delay-400 {
+    animation-delay: 400ms;
+  }
+  .delay-500 {
+    animation-delay: 500ms;
+  }
+
+  @keyframes fadeInUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: scaleY(0.95) translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: scaleY(1) translateY(0);
+    }
+  }
+}
+/* Scrollbar personalizado para los modales y paneles */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--theme-border-strong);
+  border-radius: 20px;
+}
+
+@layer utilities {
+  .animate-scale-on-hover {
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .animate-scale-on-hover:hover {
+    transform: scale(1.03);
+  }
+  .animate-scale-on-hover:active {
+    transform: scale(0.97);
+  }
+
+  .animate-lift {
+    transition:
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .animate-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 60px rgba(31, 107, 61, 0.12);
+  }
+
+  .shimmer-loader {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(31, 107, 61, 0.06) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmerSlide 1.5s ease-in-out infinite;
+  }
+
+  @keyframes shimmerSlide {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .animate-cursor {
+    animation: cursorMove 8s ease-in-out infinite;
+  }
+
+  .animate-cursor-click {
+    animation: cursorClick 8s ease-in-out infinite;
+  }
+
+  @keyframes cursorMove {
+    0%,
+    8% {
+      top: 18%;
+      left: 10%;
+    }
+    14%,
+    18% {
+      top: 18%;
+      left: 40%;
+    }
+    20%,
+    22% {
+      top: 18%;
+      left: 40%;
+    }
+    28%,
+    32% {
+      top: 35%;
+      left: 22%;
+    }
+    38%,
+    42% {
+      top: 35%;
+      left: 60%;
+    }
+    44%,
+    46% {
+      top: 35%;
+      left: 60%;
+    }
+    52%,
+    56% {
+      top: 55%;
+      left: 30%;
+    }
+    62%,
+    66% {
+      top: 55%;
+      left: 68%;
+    }
+    68%,
+    70% {
+      top: 55%;
+      left: 68%;
+    }
+    76%,
+    80% {
+      top: 75%;
+      left: 25%;
+    }
+    86%,
+    90% {
+      top: 75%;
+      left: 50%;
+    }
+    92%,
+    94% {
+      top: 75%;
+      left: 50%;
+    }
+    100% {
+      top: 18%;
+      left: 10%;
+    }
+  }
+
+  @keyframes cursorClick {
+    0%,
+    19% {
+      transform: scale(1);
+    }
+    20%,
+    22% {
+      transform: scale(0.75);
+    }
+    23% {
+      transform: scale(1);
+    }
+    43%,
+    45% {
+      transform: scale(0.75);
+    }
+    46% {
+      transform: scale(1);
+    }
+    67%,
+    69% {
+      transform: scale(0.75);
+    }
+    70% {
+      transform: scale(1);
+    }
+    93%,
+    94% {
+      transform: scale(0.75);
+    }
+    95% {
+      transform: scale(1);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+}

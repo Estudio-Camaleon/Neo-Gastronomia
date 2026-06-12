@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+@theme {
+  --color-admin-surface: var(--admin-surface);
+  --color-admin-surface-secondary: var(--admin-surface-secondary);
+  --color-admin-bg: var(--admin-bg);
+  --color-admin-border: var(--admin-border);
+  --color-admin-text: var(--admin-text);
+  --color-admin-text-muted: var(--admin-text-muted);
+  --color-admin-accent: var(--admin-accent);
+  --color-admin-accent-secondary: var(--admin-accent-secondary);
+  --color-admin-danger: var(--admin-danger);
+}
+
+.admin-theme-wrapper {
+  --admin-surface: rgba(255, 255, 255, 0.85);
+  --admin-surface-secondary: rgba(249, 249, 249, 0.7);
+  --admin-bg: #f7f4ec;
+  --admin-border: rgba(28, 72, 42, 0.15);
+  --admin-border-strong: rgba(28, 72, 42, 0.25);
+  --admin-text: #163225;
+  --admin-text-muted: #4a5a50;
+  --admin-accent: #1f6b3d;
+  --admin-accent-secondary: #c05c3e;
+  --admin-danger: #c05c3e;
+  --admin-shadow: 0 8px 30px rgba(31, 107, 61, 0.06);
+  /* Success / warning tokens for components like WhatsApp, notes */
+  --admin-success: #16a34a; /* green-600 */
+  --admin-success-bg: rgba(22, 163, 74, 0.08);
+  --admin-success-border: rgba(22, 163, 74, 0.15);
+  --admin-warning: #b45309; /* amber-700 equivalent */
+  --admin-warning-bg: rgba(180, 83, 9, 0.06);
+  --admin-warning-border: rgba(180, 83, 9, 0.12);
+}
+
+.admin-theme-wrapper.dark {
+  --admin-surface: rgba(22, 28, 25, 0.9);
+  --admin-surface-secondary: rgba(18, 24, 21, 0.85);
+  --admin-bg: #0e1410;
+  --admin-border: rgba(255, 255, 255, 0.08);
+  --admin-border-strong: rgba(255, 255, 255, 0.15);
+  --admin-text: #f4f4f5;
+  --admin-text-muted: #8a9a90;
+  --admin-accent: #34a35f;
+  --admin-accent-secondary: #d47a5a;
+  --admin-danger: #f87171;
+  --admin-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  /* Dark theme success/warning */
+  --admin-success: #34d399; /* green-400 */
+  --admin-success-bg: rgba(52, 211, 153, 0.08);
+  --admin-success-border: rgba(52, 211, 153, 0.12);
+  --admin-warning: #f6ad55; /* amber-ish */
+  --admin-warning-bg: rgba(246, 173, 85, 0.06);
+  --admin-warning-border: rgba(246, 173, 85, 0.12);
+}
+
+@layer components {
+  .admin-card {
+    background: var(--admin-surface);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--admin-border);
+    border-radius: 20px;
+    box-shadow: var(--admin-shadow);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @media (hover: hover) {
+    .admin-card:hover {
+      border-color: var(--admin-border-strong);
+      box-shadow: 0 12px 40px rgba(31, 107, 61, 0.1);
+      transform: translateY(-1px);
+    }
+  }
+
+  .admin-sidebar {
+    @apply flex flex-col h-full;
+    background: var(--admin-surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid var(--admin-border);
+    transition:
+      background 0.3s ease,
+      border-color 0.3s ease;
+  }
+
+  .admin-input {
+    height: 2.75rem;
+    width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid var(--admin-border);
+    background: rgba(255, 255, 255, 0.6);
+    color: var(--admin-text);
+    font-size: 0.875rem;
+    padding: 0 0.875rem;
+    transition: all 0.25s ease;
+  }
+
+  .admin-input:focus {
+    outline: none;
+    border-color: var(--admin-accent);
+    box-shadow: 0 0 0 3px rgba(31, 107, 61, 0.12);
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  .admin-input:hover:not(:focus) {
+    border-color: var(--admin-border-strong);
+    background: rgba(255, 255, 255, 0.75);
+  }
+
+  .admin-input::placeholder {
+    color: var(--admin-text-muted);
+    opacity: 0.7;
+  }
+
+  /* Utility classes for consistent themed colors */
+  .admin-success-text { color: var(--admin-success); }
+  .admin-success-bg { background: var(--admin-success-bg); }
+  .admin-success-border { border-color: var(--admin-success-border); }
+
+  .admin-warning-text { color: var(--admin-warning); }
+  .admin-warning-bg { background: var(--admin-warning-bg); }
+  .admin-warning-border { border-color: var(--admin-warning-border); }
+
+  .admin-accent-text { color: var(--admin-accent); }
+  .admin-accent-bg { background: var(--admin-accent); }
+  .admin-accent-border { border-color: var(--admin-accent); }
+  .admin-danger-text { color: var(--admin-danger); }
+  .admin-danger-bg { background: rgba(240, 82, 82, 0.06); }
+  .admin-danger-border { border-color: rgba(240, 82, 82, 0.15); }
+  .admin-info-text { color: #2563eb; }
+  .admin-info-bg { background: rgba(37, 99, 235, 0.06); }
+  .admin-info-border { border-color: rgba(37, 99, 235, 0.15); }
+
+  /* Hover helpers */
+  .hover-admin-danger:hover { color: var(--admin-danger); background: var(--admin-danger-bg); }
+  .hover-admin-success:hover { color: var(--admin-success); background: var(--admin-success-bg); }
+  .hover-admin-warning:hover { color: var(--admin-warning); background: var(--admin-warning-bg); }
+  .hover-admin-info:hover { color: #2563eb; background: var(--admin-info-bg); }
+}

@@ -1,18 +1,75 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
+import js from "@eslint/js";
+import ts from "@typescript-eslint/eslint-plugin";
+import tsParser from "@typescript-eslint/parser";
 
-const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-  ]),
-]);
+export default [
+  js.configs.recommended,
+  {
+    files: ["**/*.ts", "**/*.tsx"],
+    plugins: {
+      "@typescript-eslint": ts,
+    },
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaFeatures: { jsx: true },
+      },
+      // Registro centralizado de scopes de ejecución en NEO v3.0
+      globals: {
+        // Entorno Navegador / Web APIs globales
+        window: "readonly",
+        document: "readonly",
+        navigator: "readonly",
+        localStorage: "readonly",
+        sessionStorage: "readonly",
+        Audio: "readonly",
+        FormData: "readonly", // <-- FIX DE RAÍZ: Inyectado para Server Actions y Formularios
+        HTMLInputElement: "readonly",
+        HTMLFormElement: "readonly",
+        HTMLTextAreaElement: "readonly",
+        HTMLDivElement: "readonly",
+        HTMLButtonElement: "readonly",
+        HTMLElement: "readonly",
+        Node: "readonly",
+        MouseEvent: "readonly",
+        URL: "readonly",
+        crypto: "readonly",
+        confirm: "readonly",
+        setTimeout: "readonly",
+        clearTimeout: "readonly",
 
-export default eslintConfig;
+        // Entorno Node.js (Server Side Runtime)
+        process: "readonly",
+        console: "readonly",
+        Buffer: "readonly",
+        module: "readonly",
+        __dirname: "readonly",
+
+        // React Global Scope
+        React: "readonly",
+      },
+    },
+    rules: {
+      "@typescript-eslint/no-explicit-any": "error",
+
+      // Control estricto de código muerto con soporte para escapes funcionales
+      "no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          ignoreRestSiblings: true,
+          args: "none",
+        },
+      ],
+
+      // Senior Tip: Se apaga para TS porque 'tsc' lo valida de forma nativa y libre de bugs.
+      "no-undef": "off",
+      "no-useless-escape": "off",
+    },
+  },
+  {
+    // Aislamiento de directorios de compilación y empaquetado
+    ignores: [".next/**", "node_modules/**", "out/**", "build/**"],
+  },
+];
