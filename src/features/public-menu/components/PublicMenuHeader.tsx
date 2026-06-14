@@ -207,7 +207,6 @@ export function PublicMenuHeader({
                 className="object-cover"
                 sizes="100vw"
                 priority
-                loading="eager"
                 style={{
                   objectPosition: negocio.banner_posicion ?? "center",
                 }}
@@ -253,6 +252,7 @@ export function PublicMenuHeader({
                       alt={negocio.nombre}
                       width={isSticker ? 200 : 200}
                       height={isSticker ? 200 : 200}
+                      sizes="120px"
                       className={
                         isSticker
                           ? "max-h-32 max-w-32 sm:max-h-36 sm:max-w-36 drop-shadow-2xl"

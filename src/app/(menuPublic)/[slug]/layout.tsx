@@ -111,38 +111,12 @@ export default async function PublicLayout({
         </svg>
       </div>
 
-      <main className="w-full relative z-10">{children}</main>
+      <main id="main-content" className="w-full relative z-10">{children}</main>
 
-      <style>{`
-        .public-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .public-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .public-scrollbar::-webkit-scrollbar-thumb {
-          background: color-mix(in srgb, var(--color-custom-900) 20%, transparent);
-          border-radius: 99px;
-        }
-        .public-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: color-mix(in srgb, var(--color-custom-900) 20%, transparent) transparent;
-        }
-        .receipt-scrollbar::-webkit-scrollbar {
-          width: 3px;
-        }
-        .receipt-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .receipt-scrollbar::-webkit-scrollbar-thumb {
-          background: color-mix(in srgb, var(--color-custom-900) 15%, transparent);
-          border-radius: 0;
-        }
-        .receipt-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: color-mix(in srgb, var(--color-custom-900) 15%, transparent) transparent;
-        }
-      `}</style>
+      {/* Canonical URL for this public menu */}
+      <link rel="canonical" href={`${process.env.NEXT_PUBLIC_SITE_URL || "https://neo.app"}/${slug}`} />
+
+      {/* Scrollbar styles moved to globals.css for caching */}
     </div>
   );
 }

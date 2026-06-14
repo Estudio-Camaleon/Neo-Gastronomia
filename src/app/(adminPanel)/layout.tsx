@@ -7,6 +7,11 @@ import { OrderNotificationProvider } from "@/features/admin/orders/OrderNotifica
 import { createClient } from "@/core/lib/supabase/server";
 import { redirect } from "next/navigation";
 import "@/features/admin/shared/admin-panel.css";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  robots: "noindex, nofollow",
+};
 
 export default async function AdminPanelLayout({
   children,
@@ -94,7 +99,7 @@ export default async function AdminPanelLayout({
             <MobileSidebar slug={negocio.slug} negocioNombre={negocio.nombre} />
           </header>
 
-          <main className="flex-1 p-3 sm:p-4 lg:p-6 xl:p-10 w-full max-w-7xl mx-auto animate-in fade-in duration-300 relative">
+          <main id="main-content" className="flex-1 p-3 sm:p-4 lg:p-6 xl:p-10 w-full max-w-7xl mx-auto animate-in fade-in duration-300 relative">
             <Suspense
               fallback={
                 <div className="flex items-center justify-center h-[60vh]">

@@ -2,16 +2,30 @@
 
 import { useEffect, useMemo, useState, useCallback } from "react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { Minus, Plus, Clock, Search, ImageIcon, MapPin, ChevronDown } from "lucide-react";
 import { useCartStore } from "@/features/public-menu/cart/useCartStore";
 import { CartFloatingButton } from "@/features/public-menu/cart/CartFloatingButton";
 import { PublicCart } from "@/features/public-menu/cart/PublicCart";
-import { FloatingFood } from "@/features/public-menu/components/FloatingFood";
-import { ProductDetailModal } from "@/features/public-menu/components/ProductDetailModal";
-import { ComboDetailModal } from "@/features/public-menu/components/ComboDetailModal";
-import { CombosSection } from "@/features/public-menu/components/CombosSection";
 import PublicMenuHeader from "@/features/public-menu/components/PublicMenuHeader";
+
+const FloatingFood = dynamic(
+  () => import("@/features/public-menu/components/FloatingFood").then((m) => ({ default: m.FloatingFood })),
+  { ssr: false },
+);
+const ProductDetailModal = dynamic(
+  () => import("@/features/public-menu/components/ProductDetailModal").then((m) => ({ default: m.ProductDetailModal })),
+  { ssr: false },
+);
+const ComboDetailModal = dynamic(
+  () => import("@/features/public-menu/components/ComboDetailModal").then((m) => ({ default: m.ComboDetailModal })),
+  { ssr: false },
+);
+const CombosSection = dynamic(
+  () => import("@/features/public-menu/components/CombosSection").then((m) => ({ default: m.CombosSection })),
+  { ssr: true },
+);
 import { estaAbierto } from "@/core/lib/utils/horarios";
 import { createClient as createBrowserSupabase } from "@/core/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -32,7 +46,7 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.06 },
+    transition: { staggerChildren: 0.03 },
   },
 };
 
@@ -335,9 +349,9 @@ export function CatalogClient({
                 className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"
               >
                 <div>
-                  <p className="text-5xl font-black italic leading-none tracking-[-0.05em] text-[var(--color-custom-900)] sm:text-3xl">
+                  <h1 className="text-5xl font-black italic leading-none tracking-[-0.05em] text-[var(--color-custom-900)] sm:text-3xl">
                     Menú
-                  </p>
+                  </h1>
                   <p className="mt-1 text-sm font-medium text-[var(--color-custom-text-muted)]">
                     Elegí tu producto favorito
                   </p>
@@ -352,18 +366,19 @@ export function CatalogClient({
                     className="flex items-center gap-3 shrink-0"
                   >
                     <div
-                      aria-hidden
                       className={`relative flex items-center rounded-full px-3 py-1 text-sm font-semibold uppercase tracking-wide ${isOpenNow ? "bg-[color:var(--color-custom-500)/0.12] text-[var(--color-custom-700)]" : "bg-[rgba(190,36,20,0.08)] text-[#be2414]"}`}
                       title={isOpenNow ? "Abierto ahora" : "Cerrado ahora"}
                     >
                       <motion.span
+                        aria-hidden="true"
                         animate={
                           isOpenNow ? { scale: [1, 1.35, 1] } : { scale: 1 }
                         }
                         transition={{ repeat: Infinity, duration: 1.8 }}
                         className={`mr-2 h-2.5 w-2.5 rounded-full ${isOpenNow ? "bg-[var(--color-custom-500)]" : "bg-white"}`}
                       />
-                      {isOpenNow ? "Abierto" : "Cerrado"}
+                      <span className="sr-only">{isOpenNow ? "Abierto ahora" : "Cerrado ahora"}</span>
+                      <span aria-hidden="true">{isOpenNow ? "Abierto" : "Cerrado"}</span>
                     </div>
 
                     <div className="whitespace-nowrap text-sm text-[var(--color-custom-text-muted)]">
@@ -401,6 +416,7 @@ export function CatalogClient({
                 className="mt-4 flex gap-2 overflow-x-auto pb-1"
                 role="tablist"
                 aria-label="Categorías del menú"
+                style={{ willChange: "transform, opacity" }}
               >
                 <motion.button
                   variants={categoryVariants}
@@ -494,6 +510,7 @@ export function CatalogClient({
                               ? "lg:grid-cols-3 xl:grid-cols-4"
                               : "lg:grid-cols-4 xl:grid-cols-5"
                           }`}
+                          style={{ willChange: "transform, opacity" }}
                         >
                           {cat.productos.map((prod) => {
                             const cantidad =

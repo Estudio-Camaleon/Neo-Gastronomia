@@ -3,7 +3,7 @@ import { createClient } from "@/core/lib/supabase/server";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { CatalogClient } from "@/features/public-menu/components/CatalogClient";
-import type { Categoria, NegocioPublico } from "@/features/public-menu/types";
+import type { Categoria, NegocioPublico, Producto } from "@/features/public-menu/types";
 import type { PromoRow } from "@/core/types/domain";
 
 export const revalidate = 60;
@@ -91,7 +91,7 @@ export default async function PublicMenuPage({ params }: PublicPageProps) {
     .is("categoria_id", null)
     .eq("negocio_id", negocio.id)
     .order("nombre")
-    .returns<any[]>();
+    .returns<Producto[]>();
 
   const { data: promos } = await supabase
     .from("promos")

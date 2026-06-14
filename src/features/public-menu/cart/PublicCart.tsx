@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
+import dynamic from "next/dynamic";
 import { useCartStore } from "./useCartStore";
 import {
   Trash2,
@@ -15,7 +16,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect, useRef, useCallback, useState, useMemo } from "react";
-import { OrderForm } from "./OrderForm";
+
+const OrderForm = dynamic(() => import("./OrderForm").then((m) => ({ default: m.OrderForm })), {
+  ssr: false,
+});
 
 const receiptContainerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -48,7 +52,7 @@ const receiptEmptyVariants = {
 
 function DashedDivider() {
   return (
-    <div className="relative my-2 flex items-center justify-center overflow-hidden">
+    <div aria-hidden="true" className="relative my-2 flex items-center justify-center overflow-hidden">
       <div className="h-px w-full bg-[length:8px_1px] bg-[repeating-linear-gradient(90deg,#aaa_0px,#aaa_4px,transparent_4px,transparent_8px)] opacity-60" />
       <Scissors
         size={10}

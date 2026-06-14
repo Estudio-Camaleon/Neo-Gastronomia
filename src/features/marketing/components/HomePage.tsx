@@ -26,7 +26,7 @@ export function HomePage() {
 
           <Navbar />
 
-          <main className="flex-grow w-full">
+          <main id="main-content" className="flex-grow w-full">
             <Hero />
             <Features />
             <Pricing />

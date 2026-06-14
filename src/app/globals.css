@@ -433,3 +433,45 @@ iframe {
     @apply font-sans;
   }
 }
+
+/* Scrollbars personalizados para el menú público */
+.public-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.public-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.public-scrollbar::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-custom-900) 20%, transparent);
+  border-radius: 99px;
+}
+.public-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-custom-900) 20%, transparent) transparent;
+}
+.receipt-scrollbar::-webkit-scrollbar {
+  width: 3px;
+}
+.receipt-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.receipt-scrollbar::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-custom-900) 15%, transparent);
+  border-radius: 0;
+}
+.receipt-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-custom-900) 15%, transparent) transparent;
+}
+
+/* Respetar preferencia de movimiento reducido — WCAG 2.3.3 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
