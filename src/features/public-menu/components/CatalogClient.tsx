@@ -121,8 +121,14 @@ export function CatalogClient({
   }, []);
 
   useEffect(() => {
+    let wasDesktop = window.innerWidth >= 1024;
+
     const syncCartVisibility = () => {
-      setCartOpen(window.innerWidth >= 1024);
+      const isDesktop = window.innerWidth >= 1024;
+      if (isDesktop !== wasDesktop) {
+        wasDesktop = isDesktop;
+        setCartOpen(isDesktop);
+      }
     };
 
     syncCartVisibility();
