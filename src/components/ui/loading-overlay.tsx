@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { FoodLoading, FoodPulseRow } from "./food-loading";
+import { useScrollLock } from "@/core/hooks/useScrollLock";
 import { motion } from "framer-motion";
 
 interface LoadingOverlayProps {
@@ -14,6 +15,7 @@ export function LoadingOverlay({
   message = "Cargando...",
 }: LoadingOverlayProps) {
   const [isVisible, setIsVisible] = useState(false);
+  useScrollLock(isActive);
 
   useEffect(() => {
     if (isActive) {

@@ -103,6 +103,24 @@ export function buildBrandPalette(inputHex: string) {
   const text = `#${mixHexColor(base, "#0f172a", 0.12)}`;
   const textMuted = `#${mixHexColor(base, "#0f172a", 0.36)}`;
 
+  // Validate color contrast for accessibility (WCAG AA)
+  const textOnSurfaceOk = meetsWcagAA(text, surface);
+  const textMutedOnSurfaceOk = meetsWcagAA(textMuted, surface);
+  const textOnBaseOk = meetsWcagAA(text, base);
+  const baseOnSurfaceOk = meetsWcagAA(base, surface);
+  if (!textOnSurfaceOk) {
+    console.warn(`[buildBrandPalette] Color contrast warning: text (#${normalizeHexColor(text)}) on surface (#${normalizeHexColor(surface)}) = ${contrastRatio(text, surface).toFixed(2)}:1 — does NOT meet WCAG AA (needs 4.5:1).`);
+  }
+  if (!textMutedOnSurfaceOk) {
+    console.warn(`[buildBrandPalette] Color contrast warning: textMuted (#${normalizeHexColor(textMuted)}) on surface (#${normalizeHexColor(surface)}) = ${contrastRatio(textMuted, surface).toFixed(2)}:1 — low contrast, consider a darker muted color.`);
+  }
+  if (!textOnBaseOk) {
+    console.warn(`[buildBrandPalette] Color contrast warning: text (#${normalizeHexColor(text)}) on base (#${normalizeHexColor(base)}) = ${contrastRatio(text, base).toFixed(2)}:1 — does NOT meet WCAG AA (needs 4.5:1).`);
+  }
+  if (!baseOnSurfaceOk) {
+    console.warn(`[buildBrandPalette] Color contrast warning: base (#${normalizeHexColor(base)}) on surface (#${normalizeHexColor(surface)}) = ${contrastRatio(base, surface).toFixed(2)}:1 — borderline for large text (needs 3:1).`);
+  }
+
   return {
     base,
     "50": `#${mixHexColor(base, "#ffffff", 0.95)}`,

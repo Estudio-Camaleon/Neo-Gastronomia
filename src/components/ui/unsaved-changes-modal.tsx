@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, X } from "lucide-react";
+import { useScrollLock } from "@/core/hooks/useScrollLock";
 
 interface UnsavedChangesModalProps {
   open: boolean;
@@ -16,6 +17,7 @@ export function UnsavedChangesModal({
   onCancel,
   onDiscard,
 }: UnsavedChangesModalProps) {
+  useScrollLock(open);
   return (
     <AnimatePresence>
       {open && (
@@ -27,7 +29,6 @@ export function UnsavedChangesModal({
         >
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={onCancel}
             aria-hidden
           />
           <motion.div

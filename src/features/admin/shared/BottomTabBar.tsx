@@ -27,7 +27,7 @@ export function BottomTabBar() {
     pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-[var(--admin-surface)]/95 backdrop-blur-xl border-t border-[var(--admin-border)] safe-bottom pb-1">
+    <nav aria-label="Navegación inferior" className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-[var(--admin-surface)]/95 backdrop-blur-xl border-t border-[var(--admin-border)] safe-bottom pb-1">
       <div className="flex items-center justify-around px-1 sm:px-2 pt-1.5">
         {TAB_ITEMS.map((item) => {
           const active = isActive(item.href);
@@ -36,6 +36,7 @@ export function BottomTabBar() {
             <TransitionLink
               key={item.name}
               href={item.href}
+              aria-current={active ? "page" : undefined}
               className={`relative flex flex-col items-center gap-0.5 py-1 px-2 sm:px-3 rounded-xl transition-all duration-200 active:scale-95 touch-target min-w-0 ${
                 active
                   ? "text-[var(--admin-accent)]"

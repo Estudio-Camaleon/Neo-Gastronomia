@@ -96,7 +96,7 @@ export function LoadingScreen({ variant = "root" }: LoadingScreenProps) {
 
   if (variant === "auth") {
     return (
-      <div className="neo-screen">
+      <div className="neo-screen" role="status" aria-live="polite">
         <div className="neo-screen-center">
           <div className="neo-card max-w-md">
             <NeoLogo />
@@ -118,7 +118,7 @@ export function LoadingScreen({ variant = "root" }: LoadingScreenProps) {
 
   if (variant === "public") {
     return (
-      <div className="min-h-screen bg-[var(--color-custom-surface,#f4f4f5)]">
+      <div className="min-h-screen bg-[var(--color-custom-surface,#f4f4f5)]" role="status" aria-live="polite">
         {/* Banner skeleton */}
         <div className="relative h-48 sm:h-56 md:h-64 w-full neo-shimmer bg-[var(--neo-muted)]/10" />
 
@@ -182,7 +182,7 @@ export function LoadingScreen({ variant = "root" }: LoadingScreenProps) {
   }
 
   return (
-    <div className="neo-screen">
+    <div className="neo-screen" role="status" aria-live="polite">
       <div className="absolute inset-x-0 top-0 h-0.5 bg-[var(--admin-border)]">
         <div className="neo-shimmer h-full w-1/3 bg-[var(--admin-accent)]" />
       </div>

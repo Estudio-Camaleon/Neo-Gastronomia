@@ -9,12 +9,14 @@ interface ImageUploadProps {
   value: string | null;
   onChange: (_url: string) => void;
   uploadEndpoint?: string;
+  alt?: string;
 }
 
 export function ImageUpload({
   value,
   onChange,
   uploadEndpoint = "/api/admin/product-images",
+  alt = "Vista previa de la imagen",
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -143,7 +145,7 @@ export function ImageUpload({
           <div className="relative h-full w-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-white dark:bg-zinc-950 shadow-sm transition-all hover:border-[var(--admin-accent,#34a35f)]">
             <img
               src={previewUrl || value || ""}
-              alt="Preview"
+              alt={alt}
               className="h-full w-full object-cover animate-in fade-in zoom-in-95 duration-300"
             />
 

@@ -320,6 +320,8 @@ export function RegisterForm() {
                     }
                   }}
                   placeholder="socio@tu-negocio.com"
+                  aria-invalid={duplicates["email"] === true || undefined}
+                  aria-describedby={duplicates["email"] === true ? "reg-email-error" : undefined}
                   className={`auth-input pr-10 ${
                     emailSchemaCheck &&
                     email.length > 5 &&
@@ -343,7 +345,7 @@ export function RegisterForm() {
                     <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
                   )}
                 {duplicates["email"] === true && (
-                  <p className="text-[11px] text-red-500 font-medium mt-1">Este correo ya está registrado.</p>
+                  <p id="reg-email-error" role="alert" className="text-[11px] text-red-500 font-medium mt-1">Este correo ya está registrado.</p>
                 )}
               </div>
             </div>
@@ -415,6 +417,8 @@ export function RegisterForm() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Repetí la contraseña"
+                aria-invalid={confirmPassword && password !== confirmPassword ? true : undefined}
+                aria-describedby={confirmPassword && password !== confirmPassword ? "reg-confirm-password-error" : undefined}
                 className={`auth-input ${
                   confirmPassword && password !== confirmPassword
                     ? "border-red-400 focus-visible:ring-red-400"
@@ -424,14 +428,14 @@ export function RegisterForm() {
                 }`}
               />
               {confirmPassword && password !== confirmPassword && (
-                <p className="text-[11px] text-red-500 font-medium mt-1">
+                <p id="reg-confirm-password-error" role="alert" className="text-[11px] text-red-500 font-medium mt-1">
                   Las contraseñas no coinciden.
                 </p>
               )}
             </div>
 
             {errorMsg && (
-              <div className="auth-error-box">
+              <div className="auth-error-box" role="alert" aria-live="polite">
                 <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>{errorMsg}</span>
               </div>
@@ -486,6 +490,8 @@ export function RegisterForm() {
                   value={nombreNegocio}
                   onChange={(e) => handleNombreChange(e.target.value)}
                   placeholder="Ej: Burger Station"
+                  aria-invalid={isNombreRegistered || undefined}
+                  aria-describedby={isNombreRegistered ? "reg-nombre-error" : undefined}
                   className={`auth-input pr-10 ${
                     isNombreRegistered
                       ? "border-red-400 focus-visible:ring-red-400"
@@ -508,7 +514,7 @@ export function RegisterForm() {
                   )}
               </div>
               {isNombreRegistered && (
-                <p className="text-[11px] text-red-500 font-medium mt-1">
+                <p id="reg-nombre-error" role="alert" className="text-[11px] text-red-500 font-medium mt-1">
                   Este nombre ya está registrado.
                 </p>
               )}
@@ -527,6 +533,8 @@ export function RegisterForm() {
                   value={slug}
                   onChange={(e) => handleSlugChange(e.target.value)}
                   placeholder="burger-station"
+                  aria-invalid={isSlugTaken || undefined}
+                  aria-describedby={isSlugTaken ? "reg-slug-error" : undefined}
                   className={`auth-input pr-10 font-mono text-sm ${
                     isSlugTaken
                       ? "border-red-400 focus-visible:ring-red-400"
@@ -548,7 +556,7 @@ export function RegisterForm() {
                   )}
               </div>
               {isSlugTaken && (
-                <p className="text-[11px] text-red-500 font-medium mt-1">
+                <p id="reg-slug-error" role="alert" className="text-[11px] text-red-500 font-medium mt-1">
                   Este slug ya está en uso. Elegí otro.
                 </p>
               )}
@@ -579,6 +587,8 @@ export function RegisterForm() {
                     }
                   }}
                   placeholder="+5491123456789"
+                  aria-invalid={isWhatsappTaken || undefined}
+                  aria-describedby={isWhatsappTaken ? "reg-whatsapp-error" : undefined}
                   className={`auth-input pr-10 ${
                     isWhatsappTaken
                       ? "border-red-400 focus-visible:ring-red-400"
@@ -600,7 +610,7 @@ export function RegisterForm() {
                   )}
               </div>
               {isWhatsappTaken && (
-                <p className="text-[11px] text-red-500 font-medium mt-1">
+                <p id="reg-whatsapp-error" role="alert" className="text-[11px] text-red-500 font-medium mt-1">
                   Este número ya está registrado.
                 </p>
               )}
@@ -653,7 +663,7 @@ export function RegisterForm() {
             </div>
 
             {errorMsg && (
-              <div className="auth-error-box">
+              <div className="auth-error-box" role="alert" aria-live="polite">
                 <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>{errorMsg}</span>
               </div>

@@ -4,6 +4,8 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, MapPin, MessageCircle, ChevronDown } from "lucide-react";
 import { formatTurnos } from "@/features/public-menu/utils";
+import { useFocusTrap } from "@/core/hooks/useFocusTrap";
+import { useScrollLock } from "@/core/hooks/useScrollLock";
 
 import type { NegocioPublico } from "@/features/public-menu/types";
 import { useEffect, useState } from "react";
@@ -23,6 +25,11 @@ export function PublicMenuHeader({
 }) {
   const [showClosedModal, setShowClosedModal] = useState(false);
   const [showAddresses, setShowAddresses] = useState(false);
+  const closedModalRef = useFocusTrap(
+    showClosedModal && !isOpenNow,
+  );
+
+  useScrollLock(showClosedModal && !isOpenNow);
 
   useEffect(() => {
     if (!isOpenNow) {
@@ -75,15 +82,16 @@ export function PublicMenuHeader({
       <AnimatePresence>
         {showClosedModal && !isOpenNow && (
           <motion.div
+            ref={closedModalRef}
             key="closed-modal"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            tabIndex={-1}
           >
             <div
               className="absolute inset-0 bg-black/50"
-              onClick={() => setShowClosedModal(false)}
               aria-hidden
             />
 
@@ -435,6 +443,8 @@ export function PublicMenuHeader({
                   transition={{ duration: 0.35, delay: 0.35 }}
                   onClick={() => setShowAddresses(!showAddresses)}
                   className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white/80 text-xs sm:text-sm transition-all hover:bg-white/20 active:scale-95"
+                  aria-expanded={showAddresses}
+                  aria-controls="addresses-panel"
                 >
                   <MapPin size={15} />
                   <span className="max-w-[100px] sm:max-w-[140px] truncate">
@@ -460,6 +470,7 @@ export function PublicMenuHeader({
                   onClick={() => setShowSchedule(!showSchedule)}
                   className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white/80 text-xs sm:text-sm transition-all hover:bg-white/20 active:scale-95"
                   aria-expanded={showSchedule}
+                  aria-controls="schedule-grid"
                 >
                   <Clock size={15} />
                   <span>{showSchedule ? "Ocultar" : "Horarios"}</span>
@@ -481,6 +492,7 @@ export function PublicMenuHeader({
                 negocio.direcciones &&
                 negocio.direcciones.length > 0 && (
                   <motion.div
+                    id="addresses-panel"
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}

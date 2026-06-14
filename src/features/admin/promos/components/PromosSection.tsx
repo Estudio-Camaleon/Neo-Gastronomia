@@ -27,6 +27,7 @@ import {
 } from "../actions";
 import { z } from "zod";
 import { FoodMini } from "@/components/ui/food-loading";
+import { useScrollLock } from "@/core/hooks/useScrollLock";
 
 interface PromosSectionProps {
   negocioId: string;
@@ -548,6 +549,7 @@ function PromoModal({
 }) {
   const [selectedProduct, setSelectedProduct] = useState("");
   const [uploading, setUploading] = useState(false);
+  useScrollLock(true);
   const isCombo = formData.tipo_descuento === "combo";
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -568,9 +570,6 @@ function PromoModal({
   return (
     <div
       className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 animate-in fade-in duration-200"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
     >
       <div
         role="dialog"

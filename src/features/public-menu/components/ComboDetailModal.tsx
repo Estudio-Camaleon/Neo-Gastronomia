@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { X, ShoppingBag, ImageIcon, Plus, Minus } from "lucide-react";
 import type { PromoRow } from "@/features/public-menu/types";
 import type { CartItem } from "@/features/public-menu/cart/useCartStore";
+import { useFocusTrap } from "@/core/hooks/useFocusTrap";
+import { useScrollLock } from "@/core/hooks/useScrollLock";
 
 interface ComboDetailModalProps {
   promo: PromoRow;
@@ -27,6 +29,7 @@ export function ComboDetailModal({
   }> | null) ?? [];
 
   const [cantidad, setCantidad] = useState(1);
+  useScrollLock(true);
 
   const realTotal = items.reduce(
     (sum, i) => sum + i.precio * i.cantidad,
@@ -59,16 +62,19 @@ export function ComboDetailModal({
     });
   };
 
+  const containerRef = useFocusTrap(true);
+
   return (
     <motion.div
+      ref={containerRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      tabIndex={-1}
     >
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onCancel}
         aria-hidden="true"
       />
       <motion.div

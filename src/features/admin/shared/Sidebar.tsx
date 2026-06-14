@@ -6,6 +6,8 @@ import { createClient } from "@/core/lib/supabase/client";
 import { useTheme } from "@/core/providers/ThemeProvider";
 import { useOrderNotifications } from "@/features/admin/orders/OrderNotificationProvider";
 import { TransitionLink } from "@/components/ui/transition-link";
+import { useFocusTrap } from "@/core/hooks/useFocusTrap";
+import { useScrollLock } from "@/core/hooks/useScrollLock";
 import {
   AlertCircle,
   LayoutDashboard,
@@ -81,7 +83,7 @@ export function Sidebar({
           <div className="w-full border-t border-[var(--admin-border)] mb-2 shrink-0" />
 
           {/* Nav iconos */}
-          <nav className="flex-1 w-full space-y-1 overflow-y-auto custom-scrollbar min-h-0">
+          <nav aria-label="Navegación principal" className="flex-1 w-full space-y-1 overflow-y-auto custom-scrollbar min-h-0">
             {NAVIGATION_LINKS.map((link) => {
               const isActive =
                 pathname === link.href ||
@@ -93,6 +95,7 @@ export function Sidebar({
                   href={link.href}
                   title={link.name}
                   aria-label={link.name}
+                  aria-current={isActive ? "page" : undefined}
                   className={`flex items-center justify-center w-10 h-10 mx-auto rounded-xl transition-all duration-200 active:scale-95 ${
                     isActive
                       ? "bg-[var(--admin-accent)] text-white shadow-sm"
@@ -190,7 +193,7 @@ export function Sidebar({
           <div className="my-4 border-t border-[var(--admin-border)] shrink-0" />
 
           {/* Navegación */}
-          <nav className="flex-1 mt-4 space-y-0.5 overflow-y-auto custom-scrollbar min-h-0">
+          <nav aria-label="Navegación principal" className="flex-1 mt-4 space-y-0.5 overflow-y-auto custom-scrollbar min-h-0">
             <span className="text-[10px] font-black uppercase tracking-widest text-[var(--admin-text-muted)] ml-3 mb-2 block opacity-70">
               Menú Principal
             </span>
@@ -205,6 +208,7 @@ export function Sidebar({
                 <TransitionLink
                   key={link.name}
                   href={link.href}
+                  aria-current={isActive ? "page" : undefined}
                   className={`flex items-center gap-3 px-3 lg:px-4 py-2.5 lg:py-3 rounded-xl transition-all duration-200 group relative font-semibold text-sm active:scale-[0.97] ${
                     isActive
                       ? "bg-[var(--admin-accent)] text-white shadow-sm shadow-[var(--admin-accent)]/20"
@@ -326,8 +330,14 @@ function LogoutModal({
   onConfirm: () => void;
   negocioNombre?: string;
 }) {
+  const containerRef = useFocusTrap(true);
+  useScrollLock(true);
   return (
-    <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md z-[999999] flex items-center justify-center p-4 animate-in fade-in duration-200">
+    <div
+      ref={containerRef}
+      tabIndex={-1}
+      className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md z-[999999] flex items-center justify-center p-4 animate-in fade-in duration-200"
+    >
       <div className="bg-[var(--admin-surface)] rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl relative border border-[var(--admin-border)] animate-in zoom-in-95 duration-150">
         <div className="mx-auto w-12 h-12 bg-red-50 dark:bg-red-950/20 text-[var(--admin-danger)] flex items-center justify-center mb-5 rounded-full border border-red-200 dark:border-red-900/30">
           <AlertCircle size={24} />

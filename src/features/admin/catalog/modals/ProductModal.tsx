@@ -75,7 +75,6 @@ export function ProductModal({
     >
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-        onClick={handleClose}
       />
 
       <div className="relative flex h-full max-h-[90vh] w-full max-w-5xl min-h-0 flex-col overflow-hidden rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-2xl animate-in zoom-in-95 duration-200">

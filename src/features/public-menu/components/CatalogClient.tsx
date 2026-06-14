@@ -686,6 +686,7 @@ export function CatalogClient({
                     isMobile ? "cursor-pointer" : "cursor-default"
                   }`}
                   aria-expanded={isMobile ? showSchedule : undefined}
+                  aria-controls={isMobile ? "schedule-grid" : undefined}
                 >
                   <Clock className="h-3.5 w-3.5" />
                   Horarios

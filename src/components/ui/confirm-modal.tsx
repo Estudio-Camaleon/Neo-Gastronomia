@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
 import { AlertCircle } from "lucide-react";
+import { useFocusTrap } from "@/core/hooks/useFocusTrap";
+import { useScrollLock } from "@/core/hooks/useScrollLock";
 
 interface ConfirmModalProps {
   title: string;
@@ -22,24 +23,14 @@ export function ConfirmModal({
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCancel();
-    };
-    document.addEventListener("keydown", handler);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", handler);
-      document.body.style.overflow = "";
-    };
-  }, []);
+  const containerRef = useFocusTrap(true);
+  useScrollLock(true);
 
   return (
     <div
+      ref={containerRef}
       className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md z-[999999] flex items-center justify-center p-4 animate-in fade-in duration-200"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onCancel();
-      }}
+      tabIndex={-1}
     >
       <div
         role="dialog"

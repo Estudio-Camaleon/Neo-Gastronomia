@@ -297,6 +297,7 @@ export function ProductoForm({
                     imagen_url: url === "" ? null : url,
                   }))
                 }
+                alt="Vista previa del producto"
               />
             </div>
 

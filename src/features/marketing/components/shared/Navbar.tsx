@@ -57,7 +57,7 @@ export function Navbar() {
           <div className="neo-chip p-1.5 sm:p-2 rounded-xl transition-transform group-hover:rotate-6 duration-300">
             <Image
               src="/icons/neo_logo_negro.webp"
-              alt="NEO Brand Logo"
+              alt="NEO"
               width={48}
               height={48}
               priority
@@ -123,7 +123,6 @@ export function Navbar() {
         <>
           <div
             className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden animate-in fade-in duration-200"
-            onClick={close}
           />
           <div id="mobile-menu" className="md:hidden fixed left-2 sm:left-4 right-2 sm:right-4 top-[4.5rem] sm:top-[5.5rem] z-50 animate-slide-down opacity-0">
             <div className="glass-card p-4 sm:p-5 flex flex-col gap-3 sm:gap-4 border border-[var(--theme-border)] shadow-xl rounded-2xl">

@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { X, Plus, Check } from "lucide-react";
 import type { CartExtra } from "@/features/public-menu/cart/useCartStore";
 import type { ExtraGroup } from "@/features/public-menu/types";
+import { useScrollLock } from "@/core/hooks/useScrollLock";
 
 interface ExtrasSelectorProps {
   productName: string;
@@ -98,6 +99,8 @@ export function ExtrasSelector({
       maximumFractionDigits: 2,
     });
 
+  useScrollLock(true);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -107,7 +110,6 @@ export function ExtrasSelector({
     >
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onCancel}
         aria-hidden="true"
       />
       <motion.div

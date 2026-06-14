@@ -15,7 +15,7 @@ import {
   Printer,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useEffect, useRef, useCallback, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 
 const OrderForm = dynamic(() => import("./OrderForm").then((m) => ({ default: m.OrderForm })), {
   ssr: false,
@@ -126,18 +126,8 @@ export function PublicCart({
     if (isDrawer && onCloseDrawer) onCloseDrawer();
   };
 
-  const handleEscape = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isDrawer && onCloseDrawer) {
-        onCloseDrawer();
-      }
-    },
-    [isDrawer, onCloseDrawer],
-  );
-
   useEffect(() => {
     if (!isDrawer) return;
-    document.addEventListener("keydown", handleEscape);
     closeButtonRef.current?.focus();
 
     const scrollY = window.scrollY;
@@ -151,7 +141,6 @@ export function PublicCart({
     html.style.overflow = "hidden";
 
     return () => {
-      document.removeEventListener("keydown", handleEscape);
       body.style.position = "";
       body.style.top = "";
       body.style.width = "";
@@ -159,7 +148,7 @@ export function PublicCart({
       html.style.overflow = "";
       window.scrollTo(0, scrollY);
     };
-  }, [isDrawer, handleEscape]);
+    }, [isDrawer]);
 
   const receiptId = useMemo(
     () => `#${Math.random().toString(36).slice(2, 7).toUpperCase()}`,
@@ -450,7 +439,6 @@ export function PublicCart({
       <div className="fixed inset-0 z-[99999] flex justify-end">
         <div
           className="absolute inset-0 bg-black/55 backdrop-blur-sm transition-opacity"
-          onClick={onCloseDrawer}
           aria-hidden="true"
         />
         <div

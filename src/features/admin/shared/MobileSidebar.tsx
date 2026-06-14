@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { useFocusTrap } from "@/core/hooks/useFocusTrap";
 import { motion, AnimatePresence } from "framer-motion";
 import { TransitionLink } from "@/components/ui/transition-link";
 import { useTheme } from "@/core/providers/ThemeProvider";
@@ -51,6 +52,8 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
   }, []);
 
   const close = useCallback(() => setOpen(false), []);
+  const sidebarPanelRef = useFocusTrap(open);
+  const logoutModalRef = useFocusTrap(showLogoutConfirm);
 
   useEffect(() => {
     if (open) {
@@ -62,14 +65,6 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
       document.body.style.overflow = "";
     };
   }, [open]);
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [close]);
 
   const handleSignOut = async () => {
     const { createClient } = await import("@/core/lib/supabase/client");
@@ -100,16 +95,17 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
             {/* Backdrop */}
             <div
               className="absolute inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm"
-              onClick={close}
               aria-hidden="true"
             />
 
             {/* Panel */}
             <motion.div
+              ref={sidebarPanelRef}
               id="mobile-sidebar-panel"
               role="dialog"
               aria-modal="true"
-              aria-label="Menú"
+              aria-label="Menú de navegación"
+              tabIndex={-1}
               className="absolute inset-y-0 left-0 w-[82%] max-w-[340px] bg-[var(--admin-surface)] shadow-2xl flex flex-col"
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
@@ -156,9 +152,10 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
                       key={link.name}
                       href={link.href}
                       onClick={close}
-                      className={`flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 font-semibold text-sm active:scale-[0.97] touch-target ${
+                      aria-current={isActive ? "page" : undefined}
+                      className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 active:scale-[0.97] font-semibold text-sm ${
                         isActive
-                          ? "bg-[var(--admin-accent)] text-white shadow-sm shadow-[var(--admin-accent)]/20"
+                          ? "bg-[var(--admin-accent)] text-white"
                           : "text-[var(--admin-text-muted)] hover:bg-[var(--admin-accent)]/5 hover:text-[var(--admin-text)]"
                       }`}
                     >
@@ -251,7 +248,11 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
       </AnimatePresence>
 
       {showLogoutConfirm && (
-        <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md z-[999999] flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div
+          ref={logoutModalRef}
+          tabIndex={-1}
+          className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md z-[999999] flex items-center justify-center p-4 animate-in fade-in duration-200"
+        >
           <div className="bg-[var(--admin-surface)] rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl relative border border-[var(--admin-border)] animate-in zoom-in-95 duration-150">
             <div className="mx-auto w-12 h-12 bg-red-50 dark:bg-red-950/20 text-red-500 flex items-center justify-center mb-5 rounded-full border border-red-200 dark:border-red-900/30">
               <AlertCircle size={24} />
