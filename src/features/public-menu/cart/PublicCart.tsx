@@ -15,7 +15,7 @@ import {
   Printer,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const OrderForm = dynamic(() => import("./OrderForm").then((m) => ({ default: m.OrderForm })), {
   ssr: false,
@@ -62,7 +62,7 @@ function DashedDivider() {
   );
 }
 
-function ReceiptHeader({ receiptId }: { receiptId: string }) {
+function ReceiptHeader() {
   return (
     <motion.div
       variants={receiptLineVariants}
@@ -72,7 +72,6 @@ function ReceiptHeader({ receiptId }: { receiptId: string }) {
         <Printer size={11} />
         TICKET
       </div>
-      <p className="font-mono text-[11px] text-[#555]">{receiptId}</p>
     </motion.div>
   );
 }
@@ -102,6 +101,7 @@ export function PublicCart({
   const clearCart = useCartStore((state) => state.clearCart);
 
   const [showOrderForm, setShowOrderForm] = useState(false);
+  const [lastOrderId, setLastOrderId] = useState<string | null>(null);
 
   const subtotal = cart.reduce(
     (acc, item) => acc + item.precio * item.cantidad,
@@ -150,11 +150,6 @@ export function PublicCart({
     };
     }, [isDrawer]);
 
-  const receiptId = useMemo(
-    () => `#${Math.random().toString(36).slice(2, 7).toUpperCase()}`,
-    [],
-  );
-
   const renderCartContent = () => (
     <div className="flex h-full flex-col justify-between font-mono text-[14px] leading-relaxed text-[#111]">
       {cart.length === 0 ? (
@@ -177,30 +172,38 @@ export function PublicCart({
             className="mb-4 rounded-lg border border-dashed border-[#aaa] p-4 text-[#555]"
             aria-hidden="true"
           >
-            {showOrderForm ? (
+            {showOrderForm && lastOrderId ? (
               <CheckCircle2 size={36} strokeWidth={1.5} />
             ) : (
               <ShoppingBag size={36} strokeWidth={1.5} />
             )}
           </motion.div>
           <p className="text-[12px] font-mono uppercase tracking-[0.15em] text-[#555]">
-            {showOrderForm ? "PROCESADO" : "VACÍO"}
+            {showOrderForm && lastOrderId ? "PROCESADO" : showOrderForm ? "PROCESANDO..." : "VACÍO"}
           </p>
           <p className="mt-2 max-w-[200px] text-[12px] font-mono text-[#555]">
-            {showOrderForm
+            {showOrderForm && lastOrderId
               ? "Gracias por tu compra"
               : "Agregá productos para empezar"}
           </p>
-          {showOrderForm && (
-            <motion.button
-              type="button"
-              onClick={() => setShowOrderForm(false)}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="mt-4 border border-dashed border-[#aaa] px-5 py-2 text-[11px] font-mono uppercase tracking-[0.15em] text-[#555] hover:bg-[#eee] transition-colors"
-            >
-              + Nuevo pedido
-            </motion.button>
+          {showOrderForm && lastOrderId && (
+            <>
+              <p className="mt-3 font-mono text-[11px] text-[#555]">
+                Ref: <span className="font-bold text-[#111]">#{lastOrderId.slice(0, 6).toUpperCase()}</span>
+              </p>
+              <motion.button
+                type="button"
+                onClick={() => {
+                  setShowOrderForm(false);
+                  setLastOrderId(null);
+                }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="mt-4 border border-dashed border-[#aaa] px-5 py-2 text-[11px] font-mono uppercase tracking-[0.15em] text-[#555] hover:bg-[#eee] transition-colors"
+              >
+                + Nuevo pedido
+              </motion.button>
+            </>
           )}
         </motion.div>
       ) : !showOrderForm ? (
@@ -211,7 +214,7 @@ export function PublicCart({
           className="flex h-full flex-col justify-between"
         >
           <div>
-            <ReceiptHeader receiptId={receiptId} />
+            <ReceiptHeader />
             <DashedDivider />
 
             <div className="max-h-[340px] overflow-y-auto pr-1 receipt-scrollbar">
@@ -333,12 +336,6 @@ export function PublicCart({
                     {formatMoney(subtotal)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-[12px] text-[#555]">
-                  <span>DESCUENTO</span>
-                  <span className="tabular-nums font-semibold text-[#111]">
-                    -{simbolo}0,00
-                  </span>
-                </div>
               </div>
 
               <DashedDivider />
@@ -420,10 +417,10 @@ export function PublicCart({
             total={subtotal}
             config={config}
             onBack={() => setShowOrderForm(false)}
-            onSuccess={() => {
+            onSuccess={(orderId) => {
+              setLastOrderId(orderId);
               clearCart();
               if (isDrawer && onCloseDrawer) onCloseDrawer();
-              setShowOrderForm(false);
             }}
           />
         </motion.div>

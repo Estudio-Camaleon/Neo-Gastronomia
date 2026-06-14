@@ -62,7 +62,7 @@ interface OrderFormProps {
   cart: import("./useCartStore").CartItem[];
   total: number;
   onBack: () => void;
-  onSuccess: () => void;
+  onSuccess: (orderId: string) => void;
   config: {
     moneda_simbolo?: string;
     costo_envio?: number;
@@ -255,7 +255,7 @@ export function OrderForm({
         );
       }
 
-      onSuccess();
+      onSuccess(orderId);
     } catch {
       toast.error("Ocurrió un error al procesar el pedido.");
     } finally {
