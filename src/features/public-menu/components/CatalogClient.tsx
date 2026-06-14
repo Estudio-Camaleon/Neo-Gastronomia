@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
@@ -256,20 +256,38 @@ export function CatalogClient({
     searchQuery,
   ]);
 
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const scrollToCategory = useCallback((id: string) => {
     setActiveCategory(id);
 
-    if (id === "all") return;
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+      scrollTimeoutRef.current = null;
+    }
+
+    if (id === "all") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
 
     const element = document.getElementById(`cat-${id}`);
     if (element) {
-      const y = element.getBoundingClientRect().top + window.scrollY - 120;
-      window.scrollTo({ top: y, behavior: "smooth" });
-      setTimeout(() => {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      scrollTimeoutRef.current = setTimeout(() => {
         const heading = element.querySelector("h3");
         heading?.focus({ preventScroll: true });
-      }, 400);
+        scrollTimeoutRef.current = null;
+      }, 500);
     }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
   }, []);
 
   const menuConfig = {
@@ -483,7 +501,7 @@ export function CatalogClient({
                       <section
                         key={cat.id}
                         id={`cat-${cat.id}`}
-                        className="space-y-4"
+                        className="space-y-4 scroll-mt-[120px]"
                       >
                         <motion.div
                           initial={{ opacity: 0, x: -20 }}
