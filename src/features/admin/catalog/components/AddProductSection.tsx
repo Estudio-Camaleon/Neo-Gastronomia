@@ -1,10 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Plus, FolderPlus, Layers, Package } from "lucide-react";
 import { ProductModal } from "../modals/ProductModal";
-import { CategoriaManager } from "../modals/CategoriaManager";
 import { ProductTable, type UnifiedProduct } from "./ProductTable";
+
+const CategoriaManager = dynamic(
+  () => import("../modals/CategoriaManager").then((mod) => mod.CategoriaManager),
+  { ssr: false },
+);
 
 interface AddProductSectionProps {
   negocioId: string;

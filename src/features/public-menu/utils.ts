@@ -38,6 +38,13 @@ export function getTodayKey(): (typeof DAYS_ORDER)[number] | null {
   return null;
 }
 
+export function formatMoney(value: number, simbolo = "$"): string {
+  return `${simbolo}${value.toLocaleString("es-AR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
 export function formatTurnos(dia?: HorarioDia | null) {
   if (!dia) return "Cerrado";
 

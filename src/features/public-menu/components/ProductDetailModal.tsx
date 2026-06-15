@@ -1,11 +1,15 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { X, Plus, Minus, Check, ShoppingBag, ImageIcon } from "lucide-react";
+import { X, Plus, Minus, ShoppingBag, ImageIcon } from "lucide-react";
 import type { CartExtra } from "@/features/public-menu/cart/useCartStore";
 import { generateItemId } from "@/features/public-menu/cart/useCartStore";
 import type { Producto } from "@/features/public-menu/types";
+import { formatMoney } from "@/features/public-menu/utils";
+import { ExtraGroupRenderer } from "@/features/public-menu/components/ExtraGroupRenderer";
+import { useExtrasSelection } from "@/features/public-menu/hooks/useExtrasSelection";
+import { useIsMobile } from "@/core/hooks/useIsMobile";
 import { useFocusTrap } from "@/core/hooks/useFocusTrap";
 import { useScrollLock } from "@/core/hooks/useScrollLock";
 
@@ -26,23 +30,6 @@ interface ProductDetailModalProps {
   isOpenNow?: boolean;
 }
 
-function useIsMobile(breakpoint = 640) {
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.matchMedia(`(max-width: ${breakpoint - 1}px)`).matches;
-  });
-
-  useEffect(() => {
-    const mq = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
-    setIsMobile(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, [breakpoint]);
-
-  return isMobile;
-}
-
 export function ProductDetailModal({
   product,
   onConfirm,
@@ -59,19 +46,13 @@ export function ProductDetailModal({
   const [selectedVariantIdx, setSelectedVariantIdx] = useState<number | null>(
     null,
   );
-  const [selectedExtras, setSelectedExtras] = useState<
-    Record<string, string[]>
-  >(() => {
-    const initial: Record<string, string[]> = {};
-    for (const g of groups) {
-      if (g.requerido && !g.multiple && g.items.length > 0) {
-        initial[g.id] = [g.items[0].id];
-      } else {
-        initial[g.id] = [];
-      }
-    }
-    return initial;
-  });
+  const {
+    selected: selectedExtras,
+    hasError: hasRequiredError,
+    extraTotal,
+    toggleItem: toggleExtra,
+    buildExtras,
+  } = useExtrasSelection(groups);
   const [cantidad, setCantidad] = useState(1);
   const [nota, setNota] = useState("");
 
@@ -84,71 +65,7 @@ export function ProductDetailModal({
       ? variants[selectedVariantIdx].nombre
       : null;
 
-  const toggleExtra = (
-    groupId: string,
-    itemId: string,
-    multiple: boolean,
-  ) => {
-    setSelectedExtras((prev) => {
-      const current = prev[groupId] || [];
-      if (multiple) {
-        const exists = current.includes(itemId);
-        return {
-          ...prev,
-          [groupId]: exists
-            ? current.filter((id) => id !== itemId)
-            : [...current, itemId],
-        };
-      }
-      return { ...prev, [groupId]: [itemId] };
-    });
-  };
-
-  const extraTotal = useMemo(() => {
-    let total = 0;
-    for (const g of groups) {
-      const ids = selectedExtras[g.id] || [];
-      for (const id of ids) {
-        const item = g.items.find((i) => i.id === id);
-        if (item) total += item.precio;
-      }
-    }
-    return total;
-  }, [groups, selectedExtras]);
-
   const total = basePrice + extraTotal;
-
-  const hasRequiredError = useMemo(() => {
-    for (const g of groups) {
-      if (
-        g.requerido &&
-        (!selectedExtras[g.id] || selectedExtras[g.id].length === 0)
-      ) {
-        return `Seleccioná una opción de "${g.titulo}"`;
-      }
-    }
-    return null;
-  }, [groups, selectedExtras]);
-
-  const buildExtras = (): CartExtra[] => {
-    const result: CartExtra[] = [];
-    for (const g of groups) {
-      const ids = selectedExtras[g.id] || [];
-      for (const id of ids) {
-        const item = g.items.find((i) => i.id === id);
-        if (item) {
-          result.push({
-            grupo_id: g.id,
-            grupo_titulo: g.titulo,
-            item_id: item.id,
-            item_nombre: item.nombre,
-            item_precio: item.precio,
-          });
-        }
-      }
-    }
-    return result;
-  };
 
   const handleConfirm = () => {
     if (hasRequiredError) return;
@@ -165,12 +82,6 @@ export function ProductDetailModal({
       extras,
     });
   };
-
-  const formatMoney = (value: number) =>
-    value.toLocaleString("es-AR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
 
   const containerRef = useFocusTrap(true);
 
@@ -235,14 +146,11 @@ export function ProductDetailModal({
           {/* Price */}
           <div className="flex items-baseline gap-2">
             <span className="text-xl font-black text-[var(--color-custom-900)]">
-              {simbolo}
-              {formatMoney(basePrice + extraTotal)}
+              {formatMoney(basePrice + extraTotal, simbolo)}
             </span>
             {extraTotal > 0 && (
               <span className="text-[10px] sm:text-xs text-[var(--color-custom-text-muted)] block sm:inline">
-                ({simbolo}
-                {formatMoney(basePrice)} + {simbolo}
-                {formatMoney(extraTotal)} extras)
+                ({formatMoney(basePrice, simbolo)} + {formatMoney(extraTotal, simbolo)} extras)
               </span>
             )}
           </div>
@@ -285,8 +193,7 @@ export function ProductDetailModal({
                     </span>
                     <span className="font-medium truncate">{v.nombre}</span>
                     <span className="text-xs font-semibold text-[var(--color-custom-600)]">
-                      {simbolo}
-                      {formatMoney(v.precio)}
+                      {formatMoney(v.precio, simbolo)}
                     </span>
                   </button>
                 ))}
@@ -296,77 +203,13 @@ export function ProductDetailModal({
 
           {/* Extras */}
           {groups.length > 0 && (
-            <div className="space-y-4">
-              {groups.map((group) => (
-                <div key={group.id}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--color-custom-900)]">
-                      {group.titulo}
-                    </span>
-                    {group.requerido && (
-                      <span className="rounded-full bg-[var(--color-custom-500)]/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--color-custom-600)]">
-                        Requerido
-                      </span>
-                    )}
-                    {!group.multiple && group.items.length > 1 && (
-                      <span className="text-[9px] text-[var(--color-custom-text-muted)]">
-                        (elegí 1)
-                      </span>
-                    )}
-                  </div>
-                  <div className="space-y-1.5" role={group.multiple ? "group" : "radiogroup"} aria-label={group.titulo}>
-                    {group.items.map((item) => {
-                      const isSelected = (
-                        selectedExtras[group.id] || []
-                      ).includes(item.id);
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          role={group.multiple ? "checkbox" : "radio"}
-                          aria-checked={isSelected}
-                          onClick={() =>
-                            toggleExtra(
-                              group.id,
-                              item.id,
-                              group.multiple,
-                            )
-                          }
-                          className={`flex w-full items-center gap-3 rounded-xl border px-4 py-2.5 text-left transition-all ${
-                            isSelected
-                              ? "border-[var(--color-custom-500)] bg-[var(--color-custom-500)]/5 text-[var(--color-custom-900)]"
-                              : "border-[var(--color-custom-border)] text-[var(--color-custom-text-muted)] hover:border-[var(--color-custom-300)]"
-                          }`}
-                        >
-                          <span
-                            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] font-bold transition-colors ${
-                              isSelected
-                                ? "border-[var(--color-custom-500)] bg-[var(--color-custom-500)] text-white"
-                                : "border-[var(--color-custom-300)]"
-                            }`}
-                          >
-                            {isSelected && group.multiple ? (
-                              <Check size={10} strokeWidth={3} />
-                            ) : isSelected ? (
-                              <span className="block h-2 w-2 rounded-full bg-white" />
-                            ) : null}
-                          </span>
-                          <span className="flex-1 text-sm font-medium truncate">
-                            {item.nombre}
-                          </span>
-                          {item.precio > 0 && (
-                            <span className="text-xs font-semibold text-[var(--color-custom-600)]">
-                              +{simbolo}
-                              {formatMoney(item.precio)}
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <ExtraGroupRenderer
+              groups={groups}
+              selected={selectedExtras}
+              onToggle={toggleExtra}
+              simbolo={simbolo}
+              formatMoney={formatMoney}
+            />
           )}
 
           {/* Note */}
@@ -420,8 +263,7 @@ export function ProductDetailModal({
               Total
             </span>
             <span className="text-lg font-black text-[var(--color-custom-900)]" aria-live="polite" aria-atomic="true">
-              {simbolo}
-              {formatMoney(total * cantidad)}
+              {formatMoney(total * cantidad, simbolo)}
             </span>
           </div>
 
@@ -451,8 +293,7 @@ export function ProductDetailModal({
             <ShoppingBag size={16} className="shrink-0" />
             {isOpenNow ? (
               <span className="truncate">
-                Agregar al pedido · {simbolo}
-                {formatMoney(total * cantidad)}
+                Agregar al pedido · {formatMoney(total * cantidad, simbolo)}
               </span>
             ) : (
               <span className="truncate">Local cerrado</span>

@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { createClient } from "@/core/lib/supabase/client";
 import { useFocusTrap } from "@/core/hooks/useFocusTrap";
 import { motion, AnimatePresence } from "framer-motion";
 import { TransitionLink } from "@/components/ui/transition-link";
+import { LogoutModal } from "@/components/ui/logout-modal";
 import { useTheme } from "@/core/providers/ThemeProvider";
 import { useOrderNotifications } from "@/features/admin/orders/OrderNotificationProvider";
 import {
@@ -18,7 +20,6 @@ import {
   LogOut,
   Sun,
   Moon,
-  AlertCircle,
   ExternalLink,
   X,
 } from "lucide-react";
@@ -53,7 +54,6 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
 
   const close = useCallback(() => setOpen(false), []);
   const sidebarPanelRef = useFocusTrap(open);
-  const logoutModalRef = useFocusTrap(showLogoutConfirm);
 
   useEffect(() => {
     if (open) {
@@ -67,7 +67,6 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
   }, [open]);
 
   const handleSignOut = async () => {
-    const { createClient } = await import("@/core/lib/supabase/client");
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/login");
@@ -130,7 +129,7 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
                 <button
                   onClick={close}
                   aria-label="Cerrar menú"
-                  className="touch-target flex items-center justify-center p-2 rounded-xl text-[var(--admin-text-muted)] hover:bg-[var(--admin-bg)] hover:text-[var(--admin-text)] transition-colors outline-none"
+                  className="touch-target flex items-center justify-center p-3 rounded-xl text-[var(--admin-text-muted)] hover:bg-[var(--admin-bg)] hover:text-[var(--admin-text)] transition-colors outline-none"
                 >
                   <X size={20} />
                 </button>
@@ -248,43 +247,11 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
       </AnimatePresence>
 
       {showLogoutConfirm && (
-        <div
-          ref={logoutModalRef}
-          tabIndex={-1}
-          className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md z-[999999] flex items-center justify-center p-4 animate-in fade-in duration-200"
-        >
-          <div className="bg-[var(--admin-surface)] rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl relative border border-[var(--admin-border)] animate-in zoom-in-95 duration-150">
-            <div className="mx-auto w-12 h-12 bg-red-50 dark:bg-red-950/20 text-red-500 flex items-center justify-center mb-5 rounded-full border border-red-200 dark:border-red-900/30">
-              <AlertCircle size={24} />
-            </div>
-            <h3 className="font-bold text-xl text-[var(--admin-text)] text-center tracking-tight mb-2">
-              Desconectar{" "}
-              <span className="text-[var(--admin-accent)]">Terminal</span>
-            </h3>
-            <p className="text-sm font-medium text-[var(--admin-text-muted)] text-center leading-relaxed mb-6">
-              ¿Confirmás la salida de <br />
-              <span className="text-[var(--admin-text)] font-semibold">
-                {negocioNombre || "la unidad actual"}
-              </span>
-              ?
-            </p>
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={handleSignOut}
-                className="w-full py-3.5 bg-red-600 text-white rounded-xl font-bold tracking-wide transition-colors shadow-sm hover:opacity-90"
-              >
-                Cerrar Terminal
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowLogoutConfirm(false)}
-                className="w-full py-3.5 border border-[var(--admin-border)] bg-transparent text-[var(--admin-text)] rounded-xl font-bold text-sm hover:bg-[var(--admin-bg)] transition-colors"
-              >
-                Cancelar y Volver
-              </button>
-            </div>
-          </div>
-        </div>
+        <LogoutModal
+          onConfirm={handleSignOut}
+          onCancel={() => setShowLogoutConfirm(false)}
+          negocioNombre={negocioNombre}
+        />
       )}
     </>
   );

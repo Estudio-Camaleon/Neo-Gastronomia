@@ -197,7 +197,7 @@ export function CategoriaManager({
                 <span>Cargando secciones...</span>
               </div>
             ) : (
-              <div className="flex flex-col gap-2 max-h-[40vh] overflow-y-auto custom-scrollbar pr-2">
+              <div className="flex flex-col gap-2 max-h-[60vh] sm:max-h-[40vh] overflow-y-auto custom-scrollbar pr-2">
                 {categorias.map((cat) => (
                   <div
                     key={cat.id}

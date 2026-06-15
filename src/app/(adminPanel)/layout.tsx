@@ -77,12 +77,12 @@ export default async function AdminPanelLayout({
         <div className="fixed bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-[var(--admin-accent-secondary)]/60 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none animate-blob-reverse" />
 
         {/* Sidebar expandido (md+ y lg+) */}
-        <aside className="hidden lg:flex lg:w-1/5 lg:min-w-[200px] lg:max-w-[320px] lg:flex-col lg:fixed lg:inset-y-0 z-20">
+        <aside className="hidden lg:flex lg:w-72 lg:flex-col lg:fixed lg:inset-y-0 z-20">
           <Sidebar slug={negocio.slug} negocioNombre={negocio.nombre} />
         </aside>
 
         {/* Contenedor de Trabajo Principal */}
-        <div className="flex-1 flex flex-col lg:pl-[20%] pb-[5rem] lg:pb-0">
+        <div className="flex-1 flex flex-col lg:pl-72 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
           {/* Header - solo visible en mobile (< md) */}
           <header className="flex lg:hidden items-center justify-between px-4 py-3 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]/95 backdrop-blur-lg sticky top-0 z-[60] transition-all duration-300 safe-top">
             <div className="flex items-center gap-2.5">

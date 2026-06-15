@@ -10,52 +10,32 @@ import {
   Truck,
   Banknote,
   CreditCard,
+  Percent,
+  Tag,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { FoodMini } from "@/components/ui/food-loading";
-import { z } from "zod";
+import { formatMoney } from "@/features/public-menu/utils";
+import {
+  orderFormSchema,
+  sanitize,
+  sanitizePhone,
+} from "@/features/public-menu/schemas";
+import type { OrderFormValues } from "@/features/public-menu/schemas";
+import { dispararWhatsAppExterno } from "@/features/public-menu/services/whatsapp";
 import { createClient } from "@/core/lib/supabase/client";
 import { submitOrderPublicAction } from "../../admin/orders/actions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { PromoRow } from "@/features/public-menu/types";
 
-const orderFormSchema = z
-  .object({
-    nombre: z
-      .string()
-      .min(1, "El nombre es obligatorio")
-      .max(100, "El nombre es demasiado largo"),
-    whatsapp: z
-      .string()
-      .min(1, "El WhatsApp es obligatorio")
-      .max(30, "WhatsApp demasiado largo"),
-    esDelivery: z.boolean(),
-    direccion: z.string().default(""),
-    metodoPago: z.enum(["efectivo", "transferencia"]),
-    notas: z
-      .string()
-      .max(500, "Las notas no pueden superar 500 caracteres")
-      .default(""),
-  })
-  .superRefine((data, ctx) => {
-    if (data.esDelivery && !data.direccion.trim()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "La dirección de envío es obligatoria",
-        path: ["direccion"],
-      });
-    }
-  });
-
-function sanitize(v: string): string {
-  return v.trim().replace(/\s+/g, " ").normalize("NFC");
+function getDiscountLabel(promo: PromoRow): string {
+  if (promo.tipo_descuento === "porcentaje") {
+    return `${promo.valor_descuento}% OFF`;
+  }
+  return `$${Number(promo.valor_descuento).toLocaleString("es-AR")} OFF`;
 }
-
-function sanitizePhone(v: string): string {
-  return v.trim().replace(/\s+/g, "");
-}
-
-type OrderFormValues = z.infer<typeof orderFormSchema>;
 
 interface OrderFormProps {
   negocioId: string;
@@ -67,6 +47,7 @@ interface OrderFormProps {
     moneda_simbolo?: string;
     costo_envio?: number;
   };
+  promos?: PromoRow[];
 }
 
 export function OrderForm({
@@ -76,8 +57,53 @@ export function OrderForm({
   onBack,
   onSuccess,
   config,
+  promos = [],
 }: OrderFormProps) {
   const [isPending, setIsPending] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<PromoRow | null>(null);
+  const [codeError, setCodeError] = useState("");
+
+  // Discount promos that auto-apply (no code needed)
+  const discountPromos = promos.filter(
+    (p) => p.tipo_descuento !== "combo" && !p.codigo,
+  );
+  // Code-based promos
+  const codePromos = promos.filter(
+    (p) => p.tipo_descuento !== "combo" && p.codigo,
+  );
+
+  const handleApplyCode = () => {
+    const trimmed = promoCode.trim().toLowerCase();
+    if (!trimmed) {
+      setCodeError("Ingresá un código");
+      return;
+    }
+    const match = codePromos.find(
+      (p) => p.codigo?.toLowerCase() === trimmed,
+    );
+    if (match) {
+      setAppliedPromo(match);
+      setCodeError("");
+      toast.success(`¡Cupón aplicado! ${getDiscountLabel(match)}`);
+    } else {
+      setCodeError("Código inválido");
+      setAppliedPromo(null);
+    }
+  };
+
+  // Calculate discount
+  let discountAmount = 0;
+  if (appliedPromo) {
+    if (appliedPromo.tipo_descuento === "porcentaje") {
+      discountAmount = Math.round(subtotal * (appliedPromo.valor_descuento / 100));
+    } else {
+      discountAmount = Math.min(
+        Number(appliedPromo.valor_descuento),
+        subtotal,
+      );
+    }
+  }
 
   const {
     register,
@@ -100,89 +126,8 @@ export function OrderForm({
   const esDelivery = watch("esDelivery");
 
   const costoEnvioActual = esDelivery ? config.costo_envio || 0 : 0;
-  const totalFinal = subtotal + costoEnvioActual;
+  const totalFinal = subtotal + costoEnvioActual - discountAmount;
   const simbolo = config.moneda_simbolo || "$";
-  const formatMoney = (value: number) =>
-    value.toLocaleString("es-AR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-
-  const dispararWhatsAppExterno = (
-    negocioWhatsapp: string,
-    pedidoId: string,
-    formData: OrderFormValues,
-  ): boolean => {
-    const numeroLimpio = negocioWhatsapp.replace(/\D/g, "");
-    if (!numeroLimpio) return false;
-
-    const formatearExtras = (i: (typeof cart)[0]) => {
-      if (!i.extras || i.extras.length === 0) return "";
-      if (i.producto_id.startsWith("combo-")) {
-        try {
-          const comboItems = JSON.parse(i.detalles || "[]") as Array<{
-            nombre_producto: string;
-            cantidad: number;
-          }>;
-          return comboItems
-            .map((ci) => `${ci.cantidad}x ${ci.nombre_producto}`)
-            .join(", ");
-        } catch {
-          return "";
-        }
-      }
-      return i.extras.map((e) => `${e.item_nombre}`).join(", ");
-    };
-
-    const lineasDetalle = cart.map((i) => {
-      const extrasStr = formatearExtras(i);
-      const extraPart = extrasStr ? ` (_${extrasStr}_)` : "";
-      return `• ${i.cantidad}x ${i.nombre.toUpperCase()}${extraPart} - ${simbolo}${formatMoney(i.precio * i.cantidad)}`;
-    });
-
-    const MAX_DETALLE_ITEMS = 12;
-    const detalleTruncado =
-      lineasDetalle.length > MAX_DETALLE_ITEMS
-        ? [
-            ...lineasDetalle.slice(0, MAX_DETALLE_ITEMS),
-            `... y ${lineasDetalle.length - MAX_DETALLE_ITEMS} productos más.`,
-          ]
-        : lineasDetalle;
-
-    const mensaje = [
-      `*🆕 NUEVO PEDIDO (#${pedidoId.slice(0, 6).toUpperCase()})*`,
-      `👤 *Cliente:* ${formData.nombre.toUpperCase()}`,
-      `📱 *WhatsApp:* ${formData.whatsapp}`,
-      `🛵 *Entrega:* ${formData.esDelivery ? `DELIVERY\n📍 *Dirección:* ${(formData.direccion || "").toUpperCase()}` : "RETIRO EN LOCAL"}`,
-      `💳 *Pago:* ${formData.metodoPago.toUpperCase()}`,
-      `\n📦 *DETALLE DE COMANDA:*`,
-      ...detalleTruncado,
-      `\n---`,
-      `*Subtotal:* ${simbolo}${formatMoney(subtotal)}`,
-      formData.esDelivery
-        ? `*Envío:* ${simbolo}${formatMoney(costoEnvioActual)}`
-        : "",
-      `*💰 TOTAL FINAL: ${simbolo}${formatMoney(totalFinal)}*`,
-      `\n📝 *Notas:* ${formData.notas || "Sin especificaciones."}`,
-      `\n_Enviado de forma segura desde NEO Infrastructure_`,
-    ]
-      .filter(Boolean)
-      .join("\n");
-
-    const waUrl = `https://wa.me/${numeroLimpio}?text=${encodeURIComponent(mensaje)}`;
-    const opened = window.open(waUrl);
-
-    if (!opened || opened.closed) {
-      navigator.clipboard?.writeText(waUrl).catch(() => {});
-      toast.error(
-        "No pudimos abrir WhatsApp automáticamente. Copiamos el enlace en tu portapapeles para que lo pegues manualmente.",
-        { duration: 8000 },
-      );
-      return false;
-    }
-
-    return true;
-  };
 
   const onSubmit = async (formData: OrderFormValues) => {
     setIsPending(true);
@@ -244,6 +189,14 @@ export function OrderForm({
         negocio.whatsapp,
         orderId,
         formData,
+        cart,
+        subtotal,
+        costoEnvioActual,
+        totalFinal,
+        simbolo,
+        formatMoney,
+        discountAmount,
+        appliedPromo?.nombre,
       );
 
       if (waOpened) {
@@ -377,8 +330,7 @@ export function OrderForm({
                 <div className="flex justify-between items-center text-sm font-medium text-[var(--color-custom-text-muted)]">
                   <span>Costo de envío:</span>
                   <span className="font-semibold text-[var(--color-custom-900)]">
-                    {simbolo}
-                    {formatMoney(config.costo_envio || 0)}
+                    {formatMoney(config.costo_envio || 0, simbolo)}
                   </span>
                 </div>
                 <Input
@@ -444,6 +396,91 @@ export function OrderForm({
           />
         </div>
 
+        {/* Discount promos - auto-applied banners */}
+        {discountPromos.length > 0 && (
+          <div className="space-y-1.5">
+            {discountPromos.map((promo) => (
+              <motion.div
+                key={promo.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-center gap-2 rounded-lg border border-green-200/60 bg-green-50/80 px-3 py-2 text-xs"
+              >
+                {promo.tipo_descuento === "porcentaje" ? (
+                  <Percent size={13} className="shrink-0 text-green-600" />
+                ) : (
+                  <Tag size={13} className="shrink-0 text-green-600" />
+                )}
+                <span className="font-semibold text-green-800 truncate">
+                  {promo.nombre}
+                </span>
+                {promo.descripcion && (
+                  <span className="hidden sm:inline text-green-600 truncate">
+                    — {promo.descripcion}
+                  </span>
+                )}
+                <span className="shrink-0 ml-auto rounded-full bg-green-500 px-2 py-[1px] text-[9px] font-bold text-white">
+                  {getDiscountLabel(promo)}
+                </span>
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {/* Promo code input */}
+        {codePromos.length > 0 && (
+          <div className="space-y-1.5">
+            <Label className="text-[var(--color-custom-900)]">
+              Código de descuento
+            </Label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={promoCode}
+                onChange={(e) => {
+                  setPromoCode(e.target.value);
+                  setCodeError("");
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleApplyCode();
+                  }
+                }}
+                placeholder="Ej: BIENVENIDO10"
+                className="flex-1 rounded-lg border border-[var(--color-custom-border)] bg-[var(--color-custom-surface-strong)] px-3 py-2 text-sm text-[var(--color-custom-900)] outline-none placeholder:text-[var(--color-custom-text-muted)] focus:border-[var(--color-custom-500)] focus:ring-2 focus:ring-[var(--color-custom-500)]/20"
+                aria-label="Código de descuento"
+              />
+              <button
+                type="button"
+                onClick={handleApplyCode}
+                className="shrink-0 rounded-lg bg-[var(--color-custom-900)] px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-[var(--color-custom-800)]"
+              >
+                Aplicar
+              </button>
+            </div>
+            {codeError && (
+              <motion.p
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-xs text-red-500"
+              >
+                {codeError}
+              </motion.p>
+            )}
+            {appliedPromo && (
+              <motion.p
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-1 text-xs font-semibold text-green-600"
+              >
+                <Sparkles size={12} />
+                {getDiscountLabel(appliedPromo)} aplicado
+              </motion.p>
+            )}
+          </div>
+        )}
+
         <div className="space-y-1.5 pb-4">
           <Label className="text-[var(--color-custom-900)]">
             Aclaraciones (Opcional)
@@ -469,8 +506,28 @@ export function OrderForm({
         layout
         className="pt-5 border-t border-[var(--color-custom-border)] bg-[var(--color-custom-surface-strong)] space-y-4"
       >
-        <div className="flex justify-between items-end">
-          <span className="text-sm font-medium text-[var(--color-custom-text-muted)]">
+        {/* Price breakdown */}
+        <div className="space-y-1 text-sm">
+          <div className="flex justify-between text-[var(--color-custom-text-muted)]">
+            <span>Subtotal</span>
+            <span>{formatMoney(subtotal, simbolo)}</span>
+          </div>
+          {costoEnvioActual > 0 && (
+            <div className="flex justify-between text-[var(--color-custom-text-muted)]">
+              <span>Envío</span>
+              <span>{formatMoney(costoEnvioActual, simbolo)}</span>
+            </div>
+          )}
+          {discountAmount > 0 && (
+            <div className="flex justify-between text-green-600 font-semibold">
+              <span>Descuento</span>
+              <span>-{formatMoney(discountAmount, simbolo)}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-between items-end border-t border-dashed border-[var(--color-custom-border)] pt-3">
+          <span className="text-sm font-semibold text-[var(--color-custom-900)]">
             Total Final:
           </span>
           <motion.span
@@ -479,8 +536,7 @@ export function OrderForm({
             animate={{ scale: 1 }}
             className="text-3xl font-bold text-[var(--color-custom-900)] tracking-tight"
           >
-            {simbolo}
-            {formatMoney(totalFinal)}
+            {formatMoney(totalFinal, simbolo)}
           </motion.span>
         </div>
         <motion.button
@@ -488,7 +544,7 @@ export function OrderForm({
           disabled={isPending}
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
-          className="w-full bg-[var(--color-custom-500)] hover:bg-[var(--color-custom-600)] text-white rounded-xl py-3.5 font-semibold text-sm shadow-md transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+          className="w-full bg-[var(--color-custom-500)] hover:bg-[var(--color-custom-600)] text-white rounded-xl py-3.5 font-semibold text-sm shadow-md transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-wait disabled:hover:bg-[var(--color-custom-500)]"
         >
           {isPending ? (
             <>

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, MapPin, MessageCircle, ChevronDown } from "lucide-react";
 import { formatTurnos } from "@/features/public-menu/utils";
+import { ScheduleGrid } from "@/features/public-menu/components/ScheduleGrid";
 import { useFocusTrap } from "@/core/hooks/useFocusTrap";
 import { useScrollLock } from "@/core/hooks/useScrollLock";
 
@@ -102,7 +103,7 @@ export function PublicMenuHeader({
               transition={{ type: "spring", stiffness: 300, damping: 28 }}
               role="dialog"
               aria-modal="true"
-              className="relative max-w-xl w-full rounded-2xl bg-white p-6 text-left shadow-2xl ring-1 ring-black/8"
+              className="relative max-w-xl w-full rounded-2xl bg-[var(--color-custom-surface-strong)] p-6 text-left shadow-2xl ring-1 ring-black/8"
             >
               <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-4">
@@ -113,10 +114,10 @@ export function PublicMenuHeader({
                   >
                     <Clock size={22} className="text-white" />
                   </div>
-                  <h3 className="text-lg font-bold text-[#111]">Horario de atención</h3>
+                  <h3 className="text-lg font-bold text-[var(--color-custom-900)]">Horario de atención</h3>
                 </div>
 
-                <div className="text-sm text-[#444]">
+                <div className="text-sm text-[var(--color-custom-text)]">
                   El local se encuentra actualmente fuera del horario de atención.
                   Podés seguir navegando el menú y consultar los horarios de atención
                   para hoy o días próximos.
@@ -297,6 +298,7 @@ export function PublicMenuHeader({
                     >
                       {negocio.nombre
                         .split(" ")
+                        .filter(Boolean)
                         .map((s) => s[0])
                         .slice(0, 2)
                         .join("")}
@@ -541,58 +543,7 @@ export function PublicMenuHeader({
                     style={{ backgroundColor: `color-mix(in srgb, ${cardBgStyle}, transparent 15%)` }}
                   >
                     <div className="grid grid-cols-2 gap-2">
-                      {(() => {
-                        const days = [
-                          "lunes",
-                          "martes",
-                          "miercoles",
-                          "jueves",
-                          "viernes",
-                          "sabado",
-                          "domingo",
-                        ];
-                        const labels: Record<string, string> = {
-                          lunes: "Lun",
-                          martes: "Mar",
-                          miercoles: "Mié",
-                          jueves: "Jue",
-                          viernes: "Vie",
-                          sabado: "Sáb",
-                          domingo: "Dom",
-                        };
-                        return days.map((day) => {
-                          const config = negocio.horarios?.[day] || null;
-                          const isToday = day === todayKey;
-                          return (
-                            <div
-                              key={day}
-                              className={`flex flex-col gap-0.5 rounded-xl px-3 py-2 ${
-                                isToday
-                                  ? "bg-white/15 ring-1 ring-white/25"
-                                  : "bg-white/5"
-                              }`}
-                            >
-                              <span className="font-semibold text-[11px] text-white uppercase tracking-wider">
-                                {labels[day]}
-                                {isToday && (
-                                  <span className="ml-1.5 text-[9px] text-white/60 font-bold">
-                                    HOY
-                                  </span>
-                                )}
-                              </span>
-                              {config ? (
-                                <span className="text-[11px] text-white/60">
-                                  {formatTurnos(config)}
-                                </span>
-                              ) : (
-                                <span className="text-[11px] text-white/30 italic">
-                                  Cerrado
-                                </span>
-                              )}
-                            </div>
-                          );
-                        });
-                      })()}
+                      <ScheduleGrid horarios={negocio.horarios} />
                     </div>
                   </div>
                 </motion.div>

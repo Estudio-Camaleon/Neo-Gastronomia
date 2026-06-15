@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { Users, User, MessageCircle, Trophy, StickyNote } from "lucide-react";
 import { updateClientSystemNotes } from "./actions";
 import { NotesModal } from "@/components/ui/notes-modal";
 import { toast } from "sonner";
+import { useDebounce } from "@/core/hooks/useDebounce";
 import type { ClienteResumen } from "@/core/types/domain";
 
 interface ClientRadarProps {
@@ -13,24 +14,11 @@ interface ClientRadarProps {
 
 export function ClientRadar({ initialClientes }: ClientRadarProps) {
   const [busqueda, setBusqueda] = useState("");
-  const [debouncedBusqueda, setDebouncedBusqueda] = useState("");
+  const searchQuery = useDebounce(busqueda);
   const [editingCliente, setEditingCliente] = useState<{
     id: string;
     notas: string | null;
   } | null>(null);
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => {
-      setDebouncedBusqueda(busqueda);
-    }, 300);
-    return () => {
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    };
-  }, [busqueda]);
-
-  const searchQuery = debouncedBusqueda;
 
   const clientesFiltrados = initialClientes.filter(
     (c) =>
@@ -210,7 +198,7 @@ export function ClientRadar({ initialClientes }: ClientRadarProps) {
             return (
               <div
                 key={cliente.id}
-                className="admin-card p-4 flex flex-col space-y-4"
+                className="admin-card p-4 rounded-xl flex flex-col space-y-4"
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
@@ -264,7 +252,7 @@ export function ClientRadar({ initialClientes }: ClientRadarProps) {
                         notas: cliente.notas,
                       })
                     }}
-                    className="btn-secondary flex-1 text-xs"
+                    className="btn-secondary flex-1 text-[11px]"
                   >
                     <StickyNote size={14} /> Anotaciones
                   </button>
@@ -273,7 +261,7 @@ export function ClientRadar({ initialClientes }: ClientRadarProps) {
                       href={`https://wa.me/${cliente.telefono.replace(/\D/g, "")}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-3 bg-[#25D366] hover:opacity-90 text-white rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm"
+                      className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-3 bg-[#25D366] hover:opacity-90 text-white rounded-xl text-[11px] font-bold transition-all active:scale-95 shadow-sm"
                     >
                       <MessageCircle size={14} /> WhatsApp
                     </a>

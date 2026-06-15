@@ -346,6 +346,7 @@ export function ProductoForm({
                 onCheckedChange={(checked) =>
                   setFormData((prev) => ({ ...prev, disponible: checked }))
                 }
+                className="data-[state=checked]:bg-[var(--admin-accent)]"
               />
             </div>
           </div>
@@ -381,7 +382,7 @@ export function ProductoForm({
                         actualizarVariante(idx, { nombre: e.target.value })
                       }
                       placeholder="Ej: Grande"
-                      className="flex-1 p-2 bg-[var(--admin-bg)] border-transparent rounded-md text-sm font-medium text-[var(--admin-text)] focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] outline-none transition-all"
+                      className="flex-1 min-w-[100px] p-2 bg-[var(--admin-bg)] border-transparent rounded-md text-sm font-medium text-[var(--admin-text)] focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] outline-none transition-all"
                     />
                     <div className="relative">
                       <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm">

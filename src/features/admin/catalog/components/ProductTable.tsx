@@ -8,6 +8,7 @@ import Image from "next/image";
 import { IngredientBadge } from "./IngredientBadge";
 import { deleteProductAction } from "../actions";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { useDebounce } from "@/core/hooks/useDebounce";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { Badge } from "@/components/ui/badge";
 
@@ -41,26 +42,18 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
   const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [rawSearch, setRawSearch] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const searchQuery = useDebounce(rawSearch);
   const [deleteConfirm, setDeleteConfirm] = useState<{
     id: string;
     nombre: string;
   } | null>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
-  // Debounce search
+  // Reset page when debounced search changes
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      setSearchQuery(rawSearch);
-      setPage(0);
-    }, 300);
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [rawSearch]);
+    setPage(0);
+  }, [searchQuery]);
 
   const cargarProductos = useCallback(
     async (pageNum: number, query?: string) => {
@@ -178,7 +171,7 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
           />
         </div>
       </div>
-      <table className="w-full text-left border-collapse">
+      <table className="w-full text-left border-collapse min-w-[500px]">
         <thead>
           <tr className="text-[10px] font-black uppercase tracking-widest text-[var(--admin-text-muted)]">
             <th className="p-4 pl-6 border-b border-[var(--admin-border)]">
@@ -300,11 +293,18 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
 
           {productos.length === 0 && (
             <tr>
-              <td
-                colSpan={5}
-                className="p-16 text-center text-sm font-medium text-[var(--admin-text-muted)]"
-              >
-                No hay productos registrados en el catálogo.
+              <td colSpan={5} className="p-12 text-center">
+                <div className="flex flex-col items-center justify-center">
+                  <div className="p-4 rounded-2xl bg-[var(--admin-accent)]/5 text-[var(--admin-text-muted)] mb-4">
+                    <Package size={40} strokeWidth={1.5} />
+                  </div>
+                  <p className="text-base font-black tracking-tight text-[var(--admin-text)] mb-1">
+                    Catálogo vacío
+                  </p>
+                  <p className="text-sm font-medium text-[var(--admin-text-muted)]">
+                    No hay productos registrados. Creá tu primer producto usando el botón superior.
+                  </p>
+                </div>
               </td>
             </tr>
           )}

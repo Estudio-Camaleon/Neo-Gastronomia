@@ -21,15 +21,157 @@ function log(...args: unknown[]) {
   if (DEBUG) console.log("[NEO-NOTIFICATION]", ...args);
 }
 
-// ── Audio (simple HTMLAudioElement) ──
-function playSound(src: string = "/sounds/new-order.mp3") {
+// ── Audio Engine (Web Audio API) ──────────────────────────
+const SOUND_SRC = "/sounds/new-order.mp3";
+const AUDIO_VOLUME = 0.6;
+const MAX_PLAY_RETRIES = 5;
+const PLAY_RETRY_DELAY = 500;
+
+let _audioCtx: AudioContext | null = null;
+let _audioBuffer: AudioBuffer | null = null;
+let _isUnlocked = false;
+let _pendingPlayCount = 0;
+
+function getAudioCtx(): AudioContext | null {
   try {
-    const audio = new Audio(src);
-    audio.volume = 0.6;
-    audio.play().catch(() => {});
-    log("PLAY SOUND", src);
+    if (!_audioCtx) {
+      const Ctor =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext })
+          .webkitAudioContext;
+      if (!Ctor) return null;
+      _audioCtx = new Ctor();
+    }
+    return _audioCtx;
+  } catch {
+    return null;
+  }
+}
+
+async function ensureAudioResumed(): Promise<boolean> {
+  const ctx = getAudioCtx();
+  if (!ctx) return false;
+  if (ctx.state === "running") return true;
+  try {
+    await ctx.resume();
+    return (ctx.state as string) === "running";
+  } catch {
+    return false;
+  }
+}
+
+async function preloadSound() {
+  try {
+    const res = await fetch(SOUND_SRC);
+    const buf = await res.arrayBuffer();
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    _audioBuffer = await ctx.decodeAudioData(buf);
+    log("SOUND PRELOADED");
+  } catch (err) {
+    log("SOUND PRELOAD FAILED:", err);
+  }
+}
+
+function playOrderSound() {
+  _pendingPlayCount++;
+  _playSoundInternal();
+}
+
+async function _playSoundInternal(attempt = 0) {
+  if (!_isUnlocked) {
+    log("PLAY SKIPPED — audio not unlocked yet");
+    return;
+  }
+
+  const ctx = getAudioCtx();
+  if (!ctx) {
+    _fallbackPlay();
+    return;
+  }
+
+  // Try to resume context if suspended
+  if (ctx.state !== "running") {
+    try {
+      await ctx.resume();
+    } catch {
+      // ignore
+    }
+  }
+
+  // If still suspended (background tab), retry a few times
+  if ((ctx.state as string) !== "running") {
+    if (attempt < MAX_PLAY_RETRIES) {
+      setTimeout(() => _playSoundInternal(attempt + 1), PLAY_RETRY_DELAY);
+      log("PLAY RETRY", attempt + 1);
+      return;
+    }
+    // Give up — will replay on visibilitychange
+    log("PLAY GAVE UP after", attempt, "attempts — queued for visibility");
+    return;
+  }
+
+  // Decode on demand if not preloaded
+  if (!_audioBuffer) {
+    try {
+      const res = await fetch(SOUND_SRC);
+      const buf = await res.arrayBuffer();
+      _audioBuffer = await ctx.decodeAudioData(buf);
+    } catch {
+      _fallbackPlay();
+      return;
+    }
+  }
+
+  try {
+    const source = ctx.createBufferSource();
+    source.buffer = _audioBuffer;
+
+    const gain = ctx.createGain();
+    gain.gain.value = AUDIO_VOLUME;
+
+    source.connect(gain);
+    gain.connect(ctx.destination);
+    source.start(0);
+
+    _pendingPlayCount = Math.max(0, _pendingPlayCount - 1);
+    log("PLAY SOUND (Web Audio) — attempt", attempt);
   } catch (err) {
     log("PLAY SOUND FAILED:", err);
+    _fallbackPlay();
+  }
+}
+
+function _fallbackPlay() {
+  try {
+    const audio = new Audio(SOUND_SRC);
+    audio.volume = AUDIO_VOLUME;
+    audio.play().catch(() => {});
+    log("PLAY SOUND (fallback)");
+  } catch {
+    log("FALLBACK PLAY EXCEPTION");
+  }
+}
+
+function unlockAudio() {
+  if (_isUnlocked) return;
+  _isUnlocked = true;
+
+  const ctx = getAudioCtx();
+  if (ctx && ctx.state === "suspended") {
+    ctx.resume().catch(() => {});
+  }
+  // Preload the sound for instant playback
+  preloadSound();
+  log("AUDIO UNLOCKED");
+}
+
+function replayPending() {
+  if (_pendingPlayCount > 0 && _isUnlocked) {
+    log("REPLAY pending for visibility change — count:", _pendingPlayCount);
+    _pendingPlayCount = 0;
+    // Play once (one sound is enough to alert user)
+    _playSoundInternal();
   }
 }
 
@@ -70,35 +212,42 @@ export function OrderNotificationProvider({
   const [soundEnabled] = useState(true);
   const lastPlayedRef = useRef<Set<string>>(new Set());
   const supabaseRef = useRef(createClient());
-  const audioUnlockedRef = useRef(false);
 
   // ── Unlock audio on first user interaction ──
   useEffect(() => {
-    const unlock = () => {
-      if (audioUnlockedRef.current) return;
-      audioUnlockedRef.current = true;
-      const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-      ctx.resume();
-      ctx.close();
-      document.removeEventListener("pointerdown", unlock);
-      document.removeEventListener("keydown", unlock);
-    };
-    document.addEventListener("pointerdown", unlock, { once: true });
-    document.addEventListener("keydown", unlock, { once: true });
+    const handler = () => unlockAudio();
+    document.addEventListener("pointerdown", handler, { once: true });
+    document.addEventListener("keydown", handler, { once: true });
     return () => {
-      document.removeEventListener("pointerdown", unlock);
-      document.removeEventListener("keydown", unlock);
+      document.removeEventListener("pointerdown", handler);
+      document.removeEventListener("keydown", handler);
     };
   }, []);
 
-  // ── Periodic cleanup of lastPlayedRef (prevents memory leak) ──
+  // ── Replay sound when tab becomes visible (catch up on background orders) ──
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        // Always try to resume AudioContext
+        ensureAudioResumed();
+        // Replay pending if there are unread orders
+        const hasUnread = unreadCount > 0 || _pendingPlayCount > 0;
+        if (hasUnread) {
+          replayPending();
+        }
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [unreadCount]);
+
+  // ── Try to resume AudioContext periodically (Chrome suspends it in background) ──
   useEffect(() => {
     const interval = setInterval(() => {
-      if (lastPlayedRef.current.size > 500) {
-        lastPlayedRef.current.clear();
-        log("lastPlayedRef CLEARED (size > 500)");
+      if (_isUnlocked) {
+        ensureAudioResumed();
       }
-    }, 300_000); // every 5 min
+    }, 30_000); // every 30s
     return () => clearInterval(interval);
   }, []);
 
@@ -158,8 +307,8 @@ export function OrderNotificationProvider({
             setLatestNewPedido(fullPedido);
             setUnreadCount((prev) => prev + 1);
 
-            // Play sound
-            if (soundEnabled) playSound("/sounds/new-order.mp3");
+            // Play sound (works even in background tab via Web Audio API)
+            if (soundEnabled) playOrderSound();
 
             // Visual fallback: toast
             toast.info("Nuevo pedido entrante", {

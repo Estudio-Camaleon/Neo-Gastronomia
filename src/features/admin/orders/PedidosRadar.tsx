@@ -19,6 +19,7 @@ import { PedidoCard } from "./PedidoCard";
 import { updateOrderStatusAction } from "./actions";
 import { enviarNotificacionWhatsApp } from "@/core/lib/utils/whatsappActions";
 import { useOrderNotifications } from "./OrderNotificationProvider";
+import { useDebounce } from "@/core/hooks/useDebounce";
 import type { PedidoData } from "@/core/types/domain";
 
 interface PedidosRadarProps {
@@ -33,7 +34,7 @@ export function PedidosRadar({
   negocioNombre,
 }: PedidosRadarProps) {
   const [filter, setFilter] = useState("");
-  const [debouncedFilter, setDebouncedFilter] = useState("");
+  const debouncedFilter = useDebounce(filter);
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [dateFilter, setDateFilter] = useState<"today" | "all">("today");
   const [showAll, setShowAll] = useState(false);
@@ -41,20 +42,13 @@ export function PedidosRadar({
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const knownIdsRef = useRef<Set<string>>(new Set(initialPedidos.map((p) => p.id)));
   const { latestNewPedido, latestUpdateEvent, acknowledgeNewOrders, acknowledgeUpdateEvent } = useOrderNotifications();
 
+  // Reset page when debounced filter changes
   useEffect(() => {
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => {
-      setDebouncedFilter(filter);
-      setPage(0);
-    }, 300);
-    return () => {
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    };
-  }, [filter]);
+    setPage(0);
+  }, [debouncedFilter]);
 
   const ORDERS_PER_PAGE = 18;
 
@@ -276,7 +270,7 @@ export function PedidosRadar({
             className={`admin-card !p-4 sm:!p-5 ${item.border} transition-all duration-300 rounded-2xl hover:shadow-lg ${item.glow}`}
           >
             <div className="flex justify-between items-start mb-2">
-              <span className="text-xs font-black uppercase tracking-wider text-[var(--admin-text-muted)]">
+              <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-[var(--admin-text-muted)] whitespace-nowrap">
                 {item.label}
               </span>
                <div className={`p-2 rounded-xl ${item.bgLight} ${item.textColor} transition-all duration-200`}>
@@ -300,7 +294,7 @@ export function PedidosRadar({
       </div>
 
       <div className="flex flex-wrap items-center gap-2 justify-between">
-        <div className="flex gap-1 bg-[var(--admin-bg)] p-1 rounded-xl border border-[var(--admin-border)]">
+        <div className="flex flex-wrap gap-1 bg-[var(--admin-bg)] p-1 rounded-xl border border-[var(--admin-border)] w-full sm:w-auto">
           {[
             { value: "todos", label: "Todos", icon: List },
             { value: "pendiente", label: "Pendientes", icon: Clock },
@@ -364,7 +358,7 @@ export function PedidosRadar({
           ref={searchInputRef}
           type="text"
           placeholder="Buscar por cliente, código, teléfono, producto…"
-          className="flex-1 admin-input !border-none !shadow-none !bg-transparent"
+          className="flex-1 min-w-0 admin-input !border-none !shadow-none !bg-transparent"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         />

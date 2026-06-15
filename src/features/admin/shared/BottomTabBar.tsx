@@ -27,8 +27,8 @@ export function BottomTabBar() {
     pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
 
   return (
-    <nav aria-label="Navegación inferior" className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-[var(--admin-surface)]/95 backdrop-blur-xl border-t border-[var(--admin-border)] safe-bottom pb-1">
-      <div className="flex items-center justify-around px-1 sm:px-2 pt-1.5">
+    <nav aria-label="Navegación inferior" className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-[var(--admin-surface)]/95 backdrop-blur-xl border-t border-[var(--admin-border)] safe-bottom pb-[calc(0.25rem+env(safe-area-inset-bottom,0px))]">
+      <div className="flex items-center justify-between px-1 sm:px-2 pt-1.5">
         {TAB_ITEMS.map((item) => {
           const active = isActive(item.href);
           const Icon = item.icon;

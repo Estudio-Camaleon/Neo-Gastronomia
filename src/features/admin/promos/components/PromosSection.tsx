@@ -273,7 +273,7 @@ export function PromosSection({ negocioId }: PromosSectionProps) {
             return (
               <div
                 key={promo.id}
-                className={`admin-card p-5 relative overflow-hidden transition-all duration-200 ${
+                className={`admin-card p-5 relative overflow-hidden transition-all duration-200 min-h-[200px] ${
                   !promo.activo ? "opacity-60" : ""
                 }`}
               >
@@ -574,6 +574,7 @@ function PromoModal({
       <div
         role="dialog"
         aria-modal="true"
+        aria-labelledby="promo-modal-title"
         className="bg-[var(--admin-surface)] rounded-2xl p-6 md:p-8 max-w-lg w-full shadow-2xl border border-[var(--admin-border)] animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between mb-6">
@@ -585,7 +586,7 @@ function PromoModal({
             }`}>
               {isCombo ? <ShoppingBag size={16} /> : <Sparkles size={16} />}
             </div>
-            <h3 className="font-bold text-lg text-[var(--admin-text)]">
+            <h3 id="promo-modal-title" className="font-bold text-lg text-[var(--admin-text)]">
               {isEdit ? "Editar" : "Nueva"} {isCombo ? "Combo" : "Promoción"}
             </h3>
           </div>
@@ -657,7 +658,7 @@ function PromoModal({
                 onChange={(e) =>
                   onChange({ ...formData, valor_descuento: Number(e.target.value) })
                 }
-                className="w-full p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-xl text-sm text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] transition-all"
+                className="w-full min-w-0 p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-xl text-sm text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] transition-all"
               />
             </div>
           </div>

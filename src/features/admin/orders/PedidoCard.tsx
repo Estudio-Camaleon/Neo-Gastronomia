@@ -188,7 +188,7 @@ export function PedidoCard({
         </div>
 
         {/* CONTROLADORES DE ESTADO */}
-        <div className="p-3 sm:p-4 bg-[var(--admin-bg)]/30 border-t border-[var(--admin-border)] flex gap-3">
+        <div className="p-3 sm:p-4 bg-[var(--admin-bg)]/30 border-t border-[var(--admin-border)] flex flex-wrap gap-3">
           {pedido.estado === "pendiente" ? (
             <>
               <button
