@@ -43,7 +43,7 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full px-4 sm:px-6 lg:px-8">
       <nav
-        className={`mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8 flex items-center justify-between rounded-[20px] transition-all duration-500 ${
+        className={`mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8 flex items-center justify-between rounded-[20px] relative z-[60] transition-all duration-500 ${
           isScrolled
             ? "glass-card shadow-lg"
             : "bg-transparent border border-transparent shadow-none"
