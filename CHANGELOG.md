@@ -1,3 +1,42 @@
+# [1.1.0](https://github.com/Estudio-Camaleon/Neo-Gastronomia/compare/v1.0.0...v1.1.0) (2026-06-16)
+
+
+### Bug Fixes
+
+* **admin:** deep CRUD review — public menu revalidation, stale closures, error cleanup ([5e1fa22](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/5e1fa228e460bcb8fd1fc46a502c7e7be6a5a1d1))
+* **agents:** agrega safety checks a commiteador workflow ([bb8fd67](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/bb8fd6761682cae4e06a4349c5ad152b947bf045))
+* ajusta el tamaño del título en el menú para mejorar la responsividad ([087df21](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/087df216551fe16a5be42b33c78e416869eaea33))
+* ajusta el z-index del navbar para mejorar la visibilidad al hacer scroll ([8f838a0](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/8f838a0ceb67d99437271ce808e8650676473001))
+* banner scale, inline dropdowns, remove altura, remove old direccion fields ([23a40f4](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/23a40f46e898c87021c93d3c2a9ced82de7b4aba))
+* brand card style fixes (schedule init, logo shape, dynamic color, floating random) ([6ce32ba](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/6ce32ba2f36edf7eb9b5e53bd7b7b7549da8ff3e)), closes [#163B2D](https://github.com/Estudio-Camaleon/Neo-Gastronomia/issues/163B2D)
+* **cart:** orderId real en confirmacion, eliminar descuento hardcodeado, receiptId sin fake ID ([a00b67c](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/a00b67c3ec5399d2923591b94df88fd8190c940c))
+* categoria nav - timeout race, scroll-to-top en Todos, scroll-margin-top nativo ([58d7843](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/58d784349426ff70cb77e45085cf7c4043bf44e7))
+* completar 14 hallazgos de accesibilidad + nuevos hooks useScrollLock y useFocusTrap ([0c26bcd](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/0c26bcd1767b66014f18c170bfd6fca1d779bbb3))
+* corregir 21 issues de auditoría web (performance, accesibilidad, SEO, buenas prácticas) ([229cda1](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/229cda19d4f6f6a57104590f04595fcddb6ab902)), closes [#main-content](https://github.com/Estudio-Camaleon/Neo-Gastronomia/issues/main-content)
+* corrige horario 00:00-00:00 como 24h y mejora vista previa de ConfigForm ([a044fbb](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/a044fbb761b41bc4161b51452543a3a0ab85ec69))
+* evitar cierre del carrito al abrir teclado en mobile (resize handler filtraba por cambio de ancho) ([d4330f8](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/d4330f8c2efe5c1a77e0b45303588458758c3f52))
+* FloatingFood filter unreliable component ref comparison ([23bffaf](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/23bffafffa0970fec15c5ae1cbbcf85f2513d614))
+* logo shape sticker mode, public menu social/floating data flow, banner dark overlay ([545bc99](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/545bc99b8e68201b88c8d0918be970d98042b6a2))
+* move FloatingShapesBlock to standalone section ([6556708](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/6556708f0b418609e367f9f3dcf12fc85a30944f))
+* **public-menu:** 3 style fixes — estado inline, title backdrop, cart spacing ([216d9e9](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/216d9e9f5792728773df17a52b33f90d568f8c3f))
+* remove Vista previa en vivo, show bannerScale live in BrandingBlock ([246ee16](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/246ee160d06bdb555d9df3e8fff835fa3907454a))
+* **ui:** corrige animación mobile y selección de variante en ProductDetailModal ([246b655](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/246b655eba509dc4a01338f126737d0a75a8d18b))
+
+
+### Features
+
+* add color palette categories in admin color picker ([07b427d](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/07b427dcba1c8da823bd09d1d2d173c7888ba80f)), closes [#34a35f](https://github.com/Estudio-Camaleon/Neo-Gastronomia/issues/34a35f)
+* agrega MobileHeader y refactoriza BottomTabBar para mejorar la navegación en mobile ([a70ff61](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/a70ff6127bc0eb4964531d285bdff8cc10037a64))
+* agrega modo pausa, mejora pedidos, producto y mobile ([4298412](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/429841248a9906272064bf7d8f3b02acfda2cc2a))
+* agregar controles de nombre y color primario en el formulario de configuración ([1ed8da9](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/1ed8da973816f698af6f1597c27162fc59a86dd7))
+* agregar soporte para Resend API en la configuración de correos y mejorar el registro de usuarios ([bd2fb8b](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/bd2fb8bdc78116421db4a00886a36447ea26f154))
+* banner scale, unsaved changes modal, multiple addresses ([810183e](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/810183ea099a83161ce9a60bc3c6116bfb4ec06b))
+* brand card header experiment - floating identity panel ([09639fb](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/09639fb4d9f59d5648d968af3bc814479ae513d4))
+* enhance FloatingFood component with density control and layout improvements ([0655804](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/06558041296ac75991413da268b6014a7422979b))
+* personalizar templates de email de Supabase con branding NEO (confirmacion y recuperacion) ([eded294](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/eded29426cfa2f7b5353a3578a3abc1c814565f2))
+* public menu improvements, social links, food shapes, style fixes ([65552f4](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/65552f4a6ec209707e105f2096a787fab43c59b8))
+* Refactor ProductDetailModal and introduce new components for better modularity ([aa9cd03](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/aa9cd03577ec57093387c08bad661a3c96a29ee0))
+
 # 1.0.0 (2026-06-12)
 
 
