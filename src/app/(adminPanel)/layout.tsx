@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import Image from "next/image";
 import { Sidebar } from "@/features/admin/shared/Sidebar";
+import { MobileHeader } from "@/features/admin/shared/MobileHeader";
 import { BottomTabBar } from "@/features/admin/shared/BottomTabBar";
 import { ThemeProvider } from "@/core/providers/ThemeProvider";
 import { OrderNotificationProvider } from "@/features/admin/orders/OrderNotificationProvider";
@@ -83,25 +83,8 @@ export default async function AdminPanelLayout({
 
         {/* Contenedor de Trabajo Principal */}
         <div className="flex-1 flex flex-col lg:pl-72 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
-          {/* Header - solo logo NEO en mobile (< lg) */}
-          <header className="flex lg:hidden items-center justify-center px-4 pt-3.5 pb-2.5 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]/95 backdrop-blur-lg sticky top-0 z-[60] transition-all duration-300 safe-top">
-            <div className="relative w-9 h-9">
-              <Image
-                src="/icons/neo_logo_negro.webp"
-                alt="NEO"
-                fill
-                className="object-contain dark:hidden"
-                priority
-              />
-              <Image
-                src="/icons/neo_logo_blanco.webp"
-                alt="NEO"
-                fill
-                className="object-contain hidden dark:block"
-                priority
-              />
-            </div>
-          </header>
+          {/* Header mobile con logo + acciones */}
+          <MobileHeader slug={negocio.slug} />
 
           <main id="main-content" className="flex-1 p-3 sm:p-4 lg:p-6 xl:p-10 w-full max-w-7xl mx-auto animate-in fade-in duration-300 relative">
             <Suspense
