@@ -35,7 +35,6 @@ export function LegalModal({
       {/* Overlay oscuro con blur */}
       <div
         className="absolute inset-0 bg-[#0a1811]/60 backdrop-blur-sm animate-in fade-in duration-300"
-        onClick={onClose}
         aria-hidden="true"
       />
 

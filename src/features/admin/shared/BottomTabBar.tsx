@@ -9,6 +9,8 @@ import {
   Package,
   Users,
   Percent,
+  BarChart3,
+  Settings,
 } from "lucide-react";
 
 const TAB_ITEMS = [
@@ -17,6 +19,8 @@ const TAB_ITEMS = [
   { name: "Productos", href: "/productos", icon: Package },
   { name: "Promos", href: "/promos", icon: Percent },
   { name: "Clientes", href: "/clientes", icon: Users },
+  { name: "Stats", href: "/estadisticas", icon: BarChart3 },
+  { name: "Ajustes", href: "/configuracion", icon: Settings },
 ];
 
 export function BottomTabBar() {
@@ -27,8 +31,8 @@ export function BottomTabBar() {
     pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-[var(--admin-surface)]/95 backdrop-blur-xl border-t border-[var(--admin-border)] safe-bottom pb-1">
-      <div className="flex items-center justify-around px-1 sm:px-2 pt-1.5">
+    <nav aria-label="Navegación inferior" className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-[var(--admin-surface)]/95 backdrop-blur-xl border-t border-[var(--admin-border)] safe-bottom pb-[calc(0.25rem+env(safe-area-inset-bottom,0px))]">
+      <div className="flex items-center justify-around px-0.5 sm:px-1 pt-1">
         {TAB_ITEMS.map((item) => {
           const active = isActive(item.href);
           const Icon = item.icon;
@@ -36,7 +40,8 @@ export function BottomTabBar() {
             <TransitionLink
               key={item.name}
               href={item.href}
-              className={`relative flex flex-col items-center gap-0.5 py-1 px-2 sm:px-3 rounded-xl transition-all duration-200 active:scale-95 touch-target min-w-0 ${
+              aria-current={active ? "page" : undefined}
+              className={`relative flex flex-col items-center gap-0.5 py-1 px-1.5 sm:px-2.5 rounded-xl transition-all duration-200 active:scale-95 touch-target min-w-0 ${
                 active
                   ? "text-[var(--admin-accent)]"
                   : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"
@@ -44,7 +49,7 @@ export function BottomTabBar() {
             >
               <div className="relative">
                 <Icon size={20} strokeWidth={active ? 2.5 : 2} />
-                {item.name === "Pedidos" && unreadCount > 0 && (
+                {item.name === "Pedidos" && unreadCount > 0 && pathname !== "/pedidos" && !pathname.startsWith("/pedidos/") && (
                   <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[8px] font-bold px-1 rounded-full min-w-[14px] text-center leading-tight">
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>

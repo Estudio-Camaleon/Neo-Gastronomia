@@ -72,12 +72,12 @@ export default function RegisterPage() {
           {/* Contenido Central */}
           <div className="flex-1 flex flex-col items-center justify-center space-y-12 max-w-xl z-10">
             <div className="space-y-4">
-              <h1 className="text-3xl xl:text-5xl font-black tracking-tight text-[var(--auth-accent)] leading-[0.95] uppercase">
+              <h2 className="text-3xl xl:text-5xl font-black tracking-tight text-[var(--auth-accent)] leading-[0.95] uppercase">
                 Tu menú digital <br />
                 <span className="text-[var(--auth-accent-muted)] font-light italic normal-case">
                   en 5 minutos
                 </span>
-              </h1>
+              </h2>
               <p className="text-[var(--auth-text-muted)] text-sm sm:text-base leading-relaxed max-w-md mx-auto font-medium">
                 Únete a los negocios que ya están vendiendo de forma inteligente
                 con NEO.
@@ -145,12 +145,12 @@ export default function RegisterPage() {
 
             {/* Header del Formulario */}
             <div className="text-center lg:text-left space-y-2">
-              <h2 className="text-2xl font-black tracking-tight text-[var(--auth-accent)] uppercase">
+              <h1 className="text-2xl font-black tracking-tight text-[var(--auth-accent)] uppercase">
                 Crea tu{" "}
                 <span className="font-light normal-case text-[var(--auth-accent-muted)]">
                   cuenta
                 </span>
-              </h2>
+              </h1>
               <p className="text-[var(--auth-text-muted)] text-xs font-medium">
                 Completa los datos para empezar tu transformación digital.
               </p>

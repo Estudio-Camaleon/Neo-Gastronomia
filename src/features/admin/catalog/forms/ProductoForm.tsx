@@ -62,6 +62,69 @@ export function ProductoForm({
       precio: Number(v.precio),
     }));
   });
+  const [categoryRefreshKey, setCategoryRefreshKey] = useState(0);
+  const [showNewCategory, setShowNewCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [creatingCategory, setCreatingCategory] = useState(false);
+
+  const handleCreateCategory = async () => {
+    const name = newCategoryName.trim();
+    if (!name) return;
+    setCreatingCategory(true);
+    try {
+      const slug = name
+        .toLowerCase()
+        .replace(/[^a-z0-9áéíóúñ]+/g, "-")
+        .replace(/á/g, "a")
+        .replace(/é/g, "e")
+        .replace(/í/g, "i")
+        .replace(/ó/g, "o")
+        .replace(/ú/g, "u")
+        .replace(/ñ/g, "n")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 60);
+      const { createCategoryAction } = await import(
+        "@/features/admin/catalog/actions"
+      );
+      await createCategoryAction(name, slug);
+      setShowNewCategory(false);
+      setNewCategoryName("");
+      setCategoryRefreshKey((k) => k + 1);
+      toast.success(`Categoría "${name}" creada`);
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Error al crear categoría";
+      toast.error("Error", { description: msg });
+    } finally {
+      setCreatingCategory(false);
+    }
+  };
+
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragGroupItem, setDragGroupItem] = useState<{
+    grupoId: string;
+    itemIndex: number;
+  } | null>(null);
+
+  const moveVariant = (from: number, to: number) => {
+    const nuevas = [...variantes];
+    const [movido] = nuevas.splice(from, 1);
+    nuevas.splice(to, 0, movido);
+    setVariantes(nuevas);
+  };
+
+  const moveGroupItem = (grupoId: string, from: number, to: number) => {
+    setGruposOpciones(
+      gruposOpciones.map((g) => {
+        if (g.id !== grupoId) return g;
+        const nuevosItems = [...g.items];
+        const [movido] = nuevosItems.splice(from, 1);
+        nuevosItems.splice(to, 0, movido);
+        return { ...g, items: nuevosItems };
+      }),
+    );
+  };
+
   const [gruposOpciones, setGruposOpciones] = useState<ExtraGroup[]>(() => {
     if (!initialData?.configuracion?.grupos_opciones) return [];
     return initialData.configuracion.grupos_opciones.map((g: Record<string, unknown>) => ({
@@ -283,9 +346,15 @@ export function ProductoForm({
                     descripcion: e.target.value,
                   }))
                 }
+                maxLength={300}
                 className="w-full p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-sm text-[var(--admin-text)] resize-none h-24 focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
                 placeholder="Detalla los ingredientes del plato..."
               />
+              <div className="flex justify-end">
+                <span className="text-[10px] tabular-nums text-[var(--admin-text-muted)] opacity-60">
+                  {(formData.descripcion || "").length}/300
+                </span>
+              </div>
             </div>
 
             <div className="space-y-1.5">
@@ -297,7 +366,11 @@ export function ProductoForm({
                     imagen_url: url === "" ? null : url,
                   }))
                 }
+                alt="Vista previa del producto"
               />
+              <p className="text-[11px] text-[var(--admin-text-muted)] opacity-70 leading-relaxed">
+                Formato cuadrado recomendado. Peso máximo: 2MB. Formatos: JPG, PNG, WEBP.
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -311,23 +384,82 @@ export function ProductoForm({
                   min="0"
                   step="0.01"
                   value={formData.precio}
+                  disabled={variantes.length > 0}
                   onChange={(e) => {
                     const val = e.target.valueAsNumber;
                     setFormData((prev) => ({ ...prev, precio: isNaN(val) ? 0 : val }));
                   }}
-                  className="w-full p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] font-medium text-sm text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all rounded-lg"
+                  className="w-full p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] font-medium text-sm text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
                   placeholder="0.00"
                 />
+                {variantes.length > 0 && (
+                  <p className="text-[10px] text-amber-600 font-medium">
+                    Usá las variantes para definir precios.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1.5">
-                <CategorySelect
-                  negocioId={negocioId}
-                  selectedId={formData.categoria_id || ""}
-                  onChange={(id) =>
-                    setFormData((prev) => ({ ...prev, categoria_id: id }))
-                  }
-                />
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-semibold text-[var(--admin-text)]">
+                    Categoría
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowNewCategory(true);
+                      setNewCategoryName("");
+                    }}
+                    className="text-[10px] font-semibold text-[var(--admin-accent)] hover:underline"
+                  >
+                    + Nueva
+                  </button>
+                </div>
+                {showNewCategory ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      placeholder="Nombre de la nueva sección"
+                      className="flex-1 p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-sm text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleCreateCategory();
+                        }
+                        if (e.key === "Escape") {
+                          setShowNewCategory(false);
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCreateCategory}
+                      disabled={creatingCategory || !newCategoryName.trim()}
+                      className="shrink-0 px-3 py-2 text-xs font-semibold bg-[var(--admin-accent)] text-white rounded-lg disabled:opacity-50 hover:opacity-90 transition-opacity"
+                    >
+                      {creatingCategory ? "..." : "Crear"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowNewCategory(false)}
+                      className="shrink-0 px-2 py-2 text-xs font-medium text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                ) : (
+                  <CategorySelect
+                    key={categoryRefreshKey}
+                    negocioId={negocioId}
+                    selectedId={formData.categoria_id || ""}
+                    onChange={(id) =>
+                      setFormData((prev) => ({ ...prev, categoria_id: id }))
+                    }
+                  />
+                )}
               </div>
             </div>
 
@@ -345,12 +477,59 @@ export function ProductoForm({
                 onCheckedChange={(checked) =>
                   setFormData((prev) => ({ ...prev, disponible: checked }))
                 }
+                className="data-[state=checked]:bg-[var(--admin-accent)]"
               />
             </div>
           </div>
 
           {/* COLUMNA DERECHA */}
           <div className="space-y-8 border-t border-[var(--admin-border)] pt-8 lg:col-span-7 lg:min-h-0 lg:border-l lg:border-t-0 lg:pl-8">
+            {/* PREVIEW CARD */}
+            <div className="hidden lg:block rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg)]/30 overflow-hidden">
+              <div className="flex items-stretch gap-0">
+                <div className="w-24 shrink-0 bg-[var(--admin-bg)] overflow-hidden">
+                  {formData.imagen_url ? (
+                    <img
+                      src={formData.imagen_url}
+                      alt={formData.nombre || "Vista previa"}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full min-h-[88px] items-center justify-center text-[var(--admin-text-muted)]/30">
+                      <Package size={28} />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0 px-3 py-2.5 space-y-1">
+                  <p className="text-sm font-bold text-[var(--admin-text)] truncate leading-tight">
+                    {formData.nombre || "Sin nombre"}
+                  </p>
+                  <p className="text-[11px] text-[var(--admin-text-muted)] truncate">
+                    {formData.descripcion || "Sin descripción"}
+                  </p>
+                  <div className="flex items-center gap-2 pt-1">
+                    <span className="text-base font-black text-[var(--admin-accent)] leading-none">
+                      ${formData.precio.toLocaleString("es-AR")}
+                    </span>
+                    <span
+                      className={`ml-auto inline-block rounded-full px-2 py-[1px] text-[9px] font-bold uppercase tracking-wide ${
+                        formData.disponible
+                          ? "bg-green-500/10 text-green-600"
+                          : "bg-red-500/10 text-red-600"
+                      }`}
+                    >
+                      {formData.disponible ? "Disponible" : "Oculto"}
+                    </span>
+                  </div>
+                  {variantes.length > 0 && (
+                    <p className="text-[10px] text-[var(--admin-text-muted)]">
+                      {variantes.length} variante{variantes.length !== 1 ? "s" : ""}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* SECCIÓN VARIANTES */}
             <div className="space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-[var(--admin-border)]">
@@ -370,8 +549,30 @@ export function ProductoForm({
                 {variantes.map((v, idx) => (
                   <div
                     key={idx}
-                    className="flex flex-wrap gap-2 items-center bg-[var(--admin-surface)] p-2 border border-[var(--admin-border)] rounded-lg shadow-sm"
+                    draggable
+                    onDragStart={() => setDragIndex(idx)}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      if (dragIndex !== null && dragIndex !== idx) {
+                        moveVariant(dragIndex, idx);
+                        setDragIndex(idx);
+                      }
+                    }}
+                    onDragEnd={() => setDragIndex(null)}
+                    className={`flex flex-wrap gap-2 items-center bg-[var(--admin-surface)] p-2 border rounded-lg shadow-sm transition-all ${
+                      dragIndex === idx
+                        ? "border-[var(--admin-accent)] opacity-60"
+                        : "border-[var(--admin-border)]"
+                    }`}
                   >
+                    <span
+                      className="cursor-grab active:cursor-grabbing text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors p-1"
+                      title="Arrastrar para reordenar"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="8" y1="6" x2="16" y2="6" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="8" y1="18" x2="16" y2="18" />
+                      </svg>
+                    </span>
                     <input
                       type="text"
                       required
@@ -380,7 +581,7 @@ export function ProductoForm({
                         actualizarVariante(idx, { nombre: e.target.value })
                       }
                       placeholder="Ej: Grande"
-                      className="flex-1 p-2 bg-[var(--admin-bg)] border-transparent rounded-md text-sm font-medium text-[var(--admin-text)] focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] outline-none transition-all"
+                      className="flex-1 min-w-[100px] p-2 bg-[var(--admin-bg)] border-transparent rounded-md text-sm font-medium text-[var(--admin-text)] focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] outline-none transition-all"
                     />
                     <div className="relative">
                       <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm">
@@ -469,13 +670,78 @@ export function ProductoForm({
                       </div>
                     </div>
 
+                    {/* Config switches: requerido / multiple */}
+                    <div className="flex flex-wrap items-center gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <Switch
+                          checked={grupo.requerido}
+                          onCheckedChange={(checked) => {
+                            setGruposOpciones(
+                              gruposOpciones.map((g) =>
+                                g.id === grupo.id ? { ...g, requerido: checked } : g,
+                              ),
+                            );
+                          }}
+                          className="data-[state=checked]:bg-[var(--admin-accent)]"
+                        />
+                        <span className="text-xs font-medium text-[var(--admin-text)]">
+                          Requerido
+                        </span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <Switch
+                          checked={grupo.multiple}
+                          onCheckedChange={(checked) => {
+                            setGruposOpciones(
+                              gruposOpciones.map((g) =>
+                                g.id === grupo.id ? { ...g, multiple: checked } : g,
+                              ),
+                            );
+                          }}
+                          className="data-[state=checked]:bg-[var(--admin-accent)]"
+                        />
+                        <span className="text-xs font-medium text-[var(--admin-text)]">
+                          Selección múltiple
+                        </span>
+                      </label>
+                    </div>
+
                     {/* Sub-items del Grupo */}
                     <div className="space-y-2 pl-2 sm:pl-4 border-l-2 border-[var(--admin-border)]">
-                      {grupo.items?.map((item) => (
+                      {grupo.items?.map((item, itemIdx) => (
                         <div
                           key={item.id}
-                          className="flex flex-wrap gap-2 items-center"
+                          draggable
+                          onDragStart={() =>
+                            setDragGroupItem({ grupoId: grupo.id, itemIndex: itemIdx })
+                          }
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            if (
+                              dragGroupItem &&
+                              dragGroupItem.grupoId === grupo.id &&
+                              dragGroupItem.itemIndex !== itemIdx
+                            ) {
+                              moveGroupItem(grupo.id, dragGroupItem.itemIndex, itemIdx);
+                              setDragGroupItem({ grupoId: grupo.id, itemIndex: itemIdx });
+                            }
+                          }}
+                          onDragEnd={() => setDragGroupItem(null)}
+                          className={`flex flex-wrap gap-2 items-center rounded-md transition-all ${
+                            dragGroupItem?.grupoId === grupo.id &&
+                            dragGroupItem?.itemIndex === itemIdx
+                              ? "opacity-60"
+                              : ""
+                          }`}
                         >
+                          <span
+                            className="cursor-grab active:cursor-grabbing text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors p-1 shrink-0"
+                            title="Arrastrar para reordenar"
+                          >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <line x1="8" y1="6" x2="16" y2="6" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="8" y1="18" x2="16" y2="18" />
+                            </svg>
+                          </span>
                           <input
                             type="text"
                             required
@@ -486,7 +752,7 @@ export function ProductoForm({
                               })
                             }
                             placeholder="Ingrediente extra"
-                            className="flex-1 p-2 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-md text-sm text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
+                            className="flex-1 min-w-[80px] p-2 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-md text-sm text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
                           />
                           <div className="relative">
                             <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm">

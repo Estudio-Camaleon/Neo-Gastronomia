@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/core/lib/supabase/client";
 import { X } from "lucide-react";
 import { FoodMini } from "@/components/ui/food-loading";
 import { ProductoForm } from "../forms/ProductoForm";
+import { UnsavedChangesModal } from "@/components/ui/unsaved-changes-modal";
 import type { UnifiedProduct } from "../components/ProductTable";
 
 const supabase = createClient();
@@ -28,6 +29,7 @@ export function ProductModal({
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loadingCats, setLoadingCats] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
 
   useEffect(() => {
     const fetchCategorias = async () => {
@@ -47,15 +49,22 @@ export function ProductModal({
     };
   }, [negocioId]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (hasUnsavedChanges) {
-      const confirmar = window.confirm(
-        "Tienes cambios sin guardar. ¿Estás seguro de que deseas cerrar?",
-      );
-      if (!confirmar) return;
+      setShowUnsavedModal(true);
+      return;
     }
     onClose();
-  };
+  }, [hasUnsavedChanges, onClose]);
+
+  const confirmClose = useCallback(() => {
+    setShowUnsavedModal(false);
+    onClose();
+  }, [onClose]);
+
+  const cancelClose = useCallback(() => {
+    setShowUnsavedModal(false);
+  }, []);
 
   return (
     <div
@@ -66,7 +75,6 @@ export function ProductModal({
     >
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-        onClick={handleClose}
       />
 
       <div className="relative flex h-full max-h-[90vh] w-full max-w-5xl min-h-0 flex-col overflow-hidden rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-2xl animate-in zoom-in-95 duration-200">
@@ -96,6 +104,13 @@ export function ProductModal({
           )}
         </div>
       </div>
+
+      <UnsavedChangesModal
+        open={showUnsavedModal}
+        onConfirm={confirmClose}
+        onCancel={cancelClose}
+        onDiscard={confirmClose}
+      />
     </div>
   );
 }

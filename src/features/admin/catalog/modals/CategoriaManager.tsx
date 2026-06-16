@@ -6,6 +6,7 @@ import { Tag, Plus, Trash2, Hash, X } from "lucide-react";
 import { FoodMini } from "@/components/ui/food-loading";
 import { toast } from "sonner";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { useScrollLock } from "@/core/hooks/useScrollLock";
 import { createCategoryAction, deleteCategoryAction } from "../actions";
 import { generateSlug } from "@/core/lib/slug";
 import type { RealtimeChannel } from "@supabase/supabase-js";
@@ -28,6 +29,8 @@ export function CategoriaManager({
   const [nuevoNombre, setNuevoNombre] = useState("");
   const [loadingList, setLoadingList] = useState(true);
   const [isPending, startTransition] = useTransition();
+  useScrollLock(true);
+
   const [deleteConfirm, setDeleteConfirm] = useState<{
     id: string;
     nombre: string;
@@ -113,6 +116,7 @@ export function CategoriaManager({
         await cargarCategorias();
         toast.success("Categoría eliminada");
       } catch {
+        setDeleteConfirm(null);
         toast.error("Error al eliminar la categoría");
       }
     });
@@ -127,7 +131,6 @@ export function CategoriaManager({
     >
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
       />
 
       <div className="relative bg-[var(--admin-surface)] w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-[var(--admin-border)]">
@@ -194,7 +197,7 @@ export function CategoriaManager({
                 <span>Cargando secciones...</span>
               </div>
             ) : (
-              <div className="flex flex-col gap-2 max-h-[40vh] overflow-y-auto custom-scrollbar pr-2">
+              <div className="flex flex-col gap-2 max-h-[60vh] sm:max-h-[40vh] overflow-y-auto custom-scrollbar pr-2">
                 {categorias.map((cat) => (
                   <div
                     key={cat.id}

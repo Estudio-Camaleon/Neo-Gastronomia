@@ -14,15 +14,17 @@ export default async function PedidosPage() {
 
   let negocioIds: string[] = [];
   let negocioNombre = "";
+  let panicModeInicial = false;
 
   const { data: negocios } = await supabase
     .from("negocios")
-    .select("id, nombre")
+    .select("id, nombre, recepcion_pausada")
     .eq("user_id", user.id);
 
   if (negocios && negocios.length > 0) {
     negocioIds = negocios.map((n) => n.id);
     negocioNombre = negocios.map((n) => n.nombre).join(", ");
+    panicModeInicial = negocios.some((n) => n.recepcion_pausada === true);
   } else {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: memberships } = await (supabase.from("team_members" as any) as any)
@@ -80,6 +82,7 @@ export default async function PedidosPage() {
         initialPedidos={listaPedidos}
         negocioIds={negocioIds}
         negocioNombre={negocioNombre}
+        panicModeInicial={panicModeInicial}
       />
     </div>
   );

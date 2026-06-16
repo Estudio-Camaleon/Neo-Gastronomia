@@ -38,11 +38,24 @@ export function getTodayKey(): (typeof DAYS_ORDER)[number] | null {
   return null;
 }
 
+export function formatMoney(value: number, simbolo = "$"): string {
+  return `${simbolo}${value.toLocaleString("es-AR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
 export function formatTurnos(dia?: HorarioDia | null) {
   if (!dia) return "Cerrado";
 
   const turnos = dia.turnos || [];
   if (turnos.length === 0) return "Cerrado";
+
+  // Si algún turno es 00:00-00:00 significa 24 horas
+  const hasFullDay = turnos.some(
+    (t) => t.inicio === "00:00" && t.fin === "00:00",
+  );
+  if (hasFullDay) return "24 horas";
 
   return turnos.map((turno) => `${turno.inicio} - ${turno.fin}`).join(" · ");
 }

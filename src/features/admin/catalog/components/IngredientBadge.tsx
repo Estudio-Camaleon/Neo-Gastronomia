@@ -11,8 +11,8 @@ export function IngredientBadge({ configuracion }: IngredientBadgeProps) {
   if (cantidadGrupos === 0) return null;
 
   return (
-    <div className="inline-flex items-center gap-1.5 admin-accent-bg admin-accent-border px-2 py-0.5 rounded-md admin-accent-text select-none w-fit">
-      <Layers size={10} className="admin-accent-text" />
+    <div className="inline-flex items-center gap-1.5 bg-[var(--admin-accent)]/10 border border-[var(--admin-accent)]/20 px-2 py-0.5 rounded-md text-[var(--admin-accent)] select-none w-fit">
+      <Layers size={10} className="text-[var(--admin-accent)]" />
       <span className="text-[10px] font-semibold uppercase tracking-wide">
         {cantidadGrupos} {cantidadGrupos === 1 ? "Extra" : "Extras"}
       </span>

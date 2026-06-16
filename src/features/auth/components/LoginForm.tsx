@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useFocusTrap } from "@/core/hooks/useFocusTrap";
+import { useScrollLock } from "@/core/hooks/useScrollLock";
 import { z } from "zod";
 import {
   LogIn,
@@ -38,6 +40,8 @@ function ResetPasswordModal({
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+  useScrollLock(open);
+  const containerRef = useFocusTrap(open);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,10 +68,9 @@ function ResetPasswordModal({
 
   return (
     <div
+      ref={containerRef}
       className="fixed inset-0 bg-black/40 backdrop-blur-md z-[999999] flex items-center justify-center p-4 animate-in fade-in duration-200"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) handleClose();
-      }}
+      tabIndex={-1}
     >
       <div
         role="dialog"
@@ -168,14 +171,22 @@ export function LoginForm() {
   const [error, setError] = useState("");
   const [showReset, setShowReset] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (loading) return;
     setError("");
+    setFieldErrors({});
 
     const result = loginSchema.safeParse({ email, password });
     if (!result.success) {
+      const errs: Record<string, string> = {};
+      for (const issue of result.error.issues) {
+        const field = String(issue.path[0]);
+        if (!errs[field]) errs[field] = issue.message;
+      }
+      setFieldErrors(errs);
       setError(result.error.issues[0]?.message || "Datos de acceso inválidos.");
       return;
     }
@@ -207,6 +218,8 @@ export function LoginForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            aria-invalid={!!fieldErrors["email"] || undefined}
+            aria-describedby={fieldErrors["email"] ? "login-email-error" : undefined}
             className="auth-input"
           />
         </div>
@@ -231,13 +244,15 @@ export function LoginForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="auth-input pr-10"
+            aria-invalid={!!fieldErrors["password"] || undefined}
+            aria-describedby={fieldErrors["password"] ? "login-password-error" : undefined}
+            className="auth-input pr-10"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--auth-text-muted)] hover:text-[var(--auth-text)] transition-colors"
-              tabIndex={-1}
+              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
             >
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
@@ -245,9 +260,9 @@ export function LoginForm() {
         </div>
 
         {error && (
-          <div className="auth-error-box">
+          <div className="auth-error-box" role="alert" aria-live="polite">
             <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-            <span>{error}</span>
+            <span id={fieldErrors["email"] ? "login-email-error" : fieldErrors["password"] ? "login-password-error" : undefined}>{error}</span>
           </div>
         )}
 

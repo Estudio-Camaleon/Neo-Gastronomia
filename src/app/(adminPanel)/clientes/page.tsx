@@ -57,7 +57,7 @@ export default async function ClientesPage() {
     supabase.from("clientes").select("*").eq("negocio_id", negocio.id),
     supabase
       .from("pedidos")
-      .select("cliente_nombre, total, cliente_whatsapp")
+      .select("cliente_nombre, total, cliente_whatsapp, created_at")
       .eq("negocio_id", negocio.id),
   ]);
 
@@ -72,6 +72,7 @@ export default async function ClientesPage() {
       email: cli.email,
       totalGasto: 0,
       pedidos: 0,
+      ultimoPedido: null,
       notas: cli.notas,
     });
   }
@@ -80,10 +81,14 @@ export default async function ClientesPage() {
   for (const pedido of pedidos ?? []) {
     const nombreLimpio =
       pedido.cliente_nombre?.trim().toUpperCase() || "CONSUMIDOR ANÓNIMO";
+    const fechaPedido = pedido.created_at || null;
     const existente = clientesMap.get(nombreLimpio);
     if (existente) {
       existente.totalGasto += Number(pedido.total || 0);
       existente.pedidos += 1;
+      if (fechaPedido && (!existente.ultimoPedido || fechaPedido > existente.ultimoPedido)) {
+        existente.ultimoPedido = fechaPedido;
+      }
     } else {
       clientesMap.set(nombreLimpio, {
         id: `virtual_${crypto.randomUUID()}`,
@@ -92,6 +97,7 @@ export default async function ClientesPage() {
         email: null,
         totalGasto: Number(pedido.total || 0),
         pedidos: 1,
+        ultimoPedido: fechaPedido,
         notas: null,
       });
     }

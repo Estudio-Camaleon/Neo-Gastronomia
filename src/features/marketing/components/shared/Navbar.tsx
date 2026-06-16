@@ -43,7 +43,7 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full px-4 sm:px-6 lg:px-8">
       <nav
-        className={`mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8 flex items-center justify-between rounded-[20px] transition-all duration-500 ${
+        className={`mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8 flex items-center justify-between rounded-[20px] relative z-[60] transition-all duration-500 ${
           isScrolled
             ? "glass-card shadow-lg"
             : "bg-transparent border border-transparent shadow-none"
@@ -57,10 +57,11 @@ export function Navbar() {
           <div className="neo-chip p-1.5 sm:p-2 rounded-xl transition-transform group-hover:rotate-6 duration-300">
             <Image
               src="/icons/neo_logo_negro.webp"
-              alt="NEO Brand Logo"
+              alt="NEO"
               width={48}
               height={48}
               priority
+              sizes="48px"
               className="object-contain w-10 h-10 sm:w-12 sm:h-12"
             />
           </div>
@@ -108,7 +109,9 @@ export function Navbar() {
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="touch-target flex items-center justify-center p-2.5 rounded-xl bg-[var(--theme-primary)] text-white hover:opacity-90 focus:outline-none transition-all duration-200 active:scale-95 shadow-sm"
-            aria-label="Alternar menú de navegación"
+            aria-label={isOpen ? "Cerrar menú de navegación" : "Abrir menú de navegación"}
+            aria-expanded={isOpen}
+            aria-controls="mobile-menu"
           >
             {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -120,9 +123,8 @@ export function Navbar() {
         <>
           <div
             className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden animate-in fade-in duration-200"
-            onClick={close}
           />
-          <div className="md:hidden fixed left-2 sm:left-4 right-2 sm:right-4 top-[4.5rem] sm:top-[5.5rem] z-50 animate-slide-down opacity-0">
+          <div id="mobile-menu" className="md:hidden fixed left-2 sm:left-4 right-2 sm:right-4 top-[4.5rem] sm:top-[5.5rem] z-50 animate-slide-down opacity-0">
             <div className="glass-card p-4 sm:p-5 flex flex-col gap-3 sm:gap-4 border border-[var(--theme-border)] shadow-xl rounded-2xl">
               {navigationLinks.map((link) => {
                 const isActive = activeSection === link.href.substring(1);

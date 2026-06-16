@@ -2,8 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { createClient } from "@/core/lib/supabase/client";
+import { useFocusTrap } from "@/core/hooks/useFocusTrap";
 import { motion, AnimatePresence } from "framer-motion";
 import { TransitionLink } from "@/components/ui/transition-link";
+import { LogoutModal } from "@/components/ui/logout-modal";
 import { useTheme } from "@/core/providers/ThemeProvider";
 import { useOrderNotifications } from "@/features/admin/orders/OrderNotificationProvider";
 import {
@@ -17,12 +20,9 @@ import {
   LogOut,
   Sun,
   Moon,
-  AlertCircle,
   ExternalLink,
   X,
 } from "lucide-react";
-import { AdminHamburgerButton } from "@/features/admin/shared/AdminHamburgerButton";
-
 interface MobileSidebarProps {
   slug: string;
   negocioNombre: string;
@@ -51,6 +51,7 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
   }, []);
 
   const close = useCallback(() => setOpen(false), []);
+  const sidebarPanelRef = useFocusTrap(open);
 
   useEffect(() => {
     if (open) {
@@ -63,16 +64,7 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
     };
   }, [open]);
 
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [close]);
-
   const handleSignOut = async () => {
-    const { createClient } = await import("@/core/lib/supabase/client");
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/login");
@@ -81,12 +73,6 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
 
   return (
     <>
-      <AdminHamburgerButton
-        onClick={() => setOpen(true)}
-        isOpen={open}
-        controls="mobile-sidebar-panel"
-      />
-
       <AnimatePresence>
         {open && (
           <motion.div
@@ -100,16 +86,17 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
             {/* Backdrop */}
             <div
               className="absolute inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm"
-              onClick={close}
               aria-hidden="true"
             />
 
             {/* Panel */}
             <motion.div
+              ref={sidebarPanelRef}
               id="mobile-sidebar-panel"
               role="dialog"
               aria-modal="true"
-              aria-label="Menú"
+              aria-label="Menú de navegación"
+              tabIndex={-1}
               className="absolute inset-y-0 left-0 w-[82%] max-w-[340px] bg-[var(--admin-surface)] shadow-2xl flex flex-col"
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
@@ -134,7 +121,7 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
                 <button
                   onClick={close}
                   aria-label="Cerrar menú"
-                  className="touch-target flex items-center justify-center p-2 rounded-xl text-[var(--admin-text-muted)] hover:bg-[var(--admin-bg)] hover:text-[var(--admin-text)] transition-colors outline-none"
+                  className="touch-target flex items-center justify-center p-3 rounded-xl text-[var(--admin-text-muted)] hover:bg-[var(--admin-bg)] hover:text-[var(--admin-text)] transition-colors outline-none"
                 >
                   <X size={20} />
                 </button>
@@ -156,15 +143,16 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
                       key={link.name}
                       href={link.href}
                       onClick={close}
-                      className={`flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200 font-semibold text-sm active:scale-[0.97] touch-target ${
+                      aria-current={isActive ? "page" : undefined}
+                      className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 active:scale-[0.97] font-semibold text-sm ${
                         isActive
-                          ? "bg-[var(--admin-accent)] text-white shadow-sm shadow-[var(--admin-accent)]/20"
+                          ? "bg-[var(--admin-accent)] text-white"
                           : "text-[var(--admin-text-muted)] hover:bg-[var(--admin-accent)]/5 hover:text-[var(--admin-text)]"
                       }`}
                     >
                       <div className="relative">
                         <Icon size={20} strokeWidth={isActive ? 2.5 : 2} className="shrink-0" />
-                        {link.name === "Pedidos" && unreadCount > 0 && (
+                        {link.name === "Pedidos" && unreadCount > 0 && pathname !== "/pedidos" && !pathname.startsWith("/pedidos/") && (
                           <span className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[8px] font-bold px-1 rounded-full min-w-[14px] text-center leading-tight">
                             {unreadCount > 9 ? "9+" : unreadCount}
                           </span>
@@ -251,39 +239,11 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
       </AnimatePresence>
 
       {showLogoutConfirm && (
-        <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md z-[999999] flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-[var(--admin-surface)] rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl relative border border-[var(--admin-border)] animate-in zoom-in-95 duration-150">
-            <div className="mx-auto w-12 h-12 bg-red-50 dark:bg-red-950/20 text-red-500 flex items-center justify-center mb-5 rounded-full border border-red-200 dark:border-red-900/30">
-              <AlertCircle size={24} />
-            </div>
-            <h3 className="font-bold text-xl text-[var(--admin-text)] text-center tracking-tight mb-2">
-              Desconectar{" "}
-              <span className="text-[var(--admin-accent)]">Terminal</span>
-            </h3>
-            <p className="text-sm font-medium text-[var(--admin-text-muted)] text-center leading-relaxed mb-6">
-              ¿Confirmás la salida de <br />
-              <span className="text-[var(--admin-text)] font-semibold">
-                {negocioNombre || "la unidad actual"}
-              </span>
-              ?
-            </p>
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={handleSignOut}
-                className="w-full py-3.5 bg-red-600 text-white rounded-xl font-bold tracking-wide transition-colors shadow-sm hover:opacity-90"
-              >
-                Cerrar Terminal
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowLogoutConfirm(false)}
-                className="w-full py-3.5 border border-[var(--admin-border)] bg-transparent text-[var(--admin-text)] rounded-xl font-bold text-sm hover:bg-[var(--admin-bg)] transition-colors"
-              >
-                Cancelar y Volver
-              </button>
-            </div>
-          </div>
-        </div>
+        <LogoutModal
+          onConfirm={handleSignOut}
+          onCancel={() => setShowLogoutConfirm(false)}
+          negocioNombre={negocioNombre}
+        />
       )}
     </>
   );

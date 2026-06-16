@@ -45,15 +45,6 @@ export default async function ProductosAdminPage() {
 
       {/* SECCIÓN REACTIVA CRUD DE INVENTARIO */}
       <AddProductSection negocioId={negocio.id} />
-
-      {/* FOOTER ADAPTATIVO */}
-      <footer className="pt-8 border-t border-[var(--admin-border)]/30 flex justify-between items-center select-none text-[var(--admin-text-muted)]">
-        <p className="text-xs font-medium tracking-wide">NEO ENGINE v3.0</p>
-        <div className="flex gap-2 items-center text-xs font-semibold">
-          <CheckCircle2 size={14} className="text-[var(--admin-accent)]" />
-          <span>Sincronizado</span>
-        </div>
-      </footer>
     </div>
   );
 }

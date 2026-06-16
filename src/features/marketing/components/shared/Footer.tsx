@@ -3,8 +3,12 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useState } from "react";
-import { LegalModal } from "./LegalModal";
+
+const LegalModal = dynamic(() => import("./LegalModal").then((m) => ({ default: m.LegalModal })), {
+  ssr: false,
+});
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -62,9 +66,11 @@ export function Footer() {
                 <div className="p-2 sm:p-3 rounded-2xl transition-transform hover:scale-105 duration-300">
                   <Image
                     src="/icons/neo_logo_blanco.webp"
-                    alt="NEO Brand Logo"
+                    alt="NEO"
                     width={70}
                     height={70}
+                    priority
+                    sizes="80px"
                     className="object-contain w-16 h-16 sm:w-20 sm:h-20"
                   />
                 </div>

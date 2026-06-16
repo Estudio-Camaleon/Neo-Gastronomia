@@ -103,6 +103,24 @@ export function buildBrandPalette(inputHex: string) {
   const text = `#${mixHexColor(base, "#0f172a", 0.12)}`;
   const textMuted = `#${mixHexColor(base, "#0f172a", 0.36)}`;
 
+  // Validate color contrast for accessibility (WCAG AA)
+  const textOnSurfaceOk = meetsWcagAA(text, surface);
+  const textMutedOnSurfaceOk = meetsWcagAA(textMuted, surface);
+  const textOnBaseOk = meetsWcagAA(text, base);
+  const baseOnSurfaceOk = meetsWcagAA(base, surface);
+  if (!textOnSurfaceOk && process.env.NODE_ENV === "development") {
+    console.debug(`[buildBrandPalette] text (#${normalizeHexColor(text)}) on surface (#${normalizeHexColor(surface)}) = ${contrastRatio(text, surface).toFixed(2)}:1 — below WCAG AA (4.5:1)`);
+  }
+  if (!textMutedOnSurfaceOk && process.env.NODE_ENV === "development") {
+    console.debug(`[buildBrandPalette] textMuted (#${normalizeHexColor(textMuted)}) on surface (#${normalizeHexColor(surface)}) = ${contrastRatio(textMuted, surface).toFixed(2)}:1 — low contrast`);
+  }
+  if (!textOnBaseOk && process.env.NODE_ENV === "development") {
+    console.debug(`[buildBrandPalette] text (#${normalizeHexColor(text)}) on base (#${normalizeHexColor(base)}) = ${contrastRatio(text, base).toFixed(2)}:1 — below WCAG AA (4.5:1)`);
+  }
+  if (!baseOnSurfaceOk && process.env.NODE_ENV === "development") {
+    console.debug(`[buildBrandPalette] base (#${normalizeHexColor(base)}) on surface (#${normalizeHexColor(surface)}) = ${contrastRatio(base, surface).toFixed(2)}:1 — borderline (needs 3:1)`);
+  }
+
   return {
     base,
     "50": `#${mixHexColor(base, "#ffffff", 0.95)}`,

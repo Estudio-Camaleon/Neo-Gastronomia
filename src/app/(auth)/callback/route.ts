@@ -61,27 +61,67 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/pedidos`);
   }
 
+  // Extraer datos del negocio desde user_metadata (enviados en registerAction signUp)
+  const meta = user.user_metadata ?? {};
+
   const nombreNegocio =
-    (user.user_metadata?.["nombre_negocio"] as string | undefined) ||
-    (user.user_metadata?.["full_name"]
-      ? (user.user_metadata["full_name"] as string).split(" ")[0] + "'s Local"
+    (meta["nombre_negocio"] as string | undefined) ||
+    (meta["full_name"]
+      ? (meta["full_name"] as string).split(" ")[0] + "'s Local"
       : undefined) ||
     "Mi Local";
 
-  const defaultSlug = nombreNegocio
-    .toLowerCase()
-    .trim()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9-]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/(^-|-$)+/g, "");
+  const metaSlug = meta["slug"] as string | undefined;
+  const metaWhatsapp = meta["whatsapp"] as string | undefined;
+  const metaDireccion = meta["direccion"] as string | undefined;
+  const metaColor = meta["color_primary"] as string | undefined;
 
-  const { error: createError } = await supabaseAdmin.from("negocios").insert({
-    user_id: user.id,
-    nombre: nombreNegocio,
-    slug: defaultSlug || `local-${user.id.slice(0, 8)}`,
-  });
+  const defaultSlug =
+    metaSlug ||
+    nombreNegocio
+      .toLowerCase()
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9-]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/(^-|-$)+/g, "") ||
+    `local-${user.id.slice(0, 8)}`;
+
+  let finalSlug = defaultSlug;
+
+  // Reintentar con sufijo aleatorio si hay colisión de slug
+  const MAX_RETRIES_CB = 3;
+  let createError: { message: string } | null = null;
+
+  for (let attempt = 0; attempt < MAX_RETRIES_CB; attempt++) {
+    if (attempt > 0) {
+      const suffix = Math.random().toString(36).substring(2, 6);
+      finalSlug = `${defaultSlug}-${suffix}`;
+    }
+
+    const { error: err } = await supabaseAdmin.from("negocios").insert({
+      user_id: user.id,
+      nombre: nombreNegocio,
+      slug: finalSlug,
+      ...(metaWhatsapp ? { whatsapp: metaWhatsapp } : {}),
+      ...(metaDireccion ? { direccion: metaDireccion } : {}),
+      ...(metaColor ? { color_primary: metaColor } : {}),
+    });
+
+    if (!err) {
+      createError = null;
+      break;
+    }
+    createError = err;
+    // Solo reintentar si es violación de unique constraint en slug
+    if (
+      !err.message.includes("duplicate key") ||
+      !err.message.includes("slug")
+    ) {
+      break;
+    }
+  }
 
   if (createError) {
     console.error("[CALLBACK]: Error creando negocio:", createError.message);

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Restablecer contraseña - NEO</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f7f4ec;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f7f4ec;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+
+        <!-- Card -->
+        <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background-color:#ffffff;border-radius:20px;box-shadow:0 8px 32px rgba(31,107,61,0.06);border:1px solid rgba(28,72,42,0.10);">
+
+          <!-- Header -->
+          <tr>
+            <td style="padding:0;border-radius:20px 20px 0 0;overflow:hidden;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg, #163225 0%, #1f6b3d 100%);border-radius:20px 20px 0 0;position:relative;overflow:hidden;">
+                <tr>
+                  <td style="padding:40px 40px 32px;text-align:center;">
+                    <div style="position:absolute;top:-30px;right:-30px;width:160px;height:160px;background:rgba(255,255,255,0.04);border-radius:60% 40% 30% 70%/60% 30% 70% 40%;pointer-events:none;"></div>
+                    <div style="position:absolute;bottom:-20px;left:-20px;width:120px;height:120px;background:rgba(255,255,255,0.03);border-radius:30% 60% 70% 40%/50% 60% 30% 60%;pointer-events:none;"></div>
+
+                    <img src="{{ .SiteURL }}/icons/neo_logo_blanco.webp"
+                         alt="NEO"
+                         width="64"
+                         height="22"
+                         style="display:block;margin:0 auto 24px;border:0;outline:none;height:auto;" />
+
+                    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 20px;">
+                      <tr>
+                        <td style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.10);text-align:center;vertical-align:middle;border:1px solid rgba(255,255,255,0.15);">
+                          <span style="font-size:26px;line-height:56px;display:block;">🔐</span>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <h1 style="margin:0;font-size:20px;font-weight:800;color:#ffffff;letter-spacing:-0.3px;text-transform:uppercase;mso-line-height-rule:exactly;line-height:1.3;">
+                      Restablecé tu
+                      <span style="font-weight:300;font-style:italic;text-transform:none;color:rgba(255,255,255,0.8);">contraseña</span>
+                    </h1>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:32px 40px 24px;">
+
+              <p style="margin:0 0 12px;font-size:15px;color:#163225;font-weight:600;mso-line-height-rule:exactly;line-height:1.5;">
+                ¿Pediste restablecer tu contraseña? 🔑
+              </p>
+
+              <p style="margin:0 0 20px;font-size:14px;color:#4a5a50;mso-line-height-rule:exactly;line-height:1.6;">
+                Hacé clic en el botón de abajo para crear una nueva contraseña para tu cuenta de NEO. Si no pediste este cambio, ignorá este mensaje.
+              </p>
+
+              <!-- Botón -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 24px;">
+                <tr>
+                  <td align="center" style="border-radius:12px;background:linear-gradient(135deg, #1f6b3d 0%, #163225 100%);box-shadow:0 4px 12px rgba(31,107,61,0.25);">
+                    <a href="{{ .ConfirmationURL }}"
+                       target="_blank"
+                       style="display:inline-block;padding:14px 36px;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:12px;letter-spacing:0.2px;">
+                      Crear nueva contraseña
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 20px;font-size:12px;color:#4a5a50;mso-line-height-rule:exactly;line-height:1.6;text-align:center;">
+                ¿El botón no funciona? Copiá este enlace en tu navegador:
+              </p>
+              <table role="presentation" cellpadding="12" cellspacing="0" style="margin:0 auto 24px;background:#f7f4ec;border-radius:10px;border:1px solid rgba(28,72,42,0.10);width:100%;">
+                <tr>
+                  <td style="word-break:break-all;font-size:11px;color:#1f6b3d;text-align:center;font-family:monospace;mso-line-height-rule:exactly;line-height:1.5;">
+                    {{ .ConfirmationURL }}
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 6px;font-size:12px;color:#4a5a50;mso-line-height-rule:exactly;line-height:1.5;">
+                <strong style="color:#163225;">⏰</strong> El enlace expira en <strong style="color:#1f6b3d;">1 hora</strong>.
+              </p>
+              <p style="margin:0;font-size:12px;color:#4a5a50;mso-line-height-rule:exactly;line-height:1.5;">
+                <strong style="color:#163225;">❓</strong> ¿No pediste esto? Ignorá este mensaje y tu contraseña actual seguirá funcionando.
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- Divider -->
+          <tr>
+            <td style="padding:0 40px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="border-top:1px solid rgba(28,72,42,0.10);height:1px;line-height:1px;font-size:1px;">&nbsp;</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:20px 40px 32px;text-align:center;">
+              <p style="margin:0 0 8px;font-size:11px;color:#4a5a50;mso-line-height-rule:exactly;line-height:1.5;">
+                Este correo fue enviado a <strong style="color:#163225;">{{ .Email }}</strong>.
+              </p>
+              <p style="margin:0;font-size:10px;color:#71717a;mso-line-height-rule:exactly;line-height:1.5;">
+                Si no pediste este cambio, podés ignorar este mensaje de forma segura.
+              </p>
+
+              <div style="height:16px;">&nbsp;</div>
+
+              <p style="margin:0;font-size:11px;color:#1f6b3d;font-weight:600;letter-spacing:1px;text-transform:uppercase;mso-line-height-rule:exactly;line-height:1.5;">
+                NEO — Tu menú digital en 5 minutos
+              </p>
+              <p style="margin:4px 0 0;font-size:10px;color:#71717a;mso-line-height-rule:exactly;line-height:1.5;">
+                Sin comisiones · Optimizado para móviles · Marca blanca
+              </p>
+            </td>
+          </tr>
+
+        </table>
+
+        <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;margin-top:16px;">
+          <tr>
+            <td style="text-align:center;padding:0 16px;">
+              <p style="margin:0;font-size:10px;color:#71717a;mso-line-height-rule:exactly;line-height:1.5;">
+                © 2026 NEO. Todos los derechos reservados.
+              </p>
+            </td>
+          </tr>
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

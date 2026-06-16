@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo, useCallback } from "react";
-import Image from "next/image";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -9,141 +8,29 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
-  Camera,
-  ImageIcon,
-  Upload,
-  Palette,
-  Info,
-  Globe,
-  Phone,
-  Hash,
-  MapPin,
-  Share2,
   Clock,
-  Plus,
-  Trash2,
-  Copy,
 } from "lucide-react";
 import { FoodMini } from "@/components/ui/food-loading";
 import {
   updateTenantBrandingAction,
   deleteTenantBrandingAction,
 } from "../actions";
-import { buildBrandPalette, meetsWcagAA } from "@/core/lib/utils/color";
 import { generateSlug } from "@/core/lib/slug";
 import type { UpdateTenantBrandingPayload } from "@/core/types/domain";
-
-export interface FranjaHoraria {
-  inicio: string;
-  fin: string;
-}
-
-export interface HorarioDia {
-  turnos?: FranjaHoraria[];
-}
-
-export interface ScheduleData {
-  [dayId: string]: HorarioDia | undefined;
-}
-
-export interface NegocioInitialData {
-  id: string;
-  nombre: string;
-  slug: string;
-  whatsapp: string;
-  direccion: string;
-  localidad?: string;
-  direccion_notas?: string;
-  color_primary: string;
-  logo_url: string;
-  logo_scale?: number;
-  logo_posicion?: string;
-  logo_fit?: string;
-  logo_shape?: string;
-  banner_url: string;
-  banner_posicion?: string;
-  banner_height?: string;
-  mostrar_nombre?: boolean;
-  instagram_url?: string;
-  facebook_url?: string;
-  tiktok_url?: string;
-  horarios: ScheduleData;
-}
-
-export interface ConfigFormState {
-  nombre: string;
-  slug: string;
-  whatsapp: string;
-  direccion: string;
-  localidad: string;
-  direccion_notas: string;
-  color_primary: string;
-  logo_url: string;
-  logo_scale: number;
-  logo_posicion: string;
-  logo_fit: string;
-  logo_shape: string;
-  banner_url: string;
-  banner_posicion: string;
-  banner_height: string;
-  mostrar_nombre: boolean;
-  instagram_url: string;
-  facebook_url: string;
-  tiktok_url: string;
-  horarios: ScheduleData;
-}
-
-const DIAS = [
-  { id: "lunes", label: "Lunes" },
-  { id: "martes", label: "Martes" },
-  { id: "miercoles", label: "Miércoles" },
-  { id: "jueves", label: "Jueves" },
-  { id: "viernes", label: "Viernes" },
-  { id: "sabado", label: "Sábado" },
-  { id: "domingo", label: "Domingo" },
-];
-
-const PRESET_COLORS = [
-  "#34a35f",
-  "#0f172a",
-  "#dc2626",
-  "#2563eb",
-  "#7c3aed",
-  "#ea580c",
-  "#000000",
-];
-
-const BANNER_VERTICAL_OPTIONS = [
-  { value: "top", label: "Arriba" },
-  { value: "center", label: "Centro" },
-  { value: "bottom", label: "Abajo" },
-] as const;
-
-const LOGO_POSITION_OPTIONS = [
-  { value: "top", label: "Arriba" },
-  { value: "center", label: "Centro" },
-  { value: "bottom", label: "Abajo" },
-] as const;
-
-const LOGO_FIT_OPTIONS = [
-  { value: "contain", label: "Ajustar" },
-  { value: "cover", label: "Cubrir" },
-] as const;
-
-const LOGO_SHAPE_OPTIONS = [
-  { value: "circle", label: "Círculo" },
-  { value: "rounded", label: "Redondeado" },
-  { value: "square", label: "Cuadrado" },
-] as const;
-
-const BANNER_HEIGHT_OPTIONS = [
-  { value: "compact", label: "Compacto" },
-  { value: "normal", label: "Normal" },
-  { value: "large", label: "Grande" },
-] as const;
-
-const MAX_IMAGE_SIZE_MB = 5;
-const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+import { useUnsavedChanges } from "@/core/hooks/useUnsavedChanges";
+import { UnsavedChangesModal } from "@/components/ui/unsaved-changes-modal";
+import { parseFloatingShapes } from "../utils";
+import type { NegocioInitialData, ConfigFormState } from "../types";
+import { MAX_IMAGE_SIZE_MB, MAX_IMAGE_SIZE_BYTES } from "../types";
+export type { NegocioInitialData }; // Re-export for backward compatibility
+import { BrandingBlock } from "./ConfigForm/BrandingBlock";
+import { GeneralInfoBlock } from "./ConfigForm/GeneralInfoBlock";
+import { SocialLinksBlock } from "./ConfigForm/SocialLinksBlock";
+import { FloatingShapesBlock } from "./ConfigForm/FloatingShapesBlock";
+import { CatalogDesignBlock } from "./ConfigForm/CatalogDesignBlock";
+import { ScheduleBlock } from "./ConfigForm/ScheduleBlock";
+import { DireccionesBlock } from "./ConfigForm/DireccionesBlock";
+import { DangerZone } from "./ConfigForm/DangerZone";
 
 export function ConfigForm({
   initialData,
@@ -166,11 +53,13 @@ export function ConfigForm({
     banner_url: initialData?.banner_url || "",
   });
 
+  const initialParsed = parseFloatingShapes(initialData?.floating_shapes);
+
   const [formData, setFormData] = useState<ConfigFormState>({
     nombre: initialData?.nombre || "",
     slug: initialData?.slug || "",
     whatsapp: initialData?.whatsapp || "",
-    direccion: initialData?.direccion || "",
+    descripcion: initialData?.descripcion || "",
     localidad: initialData?.localidad || "",
     direccion_notas: initialData?.direccion_notas || "",
     color_primary: initialData?.color_primary || "#34a35f",
@@ -182,32 +71,41 @@ export function ConfigForm({
     banner_url: initialData?.banner_url || "",
     banner_posicion: initialData?.banner_posicion || "center",
     banner_height: initialData?.banner_height || "normal",
+    banner_scale: initialData?.banner_scale ?? 1,
     mostrar_nombre: initialData?.mostrar_nombre ?? true,
     instagram_url: initialData?.instagram_url || "",
     facebook_url: initialData?.facebook_url || "",
     tiktok_url: initialData?.tiktok_url || "",
+    twitter_url: initialData?.twitter_url || "",
+    youtube_url: initialData?.youtube_url || "",
+    tripadvisor_url: initialData?.tripadvisor_url || "",
     horarios: initialData?.horarios || {},
+    direcciones: initialData?.direcciones || [],
+    floating_shapes: initialParsed.shapes,
+    floating_density: initialParsed.density,
   });
 
   const initialIdRef = useRef(initialData?.id);
-  const isDirtyRef = useRef(false);
+  const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
     const idCambio = initialData?.id && initialData.id !== initialIdRef.current;
     if (!idCambio && initialIdRef.current) return;
     if (initialData?.id) initialIdRef.current = initialData.id;
-    isDirtyRef.current = false;
+    setIsDirty(false);
 
     setImagePreviews({
       logo_url: initialData?.logo_url || "",
       banner_url: initialData?.banner_url || "",
     });
 
+    const parsed = parseFloatingShapes(initialData?.floating_shapes);
+
     setFormData({
       nombre: initialData?.nombre || "",
       slug: initialData?.slug || "",
       whatsapp: initialData?.whatsapp || "",
-      direccion: initialData?.direccion || "",
+      descripcion: initialData?.descripcion || "",
       localidad: initialData?.localidad || "",
       direccion_notas: initialData?.direccion_notas || "",
       color_primary: initialData?.color_primary || "#34a35f",
@@ -219,11 +117,18 @@ export function ConfigForm({
       banner_url: initialData?.banner_url || "",
       banner_posicion: initialData?.banner_posicion || "center",
       banner_height: initialData?.banner_height || "normal",
+      banner_scale: initialData?.banner_scale ?? 1,
       mostrar_nombre: initialData?.mostrar_nombre ?? true,
       instagram_url: initialData?.instagram_url || "",
       facebook_url: initialData?.facebook_url || "",
       tiktok_url: initialData?.tiktok_url || "",
+      twitter_url: initialData?.twitter_url || "",
+      youtube_url: initialData?.youtube_url || "",
+      tripadvisor_url: initialData?.tripadvisor_url || "",
       horarios: initialData?.horarios || {},
+      direcciones: initialData?.direcciones || [],
+      floating_shapes: parsed.shapes,
+      floating_density: parsed.density,
     });
   }, [initialData?.id]);
 
@@ -234,7 +139,7 @@ export function ConfigForm({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
-    isDirtyRef.current = true;
+    setIsDirty(true);
 
     if (name === "slug") {
       setFormData((prev) => ({ ...prev, [name]: generateSlug(value) }));
@@ -250,7 +155,7 @@ export function ConfigForm({
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    isDirtyRef.current = true;
+    setIsDirty(true);
     setFieldErrors((prev) => ({ ...prev, image: undefined }));
     if (file.size > MAX_IMAGE_SIZE_BYTES) {
       const msg = `La imagen supera el límite permitido de ${MAX_IMAGE_SIZE_MB}MB`;
@@ -322,14 +227,60 @@ export function ConfigForm({
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
-      if (isDirtyRef.current) {
+      if (isDirty) {
         e.preventDefault();
         e.returnValue = "";
       }
     };
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
-  }, []);
+  }, [isDirty]);
+
+  const handleReset = useCallback(() => {
+    if (!initialData) return;
+    const parsed = parseFloatingShapes(initialData?.floating_shapes);
+    setFormData({
+      nombre: initialData?.nombre || "",
+      slug: initialData?.slug || "",
+      whatsapp: initialData?.whatsapp || "",
+      descripcion: initialData?.descripcion || "",
+      localidad: initialData?.localidad || "",
+      direccion_notas: initialData?.direccion_notas || "",
+      color_primary: initialData?.color_primary || "#34a35f",
+      logo_url: initialData?.logo_url || "",
+      logo_scale: initialData?.logo_scale ?? 1,
+      logo_posicion: initialData?.logo_posicion || "center",
+      logo_fit: initialData?.logo_fit || "contain",
+      logo_shape: initialData?.logo_shape || "circle",
+      banner_url: initialData?.banner_url || "",
+      banner_posicion: initialData?.banner_posicion || "center",
+      banner_height: initialData?.banner_height || "normal",
+      banner_scale: initialData?.banner_scale ?? 1,
+      mostrar_nombre: initialData?.mostrar_nombre ?? true,
+      instagram_url: initialData?.instagram_url || "",
+      facebook_url: initialData?.facebook_url || "",
+      tiktok_url: initialData?.tiktok_url || "",
+      twitter_url: initialData?.twitter_url || "",
+      youtube_url: initialData?.youtube_url || "",
+      tripadvisor_url: initialData?.tripadvisor_url || "",
+      horarios: initialData?.horarios || {},
+      direcciones: initialData?.direcciones || [],
+      floating_shapes: parsed.shapes,
+      floating_density: parsed.density,
+    });
+    setImagePreviews({
+      logo_url: initialData?.logo_url || "",
+      banner_url: initialData?.banner_url || "",
+    });
+    setIsDirty(false);
+  }, [initialData]);
+
+  const {
+    showModal: showUnsavedModal,
+    confirmLeave: saveAndLeave,
+    cancelLeave: stayOnPage,
+    discardAndReset: discardChanges,
+  } = useUnsavedChanges(isDirty, handleReset);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -353,12 +304,15 @@ export function ConfigForm({
 
     setSaveStatus("saving");
     try {
+      const direccionDerivada =
+        formData.direcciones[0]?.direccion || "";
       const payload: UpdateTenantBrandingPayload = {
         id: initialData.id,
         nombre: formData.nombre,
         slug: formData.slug,
         whatsapp: formData.whatsapp,
-        direccion: formData.direccion,
+        descripcion: formData.descripcion,
+        direccion: direccionDerivada,
         localidad: formData.localidad,
         direccion_notas: formData.direccion_notas,
         color_primary: formData.color_primary,
@@ -370,11 +324,20 @@ export function ConfigForm({
         banner_url: formData.banner_url,
         banner_posicion: formData.banner_posicion,
         banner_height: formData.banner_height,
+        banner_scale: formData.banner_scale,
         mostrar_nombre: formData.mostrar_nombre,
         instagram_url: formData.instagram_url,
         facebook_url: formData.facebook_url,
         tiktok_url: formData.tiktok_url,
+        twitter_url: formData.twitter_url,
+        youtube_url: formData.youtube_url,
+        tripadvisor_url: formData.tripadvisor_url,
         horarios: formData.horarios as Record<string, unknown>,
+        direcciones: formData.direcciones,
+        floating_shapes: {
+          shapes: formData.floating_shapes,
+          density: formData.floating_density,
+        },
       };
 
       const res = await updateTenantBrandingAction(payload);
@@ -432,7 +395,9 @@ export function ConfigForm({
     if (!formData.slug.trim()) errors.slug = "La URL del menú (slug) es obligatoria.";
     else if (formData.slug.length < 3) errors.slug = "El slug debe tener al menos 3 caracteres.";
     if (!formData.whatsapp.trim()) errors.whatsapp = "El WhatsApp es obligatorio para recibir pedidos.";
-    if (!formData.direccion.trim()) errors.direccion = "La dirección es obligatoria.";
+    if (formData.direcciones.length === 0) {
+      errors.direcciones = "Agregá al menos una sucursal con dirección.";
+    }
 
     const hex = /^#[0-9a-fA-F]{6}$/;
     if (!hex.test(formData.color_primary)) {
@@ -473,35 +438,53 @@ export function ConfigForm({
           bannerUrl={imagePreviews.banner_url || formData.banner_url}
           bannerPosicion={formData.banner_posicion}
           bannerHeight={formData.banner_height}
+          bannerScale={formData.banner_scale}
           logoScale={formData.logo_scale}
           logoPosicion={formData.logo_posicion}
           logoFit={formData.logo_fit}
           logoShape={formData.logo_shape}
+          nombre={formData.nombre}
+          descripcion={formData.descripcion}
+          mostrarNombre={formData.mostrar_nombre}
+          colorPrimary={formData.color_primary}
+          whatsapp={formData.whatsapp}
+          instagram_url={formData.instagram_url}
+          facebook_url={formData.facebook_url}
+          tiktok_url={formData.tiktok_url}
+          twitter_url={formData.twitter_url}
+          youtube_url={formData.youtube_url}
+          tripadvisor_url={formData.tripadvisor_url}
+          direcciones={formData.direcciones}
+          localidad={formData.localidad}
           uploading={uploading}
           imageError={fieldErrors.image}
           onImageUpload={handleImageUpload}
           onLogoScaleChange={(val) => {
-            isDirtyRef.current = true;
+            setIsDirty(true);
             setFormData((p) => ({ ...p, logo_scale: val }));
           }}
           onLogoPosicionChange={(val) => {
-            isDirtyRef.current = true;
+            setIsDirty(true);
             setFormData((p) => ({ ...p, logo_posicion: val }));
           }}
           onLogoFitChange={(val) => {
-            isDirtyRef.current = true;
+            setIsDirty(true);
             setFormData((p) => ({ ...p, logo_fit: val }));
           }}
           onLogoShapeChange={(val) => {
-            isDirtyRef.current = true;
+            setIsDirty(true);
             setFormData((p) => ({ ...p, logo_shape: val }));
           }}
           onBannerPosicionChange={(val) => {
-            isDirtyRef.current = true;
+            setIsDirty(true);
             setFormData((p) => ({ ...p, banner_posicion: val }));
           }}
+          onBannerScaleChange={(val) => {
+            setIsDirty(true);
+            setFormData((p) => ({ ...p, banner_scale: val }));
+          }}
           onBannerHeightChange={(val) => {
-            isDirtyRef.current = true;
+            setIsDirty(true);
             setFormData((p) => ({ ...p, banner_height: val }));
           }}
         />
@@ -513,8 +496,17 @@ export function ConfigForm({
           onChange={handleChange}
           onClearError={clearFieldError}
           onToggleMostrarNombre={(val) => {
-            isDirtyRef.current = true;
+            setIsDirty(true);
             setFormData((p) => ({ ...p, mostrar_nombre: val }));
+          }}
+        />
+
+        {/* BLOQUE SUCURSALES */}
+        <DireccionesBlock
+          direcciones={formData.direcciones}
+          onChange={(direcciones) => {
+            setIsDirty(true);
+            setFormData((p) => ({ ...p, direcciones }));
           }}
         />
 
@@ -528,11 +520,12 @@ export function ConfigForm({
               colorPrimary={formData.color_primary}
               error={fieldErrors.color_primary}
               onChange={(val) => {
-                isDirtyRef.current = true;
+                setIsDirty(true);
                 clearFieldError("color_primary");
                 setFormData((p) => ({ ...p, color_primary: val }));
               }}
               bannerUrl={imagePreviews.banner_url || formData.banner_url}
+              bannerScale={formData.banner_scale}
               logoUrl={imagePreviews.logo_url || formData.logo_url}
               mostrarNombre={formData.mostrar_nombre}
               nombreForm={formData.nombre}
@@ -546,6 +539,21 @@ export function ConfigForm({
           </div>
         </div>
 
+        {/* BLOQUE FORMAS FLOTANTES */}
+        <FloatingShapesBlock
+          selected={formData.floating_shapes}
+          onChange={(shapes) => {
+            setIsDirty(true);
+            setFormData((p) => ({ ...p, floating_shapes: shapes }));
+          }}
+          density={formData.floating_density}
+          onDensityChange={(density) => {
+            setIsDirty(true);
+            setFormData((p) => ({ ...p, floating_density: density }));
+          }}
+          colorPrimary={formData.color_primary}
+        />
+
         {/* BLOQUE CORE: CONTROL HORARIO */}
         <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-5 shadow-sm space-y-5">
           <div className="flex items-center gap-3 border-b border-[var(--admin-border)] pb-4">
@@ -553,18 +561,19 @@ export function ConfigForm({
               <Clock size={16} />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-[var(--admin-text)]">
+              <h3 className="text-sm font-semibold text-[var(--admin-text)] flex items-center gap-1">
                 Cronograma Operativo Semanal
+                <span className="text-[9px] font-medium text-[var(--admin-text-muted)]/60 px-1.5 py-0.5 rounded border border-[var(--admin-border)]">Opcional</span>
               </h3>
               <p className="text-[11px] text-[var(--admin-text-muted)] mt-0.5">
-                Campamento e itinerario granular de persianas digitales.
+                Horarios de atención. Si no configurás horarios, el negocio aparecerá como "Sin horarios".
               </p>
             </div>
           </div>
           <ScheduleBlock
             schedule={formData.horarios}
             onChange={(newSchedule) => {
-              isDirtyRef.current = true;
+              setIsDirty(true);
               setFormData((p) => ({ ...p, horarios: newSchedule }));
             }}
           />
@@ -611,1108 +620,22 @@ export function ConfigForm({
         </div>
       </form>
 
+      <UnsavedChangesModal
+        open={showUnsavedModal}
+        onConfirm={saveAndLeave}
+        onCancel={stayOnPage}
+        onDiscard={discardChanges}
+      />
+
       {/* ZONA DE PELIGRO (DANGER ZONE) */}
-      {initialData && (
-        <div className="bg-[var(--admin-surface)] border border-red-500/30 rounded-xl overflow-hidden shadow-sm mt-12 animate-in fade-in duration-300">
-          <div className="px-5 py-3.5 border-b border-red-500/20 bg-red-500/5 flex items-center gap-2.5">
-            <Trash2 size={16} className="text-red-500" />
-            <div>
-              <h2 className="font-semibold text-xs text-red-500">
-                Zona de Peligro Comercial
-              </h2>
-              <p className="text-[10px] text-[var(--admin-text-muted)]">
-                Acciones irreversibles de desinstalación de infraestructura
-                SaaS.
-              </p>
-            </div>
-          </div>
-
-          <div className="p-5 space-y-4">
-            <div className="flex gap-3 text-xs items-start bg-red-500/10 p-3 rounded-lg border border-red-500/20">
-              <AlertTriangle className="text-red-500 shrink-0 w-4 h-4 mt-0.5" />
-              <p className="text-[var(--admin-text)] text-[11px] leading-relaxed">
-                Al confirmar la baja, tu catálogo público se cerrará de
-                inmediato. Se purgarán de forma definitiva todos tus{" "}
-                <strong className="text-red-500">
-                  productos, menús, categorías, historiales de comandas y
-                  accesos de administración
-                </strong>
-                . Esta acción no se puede deshacer.
-              </p>
-            </div>
-
-            <div className="space-y-2 max-w-md">
-              <label className="text-[11px] font-medium text-[var(--admin-text-muted)] block">
-                Para confirmar, escribe{" "}
-                <span className="font-semibold select-all font-mono text-[var(--admin-text)] bg-[var(--admin-bg)] border border-[var(--admin-border)] px-1 py-0.5 rounded text-xs">
-                  {initialData.nombre}
-                </span>{" "}
-                abajo:
-              </label>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <input
-                  type="text"
-                  value={confirmName}
-                  onChange={(e) => setConfirmName(e.target.value)}
-                  disabled={saveStatus !== "idle" || isDeleting}
-                  placeholder="Nombre del negocio exacto"
-                  className="flex-1 p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 transition-all text-xs"
-                />
-                <button
-                  type="button"
-                  onClick={handleDeleteBusiness}
-                  disabled={
-                    confirmName !== initialData.nombre ||
-                    saveStatus !== "idle" ||
-                    isDeleting
-                  }
-                  className="bg-red-500 hover:bg-red-600 text-white font-medium text-xs px-4 py-2 rounded-lg shadow-sm transition-all disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center gap-1.5 shrink-0"
-                >
-                   {isDeleting ? <FoodMini size={12} /> : <Trash2 size={13} />}
-                  <span>Destruir Negocio</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function BrandingBlock({
-  logoUrl,
-  bannerUrl,
-  bannerPosicion,
-  bannerHeight,
-  logoScale,
-  logoPosicion,
-  logoFit,
-  logoShape,
-  uploading,
-  imageError,
-  onImageUpload,
-  onLogoScaleChange,
-  onLogoPosicionChange,
-  onLogoFitChange,
-  onLogoShapeChange,
-  onBannerPosicionChange,
-  onBannerHeightChange,
-}: {
-  logoUrl: string;
-  bannerUrl: string;
-  bannerPosicion: string;
-  bannerHeight: string;
-  logoScale: number;
-  logoPosicion: string;
-  logoFit: string;
-  logoShape: string;
-  uploading: string | null;
-  imageError?: string;
-  onImageUpload: (
-    e: React.ChangeEvent<HTMLInputElement>,
-    field: "logo_url" | "banner_url",
-  ) => void;
-  onLogoScaleChange: (val: number) => void;
-  onLogoPosicionChange: (val: string) => void;
-  onLogoFitChange: (val: string) => void;
-  onLogoShapeChange: (val: string) => void;
-  onBannerPosicionChange: (val: string) => void;
-  onBannerHeightChange: (val: string) => void;
-}) {
-  const shapeClass = (s: string) =>
-    s === "circle"
-      ? "rounded-full"
-      : s === "rounded"
-        ? "rounded-2xl"
-        : "rounded-none";
-
-  return (
-    <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl overflow-hidden shadow-sm">
-      <div className="px-5 py-3.5 border-b border-[var(--admin-border)] bg-[var(--admin-bg)]/50 flex items-center gap-2.5">
-        <Camera size={16} className="text-[var(--admin-text-muted)]" />
-        <div>
-          <h2 className="font-semibold text-xs text-[var(--admin-text)]">
-            Lienzo e Identidad Visual
-          </h2>
-          <p className="text-[10px] text-[var(--admin-text-muted)]">
-            Sincronización geométrica de activos multimedia de marca.
-          </p>
-        </div>
-      </div>
-
-      <div className="p-5 grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-        {/* LOGO */}
-        <div className="md:col-span-5 flex flex-col items-center border-b md:border-b-0 md:border-r border-[var(--admin-border)] pb-5 md:pb-0 md:pr-6">
-          <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider mb-3">
-            Isotipo Comercial
-          </span>
-
-          <div className="relative group">
-            <div
-              className={`w-28 h-28 ${shapeClass(logoShape)} bg-[var(--admin-bg)] overflow-hidden relative flex items-center justify-center shadow-md transition-all hover:shadow-lg ring-1 ring-transparent hover:ring-[var(--admin-accent)]`}
-            >
-              {logoUrl ? (
-                logoUrl.startsWith("blob:") ? (
-                  <img
-                    src={logoUrl}
-                    alt="Logo"
-                    className="h-full w-full animate-in fade-in duration-200"
-                    style={{
-                      objectFit: logoFit as "contain" | "cover",
-                      objectPosition: logoPosicion,
-                      transform: `scale(${logoScale})`,
-                    }}
-                  />
-                ) : (
-                  <Image
-                    src={logoUrl}
-                    fill
-                    className="animate-in fade-in duration-200"
-                    style={{
-                      objectFit: logoFit as "contain" | "cover",
-                      objectPosition: logoPosicion,
-                      transform: `scale(${logoScale})`,
-                    }}
-                    alt="Logo"
-                    sizes="112px"
-                    priority
-                  />
-                )
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-[var(--admin-text-muted)]">
-                  <ImageIcon size={24} />
-                </div>
-              )}
-              {uploading === "logo_url" && (
-                <div className="absolute inset-0 bg-[var(--admin-surface)]/80 backdrop-blur-sm flex items-center justify-center">
-                  <FoodMini size={18} />
-                </div>
-              )}
-            </div>
-            <label className="absolute -bottom-1 -right-1 bg-[var(--admin-surface)] text-[var(--admin-text)] p-2 rounded-full border border-[var(--admin-border)] shadow-sm cursor-pointer hover:border-[var(--admin-accent)] transition-all z-10">
-              <Upload size={12} />
-              <input
-                type="file"
-                hidden
-                accept="image/png, image/jpeg, image/jpg, image/webp, .jpg, .jpeg, .png, .webp"
-                onChange={(e) => onImageUpload(e, "logo_url")}
-                disabled={!!uploading}
-              />
-            </label>
-          </div>
-
-          {/* LOGO CONTROLS */}
-          <div className="mt-4 w-full max-w-[220px] space-y-3">
-            {/* Shape selector */}
-            <div className="space-y-1">
-              <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
-                Forma del contenedor
-              </span>
-              <div className="flex gap-1">
-                {LOGO_SHAPE_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => onLogoShapeChange(opt.value)}
-                    className={`flex-1 px-2 py-1 text-[10px] font-medium rounded-md transition-all ${
-                      logoShape === opt.value
-                        ? "bg-[var(--admin-accent)] text-white shadow-sm"
-                        : "bg-[var(--admin-bg)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-accent)]/10 border border-[var(--admin-border)]"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Fit selector */}
-            <div className="space-y-1">
-              <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
-                Ajuste de imagen
-              </span>
-              <div className="flex gap-1">
-                {LOGO_FIT_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => onLogoFitChange(opt.value)}
-                    className={`flex-1 px-2 py-1 text-[10px] font-medium rounded-md transition-all ${
-                      logoFit === opt.value
-                        ? "bg-[var(--admin-accent)] text-white shadow-sm"
-                        : "bg-[var(--admin-bg)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-accent)]/10 border border-[var(--admin-border)]"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Position selector */}
-            <div className="space-y-1">
-              <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
-                Posición vertical
-              </span>
-              <div className="flex gap-1">
-                {LOGO_POSITION_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => onLogoPosicionChange(opt.value)}
-                    className={`flex-1 px-2 py-1 text-[10px] font-medium rounded-md transition-all ${
-                      logoPosicion === opt.value
-                        ? "bg-[var(--admin-accent)] text-white shadow-sm"
-                        : "bg-[var(--admin-bg)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-accent)]/10 border border-[var(--admin-border)]"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Zoom slider */}
-            <div className="space-y-1 pt-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
-                  Escala
-                </span>
-                <span className="text-[10px] font-mono text-[var(--admin-text-muted)]">
-                  {logoScale.toFixed(1)}x
-                </span>
-              </div>
-              <input
-                type="range"
-                min="0.5"
-                max="2"
-                step="0.1"
-                value={logoScale}
-                onChange={(e) => onLogoScaleChange(parseFloat(e.target.value))}
-                className="w-full h-1.5 bg-[var(--admin-bg)] rounded-full appearance-none cursor-pointer accent-[var(--admin-accent)] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--admin-accent)] [&::-webkit-slider-thumb]:shadow-sm"
-              />
-            </div>
-          </div>
-
-          <p className="text-[9px] text-[var(--admin-text-muted)] mt-3 text-center leading-normal">
-            Espacio {logoShape === "circle" ? "1:1" : "flexible"}.
-            <br />
-            {logoFit === "contain"
-              ? "Muestra el logo completo sin recortes."
-              : "Llena el contenedor. Puede recortar bordes."}
-            <br />
-            Máx {MAX_IMAGE_SIZE_MB}MB (JPG, PNG, WEBP).
-          </p>
-        </div>
-
-        {/* BANNER */}
-        <div className="md:col-span-7 flex flex-col justify-between h-full space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
-              Banner de Cabecera
-            </span>
-            <label className="text-[11px] font-medium text-[var(--admin-text)] hover:bg-[var(--admin-bg)] border border-[var(--admin-border)] px-2 py-1 rounded-lg cursor-pointer transition-all flex items-center gap-1.5 shadow-sm">
-              <Upload size={11} /> Cargar
-              <input
-                type="file"
-                hidden
-                accept="image/png, image/jpeg, image/jpg, image/webp, .jpg, .jpeg, .png, .webp"
-                onChange={(e) => onImageUpload(e, "banner_url")}
-                disabled={!!uploading}
-              />
-            </label>
-          </div>
-
-          <div
-            className={`relative w-full rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg)] overflow-hidden shadow-sm ${
-              bannerHeight === "compact"
-                ? "aspect-[21/6]"
-                : bannerHeight === "large"
-                  ? "aspect-[21/10]"
-                  : "aspect-[21/8]"
-            }`}
-          >
-            {bannerUrl ? (
-              bannerUrl.startsWith("blob:") ? (
-                <img
-                  src={bannerUrl}
-                  alt="Portada"
-                  className="h-full w-full object-cover scale-105 animate-in fade-in duration-200"
-                  style={{ objectPosition: bannerPosicion }}
-                />
-              ) : (
-                <Image
-                  src={bannerUrl}
-                  fill
-                  className="object-cover scale-105 animate-in fade-in duration-200"
-                  style={{ objectPosition: bannerPosicion }}
-                  alt="Portada"
-                  sizes="(max-width: 768px) 100vw, 650px"
-                />
-              )
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-[var(--admin-text-muted)] opacity-50">
-                <ImageIcon size={28} />
-              </div>
-            )}
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_60%,var(--admin-surface)_95%)]" />
-            {uploading === "banner_url" && (
-              <div className="absolute inset-0 bg-[var(--admin-surface)]/80 backdrop-blur-sm flex items-center justify-center">
-                <FoodMini size={22} />
-              </div>
-            )}
-          </div>
-
-          {/* Banner controls */}
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div className="space-y-1.5">
-              <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
-                Altura
-              </span>
-              <div className="flex gap-1">
-                {BANNER_HEIGHT_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => onBannerHeightChange(opt.value)}
-                    className={`px-2.5 py-1 text-[10px] font-medium rounded-md transition-all ${
-                      bannerHeight === opt.value
-                        ? "bg-[var(--admin-accent)] text-white shadow-sm"
-                        : "bg-[var(--admin-bg)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-accent)]/10 border border-[var(--admin-border)]"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
-                Posición vertical
-              </span>
-              <div className="flex gap-1">
-                {BANNER_VERTICAL_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => onBannerPosicionChange(opt.value)}
-                    className={`px-2.5 py-1 text-[10px] font-medium rounded-md transition-all ${
-                      bannerPosicion === opt.value
-                        ? "bg-[var(--admin-accent)] text-white shadow-sm"
-                        : "bg-[var(--admin-bg)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-accent)]/10 border border-[var(--admin-border)]"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {imageError && (
-            <p className="text-[11px] text-red-500 flex items-center gap-1">
-              <XCircle size={12} />
-              {imageError}
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function GeneralInfoBlock({
-  formData,
-  errors,
-  onChange,
-  onClearError,
-  onToggleMostrarNombre,
-}: {
-  formData: ConfigFormState;
-  errors: Partial<Record<keyof ConfigFormState, string | undefined>>;
-  onChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => void;
-  onClearError: (field: keyof ConfigFormState) => void;
-  onToggleMostrarNombre: (val: boolean) => void;
-}) {
-  return (
-    <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-5 shadow-sm space-y-4">
-      <div className="flex items-center gap-2 border-b border-[var(--admin-border)] pb-2.5">
-        <Globe size={14} className="text-[var(--admin-text-muted)]" />
-        <h2 className="text-xs font-semibold text-[var(--admin-text)]">
-          Atributos Operacionales Nucleares
-        </h2>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-        <div className="space-y-1">
-          <label className="font-medium text-[var(--admin-text-muted)]">
-            Nombre Comercial
-          </label>
-          <input
-            name="nombre"
-            value={formData.nombre}
-            onChange={(e) => { onChange(e); onClearError("nombre"); }}
-            className={`w-full p-2 bg-[var(--admin-bg)] border rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] transition-all font-medium text-xs ${
-              errors.nombre ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-[var(--admin-border)] focus:border-[var(--admin-accent)]"
-            }`}
-            placeholder="Ej: Burger Station"
-          />
-          {errors.nombre && (
-            <p className="text-[10px] text-red-500 flex items-center gap-1 mt-0.5">
-              <XCircle size={10} />
-              {errors.nombre}
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-1">
-          <label className="font-medium text-[var(--admin-text-muted)]">
-            Dirección Web Estática (Slug URL)
-          </label>
-          <div className="relative">
-            <Hash className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--admin-text-muted)]" />
-            <input
-              name="slug"
-              value={formData.slug}
-              onChange={(e) => { onChange(e); onClearError("slug"); }}
-              className={`w-full p-2 pl-8 bg-[var(--admin-bg)] border rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-1 font-mono text-xs transition-all ${
-                errors.slug ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-[var(--admin-border)] focus:border-[var(--admin-accent)] focus:ring-[var(--admin-accent)]"
-              }`}
-              placeholder="burger-station"
-            />
-          </div>
-          {errors.slug && (
-            <p className="text-[10px] text-red-500 flex items-center gap-1 mt-0.5">
-              <XCircle size={10} />
-              {errors.slug}
-            </p>
-          )}
-          {!errors.slug && (
-            <p className="text-[9px] text-[var(--admin-text-muted)] mt-1 leading-normal">
-              Enlace público directo:{" "}
-              <span className="font-mono">
-                neo.app/<b>{formData.slug || "comercio"}</b>
-              </span>
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-1">
-          <label className="font-medium text-[var(--admin-text-muted)] flex items-center gap-1">
-            <Phone size={12} /> WhatsApp Receptor de Comandas
-          </label>
-          <input
-            name="whatsapp"
-            value={formData.whatsapp}
-            onChange={(e) => { onChange(e); onClearError("whatsapp"); }}
-            type="tel"
-            className={`w-full p-2 bg-[var(--admin-bg)] border rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] transition-all font-medium text-xs ${
-              errors.whatsapp ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-[var(--admin-border)] focus:border-[var(--admin-accent)]"
-            }`}
-            placeholder="5491123456789"
-          />
-          {errors.whatsapp ? (
-            <p className="text-[10px] text-red-500 flex items-center gap-1 mt-0.5">
-              <XCircle size={10} />
-              {errors.whatsapp}
-            </p>
-          ) : (
-            <p className="text-[9px] text-[var(--admin-text-muted)] leading-tight">
-              Prefijo de país completo, sin espacios ni símbolos intermedios.
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-1">
-          <label className="font-medium text-[var(--admin-text-muted)]">
-            Localidad / Zona Administrativa
-          </label>
-          <input
-            name="localidad"
-            value={formData.localidad}
-            onChange={onChange}
-            className="w-full p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] transition-all font-medium text-xs"
-            placeholder="Ej: San Miguel de Tucumán"
-          />
-        </div>
-
-        <div className="space-y-1 sm:col-span-2">
-          <label className="font-medium text-[var(--admin-text-muted)] flex items-center gap-1">
-            <MapPin size={12} /> Eje Principal / Dirección Física
-          </label>
-          <input
-            name="direccion"
-            value={formData.direccion}
-            onChange={(e) => { onChange(e); onClearError("direccion"); }}
-            className={`w-full p-2 bg-[var(--admin-bg)] border rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] transition-all font-medium text-xs ${
-              errors.direccion ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-[var(--admin-border)] focus:border-[var(--admin-accent)]"
-            }`}
-            placeholder="Ej: Av. Mate de Luna 1234"
-          />
-          {errors.direccion && (
-            <p className="text-[10px] text-red-500 flex items-center gap-1 mt-0.5">
-              <XCircle size={10} />
-              {errors.direccion}
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-1 sm:col-span-2">
-          <label className="font-medium text-[var(--admin-text-muted)]">
-            Aclaraciones de Despacho u Ubicación (Opcional)
-          </label>
-          <textarea
-            name="direccion_notas"
-            value={formData.direccion_notas}
-            onChange={onChange}
-            className="w-full p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] resize-none h-14 transition-all text-xs"
-            placeholder="Ej: Portón gris oscuro de doble hoja, timbre superior..."
-          />
-        </div>
-
-        <div className="sm:col-span-2 flex items-center gap-3 pt-1">
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={formData.mostrar_nombre}
-              onChange={(e) => onToggleMostrarNombre(e.target.checked)}
-              className="sr-only peer"
-            />
-            <div className="w-9 h-5 bg-[var(--admin-text-muted)]/20 rounded-full peer peer-checked:bg-[var(--admin-accent)] peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all border border-[var(--admin-border)]" />
-          </label>
-          <div>
-            <span className="text-xs font-semibold text-[var(--admin-text)]">
-              Mostrar nombre del negocio
-            </span>
-            <p className="text-[10px] text-[var(--admin-text-muted)]">
-              Desactivá si tu logo ya incluye el nombre.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SocialLinksBlock({
-  formData,
-  onChange,
-}: {
-  formData: { instagram_url: string; facebook_url: string; tiktok_url: string };
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}) {
-  return (
-    <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
-      <div className="space-y-3.5">
-        <div className="flex items-center gap-2 border-b border-[var(--admin-border)] pb-2.5">
-          <Share2 size={14} className="text-[var(--admin-text-muted)]" />
-          <h2 className="text-xs font-semibold text-[var(--admin-text)]">
-            Enlaces Digitales del Menú Público
-          </h2>
-        </div>
-
-        <div className="space-y-3 text-xs">
-          <div className="space-y-1">
-            <label className="font-medium text-[var(--admin-text-muted)] block">
-              Instagram Link
-            </label>
-            <input
-              name="instagram_url"
-              type="url"
-              value={formData.instagram_url}
-              onChange={onChange}
-              placeholder="https://instagram.com/tu_marca"
-              className="w-full p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] text-xs focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] transition-all"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="font-medium text-[var(--admin-text-muted)] block">
-              Facebook Perfil
-            </label>
-            <input
-              name="facebook_url"
-              type="url"
-              value={formData.facebook_url}
-              onChange={onChange}
-              placeholder="https://facebook.com/tu_marca"
-              className="w-full p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] text-xs focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] transition-all"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="font-medium text-[var(--admin-text-muted)] block">
-              TikTok Canal
-            </label>
-            <input
-              name="tiktok_url"
-              type="url"
-              value={formData.tiktok_url}
-              onChange={onChange}
-              placeholder="https://tiktok.com/@tu_marca"
-              className="w-full p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] text-xs focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] transition-all"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg p-2.5 flex gap-2 mt-4 items-start">
-        <Info
-          size={12}
-          className="shrink-0 text-[var(--admin-text-muted)] mt-0.5"
-        />
-        <p className="text-[10px] text-[var(--admin-text-muted)] leading-normal">
-          Es obligatorio el uso de <code>https://</code> para asegurar el
-          redireccionamiento nativo correcto.
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function PalettePreview({
-  colorPrimary,
-  bannerUrl,
-  bannerPosicion,
-  bannerHeight,
-  logoUrl,
-  logoPosicion,
-  logoFit,
-  logoShape,
-  mostrarNombre,
-  nombreForm,
-  logoScale,
-}: {
-  colorPrimary: string;
-  bannerUrl?: string | null;
-  bannerPosicion?: string;
-  bannerHeight?: string;
-  logoUrl?: string | null;
-  logoPosicion?: string;
-  logoFit?: string;
-  logoShape?: string;
-  mostrarNombre?: boolean;
-  nombreForm?: string;
-  logoScale?: number;
-}) {
-  const palette = useMemo(() => buildBrandPalette(colorPrimary), [colorPrimary]);
-  const textColor = palette.textOnBase;
-  const contrastOk = meetsWcagAA(textColor, palette.base);
-  const contrastLargeOk = meetsWcagAA(textColor, palette.base, true);
-
-  const shapeClass = (s: string) =>
-    s === "circle"
-      ? "rounded-full"
-      : s === "rounded"
-        ? "rounded-xl"
-        : "";
-
-  const bannerAspect =
-    bannerHeight === "compact"
-      ? "aspect-[21/6]"
-      : bannerHeight === "large"
-        ? "aspect-[21/10]"
-        : "aspect-[21/8]";
-
-  return (
-    <div className="space-y-3">
-      {/* Public menu header mockup */}
-      <div className="overflow-hidden rounded-lg border border-[var(--admin-border)] bg-white/5">
-        {bannerUrl && (
-          <div className={`relative ${bannerAspect} overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700`}>
-            <img
-              src={bannerUrl}
-              alt=""
-              className="h-full w-full object-cover scale-105"
-              style={{ objectPosition: bannerPosicion ?? "center" }}
-            />
-            <div
-              className="absolute inset-0"
-              style={{
-                background: `radial-gradient(ellipse at center, transparent 60%, ${palette.surface} 95%)`,
-              }}
-            />
-          </div>
-        )}
-        <div className="flex items-center gap-3 p-3">
-          {logoUrl && (
-            <div
-              className={`h-12 w-12 shrink-0 overflow-hidden ${shapeClass(logoShape || "circle")} ring-2 ring-white/10 shadow-xl`}
-            >
-              <img
-                src={logoUrl}
-                alt=""
-                className={`h-full w-full ${shapeClass(logoShape || "circle")}`}
-                style={{
-                  objectFit: (logoFit || "contain") as "contain" | "cover",
-                  objectPosition: logoPosicion ?? "center",
-                  transform: `scale(${logoScale ?? 1})`,
-                }}
-              />
-            </div>
-          )}
-          {(mostrarNombre ?? true) && (
-            <div>
-              <div
-                className="text-base font-black leading-none tracking-[-0.06em]"
-                style={{ color: palette["900"] as string }}
-              >
-                {nombreForm || "Nombre del negocio"}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="flex gap-1 items-center">
-        {["50", "100", "200", "300", "400", "500", "600", "700", "800", "900", "950"].map(
-          (shade) => (
-            <div
-              key={shade}
-              className="h-6 flex-1 rounded-[3px] first:rounded-l-md last:rounded-r-md"
-              style={{ backgroundColor: palette[shade as keyof typeof palette] as string }}
-              title={`${shade}: ${palette[shade as keyof typeof palette]}`}
-            />
-          ),
-        )}
-      </div>
-
-      <div className="flex gap-2">
-        <div className="flex-1 p-2 rounded-lg text-center text-[10px] font-bold"
-          style={{ backgroundColor: palette.base, color: palette.textOnBase }}>
-          Botón principal
-        </div>
-        <div className="flex-1 p-2 rounded-lg text-center text-[10px] font-bold border"
-          style={{ borderColor: palette.base, color: palette.base }}>
-          Outline
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2 text-[10px]">
-        <span className="text-[var(--admin-text-muted)]">Contraste texto/botón:</span>
-        <span className={`font-bold flex items-center gap-1 ${
-          contrastOk ? "text-green-600" : "text-red-500"
-        }`}>
-          {contrastOk ? "AA" : "No cumple AA"}
-        </span>
-        {!contrastOk && contrastLargeOk && (
-          <span className="text-amber-500 font-semibold">
-            (solo texto grande ≥18px)
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function CatalogDesignBlock({
-  colorPrimary,
-  error,
-  onChange,
-  bannerUrl,
-  bannerPosicion,
-  bannerHeight,
-  logoUrl,
-  logoPosicion,
-  logoFit,
-  logoShape,
-  mostrarNombre,
-  nombreForm,
-  logoScale,
-}: {
-  colorPrimary: string;
-  error?: string;
-  onChange: (val: string) => void;
-  bannerUrl?: string | null;
-  bannerPosicion?: string;
-  bannerHeight?: string;
-  logoUrl?: string | null;
-  logoPosicion?: string;
-  logoFit?: string;
-  logoShape?: string;
-  mostrarNombre?: boolean;
-  nombreForm?: string;
-  logoScale?: number;
-}) {
-  return (
-    <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-5 shadow-sm h-full flex flex-col justify-between">
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 border-b border-[var(--admin-border)] pb-2.5">
-          <Palette size={14} className="text-[var(--admin-text-muted)]" />
-          <h2 className="text-xs font-semibold text-[var(--admin-text)]">
-            Color de Acento del Catálogo
-          </h2>
-        </div>
-
-        <div className="space-y-3.5 text-xs">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-9 h-9 rounded-lg border border-[var(--admin-border)] overflow-hidden relative cursor-pointer shadow-sm"
-              style={{ backgroundColor: colorPrimary }}
-            >
-              <input
-                type="color"
-                value={colorPrimary}
-                onChange={(e) => onChange(e.target.value)}
-                className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
-              />
-            </div>
-            <div className="flex-1 space-y-0.5">
-              <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
-                Hexadecimal
-              </span>
-              <input
-                type="text"
-                value={colorPrimary}
-                onChange={(e) => onChange(e.target.value)}
-                className={`w-20 p-1 bg-[var(--admin-bg)] border rounded-md font-mono text-[11px] uppercase text-[var(--admin-text)] focus:outline-none focus:ring-1 ${
-                  error ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-[var(--admin-border)] focus:border-[var(--admin-accent)] focus:ring-[var(--admin-accent)]"
-                }`}
-                maxLength={7}
-              />
-              {error && (
-                <p className="text-[10px] text-red-500 flex items-center gap-1 mt-0.5">
-                  <XCircle size={10} />
-                  {error}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block">
-              Acentos Homologados
-            </span>
-            <div className="flex flex-wrap gap-1.5">
-              {PRESET_COLORS.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => onChange(color)}
-                  className={`w-5 h-5 rounded-md border transition-all ${
-                    colorPrimary.toLowerCase() === color.toLowerCase()
-                      ? "border-[var(--admin-text)] scale-110 ring-2 ring-[var(--admin-border)] shadow-sm"
-                      : "border-transparent hover:scale-105"
-                  }`}
-                  style={{ backgroundColor: color }}
-                  title={color}
-                />
-              ))}
-            </div>
-          </div>
-
-          <div className="border-t border-[var(--admin-border)] pt-3">
-            <span className="text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider block mb-2">
-              Vista previa en vivo
-            </span>
-            <PalettePreview
-              colorPrimary={colorPrimary}
-              bannerUrl={bannerUrl}
-              bannerPosicion={bannerPosicion}
-              bannerHeight={bannerHeight}
-              logoUrl={logoUrl}
-              logoPosicion={logoPosicion}
-              logoFit={logoFit}
-              logoShape={logoShape}
-              mostrarNombre={mostrarNombre}
-              nombreForm={nombreForm}
-              logoScale={logoScale}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg p-2.5 flex gap-2 mt-4 items-start">
-        <Info
-          size={12}
-          className="shrink-0 text-[var(--admin-text-muted)] mt-0.5"
-        />
-        <p className="text-[10px] text-[var(--admin-text-muted)] leading-normal">
-          La paleta se genera automáticamente y se inyecta como variables CSS{" "}
-          <code>--color-custom-*</code> en el catálogo público.
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function ScheduleBlock({
-  schedule = {},
-  onChange,
-}: {
-  schedule: ScheduleData;
-  onChange: (s: ScheduleData) => void;
-}) {
-  const getTurnos = (dayId: string) => schedule[dayId]?.turnos || [];
-
-  const updateDay = (day: string, active: boolean) => {
-    const updated = { ...schedule };
-    if (active) updated[day] = { turnos: [{ inicio: "12:00", fin: "16:00" }] };
-    else delete updated[day];
-    onChange(updated);
-  };
-
-  const addFranja = (day: string) => {
-    const turnos = getTurnos(day);
-    if (turnos.length >= 2) {
-      return toast.error("Capacidad operacional máxima: 2 turnos por jornada.");
-    }
-    const updated = {
-      ...schedule,
-      [day]: { turnos: [...turnos, { inicio: "20:00", fin: "00:00" }] },
-    };
-    onChange(updated);
-  };
-
-  const removeFranja = (day: string, index: number) => {
-    const turnos = getTurnos(day).filter((_, i) => i !== index);
-    const updated = { ...schedule };
-    if (turnos.length === 0) delete updated[day];
-    else updated[day] = { turnos };
-    onChange(updated);
-  };
-
-  const updateTime = (
-    day: string,
-    index: number,
-    field: keyof FranjaHoraria,
-    value: string,
-  ) => {
-    const turnos = [...getTurnos(day)];
-    turnos[index] = { ...turnos[index], [field]: value };
-    onChange({ ...schedule, [day]: { turnos } });
-  };
-
-  const cloneToAll = (dayId: string) => {
-    const source = getTurnos(dayId);
-    if (!source.length) {
-      return toast.error("Debe existir una celda origen para replicar.");
-    }
-    const newSchedule: ScheduleData = {};
-    DIAS.forEach((d) => {
-      newSchedule[d.id] = { turnos: source.map((t) => ({ ...t })) };
-    });
-    onChange(newSchedule);
-    toast.success("Esquema propagado a la matriz semanal.");
-  };
-
-  return (
-    <div className="border border-[var(--admin-border)] rounded-lg overflow-hidden text-xs">
-      <div className="divide-y divide-[var(--admin-border)]">
-        {DIAS.map((dia) => {
-          const turnos = getTurnos(dia.id);
-          const isOpen = turnos.length > 0;
-
-          return (
-            <div
-              key={dia.id}
-              className={`flex flex-col md:flex-row md:items-center transition-colors ${
-                isOpen ? "bg-[var(--admin-surface)]" : "bg-[var(--admin-bg)]/50"
-              }`}
-            >
-              <div className="w-full md:w-36 px-4 py-2.5 flex items-center justify-between md:justify-start gap-4 border-b md:border-b-0 md:border-r border-[var(--admin-border)] shrink-0">
-                <span
-                  className={`font-medium ${
-                    isOpen
-                      ? "text-[var(--admin-text)]"
-                      : "text-[var(--admin-text-muted)] opacity-70"
-                  }`}
-                >
-                  {dia.label}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => updateDay(dia.id, !isOpen)}
-                  className={`relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-150 outline-none ${
-                    isOpen
-                      ? "bg-[var(--admin-accent)]"
-                      : "bg-[var(--admin-border)]"
-                  }`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow-sm transition duration-150 ${
-                      isOpen ? "translate-x-3" : "translate-x-0"
-                    }`}
-                  />
-                </button>
-              </div>
-
-              <div className="flex-1 px-4 py-1.5 flex flex-col sm:flex-row sm:items-center flex-wrap gap-2 min-h-[44px]">
-                {isOpen ? (
-                  <div className="flex flex-wrap gap-2">
-                    {turnos.map((t, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center gap-1.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-md p-1 animate-in zoom-in-95 duration-100"
-                      >
-                        <input
-                          type="time"
-                          value={t.inicio}
-                          onChange={(e) =>
-                            updateTime(dia.id, idx, "inicio", e.target.value)
-                          }
-                          className="bg-transparent text-xs font-medium outline-none text-[var(--admin-text)] p-0.5 cursor-pointer"
-                        />
-                        <span className="text-[9px] font-bold text-[var(--admin-text-muted)]">
-                          A
-                        </span>
-                        <input
-                          type="time"
-                          value={t.fin}
-                          onChange={(e) =>
-                            updateTime(dia.id, idx, "fin", e.target.value)
-                          }
-                          className="bg-transparent text-xs font-medium outline-none text-[var(--admin-text)] p-0.5 cursor-pointer"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeFranja(dia.id, idx)}
-                          className="text-[var(--admin-text-muted)] hover:text-red-500 hover:bg-red-500/10 p-1 rounded-md transition-colors"
-                          title="Remover franja"
-                        >
-                          <Trash2 size={11} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <span className="text-[10px] font-normal text-[var(--admin-text-muted)] opacity-70 italic">
-                    Cerrado (Sin operaciones)
-                  </span>
-                )}
-              </div>
-
-              <div className="px-4 py-1.5 flex items-center justify-end gap-1.5 shrink-0 md:w-[150px] border-t md:border-t-0 md:border-l border-[var(--admin-border)]">
-                {isOpen && (
-                  <>
-                    {turnos.length < 2 && (
-                      <button
-                        type="button"
-                        onClick={() => addFranja(dia.id)}
-                        className="p-1 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-bg)] rounded-md transition-colors flex items-center gap-0.5 font-medium text-[10px]"
-                      >
-                        <Plus size={11} /> Turno
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => cloneToAll(dia.id)}
-                      className="p-1 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-bg)] rounded-md transition-colors flex items-center gap-1 font-medium text-[10px]"
-                      title="Propagar este esquema semanalmente"
-                    >
-                      <Copy size={10} /> Semanal
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <DangerZone
+        initialData={initialData}
+        isDeleting={isDeleting}
+        confirmName={confirmName}
+        onConfirmNameChange={setConfirmName}
+        onDelete={handleDeleteBusiness}
+        saveStatus={saveStatus}
+      />
     </div>
   );
 }

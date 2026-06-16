@@ -1,10 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Plus, FolderPlus, Layers, Package } from "lucide-react";
 import { ProductModal } from "../modals/ProductModal";
-import { CategoriaManager } from "../modals/CategoriaManager";
 import { ProductTable, type UnifiedProduct } from "./ProductTable";
+
+const CategoriaManager = dynamic(
+  () => import("../modals/CategoriaManager").then((mod) => mod.CategoriaManager),
+  { ssr: false },
+);
 
 interface AddProductSectionProps {
   negocioId: string;
@@ -63,7 +68,7 @@ export function AddProductSection({ negocioId }: AddProductSectionProps) {
         <div className="px-5 py-4 border-b border-[var(--admin-border)] bg-[var(--admin-bg)]/50 flex items-center gap-2">
           <Package className="h-4 w-4 text-[var(--admin-text-muted)]" />
           <span className="font-semibold text-[var(--admin-text)] text-sm">
-            Ítems Activos
+            Productos Activos
           </span>
         </div>
 

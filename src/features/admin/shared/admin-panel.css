@@ -1,5 +1,4 @@
-@import "tailwindcss";
-
+/* Tailwind v4 is already imported in globals.css — no duplicate import needed here */
 @theme {
   --color-admin-surface: var(--admin-surface);
   --color-admin-surface-secondary: var(--admin-surface-secondary);

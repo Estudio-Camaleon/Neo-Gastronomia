@@ -70,12 +70,12 @@ export default async function LoginPage(props: {
 
           <div className="flex-1 flex flex-col items-center justify-center space-y-10 max-w-xl z-10">
             <div className="space-y-4 text-center">
-              <h1 className="text-3xl xl:text-5xl font-black tracking-tight text-[var(--auth-accent)] leading-[0.95] uppercase">
+              <h2 className="text-3xl xl:text-5xl font-black tracking-tight text-[var(--auth-accent)] leading-[0.95] uppercase">
                 Bienvenido al <br />
                 <span className="text-[var(--auth-accent-muted)] font-light italic normal-case">
                   futuro de tu restaurante
                 </span>
-              </h1>
+              </h2>
               <p className="text-[var(--auth-text-muted)] text-sm leading-relaxed max-w-sm mx-auto font-medium">
                 Simplificá tu día a día. Gestioná tus pedidos, modernizá tu menú
                 y hacé crecer tus ventas sin dolores de cabeza.
@@ -125,12 +125,12 @@ export default async function LoginPage(props: {
             </div>
 
             <div className="text-center lg:text-left space-y-2">
-              <h2 className="text-2xl font-black tracking-tight text-[var(--auth-accent)] uppercase">
+              <h1 className="text-2xl font-black tracking-tight text-[var(--auth-accent)] uppercase">
                 Consola Maestro{" "}
                 <span className="font-light normal-case text-[var(--auth-accent-muted)]">
                   / NEO
                 </span>
-              </h2>
+              </h1>
               <p className="text-[var(--auth-text-muted)] text-xs font-medium">
                 Introduce tus credenciales de inquilino para inicializar el
                 dashboard.

@@ -72,13 +72,18 @@ export async function checkDuplicateAction(field: string, value: string) {
     return { error: "Demasiadas solicitudes. Intentalo de nuevo." };
   }
 
+  // Sanitizar input
+  const cleanValue = value.trim().toLowerCase();
+
+  if (!cleanValue) return { exists: false };
+
   try {
     if (field === "email") {
       try {
         // Usar admin API para listar usuarios por email
         const { data: usuarios, error } = await supabaseAdmin.auth.admin.listUsers();
         if (error) return { exists: false };
-        const found = usuarios?.users?.some((u: any) => (u.email || "").toLowerCase() === value.toLowerCase());
+        const found = usuarios?.users?.some((u: any) => (u.email || "").toLowerCase() === cleanValue);
         return { exists: !!found };
       } catch {
         return { exists: false };
@@ -89,7 +94,7 @@ export async function checkDuplicateAction(field: string, value: string) {
     const { data: resultados } = await supabaseAdmin
       .from("negocios")
       .select("id")
-      .eq(column, value)
+      .eq(column, cleanValue)
       .limit(1);
     return { exists: !!resultados?.[0] };
   } catch {
@@ -169,48 +174,41 @@ export async function registerAction(payload: {
     }
   }
 
-  // Crear usuario confirmado via admin client
-  const { data: authData, error: createError } =
-    await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: { nombre_negocio: nombreNegocio },
-    });
-
-  if (createError) {
-    return { error: sanitizeAuthError(createError.message) };
-  }
-  if (!authData.user) return { error: "No se pudo crear el usuario." };
-
-  // Iniciar sesión
+  // Enviar email de confirmación usando signUp (no admin.createUser)
+  // El negocio se crea en el callback después de que el usuario confirme su email
   const supabase = await createClient();
-  const { error: signInError } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  const origin = (await headers()).get("origin") ?? "http://localhost:3000";
 
-  if (signInError) {
-    return { error: sanitizeAuthError(signInError.message) };
-  }
-
-  const { error: negocioError } = await supabase.from("negocios").insert({
-    user_id: authData.user.id,
-    nombre: nombreNegocio,
+  const negocioMeta = {
+    nombre_negocio: nombreNegocio,
     slug,
-    color_primary,
     ...(whatsapp ? { whatsapp } : {}),
     ...(direccion ? { direccion } : {}),
+    ...(color_primary ? { color_primary } : {}),
+  };
+
+  const { error: signUpError } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${origin}/callback`,
+      data: negocioMeta,
+    },
   });
 
-  if (negocioError) {
-    return {
-      error: `No se pudo crear el negocio: ${negocioError.message}. Contactá a soporte.`,
-    };
+  if (signUpError) {
+    // Si el error es "User already registered", dar mensaje claro
+    if (
+      signUpError.message.includes("already registered") ||
+      signUpError.message.includes("already exists")
+    ) {
+      return { error: "El correo electrónico ya está registrado." };
+    }
+    return { error: sanitizeAuthError(signUpError.message) };
   }
 
-  revalidatePath("/", "layout");
-  redirect("/configuracion?firstLogin=true");
+  // No creamos sesión ni negocio acá — se hace en /callback tras confirmar email
+  return { success: true };
 }
 
 export async function signInWithGoogleAction() {

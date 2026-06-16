@@ -24,6 +24,9 @@ declare global {
       // SMTP para correos transaccionales (local Supabase)
       SENDGRID_API_KEY?: string;
 
+      // Resend API key for auth confirmation emails (via Supabase SMTP)
+      RESEND_API_KEY?: string;
+
       // Stripe billing
       STRIPE_SECRET_KEY?: string;
       STRIPE_WEBHOOK_SECRET?: string;

@@ -140,7 +140,7 @@ export function StatsDashboard({ negocioId }: StatsDashboardProps) {
         <button
           onClick={handleExport}
           disabled={exporting || !data || data.totalCount === 0}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[var(--admin-accent)] text-white rounded-xl font-bold text-sm shadow-md hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-4 py-2.5 bg-[var(--admin-accent)] text-white rounded-xl font-bold text-sm shadow-md hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed w-full sm:w-auto"
         >
           <Download size={16} />
           {exporting ? "Exportando..." : "Exportar CSV"}
@@ -152,7 +152,7 @@ export function StatsDashboard({ negocioId }: StatsDashboardProps) {
           <button
             key={p}
             onClick={() => handlePeriodChange(p)}
-            className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all ${
+            className={`px-2 sm:px-3.5 py-2 text-[10px] sm:text-xs font-bold whitespace-nowrap rounded-lg transition-all ${
               period === p
                 ? "bg-[var(--admin-surface)] text-[var(--admin-text)] shadow-xs border border-[var(--admin-border)]"
                 : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"
@@ -226,7 +226,7 @@ function SummaryCards({ summary }: { summary: StatsSummary }) {
     },
     {
       title: "Ticket Promedio",
-      value: `$${summary.avgTicket.toFixed(2)}`,
+      value: `$${summary.avgTicket.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       icon: Wallet,
       color: "text-purple-600 dark:text-purple-400",
       bg: "bg-purple-500/10",
@@ -354,6 +354,14 @@ function PaymentMethodsCard({
 }) {
   const totalRevenue = methods.reduce((s, m) => s + m.revenue, 0);
 
+  const PAYMENT_COLORS: Record<string, string> = {
+    efectivo: "bg-green-500",
+    transferencia: "bg-blue-500",
+  };
+
+  const getBarColor = (method: string) =>
+    PAYMENT_COLORS[method.toLowerCase()] ?? "bg-purple-500";
+
   return (
     <div className="admin-card p-6">
       <h2 className="text-sm font-bold text-[var(--admin-text)] mb-5 flex items-center gap-2">
@@ -385,7 +393,7 @@ function PaymentMethodsCard({
                 </div>
                 <div className="h-2 w-full rounded-full bg-[var(--admin-bg)] overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-[var(--admin-accent)] transition-all duration-500"
+                    className={`h-full rounded-full ${getBarColor(m.method)} transition-all duration-500`}
                     style={{ width: `${pct}%` }}
                   />
                 </div>

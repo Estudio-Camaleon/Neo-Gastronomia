@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
+import { useFocusTrap } from "@/core/hooks/useFocusTrap";
+import { useScrollLock } from "@/core/hooks/useScrollLock";
 
 interface NotesModalProps {
   title: string;
@@ -18,19 +20,8 @@ export function NotesModal({
   const [value, setValue] = useState(initialValue);
   const [saving, setSaving] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", handler);
-    textareaRef.current?.focus();
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", handler);
-      document.body.style.overflow = "";
-    };
-  }, []);
+  const containerRef = useFocusTrap(true);
+  useScrollLock(true);
 
   const handleSave = async () => {
     setSaving(true);
@@ -44,10 +35,9 @@ export function NotesModal({
 
   return (
     <div
+      ref={containerRef}
       className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 animate-in fade-in duration-200"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+      tabIndex={-1}
     >
       <div
         role="dialog"

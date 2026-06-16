@@ -14,10 +14,12 @@ export const loginSchema = z.object({
   email: z
     .string()
     .min(1, "El correo es obligatorio")
-    .email("El correo no tiene un formato válido"),
+    .email("El correo no tiene un formato válido")
+    .transform((v) => v.trim().toLowerCase()),
   password: z
     .string()
-    .min(1, "La contraseña es obligatoria"),
+    .min(1, "La contraseña es obligatoria")
+    .transform((v) => v.trim()),
 });
 
 export const registerSchema = z.object({

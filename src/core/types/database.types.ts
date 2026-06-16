@@ -138,6 +138,7 @@ export type Database = {
         Row: {
           banner_height: string
           banner_posicion: string
+          banner_scale: number
           banner_url: string | null
           color_primary: string | null
           created_at: string | null
@@ -145,6 +146,7 @@ export type Database = {
           descripcion: string | null
           direccion: string | null
           direccion_notas: string | null
+          direcciones: Json
           facebook_url: string | null
           horarios: Json | null
           id: string
@@ -163,6 +165,11 @@ export type Database = {
           stripe_subscription_id: string | null
           subscription_status: string | null
           tiktok_url: string | null
+          twitter_url: string | null
+          youtube_url: string | null
+          tripadvisor_url: string | null
+          floating_shapes: Json
+          recepcion_pausada: boolean
           trial_ends_at: string | null
           updated_at: string | null
           user_id: string | null
@@ -171,6 +178,7 @@ export type Database = {
         Insert: {
           banner_height?: string
           banner_posicion?: string
+          banner_scale?: number
           banner_url?: string | null
           color_primary?: string | null
           created_at?: string | null
@@ -178,6 +186,7 @@ export type Database = {
           descripcion?: string | null
           direccion?: string | null
           direccion_notas?: string | null
+          direcciones?: Json
           facebook_url?: string | null
           horarios?: Json | null
           id?: string
@@ -192,6 +201,11 @@ export type Database = {
           nombre: string
           plan_tier?: string
           slug: string
+          twitter_url?: string | null
+          youtube_url?: string | null
+          tripadvisor_url?: string | null
+          floating_shapes?: Json
+          recepcion_pausada?: boolean
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_status?: string | null
@@ -204,6 +218,7 @@ export type Database = {
         Update: {
           banner_height?: string
           banner_posicion?: string
+          banner_scale?: number
           banner_url?: string | null
           color_primary?: string | null
           created_at?: string | null
@@ -211,6 +226,7 @@ export type Database = {
           descripcion?: string | null
           direccion?: string | null
           direccion_notas?: string | null
+          direcciones?: Json
           facebook_url?: string | null
           horarios?: Json | null
           id?: string
@@ -221,6 +237,11 @@ export type Database = {
           logo_scale?: number
           logo_shape?: string
           logo_url?: string | null
+          twitter_url?: string | null
+          youtube_url?: string | null
+          tripadvisor_url?: string | null
+          floating_shapes?: Json
+          recepcion_pausada?: boolean
           mostrar_nombre?: boolean
           nombre?: string
           plan_tier?: string

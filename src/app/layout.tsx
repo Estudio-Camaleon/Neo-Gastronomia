@@ -11,7 +11,6 @@ export const metadata: Metadata = {
   title: "NEO | Sistema de Gestión",
   description:
     "Plataforma de alta velocidad para la gestión de catálogos y negocios digitales.",
-  robots: "noindex, nofollow",
   icons: {
     icon: "/icons/icon.webp",
   },
@@ -35,7 +34,13 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={cn("m-0 p-0 font-sans", geist.variable)}
     >
-      <body className="antialiased m-0 p-0 border-none">
+      <body className="antialiased m-0 p-0 border-none overflow-x-hidden">
+        <a
+          href="#main-content"
+          className="fixed -top-40 left-4 z-[9999] rounded-xl bg-white px-6 py-3 text-sm font-bold text-[#163225] shadow-lg transition-all focus:top-4 focus:outline-2 focus:outline-[#1f6b3d]"
+        >
+          Saltar al contenido principal
+        </a>
         <LoadingProvider>{children}</LoadingProvider>
         {process.env.NODE_ENV === "production" && <Analytics />}
       </body>

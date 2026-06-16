@@ -3,14 +3,25 @@ import type { Tables, TablesInsert } from "./database.types";
 // ── Negocio ──────────────────────────────────────────
 export type NegocioRow = Tables<"negocios">;
 
+export interface DireccionFisica {
+  id: string;
+  nombre: string;
+  direccion: string;
+  localidad: string;
+  coordenadas?: { lat: number; lng: number } | null;
+  es_principal?: boolean;
+}
+
 export interface NegocioPublico {
   id: string;
   nombre: string;
+  descripcion: string | null;
   slug: string;
   color_primary: string | null;
   banner_url: string | null;
   banner_posicion?: string;
   banner_height?: string;
+  banner_scale?: number;
   logo_url: string | null;
   logo_scale?: number;
   logo_posicion?: string;
@@ -20,14 +31,20 @@ export interface NegocioPublico {
   direccion: string | null;
   localidad: string | null;
   direccion_notas: string | null;
+  direcciones?: DireccionFisica[];
   whatsapp: string | null;
   instagram_url: string | null;
   facebook_url: string | null;
   tiktok_url: string | null;
+  twitter_url: string | null;
+  youtube_url: string | null;
+  tripadvisor_url: string | null;
   horarios: Record<string, HorarioDia> | null;
+  recepcion_pausada?: boolean;
   moneda_simbolo?: string;
   pedido_minimo?: number;
   costo_envio?: number;
+  floating_shapes?: string[] | { shapes: string[]; density: string };
 }
 
 // ── Categoría ────────────────────────────────────────
@@ -74,6 +91,7 @@ export interface ClienteResumen {
   email: string | null;
   totalGasto: number;
   pedidos: number;
+  ultimoPedido: string | null;
   notas: string | null;
 }
 
@@ -127,6 +145,7 @@ export interface UpdateTenantBrandingPayload {
   nombre: string;
   slug: string;
   whatsapp: string;
+  descripcion: string;
   direccion: string;
   localidad: string;
   direccion_notas: string;
@@ -139,11 +158,17 @@ export interface UpdateTenantBrandingPayload {
   banner_url: string;
   banner_posicion: string;
   banner_height: string;
+  banner_scale: number;
   mostrar_nombre: boolean;
   instagram_url: string;
   facebook_url: string;
   tiktok_url: string;
+  twitter_url: string;
+  youtube_url: string;
+  tripadvisor_url: string;
   horarios: Record<string, unknown>;
+  direcciones: DireccionFisica[];
+  floating_shapes: { shapes: string[]; density: string };
 }
 
 // ── Promo ────────────────────────────────────────────

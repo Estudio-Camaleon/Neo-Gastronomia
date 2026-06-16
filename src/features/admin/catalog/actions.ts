@@ -11,6 +11,18 @@ function revalidateMenus(slug?: string) {
   if (slug) revalidatePath(`/${slug}`);
 }
 
+async function getSlugForTenant(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  negocioId: string,
+): Promise<string | undefined> {
+  const { data } = await supabase
+    .from("negocios")
+    .select("slug")
+    .eq("id", negocioId)
+    .single();
+  return data?.slug ?? undefined;
+}
+
 export async function upsertProductAction(
   payload: z.infer<typeof upsertProductSchema>,
   productId?: string,
@@ -27,6 +39,9 @@ export async function upsertProductAction(
   const supabase = await createClient();
   const { user } = (await supabase.auth.getUser()).data;
   const tenantId = await getAuthenticatedTenant(supabase);
+
+  // Fetch slug if not provided, so public menu gets revalidated
+  const slug = negocioSlug ?? (await getSlugForTenant(supabase, tenantId));
 
   const isUpdate = !!productId;
 
@@ -78,7 +93,7 @@ export async function upsertProductAction(
   }
 
   revalidatePath("/productos");
-  revalidateMenus(negocioSlug);
+  revalidateMenus(slug);
   return { success: true };
 }
 
@@ -91,6 +106,8 @@ export async function deleteProductAction(productId: string, negocioSlug?: strin
   const supabase = await createClient();
   const { user } = (await supabase.auth.getUser()).data;
   const tenantId = await getAuthenticatedTenant(supabase);
+
+  const slug = negocioSlug ?? (await getSlugForTenant(supabase, tenantId));
 
   const { data: old } = await supabase
     .from("productos")
@@ -117,7 +134,7 @@ export async function deleteProductAction(productId: string, negocioSlug?: strin
   });
 
   revalidatePath("/productos");
-  revalidateMenus(negocioSlug);
+  revalidateMenus(slug);
   return { success: true };
 }
 
@@ -128,13 +145,15 @@ const createCategorySchema = z.object({
     .regex(/^[a-z0-9-]+$/, "Slug inválido: solo minúsculas, números y guiones"),
 });
 
-export async function createCategoryAction(nombre: string, slug: string, negocioSlug?: string) {
-  const parsed = createCategorySchema.safeParse({ nombre, slug });
+export async function createCategoryAction(nombre: string, categorySlug: string, negocioSlug?: string) {
+  const parsed = createCategorySchema.safeParse({ nombre, slug: categorySlug });
   if (!parsed.success) throw new Error("Datos de categoría inválidos");
 
   const supabase = await createClient();
   const { user } = (await supabase.auth.getUser()).data;
   const tenantId = await getAuthenticatedTenant(supabase);
+
+  const slug = negocioSlug ?? (await getSlugForTenant(supabase, tenantId));
 
   const { data: existing } = await supabase
     .from("categorias")
@@ -173,7 +192,7 @@ export async function createCategoryAction(nombre: string, slug: string, negocio
   });
 
   revalidatePath("/productos");
-  revalidateMenus(negocioSlug);
+  revalidateMenus(slug);
   return { success: true };
 }
 
@@ -181,6 +200,8 @@ export async function deleteCategoryAction(categoriaId: string, negocioSlug?: st
   const supabase = await createClient();
   const { user } = (await supabase.auth.getUser()).data;
   const tenantId = await getAuthenticatedTenant(supabase);
+
+  const slug = negocioSlug ?? (await getSlugForTenant(supabase, tenantId));
 
   const { data: old } = await supabase
     .from("categorias")
@@ -207,6 +228,6 @@ export async function deleteCategoryAction(categoriaId: string, negocioSlug?: st
   });
 
   revalidatePath("/productos");
-  revalidateMenus(negocioSlug);
+  revalidateMenus(slug);
   return { success: true };
 }

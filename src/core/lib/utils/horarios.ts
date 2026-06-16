@@ -77,8 +77,23 @@ export function estaAbierto(
     const [horaInicio, minInicio] = turno.inicio.split(":").map(Number);
     const [horaFin, minFin] = turno.fin.split(":").map(Number);
 
+    // Protección contra NaN si el string está malformado
+    if (
+      !Number.isFinite(horaInicio) ||
+      !Number.isFinite(minInicio) ||
+      !Number.isFinite(horaFin) ||
+      !Number.isFinite(minFin)
+    ) {
+      return false;
+    }
+
     const inicioEnMinutos = horaInicio * 60 + minInicio;
     let finEnMinutos = horaFin * 60 + minFin;
+
+    // 00:00 a 00:00 = abierto las 24 horas del día
+    if (inicioEnMinutos === 0 && finEnMinutos === 0) {
+      return true;
+    }
 
     // Manejo nativo de turnos nocturnos gastronómicos que cierran de madrugada (ej: 20:00 a 02:00)
     if (finEnMinutos < inicioEnMinutos) {

@@ -213,11 +213,10 @@ web3 = 30
 [auth.email]
 enable_signup = true
 double_confirm_changes = true
-# IMPORTANTE: En el proyecto hosted de Supabase (Dashboard → Authentication → Settings),
-# esta opción suele estar en TRUE por defecto. Si querés que los usuarios NO necesiten
-# confirmar su email, desactivá "Confirm email" en el dashboard de Supabase.
-# Si dejás confirmaciones activadas, asegurate de configurar SMTP custom abajo.
-enable_confirmations = false
+# Los usuarios deben confirmar su email antes de poder iniciar sesión.
+# Para desarrollo local, asegurate de que Inbucket esté corriendo (`supabase start`).
+# Para producción, configurá SMTP custom en el Dashboard de Supabase.
+enable_confirmations = true
 secure_password_change = false
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
 max_frequency = "1s"
@@ -226,36 +225,39 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
-# Use a production-ready SMTP server
 # ──────────────────────────────────────────────────────────────────────────────
-# CONFIGURACIÓN SMTP PARA CORREOS TRANSACCIONALES (Confirmación, Reseteo, etc.)
+# SMTP — Resend para correos transaccionales
 # ──────────────────────────────────────────────────────────────────────────────
-# El free tier de Supabase tiene un límite de ~4 emails/hora.
-# Configurá SMTP custom acá (y en el Dashboard de Supabase) para enviar correos
-# con tu propio dominio y sin límites tan restrictivos.
-#
-# Proveedores: Resend (recomendado), SendGrid, AWS SES.
+# En el proyecto hosted de Supabase (Dashboard → Authentication → Settings),
+# seleccioná "Resend" como Email Provider y pegá la API key.
+# Para desarrollo local, configurá las variables acá abajo.
 # ──────────────────────────────────────────────────────────────────────────────
 
-# [auth.email.smtp]
-# enabled = true
-# host = "smtp.sendgrid.net"
-# port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "no-reply@neo-gastronomia.vercel.app"
-# sender_name = "NEO Gastro"
+[auth.email.smtp]
+enabled = true
+host = "smtp.resend.com"
+port = 587
+user = "resend"
+pass = "env(RESEND_API_KEY)"
+admin_email = "noreply@neo.app"
+sender_name = "NEO"
 
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
+# ──────────────────────────────────────────────────────────────────────────────
+# TEMPLATES PERSONALIZADOS — Estilo NEO
+# ──────────────────────────────────────────────────────────────────────────────
 
-# Uncomment to customize notification email template
-# [auth.email.notification.password_changed]
-# enabled = true
-# subject = "Your password has been changed"
-# content_path = "./templates/password_changed_notification.html"
+[auth.email.template.confirmation]
+subject = "Confirmá tu cuenta en NEO"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "Restablecé tu contraseña de NEO"
+content_path = "./supabase/templates/recovery.html"
+
+# Opcional: template para cambio de email
+# [auth.email.template.email_change]
+# subject = "Confirmá tu nuevo correo en NEO"
+# content_path = "./supabase/templates/email_change.html"
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.

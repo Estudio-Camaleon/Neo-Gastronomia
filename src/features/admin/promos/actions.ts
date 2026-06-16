@@ -1,11 +1,23 @@
 "use server";
 
 import { createClient } from "@/core/lib/supabase/server";
+import { supabaseAdmin } from "@/core/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { getAuthenticatedTenant, parseStorageUrl } from "@/core/lib/tenant";
-import { supabaseAdmin } from "@/core/lib/supabase/admin";
 import { upsertPromoSchema } from "@/core/lib/schemas";
 import { z } from "zod";
+
+async function getSlugForTenant(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  negocioId: string,
+): Promise<string | null> {
+  const { data } = await supabase
+    .from("negocios")
+    .select("slug")
+    .eq("id", negocioId)
+    .single();
+  return data?.slug ?? null;
+}
 
 export async function getPromosAction() {
   const supabase = await createClient();
@@ -31,6 +43,7 @@ export async function upsertPromoAction(
 
   const supabase = await createClient();
   const negocioId = await getAuthenticatedTenant(supabase);
+  const slug = await getSlugForTenant(supabase, negocioId);
 
   if (parsed.data.codigo) {
     const { data: existing } = await supabase
@@ -66,6 +79,7 @@ export async function upsertPromoAction(
   }
 
   revalidatePath("/promos");
+  if (slug) revalidatePath(`/${slug}`);
 
   return { success: true };
 }
@@ -75,6 +89,7 @@ export async function deletePromoAction(promoId: string) {
 
   const supabase = await createClient();
   const negocioId = await getAuthenticatedTenant(supabase);
+  const slug = await getSlugForTenant(supabase, negocioId);
 
   const { data: promo } = await supabase
     .from("promos")
@@ -101,6 +116,7 @@ export async function deletePromoAction(promoId: string) {
   }
 
   revalidatePath("/promos");
+  if (slug) revalidatePath(`/${slug}`);
 
   return { success: true };
 }
@@ -124,6 +140,7 @@ export async function togglePromoAction(promoId: string, activo: boolean) {
 
   const supabase = await createClient();
   const negocioId = await getAuthenticatedTenant(supabase);
+  const slug = await getSlugForTenant(supabase, negocioId);
 
   const { error } = await supabase
     .from("promos")
@@ -136,6 +153,7 @@ export async function togglePromoAction(promoId: string, activo: boolean) {
   }
 
   revalidatePath("/promos");
+  if (slug) revalidatePath(`/${slug}`);
 
   return { success: true };
 }
