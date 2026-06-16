@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/Estudio-Camaleon/Neo-Gastronomia/compare/v1.1.0...v1.1.1) (2026-06-16)
+
+
+### Bug Fixes
+
+* elimina overflow-hidden en PublicMenuHeader para mejorar el diseño ([31ac350](https://github.com/Estudio-Camaleon/Neo-Gastronomia/commit/31ac3504372d2de1392899b8e4a1d255d462ac88))
+
 # [1.1.0](https://github.com/Estudio-Camaleon/Neo-Gastronomia/compare/v1.0.0...v1.1.0) (2026-06-16)
 
 
