@@ -187,7 +187,7 @@ export function CatalogClient({
                 className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"
               >
                 <div>
-                  <h1 className="text-5xl font-black italic leading-none tracking-[-0.05em] text-[var(--color-custom-900)] sm:text-3xl">
+                  <h1 className="text-3xl sm:text-5xl font-black italic leading-none tracking-[-0.05em] text-[var(--color-custom-900)]">
                     Menú
                   </h1>
                   <p className="mt-1 text-sm font-medium text-[var(--color-custom-text-muted)]">
