@@ -198,7 +198,7 @@ export function PublicMenuHeader({
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="relative overflow-hidden pt-16 sm:pt-20 pb-20 sm:pb-24"
+        className="relative pt-16 sm:pt-20 pb-20 sm:pb-24"
       >
         {/* Banner background */}
         {negocio.banner_url && (
