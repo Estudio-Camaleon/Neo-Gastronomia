@@ -48,7 +48,7 @@ export function ClientRadar({ initialClientes }: ClientRadarProps) {
           <div className="space-y-1">
             <h2 className="text-xl font-bold text-[var(--admin-text)] flex items-center gap-2">
               <Users className="h-6 w-6 text-[var(--admin-accent)]" />
-              Radar de Clientes
+              Ranked de Clientes
             </h2>
             <p className="text-sm font-medium text-[var(--admin-text-muted)]">
               Ranking de fidelidad, volumen de transacciones y notas de

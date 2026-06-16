@@ -7,7 +7,8 @@ import { ProductModal } from "../modals/ProductModal";
 import { ProductTable, type UnifiedProduct } from "./ProductTable";
 
 const CategoriaManager = dynamic(
-  () => import("../modals/CategoriaManager").then((mod) => mod.CategoriaManager),
+  () =>
+    import("../modals/CategoriaManager").then((mod) => mod.CategoriaManager),
   { ssr: false },
 );
 
@@ -39,11 +40,8 @@ export function AddProductSection({ negocioId }: AddProductSectionProps) {
         <div className="space-y-1">
           <h2 className="text-xl font-bold text-[var(--admin-text)] flex items-center gap-2">
             <Layers className="h-6 w-6 text-[var(--admin-accent)]" />
-            Catálogo de Productos
+            Gestiona tu inventario
           </h2>
-          <p className="text-sm text-[var(--admin-text-muted)] font-medium">
-            Gestiona tu inventario, secciones y variantes.
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">

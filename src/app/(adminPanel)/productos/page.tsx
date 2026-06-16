@@ -32,15 +32,12 @@ export default async function ProductosAdminPage() {
             Gestión de Catálogo
           </span>
         </div>
-        <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-[var(--admin-text)]">
-          Menú & Stock
-        </h1>
-        <p className="text-[var(--admin-text-muted)] text-sm font-medium">
-          Administrando las existencias del catálogo público de:{" "}
-          <span className="font-semibold text-[var(--admin-text)]">
+        <h1 className="text-2xl sm:text-3xl md:text-5xl font-semibold tracking-tight text-[var(--admin-text)]">
+          Catálogo Público de{" "}
+          <span className="font-bold text-[var(--admin-text)]">
             {negocio.nombre}
           </span>
-        </p>
+        </h1>
       </header>
 
       {/* SECCIÓN REACTIVA CRUD DE INVENTARIO */}
