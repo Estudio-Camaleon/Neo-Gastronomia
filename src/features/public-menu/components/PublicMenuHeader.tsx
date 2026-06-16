@@ -17,12 +17,14 @@ export function PublicMenuHeader({
   todayKey,
   showSchedule,
   setShowSchedule,
+  recepcionPausada,
 }: {
   negocio: NegocioPublico;
   isOpenNow: boolean;
   todayKey: string | null;
   showSchedule: boolean;
   setShowSchedule: (v: boolean) => void;
+  recepcionPausada?: boolean;
 }) {
   const [showClosedModal, setShowClosedModal] = useState(false);
   const [showAddresses, setShowAddresses] = useState(false);
@@ -109,18 +111,28 @@ export function PublicMenuHeader({
                 <div className="flex items-center gap-4">
                   <div
                     className="flex h-12 w-12 items-center justify-center rounded-lg"
-                    style={{ background: negocio.color_primary ?? "#fef2f2" }}
+                    style={{ background: recepcionPausada ? "#dc2626" : (negocio.color_primary ?? "#fef2f2") }}
                     aria-hidden
                   >
-                    <Clock size={22} className="text-white" />
+                    {recepcionPausada ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                    ) : (
+                      <Clock size={22} className="text-white" />
+                    )}
                   </div>
-                  <h3 className="text-lg font-bold text-[var(--color-custom-900)]">Horario de atención</h3>
+                  <h3 className="text-lg font-bold text-[var(--color-custom-900)]">
+                    {recepcionPausada ? "Recepción pausada" : "Horario de atención"}
+                  </h3>
                 </div>
 
                 <div className="text-sm text-[var(--color-custom-text)]">
-                  El local se encuentra actualmente fuera del horario de atención.
-                  Podés seguir navegando el menú y consultar los horarios de atención
-                  para hoy o días próximos.
+                  {recepcionPausada ? (
+                    <>El local pausó la recepción de pedidos por el momento. <strong>No se están tomando pedidos nuevos.</strong> Volvé a consultar más tarde.</>
+                  ) : (
+                    <>El local se encuentra actualmente fuera del horario de atención.
+                    Podés seguir navegando el menú y consultar los horarios de atención
+                    para hoy o días próximos.</>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 gap-2 text-sm text-[var(--color-custom-text-muted)]">

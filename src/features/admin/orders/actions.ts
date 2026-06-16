@@ -78,6 +78,20 @@ export async function submitOrderPublicAction(
     );
   }
 
+  // Verificar que la recepción no esté pausada
+  const { data: negocio } = await supabaseAdmin
+    .from("negocios")
+    .select("recepcion_pausada")
+    .eq("id", parsed.data.negocio_id)
+    .limit(1)
+    .single();
+
+  if (negocio?.recepcion_pausada) {
+    throw new Error(
+      "La recepción de pedidos está pausada. El local no está aceptando pedidos en este momento.",
+    );
+  }
+
   const itemsJson = parsed.data.items.map((item) => ({
     producto_id: item.producto_id,
     cantidad: item.cantidad,
@@ -114,4 +128,38 @@ export async function submitOrderPublicAction(
   }
 
   return pedidoId;
+}
+
+/**
+ * Activa/desactiva la recepción pausada (panic mode) para el negocio autenticado.
+ */
+export async function toggleRecepcionPausadaAction() {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Acceso denegado");
+
+  // Leer estado actual
+  const { data: negocio } = await supabase
+    .from("negocios")
+    .select("id, recepcion_pausada")
+    .eq("user_id", user.id)
+    .limit(1)
+    .single();
+
+  if (!negocio) throw new Error("No se encontró el negocio");
+
+  const nuevoEstado = !negocio.recepcion_pausada;
+
+  const { error } = await supabase
+    .from("negocios")
+    .update({ recepcion_pausada: nuevoEstado, updated_at: new Date().toISOString() })
+    .eq("id", negocio.id);
+
+  if (error) throw new Error(`Error al actualizar: ${error.message}`);
+
+  revalidatePath("/pedidos");
+  revalidatePath(`/${(await supabase.from("negocios").select("slug").eq("id", negocio.id).limit(1).single()).data?.slug}`);
+
+  return { success: true, recepcion_pausada: nuevoEstado };
 }

@@ -9,14 +9,12 @@ interface MenuFooterProps {
   negocio: NegocioPublico;
   showSchedule: boolean;
   setShowSchedule: (v: boolean) => void;
-  isMobile: boolean;
 }
 
 export function MenuFooter({
   negocio,
   showSchedule,
   setShowSchedule,
-  isMobile,
 }: MenuFooterProps) {
   return (
     <motion.footer
@@ -47,29 +45,31 @@ export function MenuFooter({
           </div>
         </div>
 
-        {isMobile ? (
+        {/* Mobile version — hidden on desktop (sm+), animated accordion */}
+        <div className="sm:hidden">
           <AnimatePresence initial={false}>
             {showSchedule && (
               <motion.div
-                id="schedule-grid"
+                id="schedule-grid-mobile"
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="grid gap-2 grid-cols-2 md:grid-cols-3 overflow-hidden"
+                className="grid gap-2 grid-cols-2 overflow-hidden"
               >
                 <ScheduleGrid horarios={negocio.horarios} withMotion />
               </motion.div>
             )}
           </AnimatePresence>
-        ) : (
-          <div
-            id="schedule-grid"
-            className="grid gap-2 grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-          >
-            <ScheduleGrid horarios={negocio.horarios} withMotion />
-          </div>
-        )}
+        </div>
+
+        {/* Desktop version — always visible, hidden on mobile */}
+        <div
+          id="schedule-grid"
+          className="hidden sm:grid gap-2 grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+        >
+          <ScheduleGrid horarios={negocio.horarios} withMotion />
+        </div>
 
         {/* DIRECCIONES */}
         {negocio.direcciones && negocio.direcciones.length > 0 && (

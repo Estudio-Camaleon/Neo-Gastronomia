@@ -24,11 +24,11 @@ function ComboCard({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       onClick={onClick}
-      className="flex items-stretch gap-0 overflow-hidden rounded-xl border border-[var(--color-custom-200)] bg-[var(--color-custom-surface-strong)] shadow-xs cursor-pointer text-left transition-all hover:shadow-md hover:border-[var(--color-custom-500)]/30 active:scale-[0.99]"
+      className="flex items-stretch gap-0 overflow-hidden rounded-xl border border-[var(--color-custom-200)] bg-[var(--color-custom-surface-strong)] shadow-xs cursor-pointer text-left transition-all hover:shadow-md hover:border-[var(--color-custom-500)]/30 active:scale-[0.99] w-full"
     >
       {/* Image thumbnail */}
       {promo.imagen_url ? (
-        <div className="w-20 sm:w-24 shrink-0 overflow-hidden bg-[var(--color-custom-100)]">
+        <div className="w-16 sm:w-24 shrink-0 overflow-hidden bg-[var(--color-custom-100)] min-h-[68px] sm:min-h-[88px]">
           <img
             src={promo.imagen_url}
             alt={promo.nombre}
@@ -36,34 +36,34 @@ function ComboCard({
           />
         </div>
       ) : (
-        <div className="flex w-16 sm:w-20 shrink-0 items-center justify-center bg-[var(--color-custom-500)]/10 text-[var(--color-custom-500)]">
-          <ShoppingBag size={22} />
+        <div className="flex w-12 sm:w-20 shrink-0 items-center justify-center bg-[var(--color-custom-500)]/10 text-[var(--color-custom-500)]">
+          <ShoppingBag size={20} />
         </div>
       )}
 
       {/* Content */}
-      <div className="flex flex-1 items-center gap-2 px-3 py-2.5 min-w-0">
+      <div className="flex flex-1 items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2.5 min-w-0">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-0.5">
-            <span className="rounded-full bg-[var(--color-custom-500)]/10 px-1.5 py-[1px] text-[9px] font-bold uppercase tracking-[0.08em] text-[var(--color-custom-600)]">
+            <span className="rounded-full bg-[var(--color-custom-500)]/10 px-1.5 py-[1px] text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.08em] text-[var(--color-custom-600)]">
               Combo
             </span>
           </div>
-          <p className="text-sm font-bold text-[var(--color-custom-900)] truncate leading-tight">
+          <p className="text-xs sm:text-sm font-bold text-[var(--color-custom-900)] truncate leading-tight">
             {promo.nombre}
           </p>
           {items.length > 0 && (
-            <p className="text-[11px] text-[var(--color-custom-text-muted)] truncate mt-0.5">
+            <p className="text-[10px] sm:text-[11px] text-[var(--color-custom-text-muted)] truncate mt-0.5">
               {items.map((i) => `${i.cantidad}x ${i.nombre_producto}`).join(" · ")}
             </p>
           )}
         </div>
-        <div className="shrink-0 text-right">
-          <p className="text-base font-black text-[var(--color-custom-500)] leading-none">
+        <div className="shrink-0 text-right ml-1 sm:ml-0">
+          <p className="text-sm sm:text-base font-black text-[var(--color-custom-500)] leading-none whitespace-nowrap">
             ${Number(promo.valor_descuento).toLocaleString("es-AR")}
           </p>
           {items.length > 0 && (
-            <p className="text-[10px] text-[var(--color-custom-text-muted)] line-through leading-tight mt-0.5">
+            <p className="text-[9px] sm:text-[10px] text-[var(--color-custom-text-muted)] line-through leading-tight mt-0.5 whitespace-nowrap">
               ${items.reduce((s, i) => s + i.precio * i.cantidad, 0).toLocaleString("es-AR")}
             </p>
           )}
@@ -83,26 +83,26 @@ function PromoBadge({ promo }: { promo: PromoRow }) {
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="flex items-center gap-2 rounded-lg border border-amber-200/60 bg-amber-50/80 px-3 py-2 text-xs"
+      className="flex flex-wrap items-center gap-1.5 sm:gap-2 rounded-lg border border-amber-200/60 bg-amber-50/80 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs"
     >
       {isPorcentaje ? (
-        <Percent size={13} className="shrink-0 text-amber-600" />
+        <Percent size={12} className="shrink-0 text-amber-600" />
       ) : (
-        <Tag size={13} className="shrink-0 text-amber-600" />
+        <Tag size={12} className="shrink-0 text-amber-600" />
       )}
-      <span className="font-semibold text-amber-800 truncate">
+      <span className="font-semibold text-amber-800 truncate text-[11px] sm:text-xs">
         {promo.nombre}
       </span>
       {promo.descripcion && (
-        <span className="hidden sm:inline text-amber-600 truncate">
+        <span className="hidden sm:inline text-amber-600 truncate text-[11px]">
           — {promo.descripcion}
         </span>
       )}
-      <span className="shrink-0 ml-auto rounded-full bg-amber-500 px-2 py-[1px] text-[10px] font-bold text-white">
+      <span className="shrink-0 rounded-full bg-amber-500 px-2 py-[1px] text-[9px] sm:text-[10px] font-bold text-white ml-auto">
         {label}
       </span>
       {promo.codigo && (
-        <code className="hidden sm:block rounded bg-amber-100 px-1.5 py-[1px] text-[9px] font-mono font-bold text-amber-700">
+        <code className="hidden sm:inline-flex rounded bg-amber-100 px-1.5 py-[1px] text-[8px] sm:text-[9px] font-mono font-bold text-amber-700">
           {promo.codigo}
         </code>
       )}

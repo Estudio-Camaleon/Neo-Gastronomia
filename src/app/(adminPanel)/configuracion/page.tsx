@@ -51,30 +51,7 @@ export default async function ConfiguracionPage(props: {
       </header>
 
       {/* FORMULARIO UNIFICADO DE RED */}
-      <ConfigForm
-        initialData={negocio}
-        userId={user?.id || ""}
-      />
-
-      {/* FOOTER OPERATIVO INDUSTRIAL */}
-      <footer className="pt-8 border-t border-[var(--admin-border)]/30 flex flex-col sm:flex-row justify-between items-center gap-4 text-[var(--admin-text-muted)] select-none">
-        <div className="text-xs font-medium tracking-wide">
-          NEO CORE SYSTEM ENGINE v3.0
-        </div>
-        <div className="flex gap-6 text-xs font-semibold">
-          <div className="flex items-center gap-2">
-            <Activity
-              size={14}
-              className="text-[var(--admin-accent)] animate-pulse"
-            />
-            <span>EN LÍNEA</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <ShieldCheck size={14} className="text-[var(--admin-text)]" />
-            <span>PROTEGIDO</span>
-          </div>
-        </div>
-      </footer>
+      <ConfigForm initialData={negocio} userId={user?.id || ""} />
     </div>
   );
 }

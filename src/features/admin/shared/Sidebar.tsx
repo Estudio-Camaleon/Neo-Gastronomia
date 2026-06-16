@@ -106,7 +106,7 @@ export function Sidebar({
                       strokeWidth={isActive ? 2.5 : 2}
                       className={isActive ? "text-white" : ""}
                     />
-                    {link.name === "Pedidos" && unreadCount > 0 && (
+                    {link.name === "Pedidos" && unreadCount > 0 && pathname !== "/pedidos" && !pathname.startsWith("/pedidos/") && (
                       <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[8px] font-bold px-1 rounded-full min-w-[14px] text-center leading-tight">
                         {unreadCount > 9 ? "9+" : unreadCount}
                       </span>
@@ -227,7 +227,7 @@ export function Sidebar({
                     }
                   />
                   <span className="tracking-wide truncate">{link.name}</span>
-                  {link.name === "Pedidos" && unreadCount > 0 && (
+                  {link.name === "Pedidos" && unreadCount > 0 && pathname !== "/pedidos" && !pathname.startsWith("/pedidos/") && (
                     <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-tight">
                       {unreadCount > 99 ? "99+" : unreadCount}
                     </span>

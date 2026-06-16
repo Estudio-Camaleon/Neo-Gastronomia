@@ -76,7 +76,7 @@ export function ProductGrid({
 
               {/* Product cards */}
               <motion.div
-                className={`grid grid-cols-1 gap-4 sm:grid-cols-2 transition-all duration-300 ${
+                className={`grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-5 transition-all duration-300 ${
                   isCartOpen
                     ? "lg:grid-cols-3"
                     : "lg:grid-cols-3 xl:grid-cols-4"

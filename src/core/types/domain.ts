@@ -40,6 +40,7 @@ export interface NegocioPublico {
   youtube_url: string | null;
   tripadvisor_url: string | null;
   horarios: Record<string, HorarioDia> | null;
+  recepcion_pausada?: boolean;
   moneda_simbolo?: string;
   pedido_minimo?: number;
   costo_envio?: number;
@@ -90,6 +91,7 @@ export interface ClienteResumen {
   email: string | null;
   totalGasto: number;
   pedidos: number;
+  ultimoPedido: string | null;
   notas: string | null;
 }
 

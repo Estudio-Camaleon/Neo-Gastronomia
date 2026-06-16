@@ -68,7 +68,7 @@ export function AddProductSection({ negocioId }: AddProductSectionProps) {
         <div className="px-5 py-4 border-b border-[var(--admin-border)] bg-[var(--admin-bg)]/50 flex items-center gap-2">
           <Package className="h-4 w-4 text-[var(--admin-text-muted)]" />
           <span className="font-semibold text-[var(--admin-text)] text-sm">
-            Ítems Activos
+            Productos Activos
           </span>
         </div>
 

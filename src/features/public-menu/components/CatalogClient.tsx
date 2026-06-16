@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search } from "lucide-react";
+import { Search, PauseCircle } from "lucide-react";
 import { useCartStore } from "@/features/public-menu/cart/useCartStore";
 import { CartFloatingButton } from "@/features/public-menu/cart/CartFloatingButton";
 import { PublicCart } from "@/features/public-menu/cart/PublicCart";
@@ -62,7 +62,7 @@ export function CatalogClient({
   const isCartOpen = useCartStore((state) => state.isCartOpen);
   const setCartOpen = useCartStore((state) => state.setCartOpen);
   const setNegocioId = useCartStore((state) => state.setNegocioId);
-  const isOpenNow = estaAbierto(negocio.horarios);
+  const isOpenNow = estaAbierto(negocio.horarios) && !negocio.recepcion_pausada;
   const todayKey = getTodayKey();
 
   useEffect(() => {
@@ -134,7 +134,25 @@ export function CatalogClient({
           todayKey={todayKey}
           showSchedule={showSchedule}
           setShowSchedule={setShowSchedule}
+          recepcionPausada={!!negocio.recepcion_pausada}
         />
+
+        {/* BANNER RECEPCIÓN PAUSADA */}
+        {negocio.recepcion_pausada && (
+          <div className="relative z-10 mx-4 mt-4 lg:mx-6">
+            <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600">
+              <PauseCircle size={20} className="shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold leading-tight">
+                  Recepción de pedidos pausada
+                </p>
+                <p className="text-xs font-medium text-red-500/80 mt-0.5">
+                  El local pausó la recepción por el momento. Volvé a consultar más tarde.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* CATALOGO */}
         <div className="relative overflow-hidden">
@@ -186,19 +204,41 @@ export function CatalogClient({
                     className="flex items-center gap-3 shrink-0"
                   >
                     <div
-                      className={`relative flex items-center rounded-full px-3 py-1 text-sm font-semibold uppercase tracking-wide ${isOpenNow ? "bg-[color:var(--color-custom-500)/0.12] text-[var(--color-custom-700)]" : "bg-[rgba(190,36,20,0.08)] text-[#be2414]"}`}
-                      title={isOpenNow ? "Abierto ahora" : "Cerrado ahora"}
+                      className={`relative flex items-center rounded-full px-3 py-1 text-sm font-semibold uppercase tracking-wide ${
+                        negocio.recepcion_pausada
+                          ? "bg-amber-500/10 text-amber-600"
+                          : isOpenNow
+                            ? "bg-[color:var(--color-custom-500)/0.12] text-[var(--color-custom-700)]"
+                            : "bg-[rgba(190,36,20,0.08)] text-[#be2414]"
+                      }`}
+                      title={
+                        negocio.recepcion_pausada
+                          ? "Recepción pausada"
+                          : isOpenNow
+                            ? "Abierto ahora"
+                            : "Cerrado ahora"
+                      }
                     >
-                      <motion.span
+                      <span
                         aria-hidden="true"
-                        animate={
-                          isOpenNow ? { scale: [1, 1.35, 1] } : { scale: 1 }
-                        }
-                        transition={{ repeat: Infinity, duration: 1.8 }}
-                        className={`mr-2 h-2.5 w-2.5 rounded-full ${isOpenNow ? "bg-[var(--color-custom-500)]" : "bg-white"}`}
+                        className={`mr-2 h-2.5 w-2.5 rounded-full ${
+                          negocio.recepcion_pausada
+                            ? "bg-amber-500"
+                            : isOpenNow
+                              ? "bg-[var(--color-custom-500)]"
+                              : "bg-white"
+                        }`}
                       />
-                      <span className="sr-only">{isOpenNow ? "Abierto ahora" : "Cerrado ahora"}</span>
-                      <span aria-hidden="true">{isOpenNow ? "Abierto" : "Cerrado"}</span>
+                      <span className="sr-only">
+                        {negocio.recepcion_pausada
+                          ? "Recepción pausada"
+                          : isOpenNow
+                            ? "Abierto ahora"
+                            : "Cerrado ahora"}
+                      </span>
+                      <span aria-hidden="true">
+                        {negocio.recepcion_pausada ? "Pausado" : isOpenNow ? "Abierto" : "Cerrado"}
+                      </span>
                     </div>
 
                     <div className="whitespace-nowrap text-sm text-[var(--color-custom-text-muted)]">
@@ -288,7 +328,6 @@ export function CatalogClient({
           negocio={negocio}
           showSchedule={showSchedule}
           setShowSchedule={setShowSchedule}
-          isMobile={isMobile}
         />
       </div>
 

@@ -14,6 +14,8 @@ import {
   Minus,
   Upload,
   X,
+  Search,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { upsertPromoSchema } from "@/core/lib/schemas";
@@ -60,6 +62,9 @@ export function PromosSection({ negocioId }: PromosSectionProps) {
   const [formData, setFormData] = useState<PromoFormData>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState<"all" | "activas" | "inactivas" | "combo" | "descuento">("all");
   const [products, setProducts] = useState<ProductOption[]>([]);
 
   const loadPromos = useCallback(async () => {
@@ -124,6 +129,7 @@ export function PromosSection({ negocioId }: PromosSectionProps) {
   };
 
   const handleDelete = async (promoId: string) => {
+    setConfirmDeleteId(null);
     setDeletingId(promoId);
     try {
       await deletePromoAction(promoId);
@@ -183,6 +189,21 @@ export function PromosSection({ negocioId }: PromosSectionProps) {
     (sum, i) => sum + (i.precio ?? 0) * i.cantidad,
     0,
   );
+
+  const filteredPromos = promos.filter((p) => {
+    if (filterType === "activas" && !p.activo) return false;
+    if (filterType === "inactivas" && p.activo) return false;
+    if (filterType === "combo" && p.tipo_descuento !== "combo") return false;
+    if (filterType === "descuento" && p.tipo_descuento === "combo") return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const matchName = p.nombre.toLowerCase().includes(q);
+      const matchDesc = (p.descripcion ?? "").toLowerCase().includes(q);
+      const matchCode = (p.codigo ?? "").toLowerCase().includes(q);
+      if (!matchName && !matchDesc && !matchCode) return false;
+    }
+    return true;
+  });
 
   if (loading) {
     return (
@@ -265,8 +286,43 @@ export function PromosSection({ negocioId }: PromosSectionProps) {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {promos.map((promo) => {
+        <>
+          {/* Search + filter bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="relative flex-1">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)]" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar por nombre, descripción o código..."
+                className="w-full pl-9 pr-3 py-2 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl text-sm text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] transition-all"
+              />
+            </div>
+            <div className="flex gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+              {(["all", "activas", "inactivas", "combo", "descuento"] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilterType(f)}
+                  className={`shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+                    filterType === f
+                      ? "bg-[var(--admin-accent)] text-white shadow-sm"
+                      : "bg-[var(--admin-bg)] border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-surface)]"
+                  }`}
+                >
+                  {f === "all" ? "Todas" : f === "activas" ? "Activas" : f === "inactivas" ? "Inactivas" : f === "combo" ? "Combos" : "Dto."}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filteredPromos.length === 0 ? (
+            <div className="col-span-full py-10 text-center text-sm text-[var(--admin-text-muted)]">
+              {searchQuery ? "No hay promos que coincidan con la búsqueda." : "No hay promociones todavía."}
+            </div>
+          ) : (
+          filteredPromos.map((promo) => {
             const isCombo = promo.tipo_descuento === "combo";
             const comboItems = isCombo ? (promo.items_combo ?? []) : [];
 
@@ -388,7 +444,7 @@ export function PromosSection({ negocioId }: PromosSectionProps) {
                       <Pencil size={14} />
                     </button>
                     <button
-                      onClick={() => handleDelete(promo.id)}
+                      onClick={() => setConfirmDeleteId(promo.id)}
                       disabled={deletingId === promo.id}
                       className="p-1.5 rounded-lg text-[var(--admin-text-muted)] hover:text-red-500 hover:bg-red-500/10 transition-all disabled:opacity-40"
                     >
@@ -402,7 +458,43 @@ export function PromosSection({ negocioId }: PromosSectionProps) {
                 </div>
               </div>
             );
-          })}
+          })
+        )}
+        </div>
+        </>
+      )}
+
+      {confirmDeleteId && (
+        <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-[999999] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-[var(--admin-surface)] rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-[var(--admin-border)] text-center animate-in zoom-in-95 duration-150">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-500/10">
+              <AlertTriangle size={24} className="text-red-500" />
+            </div>
+            <h3 className="text-lg font-bold text-[var(--admin-text)] mb-2">
+              ¿Eliminar promoción?
+            </h3>
+            <p className="text-sm text-[var(--admin-text-muted)] mb-6">
+              Esta acción no se puede deshacer. La promoción se borrará permanentemente.
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteId(null)}
+                className="flex-1 py-2.5 border border-[var(--admin-border)] rounded-xl text-sm font-semibold text-[var(--admin-text-muted)] hover:bg-[var(--admin-bg)] transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(confirmDeleteId)}
+                disabled={deletingId === confirmDeleteId}
+                className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-bold hover:bg-red-600 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+              >
+                {deletingId === confirmDeleteId ? <FoodMini size={14} /> : <Trash2 size={14} />}
+                Eliminar
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -438,10 +530,13 @@ function ImageUploadInline({
   setUploading: (v: boolean) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [dragOver, setDragOver] = useState(false);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const uploadFile = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Solo se permiten imágenes");
+      return;
+    }
     if (file.size > 5 * 1024 * 1024) {
       toast.error("La imagen supera el límite de 5MB");
       return;
@@ -463,6 +558,30 @@ function ImageUploadInline({
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
     }
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await uploadFile(file);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    await uploadFile(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
   };
 
   const handleRemove = async () => {
@@ -495,11 +614,24 @@ function ImageUploadInline({
           </button>
         </div>
       ) : (
-        <label className="flex items-center justify-center w-20 h-20 rounded-lg border-2 border-dashed border-[var(--admin-border)] cursor-pointer hover:border-[var(--admin-accent)] transition-colors">
+        <div
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onClick={() => inputRef.current?.click()}
+          className={`flex items-center justify-center w-28 h-20 rounded-lg border-2 border-dashed cursor-pointer transition-all ${
+            dragOver
+              ? "border-[var(--admin-accent)] bg-[var(--admin-accent)]/5 scale-105"
+              : "border-[var(--admin-border)] hover:border-[var(--admin-accent)]"
+          }`}
+        >
           {uploading ? (
             <FoodMini size={16} />
           ) : (
-            <Upload size={18} className="text-[var(--admin-text-muted)]" />
+            <div className="flex flex-col items-center gap-1">
+              <Upload size={18} className="text-[var(--admin-text-muted)]" />
+              <span className="text-[8px] text-[var(--admin-text-muted)]">Arrastrar o click</span>
+            </div>
           )}
           <input
             ref={inputRef}
@@ -509,7 +641,7 @@ function ImageUploadInline({
             onChange={handleUpload}
             disabled={uploading}
           />
-        </label>
+        </div>
       )}
       {!value && !uploading && (
         <span className="text-[11px] text-[var(--admin-text-muted)]">
@@ -548,9 +680,53 @@ function PromoModal({
   comboTotal: number;
 }) {
   const [selectedProduct, setSelectedProduct] = useState("");
+  const [productSearch, setProductSearch] = useState("");
+  const [showProductDropdown, setShowProductDropdown] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const productInputRef = useRef<HTMLInputElement>(null);
+  const productDropdownRef = useRef<HTMLDivElement>(null);
   useScrollLock(true);
   const isCombo = formData.tipo_descuento === "combo";
+
+  const filteredAvailable = availableProducts.filter(
+    (p) =>
+      p.nombre.toLowerCase().includes(productSearch.toLowerCase()) ||
+      `$${p.precio}`.includes(productSearch),
+  );
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (
+        productDropdownRef.current &&
+        !productDropdownRef.current.contains(e.target as Node) &&
+        productInputRef.current &&
+        !productInputRef.current.contains(e.target as Node)
+      ) {
+        setShowProductDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const validate = (): boolean => {
+    const result = upsertPromoSchema.safeParse(formData);
+    if (result.success) {
+      setErrors({});
+      return true;
+    }
+    const fieldErrors: Record<string, string> = {};
+    for (const issue of result.error.issues) {
+      const path = issue.path.join(".");
+      if (!fieldErrors[path]) {
+        fieldErrors[path] = issue.message;
+      }
+    }
+    setErrors(fieldErrors);
+    return false;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -558,6 +734,7 @@ function PromoModal({
       toast.error("Agregá al menos un producto al combo");
       return;
     }
+    if (!validate()) return;
     onSave();
   };
 
@@ -565,6 +742,24 @@ function PromoModal({
     if (!selectedProduct) return;
     onAddComboItem(selectedProduct);
     setSelectedProduct("");
+    setProductSearch("");
+  };
+
+  const autoSuggestPrice = () => {
+    if (comboTotal <= 0) return;
+    const suggested = Math.round(comboTotal * 0.85);
+    onChange({ ...formData, valor_descuento: suggested });
+    toast.success(`Precio sugerido: $${suggested.toLocaleString("es-AR")} (15% de descuento)`);
+  };
+
+  const clearErrors = (field: string) => {
+    if (errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
   };
 
   return (
@@ -607,10 +802,20 @@ function PromoModal({
             <input
               required
               value={formData.nombre}
-              onChange={(e) => onChange({ ...formData, nombre: e.target.value })}
+              onChange={(e) => {
+                onChange({ ...formData, nombre: e.target.value });
+                clearErrors("nombre");
+              }}
               placeholder={isCombo ? "Ej: Combo Hamburguesa Completo" : "Ej: 2x1 en Combos"}
-              className="w-full p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-xl text-sm text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] transition-all"
+              className={`w-full p-2.5 bg-[var(--admin-bg)] border rounded-xl text-sm text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] transition-all ${
+                errors["nombre"]
+                  ? "border-red-400 focus:border-red-500"
+                  : "border-[var(--admin-border)] focus:border-[var(--admin-accent)]"
+              }`}
             />
+            {errors["nombre"] && (
+              <p className="text-[10px] text-red-500 font-medium">{errors["nombre"]}</p>
+            )}
           </div>
 
           <div className="space-y-1">
@@ -619,10 +824,28 @@ function PromoModal({
             </label>
             <textarea
               value={formData.descripcion ?? ""}
-              onChange={(e) => onChange({ ...formData, descripcion: e.target.value || null })}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val.length > 300) return;
+                onChange({ ...formData, descripcion: val || null });
+                clearErrors("descripcion");
+              }}
+              maxLength={300}
               placeholder={isCombo ? "Ej: Incluye hamburguesa, papas y bebida" : "Ej: Válido todos los martes"}
-              className="w-full p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-xl text-sm text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] transition-all resize-none h-20"
+              className={`w-full p-2.5 bg-[var(--admin-bg)] border rounded-xl text-sm text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] transition-all resize-none h-20 ${
+                errors["descripcion"]
+                  ? "border-red-400 focus:border-red-500"
+                  : "border-[var(--admin-border)] focus:border-[var(--admin-accent)]"
+              }`}
             />
+            <div className="flex justify-end">
+              <span className="text-[10px] tabular-nums text-[var(--admin-text-muted)] opacity-60">
+                {(formData.descripcion ?? "").length}/300
+              </span>
+            </div>
+            {errors["descripcion"] && (
+              <p className="text-[10px] text-red-500 font-medium">{errors["descripcion"]}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -636,18 +859,41 @@ function PromoModal({
                   const tipo = e.target.value as "porcentaje" | "monto_fijo" | "combo";
                   if (tipo === "combo") onChange({ ...formData, tipo_descuento: tipo });
                   else onChange({ ...formData, tipo_descuento: tipo, items_combo: [] });
+                  clearErrors("tipo_descuento");
                 }}
-                className="w-full p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-xl text-sm text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] transition-all"
+                className={`w-full p-2.5 bg-[var(--admin-bg)] border rounded-xl text-sm text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] transition-all ${
+                  errors["tipo_descuento"]
+                    ? "border-red-400 focus:border-red-500"
+                    : "border-[var(--admin-border)] focus:border-[var(--admin-accent)]"
+                }`}
               >
                 <option value="porcentaje">Porcentaje (%)</option>
                 <option value="monto_fijo">Monto Fijo ($)</option>
                 <option value="combo">Combo</option>
               </select>
+              {errors["tipo_descuento"] && (
+                <p className="text-[10px] text-red-500 font-medium">{errors["tipo_descuento"]}</p>
+              )}
             </div>
             <div className="space-y-1">
               <label className="text-xs font-semibold text-[var(--admin-text)]">
                 {isCombo ? "Precio Combo $" : formData.tipo_descuento === "porcentaje" ? "Porcentaje" : "Monto $"}
               </label>
+              {isCombo && comboTotal > 0 && (
+                <div className="flex items-center gap-1 mb-1">
+                  <span className="text-[10px] text-[var(--admin-text-muted)] line-through">
+                    ${comboTotal.toLocaleString("es-AR")}
+                  </span>
+                  <span className="text-[10px] text-[var(--admin-text-muted)]">valor real</span>
+                  <button
+                    type="button"
+                    onClick={autoSuggestPrice}
+                    className="ml-auto text-[9px] font-bold text-blue-500 hover:text-blue-600 underline"
+                  >
+                    Sugerir precio
+                  </button>
+                </div>
+              )}
               <input
                 required
                 type="number"
@@ -655,11 +901,19 @@ function PromoModal({
                 max={isCombo ? 999999 : 100}
                 step={isCombo ? 0.01 : formData.tipo_descuento === "porcentaje" ? 1 : 0.01}
                 value={formData.valor_descuento}
-                onChange={(e) =>
-                  onChange({ ...formData, valor_descuento: Number(e.target.value) })
-                }
-                className="w-full min-w-0 p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-xl text-sm text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] transition-all"
+                onChange={(e) => {
+                  onChange({ ...formData, valor_descuento: Number(e.target.value) });
+                  clearErrors("valor_descuento");
+                }}
+                className={`w-full min-w-0 p-2.5 bg-[var(--admin-bg)] border rounded-xl text-sm text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] transition-all ${
+                  errors["valor_descuento"]
+                    ? "border-red-400 focus:border-red-500"
+                    : "border-[var(--admin-border)] focus:border-[var(--admin-accent)]"
+                }`}
               />
+              {errors["valor_descuento"] && (
+                <p className="text-[10px] text-red-500 font-medium">{errors["valor_descuento"]}</p>
+              )}
             </div>
           </div>
 
@@ -669,11 +923,21 @@ function PromoModal({
             </label>
             <input
               value={formData.codigo ?? ""}
-              onChange={(e) => onChange({ ...formData, codigo: e.target.value || null })}
+              onChange={(e) => {
+                onChange({ ...formData, codigo: e.target.value || null });
+                clearErrors("codigo");
+              }}
               placeholder="Ej: VERANO2025"
-              className="w-full p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-xl text-sm font-mono text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] transition-all uppercase"
+              className={`w-full p-2.5 bg-[var(--admin-bg)] border rounded-xl text-sm font-mono text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] transition-all uppercase ${
+                errors["codigo"]
+                  ? "border-red-400 focus:border-red-500"
+                  : "border-[var(--admin-border)] focus:border-[var(--admin-accent)]"
+              }`}
               maxLength={30}
             />
+            {errors["codigo"] && (
+              <p className="text-[10px] text-red-500 font-medium">{errors["codigo"]}</p>
+            )}
             <p className="text-[10px] text-[var(--admin-text-muted)]">
               Código que el cliente ingresa al hacer un pedido.
             </p>
@@ -745,19 +1009,54 @@ function PromoModal({
               )}
 
               {availableProducts.length > 0 && (
-                <div className="flex gap-2">
-                  <select
-                    value={selectedProduct}
-                    onChange={(e) => setSelectedProduct(e.target.value)}
-                    className="flex-1 p-2 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-lg text-xs text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)]"
-                  >
-                    <option value="">Seleccionar producto...</option>
-                    {availableProducts.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.nombre} (${p.precio.toLocaleString("es-AR")})
-                      </option>
-                    ))}
-                  </select>
+                <div className="relative flex gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      ref={productInputRef}
+                      type="text"
+                      value={selectedProduct ? availableProducts.find((p) => p.id === selectedProduct)?.nombre ?? productSearch : productSearch}
+                      onChange={(e) => {
+                        setProductSearch(e.target.value);
+                        setSelectedProduct("");
+                        setShowProductDropdown(true);
+                      }}
+                      onFocus={() => setShowProductDropdown(true)}
+                      placeholder="Escribí para buscar productos..."
+                      className={`w-full p-2 bg-[var(--admin-surface)] border rounded-lg text-xs text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] transition-all ${
+                        selectedProduct && !productSearch
+                          ? "border-[var(--admin-accent)]"
+                          : "border-[var(--admin-border)] focus:border-[var(--admin-accent)]"
+                      }`}
+                    />
+                    {showProductDropdown && filteredAvailable.length > 0 && (
+                      <div
+                        ref={productDropdownRef}
+                        className="absolute z-50 top-full left-0 right-0 mt-1 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-lg shadow-xl max-h-48 overflow-y-auto"
+                      >
+                        {filteredAvailable.map((p) => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedProduct(p.id);
+                              setProductSearch(p.nombre);
+                              setShowProductDropdown(false);
+                            }}
+                            className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-[var(--admin-bg)] transition-colors ${
+                              selectedProduct === p.id
+                                ? "bg-[var(--admin-accent)]/5 text-[var(--admin-accent)] font-semibold"
+                                : "text-[var(--admin-text)]"
+                            }`}
+                          >
+                            <span>{p.nombre}</span>
+                            <span className="text-[var(--admin-text-muted)] font-mono">
+                              ${p.precio.toLocaleString("es-AR")}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={handleAdd}

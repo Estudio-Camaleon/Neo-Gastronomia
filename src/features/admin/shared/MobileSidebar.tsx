@@ -23,8 +23,6 @@ import {
   ExternalLink,
   X,
 } from "lucide-react";
-import { AdminHamburgerButton } from "@/features/admin/shared/AdminHamburgerButton";
-
 interface MobileSidebarProps {
   slug: string;
   negocioNombre: string;
@@ -75,12 +73,6 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
 
   return (
     <>
-      <AdminHamburgerButton
-        onClick={() => setOpen(true)}
-        isOpen={open}
-        controls="mobile-sidebar-panel"
-      />
-
       <AnimatePresence>
         {open && (
           <motion.div
@@ -160,7 +152,7 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
                     >
                       <div className="relative">
                         <Icon size={20} strokeWidth={isActive ? 2.5 : 2} className="shrink-0" />
-                        {link.name === "Pedidos" && unreadCount > 0 && (
+                        {link.name === "Pedidos" && unreadCount > 0 && pathname !== "/pedidos" && !pathname.startsWith("/pedidos/") && (
                           <span className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[8px] font-bold px-1 rounded-full min-w-[14px] text-center leading-tight">
                             {unreadCount > 9 ? "9+" : unreadCount}
                           </span>

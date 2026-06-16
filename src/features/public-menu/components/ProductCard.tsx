@@ -47,14 +47,14 @@ export function ProductCard({
       aria-disabled={!product.disponible}
     >
       {/* Image area */}
-      <div className="relative aspect-[5/4] w-full overflow-hidden bg-[var(--color-custom-100)]">
+      <div className="relative aspect-[5/4] sm:aspect-[4/3] w-full overflow-hidden bg-[var(--color-custom-100)]">
         {product.imagen_url ? (
           <>
             <Image
               src={product.imagen_url}
               alt={product.nombre}
               fill
-              loading="eager"
+              loading="lazy"
               className="object-cover transition-transform duration-500 group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
@@ -67,8 +67,8 @@ export function ProductCard({
         ) : (
           <div className="flex h-full items-center justify-center text-[var(--color-custom-text-muted)]" aria-hidden="true">
             <div className="flex flex-col items-center gap-1 opacity-50">
-              <ImageIcon size={28} />
-              <span className="text-[9px] font-mono uppercase tracking-[0.1em]">Sin imagen</span>
+              <ImageIcon size={24} />
+              <span className="text-[8px] font-mono uppercase tracking-[0.1em]">Sin imagen</span>
             </div>
           </div>
         )}
@@ -84,22 +84,22 @@ export function ProductCard({
       </div>
 
       {/* Content */}
-      <div className="flex flex-col gap-3 p-4">
+      <div className="flex flex-col gap-2 p-3 sm:p-4 sm:pt-3">
         {/* Title + description */}
-        <div className="space-y-1">
-          <h3 className="text-sm font-bold leading-tight text-[var(--color-custom-900)]">
+        <div className="space-y-0.5">
+          <h3 className="text-sm sm:text-[13px] font-bold leading-tight text-[var(--color-custom-900)]">
             {product.nombre}
           </h3>
           {product.descripcion && (
-            <p className="line-clamp-2 text-[12px] leading-relaxed text-[var(--color-custom-text-muted)]">
+            <p className="line-clamp-2 sm:line-clamp-1 text-[12px] leading-relaxed text-[var(--color-custom-text-muted)]">
               {product.descripcion}
             </p>
           )}
         </div>
 
         {/* Price + actions */}
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-lg font-black tracking-tight text-[var(--color-custom-900)]">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-base sm:text-[15px] font-black tracking-tight text-[var(--color-custom-900)]">
             {formatMoney(product.precio, simbolo)}
           </span>
 
@@ -115,16 +115,16 @@ export function ProductCard({
                   e.stopPropagation();
                   onRemove(product.id);
                 }}
-                className="flex h-10 w-10 items-center justify-center transition-all hover:bg-black/10 disabled:opacity-30 sm:h-9 sm:w-9"
+                className="flex h-9 w-9 items-center justify-center transition-all hover:bg-black/10 disabled:opacity-30"
                 disabled={cantidad === 0}
               >
-                <Minus size={15} />
+                <Minus size={14} />
               </button>
               <motion.span
                 key={cantidad}
                 initial={{ scale: 1.3 }}
                 animate={{ scale: 1 }}
-                className="inline-flex min-w-[2.25rem] items-center justify-center text-sm font-bold tabular-nums sm:min-w-[2rem]"
+                className="inline-flex min-w-[1.75rem] items-center justify-center text-xs sm:text-sm font-bold tabular-nums"
               >
                 {cantidad}
               </motion.span>
@@ -140,16 +140,16 @@ export function ProductCard({
                     onQuickAdd(product);
                   }
                 }}
-                className={`flex h-10 w-10 items-center justify-center transition-all hover:bg-black/10 sm:h-9 sm:w-9 ${
+                className={`flex h-9 w-9 items-center justify-center transition-all hover:bg-black/10 ${
                   !isOpenNow ? "opacity-40 cursor-not-allowed" : ""
                 }`}
                 disabled={!isOpenNow}
               >
-                <Plus size={15} />
+                <Plus size={14} />
               </button>
             </motion.div>
           ) : (
-            <span className="rounded-full bg-[var(--color-custom-100)] px-3 py-1.5 text-[11px] font-semibold text-[var(--color-custom-text-muted)]">
+            <span className="rounded-full bg-[var(--color-custom-100)] px-2.5 py-1 text-[10px] font-semibold text-[var(--color-custom-text-muted)]">
               Agotado
             </span>
           )}

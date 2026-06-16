@@ -73,6 +73,7 @@ describe("domain types", () => {
       email: null,
       totalGasto: 2500,
       pedidos: 5,
+      ultimoPedido: null,
       notas: null,
     };
     expect(cliente.nombre).toBe("Pedro");

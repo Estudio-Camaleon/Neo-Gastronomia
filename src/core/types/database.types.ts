@@ -169,6 +169,7 @@ export type Database = {
           youtube_url: string | null
           tripadvisor_url: string | null
           floating_shapes: Json
+          recepcion_pausada: boolean
           trial_ends_at: string | null
           updated_at: string | null
           user_id: string | null
@@ -204,6 +205,7 @@ export type Database = {
           youtube_url?: string | null
           tripadvisor_url?: string | null
           floating_shapes?: Json
+          recepcion_pausada?: boolean
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_status?: string | null
@@ -239,6 +241,7 @@ export type Database = {
           youtube_url?: string | null
           tripadvisor_url?: string | null
           floating_shapes?: Json
+          recepcion_pausada?: boolean
           mostrar_nombre?: boolean
           nombre?: string
           plan_tier?: string
