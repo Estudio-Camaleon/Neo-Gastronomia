@@ -88,7 +88,7 @@ export function UpgradeFlow({ action }: UpgradeFlowProps) {
         <p className="text-sm font-medium text-[var(--admin-text-muted)] mb-6 max-w-sm mx-auto">
           Desbloqueá productos ilimitados, estadísticas detalladas, exportación de datos y más.
           <span className="block mt-2 text-lg font-bold text-[var(--admin-text)]">
-            $15.000/mes
+            $100/mes
           </span>
         </p>
         {errorMsg && (
@@ -101,10 +101,10 @@ export function UpgradeFlow({ action }: UpgradeFlowProps) {
           className="inline-flex items-center gap-2 px-8 py-3.5 bg-[var(--admin-accent)] text-white rounded-xl font-bold text-sm shadow-md hover:opacity-90 transition-all disabled:opacity-60 disabled:cursor-wait"
         >
           <Sparkles size={16} />
-          {loading ? "Redirigiendo a Mercado Pago..." : "Ir al pago — $15.000/mes"}
+          {loading ? "Redirigiendo a Mercado Pago..." : "Ir al pago — $100/mes"}
         </button>
         <p className="text-[10px] font-medium text-[var(--admin-text-muted)] mt-3">
-          Pago único mensual. Cancelá cuando quieras.
+          $100 es solo para pruebas — luego volverá a $15.000/mes.
         </p>
       </div>
     );
