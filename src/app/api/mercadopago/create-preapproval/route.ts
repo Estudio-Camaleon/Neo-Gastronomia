@@ -90,10 +90,8 @@ export async function POST(req: Request) {
       .eq("id", negocio.id);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const r = result as any;
-    const isTest = !!TEST_PAYER_EMAIL;
-    const initPoint = isTest ? r.sandbox_init_point : r.init_point;
-    console.log("[MP PREAPPROVAL] created id=%s back_url=%s mode=%s", result.id, backUrl, isTest ? "test" : "production");
+    const initPoint = (result as any).init_point;
+    console.log("[MP PREAPPROVAL] created id=%s back_url=%s", result.id, backUrl);
     return NextResponse.json({ url: initPoint });
   } catch (error: unknown) {
     console.error("[MP CREATE PREAPPROVAL]", error);
