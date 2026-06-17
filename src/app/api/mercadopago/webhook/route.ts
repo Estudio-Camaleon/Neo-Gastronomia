@@ -61,11 +61,11 @@ export async function POST(request: Request) {
       // JSON notification
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const body: any = await request.json();
-      const action = body?.action as string | undefined;
+      const topic = body?.type as string | undefined;
       const dataId = body?.data?.id as string | undefined;
 
       if (
-        action?.startsWith("subscription_preapproval") &&
+        topic === "subscription_preapproval" &&
         dataId
       ) {
         await handlePreApprovalNotification(dataId);
