@@ -1,5 +1,7 @@
 import { createClient } from "@/core/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getPlanLimits } from "@/core/lib/billing";
+import type { PlanTier } from "@/core/lib/billing";
 import {
   ShoppingBag,
   Users,
@@ -12,6 +14,7 @@ import {
   Sparkles,
   Percent,
   Settings,
+  Zap,
 } from "lucide-react";
 import { estaAbierto } from "@/core/lib/utils/horarios";
 
@@ -22,11 +25,16 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  let negocio: { id: string; nombre: string; horarios: unknown } | null = null;
+  let negocio: {
+    id: string;
+    nombre: string;
+    horarios: unknown;
+    plan_tier: string;
+  } | null = null;
 
   const { data: negocios } = await supabase
     .from("negocios")
-    .select("id, nombre, horarios")
+    .select("id, nombre, horarios, plan_tier")
     .eq("user_id", user.id)
     .limit(1);
 
@@ -42,7 +50,7 @@ export default async function DashboardPage() {
     if (memberships?.[0]?.negocio_id) {
       const { data: teamNegocio } = await supabase
         .from("negocios")
-        .select("id, nombre, horarios")
+        .select("id, nombre, horarios, plan_tier")
         .eq("id", memberships[0].negocio_id)
         .limit(1)
         .single();
@@ -100,6 +108,12 @@ export default async function DashboardPage() {
   const cancelados = listaPedidos.filter(
     (p) => p.estado === "cancelado",
   ).length;
+
+  const planTier = (negocio.plan_tier as PlanTier) ?? "free";
+  const limits = getPlanLimits(planTier);
+  const cercaDelLimite =
+    planTier === "free" &&
+    (totalProductos >= 40 || totalCategorias >= 12);
 
   const abierto =
     negocio.horarios !== null && negocio.horarios !== undefined
@@ -169,6 +183,33 @@ export default async function DashboardPage() {
           >
             <Package size={18} />
             Configurar menú
+          </a>
+        </div>
+      )}
+
+      {cercaDelLimite && (
+        <div className="admin-card p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-transparent">
+          <div className="flex items-start gap-3">
+            <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+              <Zap size={18} />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-[var(--admin-text)]">
+                Estás cerca del límite de tu plan
+              </p>
+              <p className="text-xs font-medium text-[var(--admin-text-muted)] mt-0.5">
+                {totalProductos}/{limits.maxProducts} productos ·{" "}
+                {totalCategorias}/{limits.maxCategories} categorías.
+                Actualizá a PRO para disfrutar de todo sin límites.
+              </p>
+            </div>
+          </div>
+          <a
+            href="/configuracion?upgrade=true"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 text-white rounded-xl font-bold text-xs shadow-md hover:bg-amber-600 transition-all shrink-0"
+          >
+            <Sparkles size={14} />
+            Ver planes
           </a>
         </div>
       )}

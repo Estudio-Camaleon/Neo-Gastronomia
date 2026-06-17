@@ -27,11 +27,9 @@ declare global {
       // Resend API key for auth confirmation emails (via Supabase SMTP)
       RESEND_API_KEY?: string;
 
-      // Stripe billing
-      STRIPE_SECRET_KEY?: string;
-      STRIPE_WEBHOOK_SECRET?: string;
-      STRIPE_PRO_PRICE_ID?: string;
-      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?: string;
+      // Mercado Pago billing
+      MERCADO_PAGO_ACCESS_TOKEN?: string;
+      NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY?: string;
     }
   }
 }

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getAuthenticatedTenant } from "@/core/lib/tenant";
 import { upsertProductSchema } from "@/core/lib/schemas";
 import { logAuditEvent } from "@/core/lib/audit";
+import { canAddProduct, canAddCategory } from "@/core/lib/billing";
 import { z } from "zod";
 
 function revalidateMenus(slug?: string) {
@@ -78,6 +79,18 @@ export async function upsertProductAction(
       cambios_nuevos: { ...parsed.data } as unknown as Record<string, unknown>,
     });
   } else {
+    const { count: productCount } = await supabase
+      .from("productos")
+      .select("*", { count: "exact", head: true })
+      .eq("negocio_id", tenantId);
+
+    const canAdd = await canAddProduct(tenantId, productCount ?? 0);
+    if (!canAdd) {
+      throw new Error(
+        "Alcanzaste el límite de productos de tu plan. Actualizá a PRO para productos ilimitados.",
+      );
+    }
+
     const { error } = await supabase.from("productos").insert({
       nombre: parsed.data.nombre,
       descripcion: parsed.data.descripcion ?? null,
@@ -165,6 +178,18 @@ export async function createCategoryAction(nombre: string, categorySlug: string,
   if (existing && existing.length > 0) {
     throw new Error(
       "Ya existe una sección con ese identificador (slug). Probá con otro nombre.",
+    );
+  }
+
+  const { count: categoryCount } = await supabase
+    .from("categorias")
+    .select("*", { count: "exact", head: true })
+    .eq("negocio_id", tenantId);
+
+  const canAdd = await canAddCategory(tenantId, categoryCount ?? 0);
+  if (!canAdd) {
+    throw new Error(
+      "Alcanzaste el límite de categorías de tu plan. Actualizá a PRO para categorías ilimitadas.",
     );
   }
 

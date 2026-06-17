@@ -9,10 +9,8 @@ const clientEnvSchema = z.object({
 const serverEnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   RESEND_API_KEY: z.string().optional(),
-  STRIPE_SECRET_KEY: z.string().optional(),
-  STRIPE_WEBHOOK_SECRET: z.string().optional(),
-  STRIPE_PRO_PRICE_ID: z.string().optional(),
-  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+  MERCADO_PAGO_ACCESS_TOKEN: z.string().optional(),
+  NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY: z.string().optional(),
 });
 
 // Validación en tiempo de arranque del proceso Next.js

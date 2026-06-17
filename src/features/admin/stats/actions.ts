@@ -1,6 +1,8 @@
 "use server";
 
 import { createClient } from "@/core/lib/supabase/server";
+import { getPlanLimits } from "@/core/lib/billing";
+import type { PlanTier } from "@/core/lib/billing";
 
 export interface StatsSummary {
   totalRevenue: number;
@@ -118,6 +120,21 @@ export async function exportOrdersCSV(
 ): Promise<{ csv: string; filename: string }> {
   const supabase = await createClient();
   const { negocioId, startDate, endDate } = filters;
+
+  const { data: negocio } = await supabase
+    .from("negocios")
+    .select("plan_tier")
+    .eq("id", negocioId)
+    .limit(1)
+    .single();
+
+  const tier = (negocio?.plan_tier as PlanTier) ?? "free";
+  const limits = getPlanLimits(tier);
+  if (!limits.exportData) {
+    throw new Error(
+      "La exportación de datos está disponible solo en el plan PRO. Actualizá para acceder.",
+    );
+  }
 
   const { data: orders } = await supabase
     .from("pedidos")

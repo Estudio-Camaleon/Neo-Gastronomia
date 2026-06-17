@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       audit_logs: {
@@ -148,6 +173,7 @@ export type Database = {
           direccion_notas: string | null
           direcciones: Json
           facebook_url: string | null
+          floating_shapes: Json | null
           horarios: Json | null
           id: string
           instagram_url: string | null
@@ -158,22 +184,24 @@ export type Database = {
           logo_shape: string
           logo_url: string | null
           mostrar_nombre: boolean
+          mp_customer_id: string | null
+          mp_status: string | null
+          mp_subscription_id: string | null
           nombre: string
           plan_tier: string
+          recepcion_pausada: boolean
           slug: string
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           subscription_status: string | null
           tiktok_url: string | null
-          twitter_url: string | null
-          youtube_url: string | null
-          tripadvisor_url: string | null
-          floating_shapes: Json
-          recepcion_pausada: boolean
           trial_ends_at: string | null
+          tripadvisor_url: string | null
+          twitter_url: string | null
           updated_at: string | null
           user_id: string | null
           whatsapp: string | null
+          youtube_url: string | null
         }
         Insert: {
           banner_height?: string
@@ -188,6 +216,7 @@ export type Database = {
           direccion_notas?: string | null
           direcciones?: Json
           facebook_url?: string | null
+          floating_shapes?: Json | null
           horarios?: Json | null
           id?: string
           instagram_url?: string | null
@@ -198,22 +227,24 @@ export type Database = {
           logo_shape?: string
           logo_url?: string | null
           mostrar_nombre?: boolean
+          mp_customer_id?: string | null
+          mp_status?: string | null
+          mp_subscription_id?: string | null
           nombre: string
           plan_tier?: string
-          slug: string
-          twitter_url?: string | null
-          youtube_url?: string | null
-          tripadvisor_url?: string | null
-          floating_shapes?: Json
           recepcion_pausada?: boolean
+          slug: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_status?: string | null
           tiktok_url?: string | null
           trial_ends_at?: string | null
+          tripadvisor_url?: string | null
+          twitter_url?: string | null
           updated_at?: string | null
           user_id?: string | null
           whatsapp?: string | null
+          youtube_url?: string | null
         }
         Update: {
           banner_height?: string
@@ -228,6 +259,7 @@ export type Database = {
           direccion_notas?: string | null
           direcciones?: Json
           facebook_url?: string | null
+          floating_shapes?: Json | null
           horarios?: Json | null
           id?: string
           instagram_url?: string | null
@@ -237,23 +269,25 @@ export type Database = {
           logo_scale?: number
           logo_shape?: string
           logo_url?: string | null
-          twitter_url?: string | null
-          youtube_url?: string | null
-          tripadvisor_url?: string | null
-          floating_shapes?: Json
-          recepcion_pausada?: boolean
           mostrar_nombre?: boolean
+          mp_customer_id?: string | null
+          mp_status?: string | null
+          mp_subscription_id?: string | null
           nombre?: string
           plan_tier?: string
+          recepcion_pausada?: boolean
           slug?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_status?: string | null
           tiktok_url?: string | null
           trial_ends_at?: string | null
+          tripadvisor_url?: string | null
+          twitter_url?: string | null
           updated_at?: string | null
           user_id?: string | null
           whatsapp?: string | null
+          youtube_url?: string | null
         }
         Relationships: []
       }
@@ -727,6 +761,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       estado_pedido: ["pendiente", "en_preparacion", "entregado", "cancelado"],

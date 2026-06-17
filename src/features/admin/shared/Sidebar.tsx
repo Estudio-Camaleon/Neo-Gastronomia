@@ -19,6 +19,7 @@ import {
   Moon,
   ExternalLink,
   LogOut,
+  Sparkles,
 } from "lucide-react";
 
 const supabase = createClient();
@@ -33,6 +34,8 @@ const NAVIGATION_LINKS = [
   { name: "Ajustes", href: "/configuracion", icon: Settings },
 ];
 
+type PlanTier = "free" | "pro";
+
 interface SidebarProps {
   slug?: string;
   negocioNombre?: string;
@@ -43,11 +46,13 @@ interface SidebarProps {
 export function Sidebar({
   slug,
   negocioNombre,
+  negocioId,
   compact = false,
 }: SidebarProps) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [planTier, setPlanTier] = useState<PlanTier>("free");
   const { unreadCount } = useOrderNotifications();
   const router = useRouter();
   const pathname = usePathname();
@@ -55,6 +60,26 @@ export function Sidebar({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!negocioId) return;
+    const supabase = createClient();
+    supabase
+      .from("negocios")
+      .select("plan_tier")
+      .eq("id", negocioId)
+      .limit(1)
+      .single()
+      .then(({ data }) => {
+        if (data?.plan_tier) {
+          setPlanTier(data.plan_tier as PlanTier);
+        }
+      });
+  }, [negocioId]);
+
+  const handleUpgrade = () => {
+    router.push("/configuracion?upgrade=true");
+  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -116,6 +141,19 @@ export function Sidebar({
               );
             })}
           </nav>
+
+          {/* Plan indicator compacto */}
+          {planTier === "free" && (
+            <button
+              type="button"
+              onClick={handleUpgrade}
+              title="Actualizar a PRO"
+              aria-label="Actualizar a PRO"
+              className="flex items-center justify-center w-10 h-10 mx-auto rounded-xl transition-all active:scale-95 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20"
+            >
+              <Sparkles size={15} />
+            </button>
+          )}
 
           {/* Theme toggle iconos */}
           <div className="w-full mt-2 pt-2 border-t border-[var(--admin-border)] space-y-1 shrink-0">
@@ -240,6 +278,40 @@ export function Sidebar({
 
         {/* Footer */}
         <div className="mt-auto pt-3 lg:pt-4 border-t border-[var(--admin-border)] space-y-3 shrink-0">
+          {/* Plan badge + upgrade */}
+          <div className={`rounded-xl p-2.5 lg:p-3 border transition-all ${
+            planTier === "pro"
+              ? "bg-[var(--admin-accent)]/5 border-[var(--admin-accent)]/20"
+              : "bg-amber-500/5 border-amber-500/20"
+          }`}>
+            <div className="flex items-center justify-between mb-0.5">
+              <span className={`text-[9px] lg:text-[10px] font-black uppercase tracking-wider ${
+                planTier === "pro"
+                  ? "text-[var(--admin-accent)]"
+                  : "text-amber-600 dark:text-amber-400"
+              }`}>
+                Plan {planTier === "pro" ? "PRO" : "GRATIS"}
+              </span>
+              {planTier === "free" && (
+                <Sparkles size={11} className="text-amber-500" />
+              )}
+            </div>
+            {planTier === "free" ? (
+              <button
+                type="button"
+                onClick={handleUpgrade}
+                className="w-full mt-1 flex items-center justify-center gap-1.5 py-1.5 text-[11px] lg:text-xs font-bold rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-all active:scale-[0.97]"
+              >
+                <Sparkles size={12} />
+                Actualizar a PRO
+              </button>
+            ) : (
+              <p className="text-[11px] lg:text-xs font-bold text-[var(--admin-accent)] truncate mt-1">
+                Todo desbloqueado
+              </p>
+            )}
+          </div>
+
           <div className="flex bg-[var(--admin-bg)] rounded-lg p-0.5 border border-[var(--admin-border)]">
             <button
               onClick={() => setTheme("light")}

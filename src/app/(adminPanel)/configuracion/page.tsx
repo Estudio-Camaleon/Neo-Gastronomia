@@ -1,19 +1,27 @@
 import { createClient } from "@/core/lib/supabase/server";
-import { Settings, ShieldCheck, Activity } from "lucide-react";
+import { Settings } from "lucide-react";
 import {
   ConfigForm,
   type NegocioInitialData,
 } from "@/features/admin/branding/components/ConfigForm";
 import { WelcomeToast } from "@/features/admin/shared/WelcomeToast";
+import { UpgradeFlow } from "@/features/admin/billing/components/UpgradeFlow";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function ConfiguracionPage(props: {
-  searchParams?: Promise<{ firstLogin?: string }>;
+  searchParams?: Promise<{
+    firstLogin?: string;
+    upgrade?: string;
+    collection_status?: string;
+    preapproval_id?: string;
+  }>;
 }) {
   const searchParams = await props.searchParams;
   const firstLogin = searchParams?.firstLogin === "true";
+  const mpSuccess = searchParams?.collection_status === "approved";
+  const upgradeAction = mpSuccess ? "success" : (searchParams?.upgrade ?? null);
   const supabase = await createClient();
   const {
     data: { user },
@@ -33,6 +41,13 @@ export default async function ConfiguracionPage(props: {
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-16 relative z-10">
       {firstLogin && <WelcomeToast />}
+
+      {/* Upgrade flow */}
+      {(upgradeAction === "success" || upgradeAction === "cancel" || upgradeAction === "true") && (
+        <UpgradeFlow
+          action={upgradeAction === "true" ? "checkout" : upgradeAction as "success" | "cancel"}
+        />
+      )}
 
       {/* HEADER DE AUDITORÍA */}
       <header className="space-y-3 border-b border-[var(--admin-border)]/50 pb-6">

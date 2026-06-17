@@ -12,8 +12,8 @@ interface PlanLimits {
 
 const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
   free: {
-    maxProducts: 30,
-    maxCategories: 10,
+    maxProducts: 50,
+    maxCategories: 15,
     teamMembers: false,
     analytics: false,
     exportData: false,
@@ -54,4 +54,19 @@ export async function canAddProduct(
   const tier = await getPlanTier(negocioId);
   const limits = getPlanLimits(tier);
   return currentCount < limits.maxProducts;
+}
+
+export async function canAddCategory(
+  negocioId: string,
+  currentCount: number,
+): Promise<boolean> {
+  const tier = await getPlanTier(negocioId);
+  const limits = getPlanLimits(tier);
+  return currentCount < limits.maxCategories;
+}
+
+export type BooleanFeature = "teamMembers" | "analytics" | "exportData";
+
+export function hasFeature(tier: PlanTier, feature: BooleanFeature): boolean {
+  return getPlanLimits(tier)[feature];
 }

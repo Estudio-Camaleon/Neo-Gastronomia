@@ -78,7 +78,7 @@ export default async function AdminPanelLayout({
 
         {/* Sidebar expandido (md+ y lg+) */}
         <aside className="hidden lg:flex lg:w-72 lg:flex-col lg:fixed lg:inset-y-0 z-20">
-          <Sidebar slug={negocio.slug} negocioNombre={negocio.nombre} />
+          <Sidebar slug={negocio.slug} negocioNombre={negocio.nombre} negocioId={negocio.id} />
         </aside>
 
         {/* Contenedor de Trabajo Principal */}
