@@ -3,6 +3,7 @@ import { createClient } from "@/core/lib/supabase/server";
 import { MercadoPagoConfig, PreApproval } from "mercadopago";
 
 const MP_ACCESS_TOKEN = process.env["MERCADO_PAGO_ACCESS_TOKEN"];
+const TEST_PAYER_EMAIL = process.env["MERCADO_PAGO_TEST_PAYER_EMAIL"];
 
 function getMPClient() {
   if (!MP_ACCESS_TOKEN) return null;
@@ -69,6 +70,7 @@ export async function POST(req: Request) {
           transaction_amount: 15000,
           currency_id: "ARS",
         },
+        payer_email: TEST_PAYER_EMAIL ?? user.email ?? undefined,
         back_url: backUrl,
         external_reference: negocio.id,
       },
