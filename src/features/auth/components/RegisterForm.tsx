@@ -13,6 +13,8 @@ import {
   Phone,
   Mail,
   Sparkles,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { StepIndicator } from "./StepIndicator";
@@ -54,6 +56,9 @@ export function RegisterForm() {
   const [whatsappCountry, setWhatsappCountry] = useState("54");
   const [whatsappArea, setWhatsappArea] = useState("");
   const [whatsappNumber, setWhatsappNumber] = useState("");
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -358,16 +363,26 @@ export function RegisterForm() {
                   </span>
                 )}
               </div>
-              <Input
-                required
-                autoComplete="new-password"
-                type="password"
-                disabled={loading}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Ej: MiLocal2024!"
-                className="auth-input mb-1.5"
-              />
+              <div className="relative">
+                <Input
+                  required
+                  autoComplete="new-password"
+                  type={showPassword ? "text" : "password"}
+                  disabled={loading}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Ej: MiLocal2024!"
+                  className="auth-input mb-1.5 pr-10"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-[calc(50%-10px)] text-[var(--auth-text-muted)] hover:text-[var(--auth-accent)] transition-colors"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
               <div className="h-1.5 w-full bg-[#f3efe6] rounded-full overflow-hidden transition-all duration-300">
                 <div
                   className={`h-full ${strength.color} ${strength.width} transition-all duration-500 ease-out`}
@@ -408,24 +423,34 @@ export function RegisterForm() {
 
             <div className="space-y-2">
               <label className="auth-label">Confirmar contraseña</label>
-              <Input
-                required
-                autoComplete="new-password"
-                type="password"
-                disabled={loading}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Repetí la contraseña"
-                aria-invalid={confirmPassword && password !== confirmPassword ? true : undefined}
-                aria-describedby={confirmPassword && password !== confirmPassword ? "reg-confirm-password-error" : undefined}
-                className={`auth-input ${
-                  confirmPassword && password !== confirmPassword
-                    ? "border-red-400 focus-visible:ring-red-400"
-                    : confirmPassword && password === confirmPassword
-                      ? "border-green-400 focus-visible:ring-green-400"
-                      : ""
-                }`}
-              />
+              <div className="relative">
+                <Input
+                  required
+                  autoComplete="new-password"
+                  type={showConfirmPassword ? "text" : "password"}
+                  disabled={loading}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repetí la contraseña"
+                  aria-invalid={confirmPassword && password !== confirmPassword ? true : undefined}
+                  aria-describedby={confirmPassword && password !== confirmPassword ? "reg-confirm-password-error" : undefined}
+                  className={`auth-input pr-10 ${
+                    confirmPassword && password !== confirmPassword
+                      ? "border-red-400 focus-visible:ring-red-400"
+                      : confirmPassword && password === confirmPassword
+                        ? "border-green-400 focus-visible:ring-green-400"
+                        : ""
+                  }`}
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-[calc(50%-10px)] text-[var(--auth-text-muted)] hover:text-[var(--auth-accent)] transition-colors"
+                >
+                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
               {confirmPassword && password !== confirmPassword && (
                 <p id="reg-confirm-password-error" role="alert" className="text-[11px] text-red-500 font-medium mt-1">
                   Las contraseñas no coinciden.
