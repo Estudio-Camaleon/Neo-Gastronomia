@@ -43,10 +43,20 @@ export async function POST(req: Request) {
       );
     }
 
+    const originUrl = req.headers.get("origin");
     const siteUrl =
       process.env["NEXT_PUBLIC_SITE_URL"] ??
-      req.headers.get("origin") ??
+      originUrl ??
       "http://localhost:3000";
+
+    const backUrl = `${siteUrl}/configuracion`;
+
+    console.log("[MP PREAPPROVAL] Debug:", {
+      NEXT_PUBLIC_SITE_URL: process.env["NEXT_PUBLIC_SITE_URL"],
+      origin: originUrl,
+      siteUrl,
+      backUrl,
+    });
 
     const preApproval = new PreApproval(client);
 
@@ -60,9 +70,8 @@ export async function POST(req: Request) {
           currency_id: "ARS",
         },
         payer_email: user.email ?? undefined,
-        back_url: `${siteUrl}/configuracion`,
+        back_url: backUrl,
         external_reference: negocio.id,
-        status: "authorized",
       },
     });
 
@@ -81,12 +90,15 @@ export async function POST(req: Request) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const initPoint = (result as any).init_point ?? (result as any).sandbox_init_point;
-    console.log("[MP PREAPPROVAL] created id=%s back_url=%s", result.id, `${siteUrl}/configuracion`);
+    console.log("[MP PREAPPROVAL] created id=%s back_url=%s", result.id, backUrl);
     return NextResponse.json({ url: initPoint });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("[MP CREATE PREAPPROVAL]", error);
+    const detail = error instanceof Object && "message" in error
+      ? (error as { message: string }).message
+      : "Error interno";
     return NextResponse.json(
-      { error: "Error al crear suscripción en Mercado Pago" },
+      { error: detail },
       { status: 500 },
     );
   }

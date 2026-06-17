@@ -54,9 +54,12 @@ export function UpgradeFlow({ action }: UpgradeFlowProps) {
     );
   }
 
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   if (action === "checkout") {
     const handleUpgrade = async () => {
       setLoading(true);
+      setErrorMsg(null);
       try {
         const res = await fetch("/api/mercadopago/create-preapproval", {
           method: "POST",
@@ -65,10 +68,10 @@ export function UpgradeFlow({ action }: UpgradeFlowProps) {
         if (data.url) {
           window.location.href = data.url;
         } else {
-          alert("Error al iniciar el checkout. Intentalo de nuevo.");
+          setErrorMsg(data.error ?? "Error al iniciar el checkout");
         }
       } catch {
-        alert("Error de conexión. Intentalo de nuevo.");
+        setErrorMsg("Error de conexión");
       } finally {
         setLoading(false);
       }
@@ -88,6 +91,9 @@ export function UpgradeFlow({ action }: UpgradeFlowProps) {
             $15.000/mes
           </span>
         </p>
+        {errorMsg && (
+          <p className="text-xs font-medium text-red-500 bg-red-500/10 px-3 py-2 rounded-lg mb-3">{errorMsg}</p>
+        )}
         <button
           type="button"
           onClick={handleUpgrade}
