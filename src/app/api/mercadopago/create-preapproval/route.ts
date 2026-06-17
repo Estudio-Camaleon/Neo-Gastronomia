@@ -90,8 +90,12 @@ export async function POST(req: Request) {
       .eq("id", negocio.id);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const initPoint = (result as any).init_point;
-    console.log("[MP PREAPPROVAL] created id=%s back_url=%s", result.id, backUrl);
+    let initPoint = (result as any).init_point;
+    const isTest = !!TEST_PAYER_EMAIL;
+    if (isTest && initPoint) {
+      initPoint = initPoint.replace("www.mercadopago.com", "sandbox.mercadopago.com");
+    }
+    console.log("[MP PREAPPROVAL] created id=%s back_url=%s mode=%s", result.id, backUrl, isTest ? "test" : "production");
     return NextResponse.json({ url: initPoint });
   } catch (error: unknown) {
     console.error("[MP CREATE PREAPPROVAL]", error);
