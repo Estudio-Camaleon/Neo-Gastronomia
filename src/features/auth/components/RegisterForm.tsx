@@ -10,8 +10,7 @@ import {
   // Loader2 removed; using FoodMini
   AlertCircle,
   Hash,
-  MapPin,
-  Palette,
+  Phone,
   Mail,
   Sparkles,
 } from "lucide-react";
@@ -45,8 +44,6 @@ const step1Schema = z
     path: ["confirmPassword"],
   });
 
-const DEFAULT_COLOR = "#10b981";
-
 export function RegisterForm() {
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
@@ -54,9 +51,9 @@ export function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [nombreNegocio, setNombreNegocio] = useState("");
   const [slug, setSlug] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [direccion, setDireccion] = useState("");
-  const [colorPrimary, setColorPrimary] = useState(DEFAULT_COLOR);
+  const [whatsappCountry, setWhatsappCountry] = useState("54");
+  const [whatsappArea, setWhatsappArea] = useState("");
+  const [whatsappNumber, setWhatsappNumber] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -68,6 +65,10 @@ export function RegisterForm() {
     whatsapp: null,
     email: null,
   });
+
+  const combinedWhatsapp = whatsappCountry || whatsappArea || whatsappNumber
+    ? `+${whatsappCountry}${whatsappArea}${whatsappNumber}`
+    : "";
   const [checkingFields, setCheckingFields] = useState<Record<string, boolean>>(
     {},
   );
@@ -205,9 +206,7 @@ export function RegisterForm() {
       password,
       nombreNegocio,
       slug,
-      whatsapp: whatsapp || undefined,
-      direccion: direccion || undefined,
-      color_primary: colorPrimary,
+      whatsapp: combinedWhatsapp || undefined,
     });
 
     if (response?.error) {
@@ -569,96 +568,87 @@ export function RegisterForm() {
             </div>
 
             <div className="space-y-2">
-              <label className="auth-label">WhatsApp de contacto</label>
-              <div className="relative">
-                <Input
-                  type="tel"
-                  disabled={loading}
-                  value={whatsapp}
-                  onChange={(e) => {
-                    setWhatsapp(e.target.value);
-                    if (e.target.value.length >= 7) {
-                      debouncedCheck("whatsapp", e.target.value);
-                    } else {
-                      setDuplicates((prev) => ({
-                        ...prev,
-                        whatsapp: null,
-                      }));
-                    }
-                  }}
-                  placeholder="+5491123456789"
-                  aria-invalid={isWhatsappTaken || undefined}
-                  aria-describedby={isWhatsappTaken ? "reg-whatsapp-error" : undefined}
-                  className={`auth-input pr-10 ${
-                    isWhatsappTaken
-                      ? "border-red-400 focus-visible:ring-red-400"
-                      : duplicates["whatsapp"] === false && whatsapp.length >= 7
-                        ? "border-green-400 focus-visible:ring-green-400"
-                        : ""
-                  }`}
-                />
-                {checkingFields["whatsapp"] && (
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 flex items-center justify-center"><FoodMini size={14} /></span>
-                )}
-                {!checkingFields["whatsapp"] && isWhatsappTaken && (
-                  <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-red-500" />
-                )}
-                {!checkingFields["whatsapp"] &&
-                  duplicates["whatsapp"] === false &&
-                  whatsapp.length >= 7 && (
-                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
-                  )}
+              <label className="auth-label flex items-center gap-1.5">
+                <Phone size={14} />
+                WhatsApp de contacto
+              </label>
+              <div className="grid grid-cols-[90px_90px_1fr] gap-2">
+                <div>
+                  <Input
+                    type="tel"
+                    disabled={loading}
+                    value={whatsappCountry}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "");
+                      setWhatsappCountry(val);
+                    }}
+                    placeholder="54"
+                    className="auth-input text-center"
+                  />
+                  <p className="text-[9px] text-[var(--auth-text-muted)] mt-0.5 text-center">
+                    País
+                  </p>
+                </div>
+                <div>
+                  <Input
+                    type="tel"
+                    disabled={loading}
+                    value={whatsappArea}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "");
+                      setWhatsappArea(val);
+                    }}
+                    placeholder="11"
+                    maxLength={5}
+                    className="auth-input text-center"
+                  />
+                  <p className="text-[9px] text-[var(--auth-text-muted)] mt-0.5 text-center">
+                    Cód. área
+                  </p>
+                </div>
+                <div>
+                  <Input
+                    type="tel"
+                    disabled={loading}
+                    value={whatsappNumber}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "");
+                      setWhatsappNumber(val);
+                      const combined = `+${whatsappCountry}${whatsappArea}${val}`;
+                      if (combined.length >= 10) {
+                        debouncedCheck("whatsapp", combined);
+                      } else {
+                        setDuplicates((prev) => ({ ...prev, whatsapp: null }));
+                      }
+                    }}
+                    placeholder="12345678"
+                    maxLength={15}
+                    className="auth-input text-center"
+                  />
+                  <p className="text-[9px] text-[var(--auth-text-muted)] mt-0.5 text-center">
+                    Número
+                  </p>
+                </div>
               </div>
-              {isWhatsappTaken && (
-                <p id="reg-whatsapp-error" role="alert" className="text-[11px] text-red-500 font-medium mt-1">
+              {checkingFields["whatsapp"] && (
+                <span className="flex items-center gap-1 text-[11px] text-[var(--auth-text-muted)]">
+                  <FoodMini size={12} /> Verificando número...
+                </span>
+              )}
+              {!checkingFields["whatsapp"] && isWhatsappTaken && (
+                <p role="alert" className="text-[11px] text-red-500 font-medium mt-1">
                   Este número ya está registrado.
                 </p>
               )}
+              {!checkingFields["whatsapp"] &&
+                duplicates["whatsapp"] === false &&
+                combinedWhatsapp.length >= 10 && (
+                  <p className="text-[11px] text-green-600 font-medium mt-1 flex items-center gap-1">
+                    <CheckCircle2 size={12} /> Número disponible
+                  </p>
+                )}
               <p className="text-[10px] text-[var(--auth-text-muted)] pl-1">
-                Opcional — lo usará tu menú QR para recibir pedidos.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <label className="auth-label flex items-center gap-1.5">
-                <MapPin size={14} />
-                Dirección del local
-              </label>
-              <Input
-                type="text"
-                disabled={loading}
-                value={direccion}
-                onChange={(e) => setDireccion(e.target.value)}
-                placeholder="Ej: Av. Corrientes 1234, CABA"
-                className="auth-input"
-              />
-              <p className="text-[10px] text-[var(--auth-text-muted)] pl-1">
-                Opcional — aparecerá en tu perfil público.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <label className="auth-label flex items-center gap-1.5">
-                <Palette size={14} />
-                Color principal de tu marca
-              </label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="color"
-                  value={colorPrimary}
-                  onChange={(e) => setColorPrimary(e.target.value)}
-                  className="w-10 h-10 rounded-xl border border-[var(--auth-border)] cursor-pointer bg-transparent p-0.5"
-                />
-                <span className="font-mono text-sm text-[var(--auth-text-muted)]">
-                  {colorPrimary}
-                </span>
-                <div
-                  className="w-6 h-6 rounded-full border border-[var(--auth-border)]"
-                  style={{ backgroundColor: colorPrimary }}
-                />
-              </div>
-              <p className="text-[10px] text-[var(--auth-text-muted)] pl-1">
-                Se usará en tu menú digital y panel de administración.
+                Opcional — se usará para recibir pedidos en tu menú QR.
               </p>
             </div>
 
