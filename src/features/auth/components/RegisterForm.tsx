@@ -372,13 +372,13 @@ export function RegisterForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Ej: MiLocal2024!"
-                  className="auth-input mb-1.5 pr-10"
+                  className="auth-input mb-1.5 !pr-10"
                 />
                 <button
                   type="button"
                   tabIndex={-1}
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-[calc(50%-10px)] text-[var(--auth-text-muted)] hover:text-[var(--auth-accent)] transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-[var(--auth-text-muted)] hover:text-[var(--auth-accent)] hover:bg-black/5 transition-colors z-10"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -446,7 +446,7 @@ export function RegisterForm() {
                   type="button"
                   tabIndex={-1}
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-[calc(50%-10px)] text-[var(--auth-text-muted)] hover:text-[var(--auth-accent)] transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-[var(--auth-text-muted)] hover:text-[var(--auth-accent)] hover:bg-black/5 transition-colors z-10"
                 >
                   {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
