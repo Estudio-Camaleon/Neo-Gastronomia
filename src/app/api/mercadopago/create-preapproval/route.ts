@@ -69,7 +69,6 @@ export async function POST(req: Request) {
           transaction_amount: 15000,
           currency_id: "ARS",
         },
-        payer_email: user.email ?? undefined,
         back_url: backUrl,
         external_reference: negocio.id,
       },
