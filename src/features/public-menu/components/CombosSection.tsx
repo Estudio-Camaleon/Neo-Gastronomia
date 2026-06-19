@@ -1,15 +1,18 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ShoppingBag, Tag, Percent } from "lucide-react";
+import { ShoppingBag, Flame, Star, PiggyBank } from "lucide-react";
 import type { PromoRow } from "@/features/public-menu/types";
+import { formatMoney } from "@/features/public-menu/utils";
 
 function ComboCard({
   promo,
   onClick,
+  badge,
 }: {
   promo: PromoRow;
   onClick: () => void;
+  badge?: "mas-vendido" | "mejor-valor";
 }) {
   const items = (promo.items_combo as Array<{
     producto_id: string;
@@ -18,17 +21,34 @@ function ComboCard({
     precio: number;
   }> | null) ?? [];
 
+  const realTotal = items.reduce((s, i) => s + i.precio * i.cantidad, 0);
+  const ahorro = realTotal - Number(promo.valor_descuento);
+
   return (
     <motion.button
       type="button"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       onClick={onClick}
-      className="flex items-stretch gap-0 overflow-hidden rounded-xl border border-[var(--color-custom-200)] bg-[var(--color-custom-surface-strong)] shadow-xs cursor-pointer text-left transition-all hover:shadow-md hover:border-[var(--color-custom-500)]/30 active:scale-[0.99] w-full"
+      className="relative flex items-stretch gap-0 overflow-hidden rounded-2xl border-2 border-[var(--color-custom-500)]/20 bg-gradient-to-br from-[var(--color-custom-surface-strong)] to-[var(--color-custom-100)] shadow-md cursor-pointer text-left transition-all hover:shadow-lg hover:border-[var(--color-custom-500)]/40 active:scale-[0.98] w-full"
     >
+      {/* Badge superior */}
+      {badge === "mas-vendido" && (
+        <div className="absolute -top-px -right-px z-10 inline-flex items-center gap-1 rounded-bl-xl rounded-tr-xl bg-gradient-to-r from-red-500 to-rose-500 px-2.5 py-1 text-[9px] sm:text-[10px] font-bold text-white shadow-sm">
+          <Flame size={11} />
+          Más vendido
+        </div>
+      )}
+      {badge === "mejor-valor" && (
+        <div className="absolute -top-px -right-px z-10 inline-flex items-center gap-1 rounded-bl-xl rounded-tr-xl bg-gradient-to-r from-amber-500 to-yellow-500 px-2.5 py-1 text-[9px] sm:text-[10px] font-bold text-white shadow-sm">
+          <Star size={11} />
+          Mejor valor
+        </div>
+      )}
+
       {/* Image thumbnail */}
       {promo.imagen_url ? (
-        <div className="w-16 sm:w-24 shrink-0 overflow-hidden bg-[var(--color-custom-100)] min-h-[68px] sm:min-h-[88px]">
+        <div className="w-20 sm:w-28 shrink-0 overflow-hidden bg-[var(--color-custom-100)] min-h-[80px] sm:min-h-[100px]">
           <img
             src={promo.imagen_url}
             alt={promo.nombre}
@@ -36,77 +56,47 @@ function ComboCard({
           />
         </div>
       ) : (
-        <div className="flex w-12 sm:w-20 shrink-0 items-center justify-center bg-[var(--color-custom-500)]/10 text-[var(--color-custom-500)]">
-          <ShoppingBag size={20} />
+        <div className="flex w-14 sm:w-22 shrink-0 items-center justify-center bg-[var(--color-custom-500)]/10 text-[var(--color-custom-500)] min-h-[80px] sm:min-h-[100px]">
+          <ShoppingBag size={24} />
         </div>
       )}
 
       {/* Content */}
-      <div className="flex flex-1 items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2.5 min-w-0">
+      <div className="flex flex-1 items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-3 sm:py-3.5 min-w-0">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 mb-0.5">
-            <span className="rounded-full bg-[var(--color-custom-500)]/10 px-1.5 py-[1px] text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.08em] text-[var(--color-custom-600)]">
-              Combo
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="rounded-full bg-gradient-to-r from-[var(--color-custom-500)] to-[var(--color-custom-600)] px-2 py-[2px] text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.08em] text-white">
+              Combo 🔥
             </span>
           </div>
-          <p className="text-xs sm:text-sm font-bold text-[var(--color-custom-900)] truncate leading-tight">
+          <p className="text-sm sm:text-base font-bold text-[var(--color-custom-900)] truncate leading-tight">
             {promo.nombre}
           </p>
           {items.length > 0 && (
-            <p className="text-[10px] sm:text-[11px] text-[var(--color-custom-text-muted)] truncate mt-0.5">
+            <p className="text-[10px] sm:text-xs text-[var(--color-custom-text-muted)] truncate mt-0.5">
               {items.map((i) => `${i.cantidad}x ${i.nombre_producto}`).join(" · ")}
             </p>
           )}
+
+          {ahorro > 0 && (
+            <div className="inline-flex items-center gap-0.5 mt-1.5 rounded-full bg-green-500/10 px-2 py-[2px] text-[9px] sm:text-[10px] font-bold text-green-600">
+              <PiggyBank size={10} />
+              Ahorrás {formatMoney(ahorro, "$")}
+            </div>
+          )}
         </div>
         <div className="shrink-0 text-right ml-1 sm:ml-0">
-          <p className="text-sm sm:text-base font-black text-[var(--color-custom-500)] leading-none whitespace-nowrap">
-            ${Number(promo.valor_descuento).toLocaleString("es-AR")}
+          <p className="text-base sm:text-lg font-black text-[var(--color-custom-500)] leading-none whitespace-nowrap">
+            {formatMoney(Number(promo.valor_descuento), "$")}
           </p>
           {items.length > 0 && (
-            <p className="text-[9px] sm:text-[10px] text-[var(--color-custom-text-muted)] line-through leading-tight mt-0.5 whitespace-nowrap">
-              ${items.reduce((s, i) => s + i.precio * i.cantidad, 0).toLocaleString("es-AR")}
+            <p className="text-[10px] sm:text-xs text-[var(--color-custom-text-muted)] line-through leading-tight mt-0.5 whitespace-nowrap">
+              {formatMoney(realTotal, "$")}
             </p>
           )}
         </div>
       </div>
     </motion.button>
-  );
-}
-
-function PromoBadge({ promo }: { promo: PromoRow }) {
-  const isPorcentaje = promo.tipo_descuento === "porcentaje";
-  const label = isPorcentaje
-    ? `${promo.valor_descuento}% OFF`
-    : `$${Number(promo.valor_descuento).toLocaleString("es-AR")} OFF`;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="flex flex-wrap items-center gap-1.5 sm:gap-2 rounded-lg border border-amber-200/60 bg-amber-50/80 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs"
-    >
-      {isPorcentaje ? (
-        <Percent size={12} className="shrink-0 text-amber-600" />
-      ) : (
-        <Tag size={12} className="shrink-0 text-amber-600" />
-      )}
-      <span className="font-semibold text-amber-800 truncate text-[11px] sm:text-xs">
-        {promo.nombre}
-      </span>
-      {promo.descripcion && (
-        <span className="hidden sm:inline text-amber-600 truncate text-[11px]">
-          — {promo.descripcion}
-        </span>
-      )}
-      <span className="shrink-0 rounded-full bg-amber-500 px-2 py-[1px] text-[9px] sm:text-[10px] font-bold text-white ml-auto">
-        {label}
-      </span>
-      {promo.codigo && (
-        <code className="hidden sm:inline-flex rounded bg-amber-100 px-1.5 py-[1px] text-[8px] sm:text-[9px] font-mono font-bold text-amber-700">
-          {promo.codigo}
-        </code>
-      )}
-    </motion.div>
   );
 }
 
@@ -117,34 +107,37 @@ export function CombosSection({
   promos: PromoRow[];
   onComboClick?: (promo: PromoRow) => void;
 }) {
-  if (promos.length === 0) return null;
-
   const combos = promos.filter((p) => p.tipo_descuento === "combo");
-  const others = promos.filter((p) => p.tipo_descuento !== "combo");
+  if (combos.length === 0) return null;
+
+  // First combo gets "Más vendido", second gets "Mejor valor" (if multiple)
+  const badges: Array<"mas-vendido" | "mejor-valor" | undefined> = [
+    "mas-vendido",
+    "mejor-valor",
+  ];
 
   return (
-    <div className="mt-3 mb-4 space-y-2">
-      {/* Discount banners — compact */}
-      {others.length > 0 && (
-        <div className="space-y-1.5">
-          {others.map((promo) => (
-            <PromoBadge key={promo.id} promo={promo} />
-          ))}
-        </div>
-      )}
+    <div className="mt-4 mb-6 space-y-2">
+      {/* Section header */}
+      <div className="flex items-center gap-2 mb-2">
+        <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--color-custom-500)] to-[var(--color-custom-600)] text-white text-xs">
+          🔥
+        </span>
+        <h2 className="text-base sm:text-lg font-black tracking-tight text-[var(--color-custom-900)]">
+          Combos que vuelan
+        </h2>
+      </div>
 
-      {/* Combo cards — compact horizontal */}
-      {combos.length > 0 && (
-        <div className="space-y-1.5">
-          {combos.map((promo) => (
-            <ComboCard
-              key={promo.id}
-              promo={promo}
-              onClick={() => onComboClick?.(promo)}
-            />
-          ))}
-        </div>
-      )}
+      <div className="space-y-2">
+        {combos.map((promo, idx) => (
+          <ComboCard
+            key={promo.id}
+            promo={promo}
+            badge={badges[idx]}
+            onClick={() => onComboClick?.(promo)}
+          />
+        ))}
+      </div>
     </div>
   );
 }

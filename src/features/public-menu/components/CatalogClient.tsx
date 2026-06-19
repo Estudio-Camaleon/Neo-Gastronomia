@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, PauseCircle } from "lucide-react";
 import { useCartStore } from "@/features/public-menu/cart/useCartStore";
+import { toast } from "sonner";
 import { CartFloatingButton } from "@/features/public-menu/cart/CartFloatingButton";
 import { PublicCart } from "@/features/public-menu/cart/PublicCart";
 import PublicMenuHeader from "@/features/public-menu/components/PublicMenuHeader";
@@ -15,10 +16,6 @@ import { useCartVisibility } from "@/features/public-menu/hooks/useCartVisibilit
 import { useSlugSubscription } from "@/features/public-menu/hooks/useSlugSubscription";
 import { useMenuCatalog } from "@/features/public-menu/hooks/useMenuCatalog";
 
-const FloatingFood = dynamic(
-  () => import("@/features/public-menu/components/FloatingFood").then((m) => ({ default: m.FloatingFood })),
-  { ssr: false },
-);
 const ProductDetailModal = dynamic(
   () => import("@/features/public-menu/components/ProductDetailModal").then((m) => ({ default: m.ProductDetailModal })),
   { ssr: false },
@@ -111,6 +108,83 @@ export function CatalogClient({
     costo_envio: negocio.costo_envio ?? 0,
   };
 
+  // ── Computar datos de promos para badges en productos ──
+  const promoInfo = useMemo(() => {
+    const comboProductIds: string[] = [];
+    const productDiscounts = new Map<string, { label: string; type: "porcentaje" | "monto_fijo"; valor: number }>();
+    let hasCodePromo = false;
+
+    // Pre‑compute set of all product IDs for "aplica a todos" expansion
+    const allProductIds = new Set<string>();
+    for (const cat of categorias) {
+      for (const prod of cat.productos) {
+        allProductIds.add(prod.id);
+      }
+    }
+
+    for (const p of promos) {
+      if (!p.activo) continue;
+
+      if (p.tipo_descuento === "combo") {
+        const items = (p.items_combo as Array<{ producto_id: string }> | null) ?? [];
+        for (const item of items) {
+          if (!comboProductIds.includes(item.producto_id)) {
+            comboProductIds.push(item.producto_id);
+          }
+        }
+      } else if (!p.codigo) {
+        // Auto-applied discount (sin código)
+        const label =
+          p.tipo_descuento === "porcentaje"
+            ? `${p.valor_descuento}% OFF`
+            : `$${Number(p.valor_descuento).toLocaleString("es-AR")} OFF`;
+        const type = p.tipo_descuento as "porcentaje" | "monto_fijo";
+
+        // Determine which products this discount applies to
+        const aplicarA = p.aplicar_a as { productos?: string[]; categorias?: string[] } | null;
+        const discountValue = Number(p.valor_descuento);
+
+        if (!aplicarA) {
+          // Applies to ALL products
+          for (const pid of allProductIds) {
+            productDiscounts.set(pid, { label, type, valor: discountValue });
+          }
+        } else {
+          // Apply to specific products
+          for (const pid of aplicarA.productos ?? []) {
+            if (allProductIds.has(pid)) {
+              productDiscounts.set(pid, { label, type, valor: discountValue });
+            }
+          }
+          // Apply to products in specific categories
+          const categoryIds = new Set(aplicarA.categorias ?? []);
+          for (const cat of categorias) {
+            if (categoryIds.has(cat.id)) {
+              for (const prod of cat.productos) {
+                productDiscounts.set(prod.id, { label, type, valor: discountValue });
+              }
+            }
+          }
+        }
+      } else {
+        hasCodePromo = true;
+      }
+    }
+
+    return { comboProductIds, productDiscounts, hasCodePromo };
+  }, [promos, categorias]);
+
+  // ── Mapa rápido: producto_id → categoria_id ──
+  const productCategoryMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const cat of categorias) {
+      for (const prod of cat.productos) {
+        map[prod.id] = cat.id;
+      }
+    }
+    return map;
+  }, [categorias]);
+
   return (
     <>
       {/* Fixed category tab bar — appears when inline tabs scroll out of view */}
@@ -155,32 +229,15 @@ export function CatalogClient({
         )}
 
         {/* CATALOGO */}
-        <div className="relative overflow-hidden">
-          {/* FORMAS FLOTANTES — solo en el menú, detrás de los productos */}
-          <FloatingFood
-            shapes={
-              Array.isArray(negocio.floating_shapes)
-                ? (negocio.floating_shapes as string[])
-                : typeof negocio.floating_shapes === "object" && negocio.floating_shapes !== null
-                  ? ((negocio.floating_shapes as { shapes: string[] }).shapes ?? undefined)
-                  : undefined
-            }
-            density={
-              !Array.isArray(negocio.floating_shapes) &&
-              typeof negocio.floating_shapes === "object" &&
-              negocio.floating_shapes !== null
-                ? ((negocio.floating_shapes as { density: string }).density as "low" | "medium" | "high")
-                : undefined
-            }
-          />
-          <div className="w-full flex-1 pb-12">
-          <main className="flex flex-col lg:flex-row">
-            <section
-              className={`min-w-0 flex-1 bg-[var(--color-custom-surface)] p-4 lg:p-6 transition-all duration-300 ${
-                isCartOpen ? "lg:basis-auto" : "lg:basis-full"
-              }`}
-            >
-              <motion.div
+        <main className="flex-1 min-h-0 flex flex-col lg:flex-row lg:items-start">
+          <section
+            className={`min-w-0 flex-1 bg-[var(--color-custom-surface)] p-4 lg:p-6 transition-all duration-300 ${
+              isCartOpen
+                ? "lg:basis-auto lg:pr-[420px]"
+                : "lg:basis-full"
+            }`}
+          >
+            <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
@@ -191,7 +248,7 @@ export function CatalogClient({
                     Menú
                   </h1>
                   <p className="mt-1 text-sm font-medium text-[var(--color-custom-text-muted)]">
-                    Elegí tu producto favorito
+                    ¿Qué se te antoja hoy? 🔥
                   </p>
                 </div>
 
@@ -259,7 +316,7 @@ export function CatalogClient({
                     <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-custom-500)]" />
                     <input
                       type="text"
-                      placeholder="Buscar producto..."
+                      placeholder="Buscá lo que se te antoje..."
                       aria-label="Buscar producto"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -289,6 +346,9 @@ export function CatalogClient({
                 isOpenNow={isOpenNow}
                 isCartOpen={isCartOpen}
                 simbolo={menuConfig.moneda_simbolo}
+                comboProductIds={promoInfo.comboProductIds}
+                productDiscounts={promoInfo.productDiscounts}
+                hasCodePromo={promoInfo.hasCodePromo}
                 onSelectProduct={(product) => setSelectedProduct(product)}
                 onQuickAdd={(product) => {
                   addItem({
@@ -301,16 +361,20 @@ export function CatalogClient({
                     detalles: null,
                     extras: [],
                   });
+                  toast.success(`${product.nombre} agregado ✅`, {
+                    duration: 2000,
+                    position: "bottom-center",
+                  });
                 }}
                 onRemoveItem={(productId) => removeItem(productId)}
               />
             </section>
 
             <aside
-              className={`bg-[var(--color-custom-surface)] p-7 w-[380px] shrink-0 transition-all duration-300 max-lg:hidden lg:sticky lg:top-4 lg:self-start ${
+              className={`p-0 w-[380px] shrink-0 transition-all duration-300 max-lg:hidden lg:fixed lg:right-4 lg:top-28 lg:bottom-4 lg:z-40 ${
                 isCartOpen
-                  ? "lg:opacity-100 lg:translate-x-0 lg:pointer-events-auto"
-                  : "lg:opacity-0 lg:translate-x-6 lg:pointer-events-none lg:invisible"
+                  ? "lg:opacity-100 lg:pointer-events-auto"
+                  : "lg:opacity-0 lg:pointer-events-none lg:invisible"
               }`}
             >
               <PublicCart
@@ -318,12 +382,11 @@ export function CatalogClient({
                 negocioNombre={negocio.nombre}
                 config={menuConfig}
                 promos={promos}
+                productCategoryMap={productCategoryMap}
                 onCloseDrawer={() => setCartOpen(false)}
               />
             </aside>
           </main>
-        </div>
-        </div>{/* end menu-wrapper */}
         <MenuFooter
           negocio={negocio}
           showSchedule={showSchedule}
@@ -341,6 +404,10 @@ export function CatalogClient({
             onConfirm={(item) => {
               addItem(item);
               setSelectedProduct(null);
+              toast.success(`${item.nombre} agregado ✅`, {
+                duration: 2000,
+                position: "bottom-center",
+              });
             }}
             onCancel={() => setSelectedProduct(null)}
           />
@@ -359,6 +426,10 @@ export function CatalogClient({
               if (!isOpenNow) return;
               addItem(item);
               setSelectedCombo(null);
+              toast.success(`Combo agregado 🚀`, {
+                duration: 2000,
+                position: "bottom-center",
+              });
             }}
             onCancel={() => setSelectedCombo(null)}
           />
@@ -376,6 +447,7 @@ export function CatalogClient({
               isDrawer
               config={menuConfig}
               promos={promos}
+              productCategoryMap={productCategoryMap}
               onCloseDrawer={() => setCartOpen(false)}
             />
           )}

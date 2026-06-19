@@ -25,6 +25,7 @@ interface PublicCartProps {
     costo_envio?: number;
   };
   promos?: PromoRow[];
+  productCategoryMap?: Record<string, string>;
 }
 
 export function PublicCart({
@@ -34,6 +35,7 @@ export function PublicCart({
   onCloseDrawer,
   config = { moneda_simbolo: "$", pedido_minimo: 0, costo_envio: 0 },
   promos = [],
+  productCategoryMap,
 }: PublicCartProps) {
   const cart = useCartStore((state) => state.cart);
   const clearCart = useCartStore((state) => state.clearCart);
@@ -94,6 +96,7 @@ export function PublicCart({
         <CartReceipt
           cart={cart}
           subtotal={subtotal}
+          negocioNombre={negocioNombre}
           config={config}
           onVaciar={handleVaciar}
           onConfirmar={() => setShowOrderForm(true)}
@@ -113,6 +116,7 @@ export function PublicCart({
             total={subtotal}
             config={config}
             promos={promos}
+            productCategoryMap={productCategoryMap}
             onBack={() => setShowOrderForm(false)}
             onSuccess={(orderId) => {
               setLastOrderId(orderId);
@@ -127,7 +131,7 @@ export function PublicCart({
 
   /* ── Shared container class ───────────────────── */
   const receiptClasses =
-    "relative flex h-full w-full flex-col bg-[#fcfaf5] shadow-xl";
+    "relative flex h-full w-full flex-col bg-[var(--color-custom-surface)] shadow-xl";
 
   /* ── Drawer (mobile) ──────────────────────────── */
   if (isDrawer) {
@@ -156,14 +160,14 @@ export function PublicCart({
           style={{ boxShadow: "-8px 0 40px rgba(0,0,0,0.2)" }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-dashed border-[#ccc] px-5 py-4">
+          <div className="flex items-center justify-between border-b border-[var(--color-custom-200)] px-5 py-4">
             <div className="flex items-center gap-2">
-              <ShoppingBag size={14} className="text-[#888]" />
-              <h3 className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-[#444]">
+              <ShoppingBag size={14} className="text-[var(--color-custom-text-muted)]" />
+              <h3 className="text-sm font-bold tracking-tight text-[var(--color-custom-900)]">
                 {negocioNombre}
               </h3>
               {totalItems > 0 && (
-                <span className="font-mono text-[10px] text-[#999]">
+                <span className="text-xs text-[var(--color-custom-text-muted)]">
                   ({totalItems})
                 </span>
               )}
@@ -173,14 +177,14 @@ export function PublicCart({
               type="button"
               onClick={onCloseDrawer}
               aria-label="Cerrar carrito"
-              className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#ddd] text-[#888] transition-colors hover:bg-[#f0ece6]"
+              className="flex h-7 w-7 items-center justify-center rounded-lg border border-[var(--color-custom-200)] text-[var(--color-custom-text-muted)] transition-colors hover:bg-[var(--color-custom-100)]"
             >
               <X size={14} aria-hidden="true" />
             </button>
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto px-5 py-4">
+          <div className="flex-1 overflow-y-auto overscroll-y-contain px-5 py-4">
             {renderCartContent()}
           </div>
         </motion.div>
@@ -190,16 +194,16 @@ export function PublicCart({
 
   /* ── Desktop sidebar ──────────────────────────── */
   return (
-    <div className={`${receiptClasses} rounded-2xl border border-[#ddd] overflow-hidden`}>
+    <div className={`${receiptClasses} h-full flex flex-col rounded-2xl border border-[var(--color-custom-200)] overflow-hidden`}>
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-dashed border-[#ccc] px-5 py-4">
+      <div className="flex items-center justify-between border-b border-[var(--color-custom-200)] px-5 py-4 shrink-0">
         <div className="flex items-center gap-2">
-          <ShoppingBag size={14} className="text-[#888]" />
-          <h3 className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-[#444]">
+          <ShoppingBag size={14} className="text-[var(--color-custom-text-muted)]" />
+          <h3 className="text-sm font-bold tracking-tight text-[var(--color-custom-900)]">
             {negocioNombre}
           </h3>
           {totalItems > 0 && (
-            <span className="font-mono text-[10px] text-[#999]">
+            <span className="text-xs text-[var(--color-custom-text-muted)]">
               ({totalItems})
             </span>
           )}
@@ -207,7 +211,7 @@ export function PublicCart({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-5 py-4 max-h-[calc(90vh-80px)]">
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain px-5 py-4">
         {renderCartContent()}
       </div>
     </div>

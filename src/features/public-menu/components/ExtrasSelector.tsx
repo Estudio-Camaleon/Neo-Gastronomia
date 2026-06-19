@@ -73,7 +73,7 @@ export function ExtrasSelector({
           </button>
         </div>
 
-        <div className="max-h-[50vh] overflow-y-auto px-5 py-4 space-y-5">
+        <div className="max-h-[50vh] overflow-y-auto overscroll-y-contain px-5 py-4 space-y-5">
           <ExtraGroupRenderer
             groups={groups}
             selected={selected}

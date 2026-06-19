@@ -3,11 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Trash2,
-  Plus,
-  Minus,
   AlertCircle,
-  Scissors,
-  Printer,
   ShoppingBag,
 } from "lucide-react";
 import type { CartItem } from "@/features/public-menu/cart/useCartStore";
@@ -23,72 +19,20 @@ const containerVariants = {
 } as const;
 
 const lineVariants = {
-  hidden: { opacity: 0, x: -12, filter: "blur(2px)" },
+  hidden: { opacity: 0, x: -12 },
   visible: {
     opacity: 1,
     x: 0,
-    filter: "blur(0px)",
     transition: { type: "spring" as const, stiffness: 200, damping: 28 },
   },
   exit: { opacity: 0, x: 20, transition: { duration: 0.12 } as const },
 } as const;
 
-/* ── Dividers ───────────────────────────────────── */
-function DashedDivider() {
-  return (
-    <div
-      aria-hidden="true"
-      className="relative my-3 flex items-center justify-center"
-    >
-      <div className="h-px w-full bg-[length:6px_1px] bg-[repeating-linear-gradient(90deg,#bbb_0px,#bbb_3px,transparent_3px,transparent_6px)]" />
-      <Scissors size={10} className="absolute text-[#bbb]" />
-    </div>
-  );
-}
-
-function DottedDivider() {
-  return (
-    <div
-      aria-hidden="true"
-      className="my-2 h-px bg-[length:4px_1px] bg-[repeating-linear-gradient(90deg,#ccc_0px,#ccc_2px,transparent_2px,transparent_4px)]"
-    />
-  );
-}
-
-/* ── Receipt Header ──────────────────────────────── */
-function ReceiptHeader() {
-  return (
-    <motion.div variants={lineVariants} className="text-center pb-1">
-      <Printer size={13} className="mx-auto mb-1 text-[#999]" />
-      <p className="text-[10px] font-mono font-semibold uppercase tracking-[0.3em] text-[#999]">
-        Comprobante
-      </p>
-      <DottedDivider />
-    </motion.div>
-  );
-}
-
-/* ── Receipt Footer ──────────────────────────────── */
-function ReceiptFooter() {
-  return (
-    <motion.div variants={lineVariants} className="text-center pt-2 space-y-0.5">
-      <DottedDivider />
-      <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#999]">
-        Gracias por tu compra
-      </p>
-      <div className="flex justify-center gap-0.5 mt-1">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <span key={i} className="h-1 w-1 rounded-full bg-[#ddd]" />
-        ))}
-      </div>
-    </motion.div>
-  );
-}
-
 /* ── Props ────────────────────────────────────────── */
 interface CartReceiptProps {
   cart: CartItem[];
   subtotal: number;
+  negocioNombre?: string;
   config: {
     moneda_simbolo?: string;
     pedido_minimo?: number;
@@ -102,6 +46,7 @@ interface CartReceiptProps {
 export function CartReceipt({
   cart,
   subtotal,
+  negocioNombre,
   config,
   onVaciar,
   onConfirmar,
@@ -109,6 +54,7 @@ export function CartReceipt({
   const minimaFalta = (config.pedido_minimo || 0) - subtotal;
   const esValido = subtotal >= (config.pedido_minimo || 0);
   const simbolo = config.moneda_simbolo || "$";
+  const totalItems = cart.reduce((acc, item) => acc + item.cantidad, 0);
 
   return (
     <motion.div
@@ -118,17 +64,20 @@ export function CartReceipt({
       animate="visible"
       className="flex flex-1 flex-col"
     >
-      {/* TOP CUT */}
-      <div className="flex justify-between px-0.5 mb-1">
-        {Array.from({ length: 16 }).map((_, i) => (
-          <span key={i} className="h-[3px] w-[3px] rounded-full bg-[#ddd]" />
-        ))}
+      {/* Header */}
+      <div className="flex items-center justify-between px-1 py-2">
+        <h3 className="text-xs font-semibold text-[var(--color-custom-text-muted)] uppercase tracking-wider">
+          Tu pedido · {totalItems} producto{totalItems !== 1 ? "s" : ""}
+        </h3>
+        {negocioNombre && (
+          <span className="text-[10px] font-medium text-[var(--color-custom-text-muted)]">
+            {negocioNombre}
+          </span>
+        )}
       </div>
 
-      <ReceiptHeader />
-
       {/* Items */}
-      <div className="flex-1 min-h-0 overflow-y-auto pr-1 receipt-scrollbar space-y-0.5">
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain pr-1 receipt-scrollbar space-y-1">
         <AnimatePresence mode="popLayout">
           {cart.map((item) => (
             <motion.div
@@ -138,25 +87,25 @@ export function CartReceipt({
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="group rounded-lg px-2 py-1.5 transition-colors hover:bg-[#f5f0ea]"
+              className="group rounded-xl border border-[var(--color-custom-200)] bg-[var(--color-custom-surface-strong)] px-3 py-2.5 transition-colors"
             >
               <div className="flex items-start justify-between gap-2">
                 {/* Left: quantity + name */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-black text-[#888] tabular-nums">
-                      {String(item.cantidad).padStart(2, "0")}
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[var(--color-custom-500)] text-[10px] font-bold text-white">
+                      {item.cantidad}
                     </span>
-                    <span className="truncate text-[12px] font-bold text-[#222]">
+                    <span className="truncate text-[13px] font-bold text-[var(--color-custom-900)]">
                       {item.nombre}
                     </span>
                   </div>
 
                   {/* Extras */}
                   {item.extras && item.extras.length > 0 && (
-                    <div className="ml-[22px] mt-0.5 space-y-0.5">
+                    <div className="ml-8 mt-1 space-y-0.5">
                       {item.extras.map((e, ei) => (
-                        <p key={ei} className="text-[10px] text-[#888]">
+                        <p key={ei} className="text-[11px] text-[var(--color-custom-text-muted)]">
                           + {e.item_nombre}
                           {e.item_precio > 0 &&
                             ` (${formatMoney(e.item_precio, simbolo)})`}
@@ -166,14 +115,14 @@ export function CartReceipt({
                   )}
 
                   {/* Unit price */}
-                  <p className="ml-[22px] text-[10px] text-[#999]">
+                  <p className="ml-8 mt-0.5 text-[11px] text-[var(--color-custom-text-muted)]">
                     {formatMoney(item.precio, simbolo)} c/u
                   </p>
                 </div>
 
                 {/* Right: total per item */}
                 <div className="shrink-0 text-right">
-                  <p className="text-[13px] font-bold text-[#222] tabular-nums">
+                  <p className="text-sm font-bold text-[var(--color-custom-900)] tabular-nums">
                     {formatMoney(item.precio * item.cantidad, simbolo)}
                   </p>
                 </div>
@@ -183,18 +132,18 @@ export function CartReceipt({
         </AnimatePresence>
       </div>
 
-      <DashedDivider />
+      <div className="h-px bg-[var(--color-custom-200)] my-3" />
 
       {/* Totals */}
-      <motion.div variants={lineVariants} className="space-y-2 pt-0.5">
+      <motion.div variants={lineVariants} className="space-y-2">
         {/* Minimum order warning */}
         {!esValido && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
-            className="flex items-center gap-2 rounded-lg border border-dashed border-amber-300 bg-amber-50/80 px-3 py-2 text-[11px] text-amber-800"
+            className="flex items-center gap-2 rounded-lg border border-dashed border-amber-300 bg-amber-50/80 px-3 py-2 text-xs text-amber-800"
           >
-            <AlertCircle size={13} className="shrink-0 text-amber-500" />
+            <AlertCircle size={14} className="shrink-0 text-amber-500" />
             <span>
               Mínimo:{" "}
               <strong>
@@ -206,25 +155,23 @@ export function CartReceipt({
         )}
 
         {/* Subtotal line */}
-        <div className="flex items-center justify-between px-1 text-[11px] text-[#888]">
-          <span>SUBTOTAL</span>
-          <span className="tabular-nums font-semibold text-[#444]">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-[var(--color-custom-text-muted)]">Subtotal</span>
+          <span className="font-semibold text-[var(--color-custom-900)] tabular-nums">
             {formatMoney(subtotal, simbolo)}
           </span>
         </div>
 
-        <DashedDivider />
-
         {/* Total */}
-        <div className="flex items-center justify-between px-1">
-          <span className="text-[13px] font-bold uppercase tracking-[0.08em] text-[#111]">
-            TOTAL
+        <div className="flex items-center justify-between pt-1">
+          <span className="text-base font-bold text-[var(--color-custom-900)]">
+            Total
           </span>
           <motion.span
             key={subtotal}
             initial={{ scale: 1.08 }}
             animate={{ scale: 1 }}
-            className="text-xl font-black tabular-nums text-[#111]"
+            className="text-xl font-black tabular-nums text-[var(--color-custom-900)]"
           >
             {formatMoney(subtotal, simbolo)}
           </motion.span>
@@ -234,7 +181,7 @@ export function CartReceipt({
       {/* Actions */}
       <motion.div
         variants={lineVariants}
-        className="mt-4 flex gap-2"
+        className="mt-5 flex gap-2"
       >
         <motion.button
           type="button"
@@ -242,9 +189,9 @@ export function CartReceipt({
           onClick={onVaciar}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#ddd] px-2 py-2.5 text-[10px] font-mono font-semibold uppercase tracking-[0.15em] text-[#888] transition-all hover:border-[#ccc] hover:bg-[#f5f0ea] hover:text-[#555]"
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[var(--color-custom-200)] px-3 py-3 text-xs font-semibold text-[var(--color-custom-text-muted)] transition-all hover:bg-[var(--color-custom-100)]"
         >
-          <Trash2 size={12} />
+          <Trash2 size={14} />
           Vaciar
         </motion.button>
         <motion.button
@@ -254,18 +201,16 @@ export function CartReceipt({
           onClick={onConfirmar}
           whileHover={esValido ? { scale: 1.02 } : {}}
           whileTap={esValido ? { scale: 0.97 } : {}}
-          className={`flex-[2] flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-[11px] font-mono font-bold uppercase tracking-[0.12em] transition-all ${
+          className={`flex-[2] flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-all ${
             esValido
-              ? "bg-[#222] text-white shadow-sm hover:bg-[#111]"
-              : "bg-[#eee] text-[#bbb] cursor-not-allowed"
+              ? "bg-[var(--color-custom-500)] text-white shadow-sm hover:opacity-90"
+              : "bg-[var(--color-custom-100)] text-[var(--color-custom-text-muted)] cursor-not-allowed opacity-60"
           }`}
         >
-          <ShoppingBag size={14} />
-          Confirmar Pedido
+          <ShoppingBag size={16} />
+          Ir al pedido 🚀
         </motion.button>
       </motion.div>
-
-      <ReceiptFooter />
     </motion.div>
   );
 }

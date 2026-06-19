@@ -2,16 +2,25 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { Minus, Plus, ImageIcon } from "lucide-react";
+import { Minus, Plus, ImageIcon, ShoppingBag, Percent, Tag } from "lucide-react";
 import { cardVariants } from "./variants";
 import { formatMoney } from "@/features/public-menu/utils";
 import type { Producto } from "@/features/public-menu/types";
+
+interface ProductDiscountInfo {
+  label: string;
+  type: "porcentaje" | "monto_fijo";
+  valor: number;
+}
 
 interface ProductCardProps {
   product: Producto;
   cantidad: number;
   isOpenNow: boolean;
   simbolo?: string;
+  isInCombo?: boolean;
+  productDiscount?: ProductDiscountInfo | null;
+  hasCodePromo?: boolean;
   onSelect: (product: Producto) => void;
   onQuickAdd: (product: Producto) => void;
   onRemove: (productId: string) => void;
@@ -22,6 +31,9 @@ export function ProductCard({
   cantidad,
   isOpenNow,
   simbolo = "$",
+  isInCombo = false,
+  productDiscount,
+  hasCodePromo,
   onSelect,
   onQuickAdd,
   onRemove,
@@ -34,6 +46,16 @@ export function ProductCard({
     product.configuracion.grupos_opciones.length > 0 &&
     product.configuracion.grupos_opciones.some((g) => g.items.length > 0);
 
+  const showSuggestion = isInCombo || productDiscount || hasCodePromo;
+  const showComboBadge = isInCombo && product.disponible;
+
+  // Precio con descuento
+  const discountedPrice = productDiscount
+    ? productDiscount.type === "porcentaje"
+      ? Math.round(product.precio * (1 - productDiscount.valor / 100))
+      : Math.max(0, product.precio - productDiscount.valor)
+    : null;
+
   return (
     <motion.article
       variants={cardVariants}
@@ -41,7 +63,11 @@ export function ProductCard({
       onClick={() => {
         if (product.disponible) onSelect(product);
       }}
-      className={`group relative overflow-hidden rounded-2xl bg-[var(--color-custom-surface-strong)] shadow-sm ring-1 ring-black/[0.04] transition-shadow hover:shadow-lg hover:ring-black/[0.08] ${
+      className={`group relative overflow-hidden rounded-2xl bg-[var(--color-custom-surface-strong)] shadow-sm ring-1 transition-shadow hover:shadow-lg hover:ring-black/[0.08] h-full flex flex-col ${
+        productDiscount && product.disponible
+          ? "ring-purple-300/40 dark:ring-purple-700/40"
+          : "ring-black/[0.04]"
+      } ${
         !product.disponible ? "opacity-50 grayscale" : "cursor-pointer"
       }`}
       aria-disabled={!product.disponible}
@@ -73,6 +99,39 @@ export function ProductCard({
           </div>
         )}
 
+        {/* ── RIBBON / BADGES DE PROMOCIONES ── */}
+        {product.disponible && (
+          <>
+            {/* Prominent ribbon: OFERTA / descuento */}
+            {productDiscount && (
+              <div
+                className={`absolute top-0 left-0 right-0 px-3 py-1.5 flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold text-white ${
+                  productDiscount.type === "porcentaje"
+                    ? "bg-gradient-to-r from-purple-600 to-purple-500"
+                    : "bg-gradient-to-r from-amber-600 to-amber-500"
+                }`}
+              >
+                {productDiscount.type === "porcentaje" ? (
+                  <Percent size={12} />
+                ) : (
+                  <Tag size={12} />
+                )}
+                <span className="uppercase tracking-[0.08em]">{productDiscount.label}</span>
+              </div>
+            )}
+
+            {/* Badge: En combo (small pill, below ribbon or top-left) */}
+            {showComboBadge && (
+              <div className={`absolute ${productDiscount ? "top-9 right-2" : "top-2 left-2"}`}>
+                <span className="inline-flex items-center gap-1 rounded-full bg-blue-600/90 px-2 py-[3px] text-[9px] font-bold text-white shadow-sm backdrop-blur-[2px]">
+                  <ShoppingBag size={10} />
+                  En combo
+                </span>
+              </div>
+            )}
+          </>
+        )}
+
         {/* Agotado badge */}
         {!product.disponible && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-[2px]">
@@ -84,24 +143,69 @@ export function ProductCard({
       </div>
 
       {/* Content */}
-      <div className="flex flex-col gap-2 p-3 sm:p-4 sm:pt-3">
-        {/* Title + description */}
-        <div className="space-y-0.5">
-          <h3 className="text-sm sm:text-[13px] font-bold leading-tight text-[var(--color-custom-900)]">
+      <div className="flex flex-col flex-1 gap-3 p-4 sm:p-5 sm:pt-3.5">
+        {/* Title + description + sugerencia */}
+        <div className="space-y-1">
+          <h3 className="text-sm sm:text-[14px] font-bold leading-tight text-[var(--color-custom-900)]">
             {product.nombre}
           </h3>
           {product.descripcion && (
-            <p className="line-clamp-2 sm:line-clamp-1 text-[12px] leading-relaxed text-[var(--color-custom-text-muted)]">
+            <p className="line-clamp-2 text-[13px] leading-relaxed text-[var(--color-custom-text-muted)]">
               {product.descripcion}
             </p>
           )}
+
+          {/* ── SUGERENCIA DE PROMO ── */}
+          {showSuggestion && product.disponible && (
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-1">
+              {isInCombo && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600">
+                  <ShoppingBag size={11} />
+                  Disponible en combo
+                </span>
+              )}
+              {productDiscount && (
+                <span className={`inline-flex items-center gap-1 text-[11px] font-semibold ${
+                  productDiscount.type === "porcentaje" ? "text-purple-600" : "text-amber-600"
+                }`}>
+                  {productDiscount.type === "porcentaje" ? (
+                    <Percent size={11} />
+                  ) : (
+                    <Tag size={11} />
+                  )}
+                  {productDiscount.label}
+                </span>
+              )}
+              {hasCodePromo && !isInCombo && !productDiscount && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
+                  <Tag size={11} />
+                  Usá un código y ahorrá
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Price + actions */}
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-base sm:text-[15px] font-black tracking-tight text-[var(--color-custom-900)]">
-            {formatMoney(product.precio, simbolo)}
-          </span>
+        {/* Price + actions — pushed to bottom via mt-auto */}
+        <div className="flex items-center justify-between gap-3 mt-auto">
+          {discountedPrice !== null ? (
+            <div className="flex items-center gap-2.5">
+              <span className="text-[15px] sm:text-[16px] font-black tracking-tight text-[var(--color-custom-text-muted)] line-through decoration-2">
+                {formatMoney(product.precio, simbolo)}
+              </span>
+              <span className={`text-[15px] sm:text-[16px] font-black tracking-tight ${
+                productDiscount!.type === "porcentaje"
+                  ? "text-purple-600"
+                  : "text-amber-600"
+              }`}>
+                {formatMoney(discountedPrice, simbolo)}
+              </span>
+            </div>
+          ) : (
+            <span className="text-[15px] sm:text-[16px] font-black tracking-tight text-[var(--color-custom-900)]">
+              {formatMoney(product.precio, simbolo)}
+            </span>
+          )}
 
           {product.disponible ? (
             <motion.div
@@ -115,16 +219,16 @@ export function ProductCard({
                   e.stopPropagation();
                   onRemove(product.id);
                 }}
-                className="flex h-9 w-9 items-center justify-center transition-all hover:bg-black/10 disabled:opacity-30"
+                className="flex h-11 w-11 items-center justify-center transition-all hover:bg-black/10 disabled:opacity-30"
                 disabled={cantidad === 0}
               >
-                <Minus size={14} />
+                <Minus size={18} />
               </button>
               <motion.span
                 key={cantidad}
                 initial={{ scale: 1.3 }}
                 animate={{ scale: 1 }}
-                className="inline-flex min-w-[1.75rem] items-center justify-center text-xs sm:text-sm font-bold tabular-nums"
+                className="inline-flex min-w-[2.25rem] items-center justify-center text-sm font-bold tabular-nums"
               >
                 {cantidad}
               </motion.span>
@@ -140,16 +244,16 @@ export function ProductCard({
                     onQuickAdd(product);
                   }
                 }}
-                className={`flex h-9 w-9 items-center justify-center transition-all hover:bg-black/10 ${
+                className={`flex h-11 w-11 items-center justify-center transition-all hover:bg-black/10 ${
                   !isOpenNow ? "opacity-40 cursor-not-allowed" : ""
                 }`}
                 disabled={!isOpenNow}
               >
-                <Plus size={14} />
+                <Plus size={18} />
               </button>
             </motion.div>
           ) : (
-            <span className="rounded-full bg-[var(--color-custom-100)] px-2.5 py-1 text-[10px] font-semibold text-[var(--color-custom-text-muted)]">
+            <span className="rounded-full bg-[var(--color-custom-100)] px-3 py-1.5 text-[11px] font-semibold text-[var(--color-custom-text-muted)]">
               Agotado
             </span>
           )}

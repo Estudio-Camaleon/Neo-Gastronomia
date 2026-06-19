@@ -4,24 +4,25 @@ import { motion } from "framer-motion";
 import { ProductCard } from "./ProductCard";
 import type { Categoria, Producto } from "@/features/public-menu/types";
 
+interface ProductDiscountInfo {
+  label: string;
+  type: "porcentaje" | "monto_fijo";
+  valor: number;
+}
+
 interface ProductGridProps {
   categoriasToShow: Categoria[];
   cartQuantityByProduct: Map<string, number>;
   isOpenNow: boolean;
   isCartOpen: boolean;
   simbolo?: string;
+  comboProductIds?: string[];
+  productDiscounts?: Map<string, ProductDiscountInfo>;
+  hasCodePromo?: boolean;
   onSelectProduct: (product: Producto) => void;
   onQuickAdd: (product: Producto) => void;
   onRemoveItem: (productId: string) => void;
 }
-
-const sectionVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.06 },
-  },
-};
 
 export function ProductGrid({
   categoriasToShow,
@@ -29,6 +30,9 @@ export function ProductGrid({
   isOpenNow,
   isCartOpen,
   simbolo = "$",
+  comboProductIds = [],
+  productDiscounts,
+  hasCodePromo,
   onSelectProduct,
   onQuickAdd,
   onRemoveItem,
@@ -53,10 +57,10 @@ export function ProductGrid({
             <motion.section
               key={cat.id}
               id={`cat-${cat.id}`}
-              variants={sectionVariants}
-              initial="hidden"
-              whileInView="visible"
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.35 }}
               className="scroll-mt-[130px] space-y-4"
             >
               {/* Category header */}
@@ -74,27 +78,25 @@ export function ProductGrid({
                 </h3>
               </div>
 
-              {/* Product cards */}
-              <motion.div
-                className={`grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-5 transition-all duration-300 ${
-                  isCartOpen
-                    ? "lg:grid-cols-3"
-                    : "lg:grid-cols-3 xl:grid-cols-4"
-                }`}
-              >
+              {/* Product cards carousel */}
+              <div className="grid grid-flow-col auto-cols-[260px] lg:auto-cols-[280px] gap-3 pb-2 overflow-x-auto snap-x snap-mandatory scrollbar-none overscroll-x-contain">
                 {cat.productos.map((prod) => (
-                  <ProductCard
-                    key={prod.id}
-                    product={prod}
-                    cantidad={cartQuantityByProduct.get(prod.id) || 0}
-                    isOpenNow={isOpenNow}
-                    simbolo={simbolo}
-                    onSelect={onSelectProduct}
-                    onQuickAdd={onQuickAdd}
-                    onRemove={onRemoveItem}
-                  />
+                  <div key={prod.id} className="snap-start">
+                    <ProductCard
+                      product={prod}
+                      cantidad={cartQuantityByProduct.get(prod.id) || 0}
+                      isOpenNow={isOpenNow}
+                      simbolo={simbolo}
+                      isInCombo={comboProductIds.includes(prod.id)}
+                      productDiscount={productDiscounts?.get(prod.id)}
+                      hasCodePromo={hasCodePromo}
+                      onSelect={onSelectProduct}
+                      onQuickAdd={onQuickAdd}
+                      onRemove={onRemoveItem}
+                    />
+                  </div>
                 ))}
-              </motion.div>
+              </div>
             </motion.section>
           ))
         )}

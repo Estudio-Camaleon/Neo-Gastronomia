@@ -1,6 +1,6 @@
 "use client";
 
-import { Check } from "lucide-react";
+import { Check, Flame, Plus } from "lucide-react";
 import type { ExtraGroup } from "@/features/public-menu/types";
 
 interface ExtraGroupRendererProps {
@@ -21,11 +21,11 @@ export function ExtraGroupRenderer({
   if (groups.length === 0) return null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {groups.map((group) => (
         <div key={group.id}>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--color-custom-900)]">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xs font-bold text-[var(--color-custom-900)]">
               {group.titulo}
             </span>
             {group.requerido && (
@@ -33,19 +33,15 @@ export function ExtraGroupRenderer({
                 Requerido
               </span>
             )}
-            {!group.multiple && group.items.length > 1 && (
-              <span className="text-[9px] text-[var(--color-custom-text-muted)]">
-                (elegí 1)
-              </span>
-            )}
           </div>
           <div
-            className="space-y-1.5"
+            className="grid grid-cols-2 gap-2"
             role={group.multiple ? "group" : "radiogroup"}
             aria-label={group.titulo}
           >
-            {group.items.map((item) => {
+            {group.items.map((item, idx) => {
               const isSelected = (selected[group.id] || []).includes(item.id);
+              const isRecomendado = idx === 0 && group.items.length > 1 && !group.requerido;
               return (
                 <button
                   key={item.id}
@@ -53,31 +49,43 @@ export function ExtraGroupRenderer({
                   role={group.multiple ? "checkbox" : "radio"}
                   aria-checked={isSelected}
                   onClick={() => onToggle(group.id, item.id, group.multiple)}
-                  className={`flex w-full items-center gap-3 rounded-xl border px-4 py-2.5 text-left transition-all ${
+                  className={`relative flex flex-col items-center gap-1 rounded-xl border px-3 py-3 text-center transition-all ${
                     isSelected
-                      ? "border-[var(--color-custom-500)] bg-[var(--color-custom-500)]/5 text-[var(--color-custom-900)]"
-                      : "border-[var(--color-custom-border)] text-[var(--color-custom-text-muted)] hover:border-[var(--color-custom-300)]"
+                      ? "border-[var(--color-custom-500)] bg-[var(--color-custom-500)]/5"
+                      : "border-[var(--color-custom-200)] bg-[var(--color-custom-surface-strong)] hover:border-[var(--color-custom-300)] hover:shadow-sm"
                   }`}
                 >
-                  <span
-                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] font-bold transition-colors ${
-                      isSelected
-                        ? "border-[var(--color-custom-500)] bg-[var(--color-custom-500)] text-white"
-                        : "border-[var(--color-custom-300)]"
-                    }`}
-                  >
-                    {isSelected && group.multiple ? (
-                      <Check size={10} strokeWidth={3} />
-                    ) : isSelected ? (
-                      <span className="block h-2 w-2 rounded-full bg-white" />
-                    ) : null}
+                  {isRecomendado && (
+                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 inline-flex items-center gap-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-2 py-[1px] text-[7px] font-bold text-white whitespace-nowrap shadow-xs">
+                      <Flame size={8} />
+                      Recomendado
+                    </span>
+                  )}
+                  <span className="relative">
+                    {isSelected && (
+                      <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-custom-500)] text-white">
+                        <Check size={8} strokeWidth={3} />
+                      </span>
+                    )}
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-custom-100)] text-sm">
+                      {item.nombre.charAt(0)}
+                    </span>
                   </span>
-                  <span className="flex-1 text-sm font-medium truncate">
+                  <span className="text-[11px] font-semibold text-[var(--color-custom-900)] leading-tight line-clamp-2">
                     {item.nombre}
                   </span>
-                  {item.precio > 0 && (
-                    <span className="text-xs font-semibold text-[var(--color-custom-600)]">
+                  {item.precio > 0 ? (
+                    <span className="text-[10px] font-bold text-[var(--color-custom-500)]">
                       +{fmt(item.precio, simbolo)}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-medium text-green-600">
+                      Incluido
+                    </span>
+                  )}
+                  {!isSelected && item.precio > 0 && (
+                    <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-[var(--color-custom-500)] mt-0.5">
+                      <Plus size={9} /> Agregar
                     </span>
                   )}
                 </button>

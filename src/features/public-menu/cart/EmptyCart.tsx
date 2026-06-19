@@ -46,7 +46,7 @@ export function EmptyCart({
         className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border-2 ${
           isSuccess
             ? "border-green-200 bg-green-50 text-green-500"
-            : "border-dashed border-[#ddd] bg-[#f8f5f0] text-[#bbb]"
+            : "border-dashed border-[var(--color-custom-200)] bg-[var(--color-custom-100)] text-[var(--color-custom-text-muted)]"
         }`}
       >
         {isSuccess ? (
@@ -58,8 +58,8 @@ export function EmptyCart({
 
       {/* Title */}
       <p
-        className={`text-[11px] font-mono font-bold uppercase tracking-[0.18em] ${
-          isSuccess ? "text-green-600" : "text-[#999]"
+        className={`text-sm font-bold ${
+          isSuccess ? "text-green-600" : "text-[var(--color-custom-900)]"
         }`}
       >
         {isSuccess
@@ -70,7 +70,7 @@ export function EmptyCart({
       </p>
 
       {/* Message */}
-      <p className="mt-2 max-w-[200px] text-[11px] font-mono text-[#aaa] leading-relaxed">
+      <p className="mt-1 max-w-[220px] text-sm text-[var(--color-custom-text-muted)] leading-relaxed">
         {isSuccess
           ? "Gracias por tu compra. Pronto recibirás la confirmación."
           : "Agregá productos del menú para empezar"}
@@ -79,11 +79,11 @@ export function EmptyCart({
       {/* Order ref */}
       {isSuccess && (
         <>
-          <div className="mt-4 rounded-lg border border-dashed border-[#ddd] bg-[#f8f5f0] px-4 py-2">
-            <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-[#999]">
+          <div className="mt-5 rounded-xl border border-[var(--color-custom-200)] bg-[var(--color-custom-surface-strong)] px-5 py-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-custom-text-muted)]">
               Referencia
             </p>
-            <p className="font-mono text-[13px] font-bold text-[#333]">
+            <p className="text-lg font-black text-[var(--color-custom-900)] tracking-tight">
               #{lastOrderId!.slice(0, 6).toUpperCase()}
             </p>
           </div>
@@ -92,9 +92,9 @@ export function EmptyCart({
             onClick={onNewOrder}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
-            className="mt-5 flex items-center gap-1.5 rounded-lg border border-dashed border-[#ddd] px-5 py-2.5 text-[10px] font-mono font-bold uppercase tracking-[0.15em] text-[#888] transition-all hover:border-[#ccc] hover:bg-[#f8f5f0] hover:text-[#555]"
+            className="mt-5 flex items-center gap-1.5 rounded-xl border border-dashed border-[var(--color-custom-200)] px-5 py-2.5 text-xs font-semibold text-[var(--color-custom-text-muted)] transition-all hover:border-[var(--color-custom-500)] hover:text-[var(--color-custom-500)] hover:bg-[var(--color-custom-100)]"
           >
-            <Plus size={13} />
+            <Plus size={14} />
             Nuevo Pedido
           </motion.button>
         </>

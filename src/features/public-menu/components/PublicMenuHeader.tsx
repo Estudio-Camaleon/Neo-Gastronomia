@@ -48,8 +48,7 @@ export function PublicMenuHeader({
     negocio.facebook_url ||
     negocio.tiktok_url ||
     negocio.twitter_url ||
-    negocio.youtube_url ||
-    negocio.tripadvisor_url;
+    negocio.youtube_url;
 
   // Dynamic card background: darken primary color, fallback to green
   const cardBgStyle = negocio.color_primary
@@ -430,19 +429,6 @@ export function PublicMenuHeader({
                     >
                       <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
                         <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                      </svg>
-                    </a>
-                  )}
-                  {negocio.tripadvisor_url && (
-                    <a
-                      href={negocio.tripadvisor_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      aria-label="TripAdvisor"
-                      className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/80 transition-all hover:bg-[#00AF87] hover:text-white hover:scale-110 active:scale-95"
-                    >
-                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                        <path d="M17.18 9.48a4.27 4.27 0 100 8.54 4.27 4.27 0 000-8.54zm-10.36 0a4.27 4.27 0 100 8.54 4.27 4.27 0 000-8.54zM12 6.84c-1.2 0-2.62.36-4.09 1.07a4.24 4.24 0 00-.1 2.14c.8 1.6 2.26 2.7 4.19 2.7s3.39-1.1 4.19-2.7a4.24 4.24 0 00-.1-2.14C14.62 7.2 13.2 6.84 12 6.84zm0 2.98c-2.19 0-3.96 1.77-3.96 3.96S9.81 17.74 12 17.74s3.96-1.77 3.96-3.96S14.19 9.82 12 9.82zm0 1.98c1.09 0 1.98.89 1.98 1.98s-.89 1.98-1.98 1.98-1.98-.89-1.98-1.98.89-1.98 1.98-1.98zM12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm0 2.5c5.25 0 9.5 4.25 9.5 9.5s-4.25 9.5-9.5 9.5S2.5 17.25 2.5 12 6.75 2.5 12 2.5z" />
                       </svg>
                     </a>
                   )}

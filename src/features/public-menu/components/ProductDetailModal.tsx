@@ -105,24 +105,34 @@ export function ProductDetailModal({
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
         className="relative w-full max-w-[460px] sm:max-w-sm bg-[var(--color-custom-surface-strong)] shadow-2xl overflow-hidden flex flex-col max-sm:rounded-t-2xl max-sm:rounded-b-none max-sm:max-h-[92vh] sm:rounded-2xl sm:max-h-[85vh] lg:max-h-[80vh]"
       >
-        {/* Image */}
-        {product.imagen_url ? (
-          <div className="aspect-video sm:aspect-[4/3] w-full shrink-0 overflow-hidden bg-[var(--color-custom-100)]">
-            <img
-              src={product.imagen_url}
-              alt={product.nombre}
-              className="h-full w-full object-cover"
-            />
-          </div>
-        ) : (
-          <div className="flex aspect-video sm:aspect-[4/3] w-full shrink-0 items-center justify-center bg-[var(--color-custom-100)] text-[var(--color-custom-text-muted)]" role="img" aria-label={`${product.nombre} — sin imagen`}>
-            <ImageIcon size={48} />
-          </div>
-        )}
+        {/* Image + Close button */}
+        <div className="relative">
+          {product.imagen_url ? (
+            <div className="aspect-video sm:aspect-[4/3] w-full shrink-0 overflow-hidden bg-[var(--color-custom-100)]">
+              <img
+                src={product.imagen_url}
+                alt={product.nombre}
+                className="h-full w-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="flex aspect-video sm:aspect-[4/3] w-full shrink-0 items-center justify-center bg-[var(--color-custom-100)] text-[var(--color-custom-text-muted)]" role="img" aria-label={`${product.nombre} — sin imagen`}>
+              <ImageIcon size={48} />
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={onCancel}
+            aria-label="Cerrar"
+            className="absolute top-3 right-3 z-10 flex h-9 w-9 sm:h-8 sm:w-8 items-center justify-center rounded-xl bg-black/50 text-white backdrop-blur-sm transition-colors hover:bg-black/70 active:scale-90"
+          >
+            <X size={18} />
+          </button>
+        </div>
 
         {/* Header */}
         <div className="flex items-start justify-between border-b border-[var(--color-custom-border)] px-4 sm:px-5 py-3 sm:py-4 shrink-0">
-          <div className="min-w-0 flex-1 pr-2">
+          <div className="min-w-0 flex-1">
             <h3 className="text-base font-bold text-[var(--color-custom-900)]">
               {product.nombre}
             </h3>
@@ -132,17 +142,9 @@ export function ProductDetailModal({
               </p>
             )}
           </div>
-          <button
-            type="button"
-            onClick={onCancel}
-            aria-label="Cerrar"
-            className="flex h-9 w-9 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-xl border border-[var(--color-custom-border)] text-[var(--color-custom-700)] transition-colors hover:bg-[var(--color-custom-100)] hover:text-[var(--color-custom-900)] active:scale-90"
-          >
-            <X size={18} />
-          </button>
         </div>
 
-        <div className="overflow-y-auto px-4 sm:px-5 py-3 sm:py-4 space-y-4 sm:space-y-5 flex-1 min-h-0">
+        <div className="overflow-y-auto overscroll-y-contain px-4 sm:px-5 py-3 sm:py-4 space-y-4 sm:space-y-5 flex-1 min-h-0">
           {/* Price */}
           <div className="flex items-baseline gap-2">
             <span className="text-xl font-black text-[var(--color-custom-900)]">
@@ -201,21 +203,26 @@ export function ProductDetailModal({
             </div>
           )}
 
-          {/* Extras */}
+          {/* Upsells — Mejorá tu pedido */}
           {groups.length > 0 && (
-            <ExtraGroupRenderer
-              groups={groups}
-              selected={selectedExtras}
-              onToggle={toggleExtra}
-              simbolo={simbolo}
-              formatMoney={formatMoney}
-            />
+            <div className="space-y-1">
+              <span className="text-xs font-bold text-[var(--color-custom-900)] flex items-center gap-1.5">
+                Mejorá tu pedido
+              </span>
+              <ExtraGroupRenderer
+                groups={groups}
+                selected={selectedExtras}
+                onToggle={toggleExtra}
+                simbolo={simbolo}
+                formatMoney={formatMoney}
+              />
+            </div>
           )}
 
           {/* Note */}
           <div>
-            <span className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--color-custom-900)] mb-2 block">
-              Nota (opcional)
+            <span className="text-xs font-bold text-[var(--color-custom-900)] mb-2 block">
+              ¿Algún detalle extra? 🧑‍🍳
             </span>
             <textarea
               value={nota}
@@ -293,10 +300,10 @@ export function ProductDetailModal({
             <ShoppingBag size={16} className="shrink-0" />
             {isOpenNow ? (
               <span className="truncate">
-                Agregar al pedido · {formatMoney(total * cantidad, simbolo)}
+                Pedir ahora 🍔 · {formatMoney(total * cantidad, simbolo)}
               </span>
             ) : (
-              <span className="truncate">Local cerrado</span>
+              <span className="truncate">Cerrado ahora — volvé más tarde</span>
             )}
           </motion.button>
         </div>

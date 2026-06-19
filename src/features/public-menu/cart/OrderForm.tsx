@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,6 +13,7 @@ import {
   Percent,
   Tag,
   Sparkles,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { FoodMini } from "@/components/ui/food-loading";
@@ -29,12 +30,58 @@ import { submitOrderPublicAction } from "../../admin/orders/actions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { PromoRow } from "@/features/public-menu/types";
+import type { CartItem } from "./useCartStore";
 
 function getDiscountLabel(promo: PromoRow): string {
   if (promo.tipo_descuento === "porcentaje") {
     return `${promo.valor_descuento}% OFF`;
   }
   return `$${Number(promo.valor_descuento).toLocaleString("es-AR")} OFF`;
+}
+
+/** Returns the subtotal of cart items that this promo actually applies to,
+ *  based on the `aplicar_a` column (productos / categorías). */
+function getPromoSubtotal(
+  promo: PromoRow,
+  cart: CartItem[],
+  productCategoryMap: Record<string, string>,
+): number {
+  const aplicarA = promo.aplicar_a as
+    | { productos?: string[]; categorias?: string[] }
+    | null
+    | undefined;
+
+  // null → applies to all items
+  if (!aplicarA) {
+    return cart.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
+  }
+
+  // Build set of affected product IDs
+  const affected = new Set(aplicarA.productos ?? []);
+
+  // Add products belonging to affected categories
+  const catIds = aplicarA.categorias ?? [];
+  if (catIds.length > 0) {
+    const targetCats = new Set(catIds);
+    for (const item of cart) {
+      const catId = productCategoryMap[item.producto_id];
+      if (catId && targetCats.has(catId)) {
+        affected.add(item.producto_id);
+      }
+    }
+  }
+
+  // If no products/categories specified, apply to all
+  if (affected.size === 0) {
+    return cart.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
+  }
+
+  return cart.reduce((acc, item) => {
+    if (affected.has(item.producto_id)) {
+      return acc + item.precio * item.cantidad;
+    }
+    return acc;
+  }, 0);
 }
 
 interface OrderFormProps {
@@ -48,6 +95,7 @@ interface OrderFormProps {
     costo_envio?: number;
   };
   promos?: PromoRow[];
+  productCategoryMap?: Record<string, string>;
 }
 
 export function OrderForm({
@@ -58,15 +106,36 @@ export function OrderForm({
   onSuccess,
   config,
   promos = [],
+  productCategoryMap = {},
 }: OrderFormProps) {
   const [isPending, setIsPending] = useState(false);
+  const [recepcionPausada, setRecepcionPausada] = useState(false);
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<PromoRow | null>(null);
   const [codeError, setCodeError] = useState("");
 
-  // Discount promos that auto-apply (no code needed)
+  useEffect(() => {
+    const checkRecepcion = async () => {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("negocios")
+        .select("recepcion_pausada")
+        .eq("id", negocioId)
+        .limit(1)
+        .single();
+      if (data?.recepcion_pausada) {
+        setRecepcionPausada(true);
+      }
+    };
+    checkRecepcion();
+  }, [negocioId]);
+
+  // Discount promos that auto-apply (no code needed) — only show if they apply to the cart
   const discountPromos = promos.filter(
-    (p) => p.tipo_descuento !== "combo" && !p.codigo,
+    (p) =>
+      p.tipo_descuento !== "combo" &&
+      !p.codigo &&
+      getPromoSubtotal(p, cart, productCategoryMap) > 0,
   );
   // Code-based promos
   const codePromos = promos.filter(
@@ -92,18 +161,33 @@ export function OrderForm({
     }
   };
 
-  // Calculate discount
-  let discountAmount = 0;
-  if (appliedPromo) {
-    if (appliedPromo.tipo_descuento === "porcentaje") {
-      discountAmount = Math.round(subtotal * (appliedPromo.valor_descuento / 100));
+  // ── Auto-applied discounts (non-code promos) ──
+  let autoDiscountAmount = 0;
+  for (const promo of discountPromos) {
+    const applicableSubtotal = getPromoSubtotal(promo, cart, productCategoryMap);
+    if (applicableSubtotal <= 0) continue;
+    if (promo.tipo_descuento === "porcentaje") {
+      autoDiscountAmount += Math.round(applicableSubtotal * (promo.valor_descuento / 100));
     } else {
-      discountAmount = Math.min(
+      autoDiscountAmount += Math.min(Number(promo.valor_descuento), applicableSubtotal);
+    }
+  }
+
+  // ── Code-based promo discount ──
+  let codeDiscountAmount = 0;
+  if (appliedPromo) {
+    const applicableSubtotal = getPromoSubtotal(appliedPromo, cart, productCategoryMap);
+    if (appliedPromo.tipo_descuento === "porcentaje") {
+      codeDiscountAmount = Math.round(applicableSubtotal * (appliedPromo.valor_descuento / 100));
+    } else {
+      codeDiscountAmount = Math.min(
         Number(appliedPromo.valor_descuento),
-        subtotal,
+        applicableSubtotal,
       );
     }
   }
+
+  const discountAmount = autoDiscountAmount + codeDiscountAmount;
 
   const {
     register,
@@ -224,7 +308,24 @@ export function OrderForm({
       onSubmit={handleSubmit(onSubmit)}
       className="flex flex-col h-full justify-between space-y-4"
     >
-      <div className="space-y-6 overflow-y-auto max-h-[450px] pr-2 public-scrollbar">
+      {recepcionPausada && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700"
+        >
+          <AlertTriangle size={20} className="shrink-0" />
+          <div className="text-sm font-semibold leading-snug">
+            El local no está aceptando pedidos en este momento.
+            <br />
+            <span className="font-normal text-red-600 text-xs">
+              La recepción de pedidos se encuentra pausada.
+            </span>
+          </div>
+        </motion.div>
+      )}
+
+      <div className="space-y-6 overflow-y-auto overscroll-y-contain max-h-[450px] pr-2 public-scrollbar">
         <button
           type="button"
           onClick={onBack}
@@ -431,7 +532,7 @@ export function OrderForm({
         {codePromos.length > 0 && (
           <div className="space-y-1.5">
             <Label className="text-[var(--color-custom-900)]">
-              Código de descuento
+              ¿Tenés un código? 🎫
             </Label>
             <div className="flex gap-2">
               <input
@@ -456,7 +557,7 @@ export function OrderForm({
                 onClick={handleApplyCode}
                 className="shrink-0 rounded-lg bg-[var(--color-custom-900)] px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-[var(--color-custom-800)]"
               >
-                Aplicar
+                Canjear 🎫
               </button>
             </div>
             {codeError && (
@@ -518,10 +619,16 @@ export function OrderForm({
               <span>{formatMoney(costoEnvioActual, simbolo)}</span>
             </div>
           )}
-          {discountAmount > 0 && (
+          {autoDiscountAmount > 0 && (
             <div className="flex justify-between text-green-600 font-semibold">
-              <span>Descuento</span>
-              <span>-{formatMoney(discountAmount, simbolo)}</span>
+              <span>Descuento automático</span>
+              <span>-{formatMoney(autoDiscountAmount, simbolo)}</span>
+            </div>
+          )}
+          {codeDiscountAmount > 0 && (
+            <div className="flex justify-between text-green-600 font-semibold">
+              <span>Descuento con código</span>
+              <span>-{formatMoney(codeDiscountAmount, simbolo)}</span>
             </div>
           )}
         </div>
@@ -541,7 +648,7 @@ export function OrderForm({
         </div>
         <motion.button
           type="submit"
-          disabled={isPending}
+          disabled={isPending || recepcionPausada}
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
           className="w-full bg-[var(--color-custom-500)] hover:bg-[var(--color-custom-600)] text-white rounded-xl py-3.5 font-semibold text-sm shadow-md transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-wait disabled:hover:bg-[var(--color-custom-500)]"
@@ -551,7 +658,7 @@ export function OrderForm({
               <FoodMini size={16} /> Procesando...
             </>
           ) : (
-            "Confirmar Pedido por WhatsApp"
+            "Enviar pedido 🚀"
           )}
         </motion.button>
       </motion.div>

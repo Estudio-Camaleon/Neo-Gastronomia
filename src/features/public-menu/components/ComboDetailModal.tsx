@@ -184,10 +184,10 @@ export function ComboDetailModal({
             type="button"
             onClick={handleAdd}
             whileTap={{ scale: 0.98 }}
-            className="flex items-center justify-center gap-1.5 rounded-xl bg-[var(--color-custom-900)] px-4 py-2.5 text-xs font-bold text-white hover:bg-[var(--color-custom-800)] transition-colors shadow-sm w-full sm:w-auto"
+            className="flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[var(--color-custom-500)] to-[var(--color-custom-600)] px-5 py-3 text-sm font-bold text-white hover:opacity-90 transition-all shadow-md w-full sm:w-auto"
           >
-            <ShoppingBag size={14} />
-            Agregar · {formatMoney(Number(promo.valor_descuento) * cantidad, simbolo)}
+            <ShoppingBag size={16} />
+            Agendar combo 🚀 · {formatMoney(Number(promo.valor_descuento) * cantidad, simbolo)}
           </motion.button>
         </div>
       </motion.div>

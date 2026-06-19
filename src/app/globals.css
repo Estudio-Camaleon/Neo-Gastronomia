@@ -464,6 +464,15 @@ iframe {
   scrollbar-color: color-mix(in srgb, var(--color-custom-900) 15%, transparent) transparent;
 }
 
+/* Scrollbar oculta para carruseles */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Respetar preferencia de movimiento reducido — WCAG 2.3.3 */
 @media (prefers-reduced-motion: reduce) {
   *,
