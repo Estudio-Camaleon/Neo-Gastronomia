@@ -60,10 +60,10 @@ export function ProductCard({
     <motion.article
       variants={cardVariants}
       layout
-      onClick={() => {
-        if (product.disponible) onSelect(product);
+      onClick={(e) => {
+        if (product.disponible && !(e.target as HTMLElement).closest("[data-image-area]")) onSelect(product);
       }}
-      className={`group relative overflow-hidden rounded-2xl bg-[var(--color-custom-surface-strong)] shadow-sm ring-1 transition-shadow hover:shadow-lg hover:ring-black/[0.08] h-full flex flex-col ${
+      className={`group relative overflow-hidden rounded-2xl bg-gradient-to-b from-[var(--color-custom-surface-strong)] to-[var(--color-custom-100)] shadow-sm ring-1 transition-shadow hover:shadow-lg hover:ring-black/[0.08] h-full flex flex-col ${
         productDiscount && product.disponible
           ? "ring-purple-300/40 dark:ring-purple-700/40"
           : "ring-black/[0.04]"
@@ -73,21 +73,22 @@ export function ProductCard({
       aria-disabled={!product.disponible}
     >
       {/* Image area */}
-      <div className="relative aspect-[5/4] sm:aspect-[4/3] w-full overflow-hidden bg-[var(--color-custom-100)]">
+      <div data-image-area className="relative aspect-[5/4] sm:aspect-[4/3] w-full overflow-hidden bg-[var(--color-custom-100)]">
         {product.imagen_url ? (
           <>
             <Image
               src={product.imagen_url}
               alt={product.nombre}
               fill
+              draggable={false}
               loading="lazy"
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              className="object-cover transition-transform duration-500 group-hover:scale-105 select-none"
               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
-            {/* Gradient overlay at bottom for text legibility */}
+            {/* Gradient overlay for depth/volume */}
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"
+              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-black/5 to-transparent"
             />
           </>
         ) : (
@@ -186,8 +187,8 @@ export function ProductCard({
           )}
         </div>
 
-        {/* Price + actions — pushed to bottom via mt-auto */}
-        <div className="flex items-center justify-between gap-3 mt-auto">
+        {/* Price — pushed to bottom via mt-auto */}
+        <div className="mt-auto space-y-2">
           {discountedPrice !== null ? (
             <div className="flex items-center gap-2.5">
               <span className="text-[15px] sm:text-[16px] font-black tracking-tight text-[var(--color-custom-text-muted)] line-through decoration-2">
@@ -207,56 +208,58 @@ export function ProductCard({
             </span>
           )}
 
-          {product.disponible ? (
-            <motion.div
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center overflow-hidden rounded-full bg-[var(--color-custom-500)] text-white shadow-sm"
-            >
-              <button
-                type="button"
-                aria-label={`Disminuir cantidad de ${product.nombre}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemove(product.id);
-                }}
-                className="flex h-11 w-11 items-center justify-center transition-all hover:bg-black/10 disabled:opacity-30"
-                disabled={cantidad === 0}
+          <div className="flex justify-end">
+            {product.disponible ? (
+              <motion.div
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center overflow-hidden rounded-full bg-[var(--color-custom-500)] text-white shadow-sm"
               >
-                <Minus size={18} />
-              </button>
-              <motion.span
-                key={cantidad}
-                initial={{ scale: 1.3 }}
-                animate={{ scale: 1 }}
-                className="inline-flex min-w-[2.25rem] items-center justify-center text-sm font-bold tabular-nums"
-              >
-                {cantidad}
-              </motion.span>
-              <button
-                type="button"
-                aria-label={`Aumentar cantidad de ${product.nombre}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!isOpenNow) return;
-                  if (hasVariants || hasExtras) {
-                    onSelect(product);
-                  } else {
-                    onQuickAdd(product);
-                  }
-                }}
-                className={`flex h-11 w-11 items-center justify-center transition-all hover:bg-black/10 ${
-                  !isOpenNow ? "opacity-40 cursor-not-allowed" : ""
-                }`}
-                disabled={!isOpenNow}
-              >
-                <Plus size={18} />
-              </button>
-            </motion.div>
-          ) : (
-            <span className="rounded-full bg-[var(--color-custom-100)] px-3 py-1.5 text-[11px] font-semibold text-[var(--color-custom-text-muted)]">
-              Agotado
-            </span>
-          )}
+                <button
+                  type="button"
+                  aria-label={`Disminuir cantidad de ${product.nombre}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove(product.id);
+                  }}
+                  className="flex h-11 w-11 items-center justify-center transition-all hover:bg-black/10 disabled:opacity-30"
+                  disabled={cantidad === 0}
+                >
+                  <Minus size={18} />
+                </button>
+                <motion.span
+                  key={cantidad}
+                  initial={{ scale: 1.3 }}
+                  animate={{ scale: 1 }}
+                  className="inline-flex min-w-[2.25rem] items-center justify-center text-sm font-bold tabular-nums"
+                >
+                  {cantidad}
+                </motion.span>
+                <button
+                  type="button"
+                  aria-label={`Aumentar cantidad de ${product.nombre}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!isOpenNow) return;
+                    if (hasVariants || hasExtras) {
+                      onSelect(product);
+                    } else {
+                      onQuickAdd(product);
+                    }
+                  }}
+                  className={`flex h-11 w-11 items-center justify-center transition-all hover:bg-black/10 ${
+                    !isOpenNow ? "opacity-40 cursor-not-allowed" : ""
+                  }`}
+                  disabled={!isOpenNow}
+                >
+                  <Plus size={18} />
+                </button>
+              </motion.div>
+            ) : (
+              <span className="rounded-full bg-[var(--color-custom-100)] px-3 py-1.5 text-[11px] font-semibold text-[var(--color-custom-text-muted)]">
+                Agotado
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </motion.article>

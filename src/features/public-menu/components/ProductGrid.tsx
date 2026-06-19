@@ -1,8 +1,37 @@
 "use client";
 
+import { useRef, useState, useEffect, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { ProductCard } from "./ProductCard";
 import type { Categoria, Producto } from "@/features/public-menu/types";
+
+function DragCarousel({ children }: { children: ReactNode }) {
+  const constraintsRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [trackWidth, setTrackWidth] = useState(0);
+
+  useEffect(() => {
+    const el = constraintsRef.current;
+    const track = trackRef.current;
+    if (!el || !track) return;
+    setTrackWidth(Math.max(0, track.scrollWidth - el.offsetWidth));
+  }, [children]);
+
+  return (
+    <div ref={constraintsRef} className="overflow-hidden pb-2 rounded-2xl">
+      <motion.div
+        ref={trackRef}
+        drag="x"
+        dragConstraints={{ right: 0, left: -trackWidth }}
+        dragElastic={0.15}
+        whileTap={{ cursor: "grabbing" }}
+        className="flex gap-3 cursor-grab select-none"
+      >
+        {children}
+      </motion.div>
+    </div>
+  );
+}
 
 interface ProductDiscountInfo {
   label: string;
@@ -38,7 +67,7 @@ export function ProductGrid({
   onRemoveItem,
 }: ProductGridProps) {
   return (
-    <div className="mt-6 space-y-8">
+    <div className="mt-6 space-y-8 w-full max-w-7xl mx-auto">
       {categoriasToShow.length === 0 ? (
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -79,9 +108,9 @@ export function ProductGrid({
               </div>
 
               {/* Product cards carousel */}
-              <div className="grid grid-flow-col auto-cols-[260px] lg:auto-cols-[280px] gap-3 pb-2 overflow-x-auto snap-x snap-mandatory scrollbar-none overscroll-x-contain">
+              <DragCarousel>
                 {cat.productos.map((prod) => (
-                  <div key={prod.id} className="snap-start">
+                  <div key={prod.id} className="snap-start w-[260px] lg:w-[280px] shrink-0">
                     <ProductCard
                       product={prod}
                       cantidad={cartQuantityByProduct.get(prod.id) || 0}
@@ -96,7 +125,7 @@ export function ProductGrid({
                     />
                   </div>
                 ))}
-              </div>
+              </DragCarousel>
             </motion.section>
           ))
         )}

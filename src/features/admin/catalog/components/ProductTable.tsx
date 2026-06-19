@@ -20,6 +20,7 @@ export interface UnifiedProduct {
   descripcion: string | null;
   precio: number;
   imagen_url: string | null;
+  imagenes_extra?: string[];
   categoria_id: string | null;
   disponible: boolean;
   created_at: string | null;
@@ -296,36 +297,22 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
                 {formatDate(prod.created_at)}
               </td>
               <td className="p-3 hidden sm:table-cell">
-                {prod.disponible ? (
-                  <Badge
-                    variant="default"
-                    className="admin-success-bg admin-success-text admin-success-border text-[11px]"
-                  >
-                    Activo
-                  </Badge>
-                ) : (
-                  <Badge
-                    variant="secondary"
-                    className="bg-[var(--admin-bg)] text-[var(--admin-text-muted)] border-[var(--admin-border)] text-[11px]"
-                  >
-                    Pausado
-                  </Badge>
-                )}
+                <button
+                  onClick={() => handleToggleDisponible(prod)}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border ${
+                    prod.disponible
+                      ? "admin-success-bg admin-success-text admin-success-border hover:bg-green-500/20"
+                      : "bg-[var(--admin-bg)] text-[var(--admin-text-muted)] border-[var(--admin-border)] hover:bg-amber-500/10 hover:border-amber-500/20 hover:text-amber-500"
+                  }`}
+                  title={prod.disponible ? "Pausar producto" : "Activar producto"}
+                  aria-label={`${prod.disponible ? "Pausar" : "Activar"} ${prod.nombre}`}
+                >
+                  {prod.disponible ? <Power size={13} /> : <PowerOff size={13} />}
+                  {prod.disponible ? "Activo" : "Pausado"}
+                </button>
               </td>
               <td className="p-3 pr-4 sm:pr-6 text-right">
                 <div className="flex justify-end gap-1">
-                  <button
-                    onClick={() => handleToggleDisponible(prod)}
-                    className={`p-1.5 rounded-lg transition-colors border border-transparent ${
-                      prod.disponible
-                        ? "text-green-500 hover:bg-green-500/10 hover:border-green-500/20"
-                        : "text-[var(--admin-text-muted)] hover:text-amber-500 hover:bg-amber-500/10 hover:border-amber-500/20"
-                    }`}
-                    title={prod.disponible ? "Pausar producto" : "Activar producto"}
-                    aria-label={`${prod.disponible ? "Pausar" : "Activar"} ${prod.nombre}`}
-                  >
-                    {prod.disponible ? <Power size={15} /> : <PowerOff size={15} />}
-                  </button>
                   <button
                     onClick={() => onEdit(prod)}
                     className="p-1.5 text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] hover:bg-[var(--admin-accent)]/10 rounded-lg transition-colors border border-transparent hover:border-[var(--admin-accent)]/20"

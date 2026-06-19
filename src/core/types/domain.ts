@@ -79,6 +79,7 @@ export interface ProductoConfiguracion {
 
 export interface ProductoConConfig extends Omit<ProductoRow, "configuracion"> {
   configuracion: ProductoConfiguracion | null;
+  imagenes_extra?: string[];
 }
 
 // ── Cliente ──────────────────────────────────────────
@@ -172,6 +173,7 @@ export interface UpdateTenantBrandingPayload {
 
 // ── Promo ────────────────────────────────────────────
 export type PromoRow = Tables<"promos">;
+export type PromoConGaleria = PromoRow & { imagenes_extra?: string[] };
 
 // ── Enums ────────────────────────────────────────────
 export interface CatalogClientProps {

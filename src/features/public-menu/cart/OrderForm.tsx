@@ -532,7 +532,7 @@ export function OrderForm({
         {codePromos.length > 0 && (
           <div className="space-y-1.5">
             <Label className="text-[var(--color-custom-900)]">
-              ¿Tenés un código? 🎫
+              ¿Tenés un código?
             </Label>
             <div className="flex gap-2">
               <input
@@ -557,7 +557,7 @@ export function OrderForm({
                 onClick={handleApplyCode}
                 className="shrink-0 rounded-lg bg-[var(--color-custom-900)] px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-[var(--color-custom-800)]"
               >
-                Canjear 🎫
+                Canjear
               </button>
             </div>
             {codeError && (
@@ -658,7 +658,7 @@ export function OrderForm({
               <FoodMini size={16} /> Procesando...
             </>
           ) : (
-            "Enviar pedido 🚀"
+            "Enviar pedido"
           )}
         </motion.button>
       </motion.div>

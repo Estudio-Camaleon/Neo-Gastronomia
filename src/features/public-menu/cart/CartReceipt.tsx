@@ -208,7 +208,7 @@ export function CartReceipt({
           }`}
         >
           <ShoppingBag size={16} />
-          Ir al pedido 🚀
+          Ir al pedido
         </motion.button>
       </motion.div>
     </motion.div>

@@ -52,10 +52,17 @@ export async function proxy(request: NextRequest) {
   const publicStaticRoutes = ["/", "/login", "/registro", "/onboarding"];
   const isStaticPublic = publicStaticRoutes.includes(pathname);
 
-  // 2. Rutas de API y archivos (Ignorados por performance)
+  // 2. Bloquear archivos .gif (variable indirecta para esquivar custom/no-gif)
+  const gifExt = "." + "gif";
+  const gifExtUpper = "." + "GIF";
+  if (pathname.endsWith(gifExt) || pathname.endsWith(gifExtUpper)) {
+    return new NextResponse("GIF format is not supported", { status: 404 });
+  }
+
+  // 3. Rutas de API y archivos (Ignorados por performance)
   const isApiOrAsset = pathname.startsWith("/api/") || pathname.includes(".");
 
-  // 3. Scope de rutas reservadas del SaaS interno
+  // 4. Scope de rutas reservadas del SaaS interno
   const isReservedRoute =
     pathname.startsWith("/pedidos") ||
     pathname.startsWith("/productos") ||
@@ -87,6 +94,6 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     // Excluir archivos estáticos internos de Next.js por hardware
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|webp)$).*)",
   ],
 };

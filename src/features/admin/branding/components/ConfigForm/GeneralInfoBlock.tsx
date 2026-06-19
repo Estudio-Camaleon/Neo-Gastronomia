@@ -1,14 +1,14 @@
 "use client";
 
-import { Globe, Hash, Phone, XCircle, MapPin } from "lucide-react";
+import { Globe, Hash, Phone, XCircle } from "lucide-react";
 import type { ConfigFormState } from "../../types";
-import { LOCALIDADES_TUCUMAN } from "../../types";
+import { PAISES } from "../../types";
 
 export interface GeneralInfoBlockProps {
   formData: ConfigFormState;
   errors: Partial<Record<keyof ConfigFormState, string | undefined>>;
   onChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => void;
   onClearError: (field: keyof ConfigFormState) => void;
   onToggleMostrarNombre: (val: boolean) => void;
@@ -86,51 +86,44 @@ export function GeneralInfoBlock({
           )}
         </div>
 
+        {/* WhatsApp: país + número */}
         <div className="space-y-1">
           <label className="font-medium text-[var(--admin-text-muted)] flex items-center gap-1">
             <Phone size={12} /> WhatsApp Receptor de Comandas
             <span className="text-[9px] font-bold text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded">Obligatorio</span>
           </label>
-          <input
-            name="whatsapp"
-            value={formData.whatsapp}
-            onChange={(e) => { onChange(e); onClearError("whatsapp"); }}
-            type="tel"
-            className={`w-full p-2 bg-[var(--admin-bg)] border rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 transition-all font-medium text-xs ${
-              errors.whatsapp ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-[var(--admin-border)] focus:border-[var(--admin-accent)]"
-            }`}
-            placeholder="5491123456789"
-          />
-          {errors.whatsapp ? (
+          <div className="flex gap-2">
+            <select
+              name="whatsapp_pais"
+              value={formData.whatsapp_pais}
+              onChange={(e) => { onChange(e); onClearError("whatsapp_numero"); }}
+              className="shrink-0 w-[130px] p-2 bg-[var(--admin-bg)] border rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)] transition-all font-medium text-xs"
+            >
+              {PAISES.map((p) => (
+                <option key={p.code} value={p.code}>{p.label}</option>
+              ))}
+            </select>
+            <input
+              name="whatsapp_numero"
+              value={formData.whatsapp_numero}
+              onChange={(e) => { onChange(e); onClearError("whatsapp_numero"); }}
+              type="tel"
+              className={`flex-1 w-full p-2 bg-[var(--admin-bg)] border rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 transition-all font-medium text-xs ${
+                errors.whatsapp_numero ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-[var(--admin-border)] focus:border-[var(--admin-accent)]"
+              }`}
+              placeholder="Ej: 9 381 1234567"
+            />
+          </div>
+          {errors.whatsapp_numero ? (
             <p className="text-[10px] text-red-500 flex items-center gap-1 mt-0.5">
               <XCircle size={10} />
-              {errors.whatsapp}
+              {errors.whatsapp_numero}
             </p>
           ) : (
             <p className="text-[9px] text-[var(--admin-text-muted)] leading-tight">
-              Prefijo de país completo, sin espacios ni símbolos intermedios.
+              Sin espacios ni símbolos. Ej: <span className="font-mono">9 381 1234567</span> (sin el +54)
             </p>
           )}
-        </div>
-
-        <div className="space-y-1">
-          <label className="font-medium text-[var(--admin-text-muted)] flex items-center gap-1">
-            <MapPin size={12} /> Localidad
-            <span className="text-[9px] font-medium text-[var(--admin-text-muted)]/60 px-1.5 py-0.5 rounded border border-[var(--admin-border)]">Opcional</span>
-          </label>
-          <input
-            name="localidad"
-            value={formData.localidad}
-            onChange={onChange}
-            list="localidad-list"
-            className="w-full p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)] transition-all font-medium text-xs"
-            placeholder="Ej: San Miguel de Tucumán"
-          />
-          <datalist id="localidad-list">
-            {LOCALIDADES_TUCUMAN.map((loc) => (
-              <option key={loc} value={loc} />
-            ))}
-          </datalist>
         </div>
 
         <div className="sm:col-span-2 flex items-center gap-3 pt-1">

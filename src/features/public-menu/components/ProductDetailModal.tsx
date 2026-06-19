@@ -55,6 +55,11 @@ export function ProductDetailModal({
   } = useExtrasSelection(groups);
   const [cantidad, setCantidad] = useState(1);
   const [nota, setNota] = useState("");
+  const [selectedImageIdx, setSelectedImageIdx] = useState(0);
+
+  const images = [product.imagen_url, ...(product.imagenes_extra ?? [])].filter(
+    (u): u is string => !!u,
+  );
 
   const basePrice =
     selectedVariantIdx !== null
@@ -103,48 +108,71 @@ export function ProductDetailModal({
         animate={isMobile ? { y: 0 } : { opacity: 1, scale: 1, y: 0 }}
         exit={isMobile ? { y: "100%" } : { opacity: 0, scale: 0.92, y: 20 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="relative w-full max-w-[460px] sm:max-w-sm bg-[var(--color-custom-surface-strong)] shadow-2xl overflow-hidden flex flex-col max-sm:rounded-t-2xl max-sm:rounded-b-none max-sm:max-h-[92vh] sm:rounded-2xl sm:max-h-[85vh] lg:max-h-[80vh]"
+        className="relative w-full max-w-[460px] sm:max-w-4xl bg-[var(--color-custom-surface-strong)] shadow-2xl overflow-hidden flex flex-col sm:flex-row max-sm:rounded-t-2xl max-sm:rounded-b-none max-sm:max-h-[92vh] sm:rounded-2xl sm:max-h-[85vh] lg:max-h-[80vh]"
       >
-        {/* Image + Close button */}
-        <div className="relative">
-          {product.imagen_url ? (
-            <div className="aspect-video sm:aspect-[4/3] w-full shrink-0 overflow-hidden bg-[var(--color-custom-100)]">
+        {/* Image - left side on desktop */}
+        <div className="relative sm:w-2/5 shrink-0 overflow-hidden bg-[var(--color-custom-100)] max-sm:aspect-video sm:flex sm:items-center sm:justify-center">
+          {images.length > 0 ? (
+            <div className="w-full h-full min-h-[140px] sm:min-h-full sm:flex sm:items-center sm:justify-center">
               <img
-                src={product.imagen_url}
+                src={images[selectedImageIdx]}
                 alt={product.nombre}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-cover sm:object-contain sm:h-auto sm:max-h-full"
               />
             </div>
           ) : (
-            <div className="flex aspect-video sm:aspect-[4/3] w-full shrink-0 items-center justify-center bg-[var(--color-custom-100)] text-[var(--color-custom-text-muted)]" role="img" aria-label={`${product.nombre} — sin imagen`}>
+            <div className="flex h-full w-full min-h-[140px] sm:min-h-full items-center justify-center text-[var(--color-custom-text-muted)]" role="img" aria-label={`${product.nombre} — sin imagen`}>
               <ImageIcon size={48} />
             </div>
           )}
-          <button
-            type="button"
-            onClick={onCancel}
-            aria-label="Cerrar"
-            className="absolute top-3 right-3 z-10 flex h-9 w-9 sm:h-8 sm:w-8 items-center justify-center rounded-xl bg-black/50 text-white backdrop-blur-sm transition-colors hover:bg-black/70 active:scale-90"
-          >
-            <X size={18} />
-          </button>
-        </div>
 
-        {/* Header */}
-        <div className="flex items-start justify-between border-b border-[var(--color-custom-border)] px-4 sm:px-5 py-3 sm:py-4 shrink-0">
-          <div className="min-w-0 flex-1">
-            <h3 className="text-base font-bold text-[var(--color-custom-900)]">
+          {/* Gallery dots */}
+          {images.length > 1 && (
+            <div className="absolute left-0 right-0 bottom-16 z-10 flex items-center justify-center gap-1.5">
+              {images.map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setSelectedImageIdx(idx)}
+                  aria-label={`Imagen ${idx + 1}`}
+                  className={`rounded-full transition-all ${
+                    idx === selectedImageIdx
+                      ? "h-2 w-5 bg-white"
+                      : "h-2 w-2 bg-white/50 hover:bg-white/70"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Gradient overlay + name/description on image */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-custom-900)]/70 via-[var(--color-custom-900)]/20 to-transparent pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 p-4 pointer-events-none">
+            <h3 className="text-base font-bold text-white drop-shadow-sm">
               {product.nombre}
             </h3>
             {product.descripcion && (
-              <p className="mt-1 text-xs text-[var(--color-custom-text-muted)] leading-relaxed">
+              <p className="mt-0.5 text-xs text-white/80 leading-relaxed drop-shadow-sm line-clamp-2">
                 {product.descripcion}
               </p>
             )}
           </div>
         </div>
 
-        <div className="overflow-y-auto overscroll-y-contain px-4 sm:px-5 py-3 sm:py-4 space-y-4 sm:space-y-5 flex-1 min-h-0">
+        {/* Close button - top right of modal */}
+        <button
+          type="button"
+          onClick={onCancel}
+          aria-label="Cerrar"
+          className="absolute top-3 right-3 z-20 flex h-9 w-9 items-center justify-center rounded-xl bg-black/50 text-white backdrop-blur-sm transition-colors hover:bg-black/70 active:scale-90"
+        >
+          <X size={18} />
+        </button>
+
+        {/* Content - right side on desktop */}
+        <div className="flex-1 flex flex-col min-w-0">
+
+          <div className="overflow-y-auto overscroll-y-contain px-4 sm:px-5 py-3 sm:py-4 space-y-4 sm:space-y-5 flex-1 min-h-0">
           {/* Price */}
           <div className="flex items-baseline gap-2">
             <span className="text-xl font-black text-[var(--color-custom-900)]">
@@ -222,7 +250,7 @@ export function ProductDetailModal({
           {/* Note */}
           <div>
             <span className="text-xs font-bold text-[var(--color-custom-900)] mb-2 block">
-              ¿Algún detalle extra? 🧑‍🍳
+              ¿Algún detalle extra?
             </span>
             <textarea
               value={nota}
@@ -300,12 +328,13 @@ export function ProductDetailModal({
             <ShoppingBag size={16} className="shrink-0" />
             {isOpenNow ? (
               <span className="truncate">
-                Pedir ahora 🍔 · {formatMoney(total * cantidad, simbolo)}
+                Pedir ahora · {formatMoney(total * cantidad, simbolo)}
               </span>
             ) : (
               <span className="truncate">Cerrado ahora — volvé más tarde</span>
             )}
           </motion.button>
+          </div>
         </div>
       </motion.div>
     </motion.div>

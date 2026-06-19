@@ -2,12 +2,38 @@ import js from "@eslint/js";
 import ts from "@typescript-eslint/eslint-plugin";
 import tsParser from "@typescript-eslint/parser";
 
+// Custom rule: forbid .gif references in code
+const noGifRule = {
+  meta: {
+    type: "problem",
+    docs: { description: "Forbid .gif file references" },
+    messages: { noGif: "GIF files are not allowed. Use PNG, WebP, or AVIF instead." },
+  },
+  create(context) {
+    return {
+      Literal(node) {
+        if (typeof node.value === "string" && /\.gif/i.test(node.value)) {
+          context.report({ node, messageId: "noGif" });
+        }
+      },
+      TemplateLiteral(node) {
+        for (const quasi of node.quasis) {
+          if (/\.gif/i.test(quasi.value.raw)) {
+            context.report({ node: quasi, messageId: "noGif" });
+          }
+        }
+      },
+    };
+  },
+};
+
 export default [
   js.configs.recommended,
   {
     files: ["**/*.ts", "**/*.tsx"],
     plugins: {
       "@typescript-eslint": ts,
+      custom: { rules: { "no-gif": noGifRule } },
     },
     languageOptions: {
       parser: tsParser,
@@ -50,6 +76,7 @@ export default [
       },
     },
     rules: {
+      "custom/no-gif": "error",
       "@typescript-eslint/no-explicit-any": "error",
 
       // Control estricto de código muerto con soporte para escapes funcionales

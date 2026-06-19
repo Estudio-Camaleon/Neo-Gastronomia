@@ -12,7 +12,7 @@ import PublicMenuHeader from "@/features/public-menu/components/PublicMenuHeader
 import { CategoryTabs } from "@/features/public-menu/components/CategoryTabs";
 import { ProductGrid } from "@/features/public-menu/components/ProductGrid";
 import { MenuFooter } from "@/features/public-menu/components/MenuFooter";
-import { useCartVisibility } from "@/features/public-menu/hooks/useCartVisibility";
+
 import { useSlugSubscription } from "@/features/public-menu/hooks/useSlugSubscription";
 import { useMenuCatalog } from "@/features/public-menu/hooks/useMenuCatalog";
 
@@ -70,7 +70,6 @@ export function CatalogClient({
     searchQuery,
     setSearchQuery,
     activeCategory,
-    isMobile,
     cartQuantityByProduct,
     categoriasToShow,
     scrollToCategory,
@@ -95,9 +94,6 @@ export function CatalogClient({
     observer.observe(anchor);
     return () => observer.disconnect();
   }, []);
-
-  // Sync cart sidebar visibility with desktop breakpoint
-  useCartVisibility(setCartOpen);
 
   // Subscribe to negocio updates (slug changes) so active public-menu pages update their URL
   useSlugSubscription(negocio.id, negocio.slug);
@@ -229,13 +225,9 @@ export function CatalogClient({
         )}
 
         {/* CATALOGO */}
-        <main className="flex-1 min-h-0 flex flex-col lg:flex-row lg:items-start">
+        <main className="flex-1 min-h-0 flex flex-col">
           <section
-            className={`min-w-0 flex-1 bg-[var(--color-custom-surface)] p-4 lg:p-6 transition-all duration-300 ${
-              isCartOpen
-                ? "lg:basis-auto lg:pr-[420px]"
-                : "lg:basis-full"
-            }`}
+            className="min-w-0 flex-1 bg-[var(--color-custom-surface)] p-4 lg:p-6"
           >
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -248,7 +240,7 @@ export function CatalogClient({
                     Menú
                   </h1>
                   <p className="mt-1 text-sm font-medium text-[var(--color-custom-text-muted)]">
-                    ¿Qué se te antoja hoy? 🔥
+                    ¿Qué se te antoja hoy?
                   </p>
                 </div>
 
@@ -361,7 +353,7 @@ export function CatalogClient({
                     detalles: null,
                     extras: [],
                   });
-                  toast.success(`${product.nombre} agregado ✅`, {
+                  toast.success(`${product.nombre} agregado`, {
                     duration: 2000,
                     position: "bottom-center",
                   });
@@ -369,23 +361,6 @@ export function CatalogClient({
                 onRemoveItem={(productId) => removeItem(productId)}
               />
             </section>
-
-            <aside
-              className={`p-0 w-[380px] shrink-0 transition-all duration-300 max-lg:hidden lg:fixed lg:right-4 lg:top-28 lg:bottom-4 lg:z-40 ${
-                isCartOpen
-                  ? "lg:opacity-100 lg:pointer-events-auto"
-                  : "lg:opacity-0 lg:pointer-events-none lg:invisible"
-              }`}
-            >
-              <PublicCart
-                negocioId={negocio.id}
-                negocioNombre={negocio.nombre}
-                config={menuConfig}
-                promos={promos}
-                productCategoryMap={productCategoryMap}
-                onCloseDrawer={() => setCartOpen(false)}
-              />
-            </aside>
           </main>
         <MenuFooter
           negocio={negocio}
@@ -404,7 +379,7 @@ export function CatalogClient({
             onConfirm={(item) => {
               addItem(item);
               setSelectedProduct(null);
-              toast.success(`${item.nombre} agregado ✅`, {
+              toast.success(`${item.nombre} agregado`, {
                 duration: 2000,
                 position: "bottom-center",
               });
@@ -426,7 +401,7 @@ export function CatalogClient({
               if (!isOpenNow) return;
               addItem(item);
               setSelectedCombo(null);
-              toast.success(`Combo agregado 🚀`, {
+              toast.success(`Combo agregado`, {
                 duration: 2000,
                 position: "bottom-center",
               });
@@ -436,22 +411,18 @@ export function CatalogClient({
         )}
       </AnimatePresence>
 
-      {/* CARRITO DE DISPOSITIVOS SM Y MD */}
-      {isMobile && (
-        <>
-          <CartFloatingButton />
-          {isCartOpen && (
-            <PublicCart
-              negocioId={negocio.id}
-              negocioNombre={negocio.nombre}
-              isDrawer
-              config={menuConfig}
-              promos={promos}
-              productCategoryMap={productCategoryMap}
-              onCloseDrawer={() => setCartOpen(false)}
-            />
-          )}
-        </>
+      {/* CARRITO FLOTANTE + DRAWER */}
+      <CartFloatingButton />
+      {isCartOpen && (
+        <PublicCart
+          negocioId={negocio.id}
+          negocioNombre={negocio.nombre}
+          isDrawer
+          config={menuConfig}
+          promos={promos}
+          productCategoryMap={productCategoryMap}
+          onCloseDrawer={() => setCartOpen(false)}
+        />
       )}
     </>
   );

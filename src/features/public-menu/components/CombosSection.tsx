@@ -66,7 +66,7 @@ function ComboCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-1">
             <span className="rounded-full bg-gradient-to-r from-[var(--color-custom-500)] to-[var(--color-custom-600)] px-2 py-[2px] text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.08em] text-white">
-              Combo 🔥
+              Combo
             </span>
           </div>
           <p className="text-sm sm:text-base font-bold text-[var(--color-custom-900)] truncate leading-tight">
@@ -121,14 +121,14 @@ export function CombosSection({
       {/* Section header */}
       <div className="flex items-center gap-2 mb-2">
         <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--color-custom-500)] to-[var(--color-custom-600)] text-white text-xs">
-          🔥
+          <Flame size={14} />
         </span>
         <h2 className="text-base sm:text-lg font-black tracking-tight text-[var(--color-custom-900)]">
           Combos que vuelan
         </h2>
       </div>
 
-      <div className="space-y-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {combos.map((promo, idx) => (
           <ComboCard
             key={promo.id}

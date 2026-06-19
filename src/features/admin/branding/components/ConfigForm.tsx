@@ -61,10 +61,18 @@ export function ConfigForm({
     cancelado: "Hola {cliente}, te contactamos de {negocio}. Lamentablemente no vamos a poder procesar tu pedido en este momento. 🙏 Disculpá las molestias.",
   };
 
+  const parseWhatsApp = (full: string) => {
+    if (full.startsWith("54")) return { pais: "54", numero: full.slice(2) };
+    if (full.startsWith("52")) return { pais: "52", numero: full.slice(2) };
+    if (full.startsWith("1")) return { pais: "1", numero: full.slice(1) };
+    return { pais: "54", numero: full };
+  };
+
   const [formData, setFormData] = useState<ConfigFormState>({
     nombre: initialData?.nombre || "",
     slug: initialData?.slug || "",
-    whatsapp: initialData?.whatsapp || "",
+    whatsapp_pais: parseWhatsApp(initialData?.whatsapp || "").pais,
+    whatsapp_numero: parseWhatsApp(initialData?.whatsapp || "").numero,
     descripcion: initialData?.descripcion || "",
     localidad: initialData?.localidad || "",
     direccion_notas: initialData?.direccion_notas || "",
@@ -103,10 +111,12 @@ export function ConfigForm({
       banner_url: initialData?.banner_url || "",
     });
 
+    const wp = parseWhatsApp(initialData?.whatsapp || "");
     setFormData({
       nombre: initialData?.nombre || "",
       slug: initialData?.slug || "",
-      whatsapp: initialData?.whatsapp || "",
+      whatsapp_pais: wp.pais,
+      whatsapp_numero: wp.numero,
       descripcion: initialData?.descripcion || "",
       localidad: initialData?.localidad || "",
       direccion_notas: initialData?.direccion_notas || "",
@@ -136,7 +146,7 @@ export function ConfigForm({
     initialData?.slug !== undefined && initialData?.slug !== formData.slug;
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setIsDirty(true);
@@ -238,10 +248,12 @@ export function ConfigForm({
 
   const handleReset = useCallback(() => {
     if (!initialData) return;
+    const wp = parseWhatsApp(initialData?.whatsapp || "");
     setFormData({
       nombre: initialData?.nombre || "",
       slug: initialData?.slug || "",
-      whatsapp: initialData?.whatsapp || "",
+      whatsapp_pais: wp.pais,
+      whatsapp_numero: wp.numero,
       descripcion: initialData?.descripcion || "",
       localidad: initialData?.localidad || "",
       direccion_notas: initialData?.direccion_notas || "",
@@ -301,13 +313,14 @@ export function ConfigForm({
 
     setSaveStatus("saving");
     try {
+      const fullWhatsApp = formData.whatsapp_pais + formData.whatsapp_numero.replace(/\D/g, "");
       const direccionDerivada =
         formData.direcciones[0]?.direccion || "";
       const payload: UpdateTenantBrandingPayload = {
         id: initialData.id,
         nombre: formData.nombre,
         slug: formData.slug,
-        whatsapp: formData.whatsapp,
+        whatsapp: fullWhatsApp,
         descripcion: formData.descripcion,
         direccion: direccionDerivada,
         localidad: formData.localidad,
@@ -382,7 +395,9 @@ export function ConfigForm({
     if (!formData.nombre.trim()) errors.nombre = "El nombre del negocio es obligatorio.";
     if (!formData.slug.trim()) errors.slug = "La URL del menú (slug) es obligatoria.";
     else if (formData.slug.length < 3) errors.slug = "El slug debe tener al menos 3 caracteres.";
-    if (!formData.whatsapp.trim()) errors.whatsapp = "El WhatsApp es obligatorio para recibir pedidos.";
+    if (!formData.whatsapp_pais.trim()) errors.whatsapp_numero = "Seleccioná el país del WhatsApp.";
+    if (!formData.whatsapp_numero.trim()) errors.whatsapp_numero = "El WhatsApp es obligatorio para recibir pedidos.";
+    else if (formData.whatsapp_numero.replace(/\D/g, "").length < 6) errors.whatsapp_numero = "El número debe tener al menos 6 dígitos.";
     if (formData.direcciones.length === 0) {
       errors.direcciones = "Agregá al menos una sucursal con dirección.";
     }
@@ -481,7 +496,7 @@ export function ConfigForm({
               descripcion={formData.descripcion}
               mostrarNombre={formData.mostrar_nombre}
               colorPrimary={formData.color_primary}
-              whatsapp={formData.whatsapp}
+              whatsapp={formData.whatsapp_pais + formData.whatsapp_numero}
               instagram_url={formData.instagram_url}
               facebook_url={formData.facebook_url}
               tiktok_url={formData.tiktok_url}
@@ -564,6 +579,8 @@ export function ConfigForm({
             {/* BLOQUE SUCURSALES */}
             <DireccionesBlock
               direcciones={formData.direcciones}
+              whatsappPais={formData.whatsapp_pais}
+              whatsappNumero={formData.whatsapp_numero}
               onChange={(direcciones) => {
                 setIsDirty(true);
                 setFormData((p) => ({ ...p, direcciones }));
