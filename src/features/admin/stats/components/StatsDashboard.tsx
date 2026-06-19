@@ -10,10 +10,12 @@ import {
   Package,
   Wallet,
   AlertCircle,
+  Star,
+  ChevronRight,
 } from "lucide-react";
 import { FoodMini } from "@/components/ui/food-loading";
 import { getStats, exportOrdersCSV } from "../actions";
-import type { StatsData, StatsSummary } from "../actions";
+import type { StatsData, StatsSummary, TopProduct } from "../actions";
 import { toast } from "sonner";
 
 type Period = "today" | "week" | "month" | "year" | "all";
@@ -180,6 +182,8 @@ export function StatsDashboard({ negocioId }: StatsDashboardProps) {
         <>
           <SummaryCards summary={data.summary} />
 
+          {data.topProduct && <TopProductCard topProduct={data.topProduct} />}
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <DailyTable
               breakdown={data.dailyBreakdown}
@@ -343,6 +347,33 @@ function DailyTable({
           <p className="text-sm font-medium">Sin datos diarios</p>
         </div>
       )}
+    </div>
+  );
+}
+
+function TopProductCard({ topProduct }: { topProduct: TopProduct }) {
+  return (
+    <div className="admin-card p-5 group hover:border-[var(--admin-accent)]/50 relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-bl-full -z-0" />
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-bold text-[var(--admin-text)] flex items-center gap-2">
+            <Star size={16} className="text-amber-500" />
+            Producto Más Vendido
+          </h2>
+          <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+            <ChevronRight size={16} />
+          </div>
+        </div>
+        <div className="flex items-baseline gap-3">
+          <p className="text-xl font-black text-[var(--admin-text)] truncate">
+            {topProduct.nombre_producto}
+          </p>
+          <span className="text-[10px] font-bold text-[var(--admin-text-muted)] bg-[var(--admin-bg)] px-2 py-0.5 rounded-full border border-[var(--admin-border)] whitespace-nowrap">
+            {topProduct.cantidad} vendido{topProduct.cantidad !== 1 ? "s" : ""}
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

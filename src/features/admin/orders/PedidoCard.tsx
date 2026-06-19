@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { FoodMini } from "@/components/ui/food-loading";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { useScrollLock } from "@/core/hooks/useScrollLock";
 import type { PedidoData } from "@/core/types/domain";
 
 const STATUS_CONFIG = {
@@ -118,9 +119,17 @@ export function PedidoCard({
   const isLoading = loadingId === pedido.id;
   const [elapsed, setElapsed] = useState(() => formatElapsed(pedido.created_at));
   const [showConfirmReject, setShowConfirmReject] = useState(false);
+  const [notasExpanded, setNotasExpanded] = useState(false);
+  const [showComandaModal, setShowComandaModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const style = STATUS_CONFIG[pedido.estado];
+  const MAX_VISIBLE_ITEMS = 3;
+  const comandaItems = pedido.pedido_items ?? [];
+  const hasMoreItems = comandaItems.length > MAX_VISIBLE_ITEMS;
+  const visibleItems = hasMoreItems
+    ? comandaItems.slice(0, MAX_VISIBLE_ITEMS)
+    : comandaItems;
 
   useEffect(() => {
     const tick = () => setElapsed(formatElapsed(pedido.created_at));
@@ -138,6 +147,8 @@ export function PedidoCard({
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  useScrollLock(showComandaModal);
 
   const isUrgent = pedido.estado === "pendiente" && (() => {
     const diff = Date.now() - new Date(pedido.created_at).getTime();
@@ -162,9 +173,7 @@ export function PedidoCard({
               <Smartphone size={16} className="text-[var(--admin-accent-secondary)] shrink-0" />
             )}
             <span className="truncate max-w-[160px] sm:max-w-[200px]">
-              {pedido.es_delivery
-                ? `Envío: ${pedido.direccion_entrega}`
-                : "Retiro Local"}
+              {pedido.es_delivery ? "Envío" : "Retiro Local"}
             </span>
           </div>
 
@@ -274,6 +283,12 @@ export function PedidoCard({
               <h4 className="font-bold text-lg text-[var(--admin-text)] leading-tight mb-1">
                 {pedido.cliente_nombre}
               </h4>
+              {pedido.es_delivery && pedido.direccion_entrega && (
+                <p className="text-xs text-[var(--admin-text-muted)] mb-1 flex items-center gap-1">
+                  <Truck size={12} />
+                  {pedido.direccion_entrega}
+                </p>
+              )}
               <p className="text-xs text-[var(--admin-text-muted)] flex items-center gap-1.5">
                 <span>
                   {pedido.metodo_pago.replace(/\b\w/g, (c) => c.toUpperCase())}
@@ -305,15 +320,45 @@ export function PedidoCard({
                 <UtensilsCrossed size={16} />
                 <span>Comanda</span>
               </div>
-              {isUrgent && (
-                <span className="flex items-center gap-1 text-[11px] font-bold text-red-600 bg-red-500/10 px-2 py-1 rounded-full animate-pulse">
-                  <AlertTriangle size={12} />
-                  URGENTE
-                </span>
-              )}
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => printComanda(pedido)}
+                  className="p-1.5 rounded-lg text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-bg)] transition-all"
+                  title="Imprimir Comanda"
+                >
+                  <Printer size={15} />
+                </button>
+                {pedido.estado === "en_preparacion" && (
+                  <button
+                    type="button"
+                    onClick={() => onUpdateStatus(pedido.id, "pendiente")}
+                    className="p-1.5 rounded-lg text-amber-500 hover:bg-amber-500/10 transition-all"
+                    title="Revertir a Pendiente"
+                  >
+                    <Undo2 size={15} />
+                  </button>
+                )}
+                {pedido.estado === "entregado" && (
+                  <button
+                    type="button"
+                    onClick={() => onUpdateStatus(pedido.id, "en_preparacion")}
+                    className="p-1.5 rounded-lg text-amber-500 hover:bg-amber-500/10 transition-all"
+                    title="Revertir a Preparación"
+                  >
+                    <Undo2 size={15} />
+                  </button>
+                )}
+                {isUrgent && (
+                  <span className="flex items-center gap-1 text-[11px] font-bold text-red-600 bg-red-500/10 px-2 py-1 rounded-full animate-pulse">
+                    <AlertTriangle size={12} />
+                    URGENTE
+                  </span>
+                )}
+              </div>
             </div>
             <div className="space-y-4 divide-y divide-[var(--admin-border)]">
-              {pedido.pedido_items?.map((item) => (
+              {visibleItems.map((item) => (
                 <div key={item.id} className="pt-4 first:pt-0">
                   <div className="flex items-start gap-3">
                     <span className="bg-[var(--admin-accent)]/15 text-[var(--admin-accent)] px-3 py-1.5 rounded-xl text-xl font-black leading-none shrink-0 min-w-[48px] text-center">
@@ -366,6 +411,16 @@ export function PedidoCard({
               ))}
             </div>
 
+            {hasMoreItems && (
+              <button
+                type="button"
+                onClick={() => setShowComandaModal(true)}
+                className="w-full py-2 text-xs font-bold text-[var(--admin-accent)] hover:bg-[var(--admin-accent)]/5 rounded-xl border border-dashed border-[var(--admin-border)] transition-all"
+              >
+                Ver {comandaItems.length - MAX_VISIBLE_ITEMS} item{comandaItems.length - MAX_VISIBLE_ITEMS !== 1 ? "s" : ""} más
+              </button>
+            )}
+
             {/* N° de referencia siempre visible al final de la comanda */}
             <div className="pt-3 border-t border-[var(--admin-border)] flex items-center justify-between text-xs font-semibold text-[var(--admin-text-muted)]">
               <span>N° de referencia</span>
@@ -375,49 +430,133 @@ export function PedidoCard({
             </div>
           </div>
 
-          {pedido.notas && (
-            <div className="rounded-2xl p-4 text-sm" style={{ background: 'var(--admin-warning-bg)', border: '1px solid var(--admin-warning-border)' }}>
-              <span className="text-[10px] font-black uppercase tracking-widest block mb-1.5" style={{ color: 'var(--admin-warning)' }}>
-                📝 Aclaraciones extra
-              </span>
-              <p className="leading-relaxed font-semibold text-sm" style={{ color: 'var(--admin-warning)' }}>
-                {pedido.notas}
-              </p>
+          {/* Modal de comanda expandida */}
+          {showComandaModal && (
+            <div
+              className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md z-[999999] flex items-center justify-center p-4 animate-in fade-in duration-200"
+              onClick={() => setShowComandaModal(false)}
+            >
+              <div
+                role="dialog"
+                aria-modal="true"
+                className="bg-[var(--admin-surface)] rounded-2xl p-6 md:p-8 max-w-lg w-full max-h-[80vh] overflow-y-auto shadow-2xl border border-[var(--admin-border)] animate-in zoom-in-95 duration-150"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-[var(--admin-text-muted)]">
+                    <UtensilsCrossed size={18} />
+                    <span>Comanda Completa</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowComandaModal(false)}
+                    className="p-1.5 rounded-lg text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-bg)] transition-all"
+                    aria-label="Cerrar"
+                  >
+                    <XCircle size={18} />
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div className="text-sm font-semibold text-[var(--admin-text)]">
+                    {pedido.cliente_nombre}
+                    {pedido.es_delivery && pedido.direccion_entrega && (
+                      <span className="block text-xs text-[var(--admin-text-muted)] font-normal mt-0.5">
+                        🚚 {pedido.direccion_entrega}
+                      </span>
+                    )}
+                  </div>
+                  <div className="space-y-3 divide-y divide-[var(--admin-border)]">
+                    {comandaItems.map((item) => (
+                      <div key={item.id} className="pt-3 first:pt-0 flex items-start gap-3">
+                        <span className="bg-[var(--admin-accent)]/15 text-[var(--admin-accent)] px-3 py-1 rounded-xl text-lg font-black leading-none shrink-0 min-w-[42px] text-center">
+                          {item.cantidad}x
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-[var(--admin-text)]">
+                            {item.nombre_producto}
+                          </p>
+                          {item.precio_unitario != null && (
+                            <p className="text-xs text-[var(--admin-text-muted)] mt-0.5">
+                              ${Number(item.precio_unitario).toFixed(2)} c/u
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
+
+          {pedido.notas && (() => {
+            const isLong = pedido.notas.length > 80;
+            return (
+              <div className="rounded-2xl p-4 text-sm" style={{ background: 'var(--admin-warning-bg)', border: '1px solid var(--admin-warning-border)' }}>
+                <span className="text-[10px] font-black uppercase tracking-widest block mb-1.5" style={{ color: 'var(--admin-warning)' }}>
+                  📝 Aclaraciones extra
+                </span>
+                <p className={`leading-relaxed font-semibold text-sm ${isLong && !notasExpanded ? 'line-clamp-2' : ''}`} style={{ color: 'var(--admin-warning)' }}>
+                  {pedido.notas}
+                </p>
+                {isLong && (
+                  <button
+                    type="button"
+                    onClick={() => setNotasExpanded(!notasExpanded)}
+                    className="text-xs font-bold mt-1.5 underline hover:no-underline"
+                    style={{ color: 'var(--admin-warning)' }}
+                  >
+                    {notasExpanded ? 'Ver menos' : 'Ver más'}
+                  </button>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* ACCIONES — solo botón principal */}
         <div className="p-3 sm:p-4 bg-[var(--admin-bg)]/30 border-t border-[var(--admin-border)]">
           {pedido.estado === "pendiente" ? (
-            <button
-              onClick={() => onUpdateStatus(pedido.id, "en_preparacion")}
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl text-base font-bold tracking-wide transition-all duration-200 bg-[var(--admin-accent)] text-white hover:opacity-90 active:scale-[0.98] disabled:opacity-50 shadow-md"
-            >
-              {isLoading ? <FoodMini size={18} /> : <Check size={20} />}
-              Preparar
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => onUpdateStatus(pedido.id, "en_preparacion")}
+                disabled={isLoading}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl text-base font-bold tracking-wide transition-all duration-200 bg-[var(--admin-accent)] text-white hover:opacity-90 active:scale-[0.98] disabled:opacity-50 shadow-md"
+              >
+                {isLoading ? <FoodMini size={18} /> : <Check size={20} />}
+                Preparar
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowConfirmReject(true)}
+                disabled={isLoading}
+                className="flex items-center justify-center px-3 py-3.5 rounded-xl text-base font-bold tracking-wide transition-all duration-200 text-red-600 bg-red-500/10 hover:bg-red-500/20 active:scale-[0.98] disabled:opacity-50 border border-red-500/20"
+                title="Rechazar pedido"
+              >
+                <XCircle size={20} />
+              </button>
+            </div>
           ) : pedido.estado === "en_preparacion" ? (
             <div className="flex flex-col gap-2">
-              <button
-                onClick={() => onUpdateStatus(pedido.id, "entregado")}
-                disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl text-base font-bold tracking-wide transition-all duration-200 bg-black/85 dark:bg-white/85 text-white dark:text-black hover:opacity-90 active:scale-[0.98] disabled:opacity-50 shadow-md"
-              >
-                {isLoading ? <FoodMini size={18} /> : <CheckCircle2 size={20} />}
-                {pedido.es_delivery ? "¿Listo para enviar?" : "¿Listo para entregar?"}
-              </button>
-              <button
-                onClick={() => {
-                  setShowConfirmReject(true);
-                }}
-                disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold tracking-wide transition-all duration-200 text-red-600 bg-red-500/5 hover:bg-red-500/15 active:scale-[0.98] border border-red-500/20 disabled:opacity-50"
-              >
-                <XCircle size={16} />
-                Cancelar pedido
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => onUpdateStatus(pedido.id, "entregado")}
+                  disabled={isLoading}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl text-base font-bold tracking-wide transition-all duration-200 bg-black/85 dark:bg-white/85 text-white dark:text-black hover:opacity-90 active:scale-[0.98] disabled:opacity-50 shadow-md"
+                >
+                  {isLoading ? <FoodMini size={18} /> : <CheckCircle2 size={20} />}
+                  {pedido.es_delivery ? "¿Listo para enviar?" : "¿Listo para entregar?"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmReject(true)}
+                  disabled={isLoading}
+                  className="flex items-center justify-center px-3 py-3.5 rounded-xl text-base font-bold tracking-wide transition-all duration-200 text-red-600 bg-red-500/10 hover:bg-red-500/20 active:scale-[0.98] disabled:opacity-50 border border-red-500/20"
+                  title="Cancelar pedido"
+                >
+                  <XCircle size={20} />
+                </button>
+              </div>
             </div>
           ) : (
             <div className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-semibold text-[var(--admin-text-muted)] bg-[var(--admin-bg)]/50 border border-[var(--admin-border)]">

@@ -20,7 +20,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { PedidoCard } from "./PedidoCard";
-import { updateOrderStatusAction, toggleRecepcionPausadaAction } from "./actions";
+import {
+  updateOrderStatusAction,
+  toggleRecepcionPausadaAction,
+} from "./actions";
 import { enviarNotificacionWhatsApp } from "@/core/lib/utils/whatsappActions";
 import { useOrderNotifications } from "./OrderNotificationProvider";
 import { useDebounce } from "@/core/hooks/useDebounce";
@@ -31,6 +34,7 @@ interface PedidosRadarProps {
   negocioIds: string[];
   negocioNombre: string;
   panicModeInicial?: boolean;
+  whatsappMensajes?: Record<string, string> | null;
 }
 
 const ORDERS_PER_PAGE = 24;
@@ -40,6 +44,7 @@ export function PedidosRadar({
   negocioIds,
   negocioNombre,
   panicModeInicial = false,
+  whatsappMensajes = null,
 }: PedidosRadarProps) {
   const [filter, setFilter] = useState("");
   const debouncedFilter = useDebounce(filter);
@@ -53,8 +58,15 @@ export function PedidosRadar({
   const [panicMode, setPanicMode] = useState(panicModeInicial);
   const [panicLoading, setPanicLoading] = useState(false);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
-  const knownIdsRef = useRef<Set<string>>(new Set(initialPedidos.map((p) => p.id)));
-  const { latestNewPedido, latestUpdateEvent, acknowledgeNewOrders, acknowledgeUpdateEvent } = useOrderNotifications();
+  const knownIdsRef = useRef<Set<string>>(
+    new Set(initialPedidos.map((p) => p.id)),
+  );
+  const {
+    latestNewPedido,
+    latestUpdateEvent,
+    acknowledgeNewOrders,
+    acknowledgeUpdateEvent,
+  } = useOrderNotifications();
 
   // Reset page when filters change
   useEffect(() => {
@@ -104,7 +116,14 @@ export function PedidosRadar({
           )
         );
       });
-  }, [pedidos, pedidosActivos, debouncedFilter, statusFilter, modalidadFilter, dateFilter]);
+  }, [
+    pedidos,
+    pedidosActivos,
+    debouncedFilter,
+    statusFilter,
+    modalidadFilter,
+    dateFilter,
+  ]);
 
   // FIFO sort: oldest first. Urgent (pendiente >15min) bubble to absolute top.
   const pedidosOrdenados = useMemo(() => {
@@ -153,7 +172,8 @@ export function PedidosRadar({
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement ||
         e.target instanceof HTMLSelectElement
-      ) return;
+      )
+        return;
 
       // Check no modal is open
       if (document.querySelector('[role="dialog"]')) return;
@@ -218,7 +238,9 @@ export function PedidosRadar({
     if (!latestUpdateEvent) return;
     const { id, estado } = latestUpdateEvent;
     setPedidos((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, estado: estado as PedidoData["estado"] } : p)),
+      prev.map((p) =>
+        p.id === id ? { ...p, estado: estado as PedidoData["estado"] } : p,
+      ),
     );
     acknowledgeUpdateEvent();
   }, [latestUpdateEvent, acknowledgeUpdateEvent]);
@@ -240,6 +262,7 @@ export function PedidosRadar({
             pedidoAfectado,
             nuevoEstado,
             negocioNombre,
+            whatsappMensajes,
           );
         } catch (waErr) {
           console.error("WhatsApp notification failed:", waErr);
@@ -271,12 +294,12 @@ export function PedidosRadar({
     {
       label: "Nuevos Pendientes",
       value: stats.nuevos,
-      color: "admin-accent-bg",
-      glow: "shadow-blue-500/20",
+      color: "bg-sky-500",
+      glow: "shadow-sky-500/20",
       border: "border-[var(--admin-border)]",
       icon: Clock,
-      textColor: "admin-accent-text",
-      bgLight: "admin-accent-bg",
+      textColor: "text-sky-600 dark:text-sky-400",
+      bgLight: "bg-sky-50/50 dark:bg-sky-950/10",
     },
     {
       label: "En Cocina",
@@ -312,13 +335,13 @@ export function PedidosRadar({
 
   return (
     <div className="space-y-6 pb-12">
-
       {/* ── Alert banner for urgent orders ── */}
       {urgentCount > 0 && (
         <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 animate-in slide-in-from-top-2 duration-300">
           <AlertTriangle size={20} className="shrink-0 animate-pulse" />
           <div className="flex-1 text-sm font-bold">
-            {urgentCount} pedido{urgentCount !== 1 ? "s" : ""} esperando más de 15 min
+            {urgentCount} pedido{urgentCount !== 1 ? "s" : ""} esperando más de
+            15 min
           </div>
           <button
             onClick={() => setStatusFilter("pendiente")}
@@ -335,7 +358,8 @@ export function PedidosRadar({
           onClick={async () => {
             setPanicLoading(true);
             try {
-              const { recepcion_pausada } = await toggleRecepcionPausadaAction();
+              const { recepcion_pausada } =
+                await toggleRecepcionPausadaAction();
               setPanicMode(recepcion_pausada);
             } catch (e) {
               toast.error("Error al cambiar estado de recepción");
@@ -353,13 +377,13 @@ export function PedidosRadar({
         >
           {panicMode ? (
             <>
-              <PauseCircle size={16} />
-              Recepción pausada
+              <PlayCircle size={16} />
+              Reanudar Recepción
             </>
           ) : (
             <>
-              <PlayCircle size={16} />
-              Activo
+              <PauseCircle size={16} />
+              Pausar Recepción
             </>
           )}
         </button>
@@ -376,7 +400,9 @@ export function PedidosRadar({
               <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-[var(--admin-text-muted)] whitespace-nowrap">
                 {item.label}
               </span>
-               <div className={`p-2 rounded-xl ${item.bgLight} ${item.textColor} transition-all duration-200`}>
+              <div
+                className={`p-2 rounded-xl ${item.bgLight} ${item.textColor} transition-all duration-200`}
+              >
                 <item.icon size={18} />
               </div>
             </div>

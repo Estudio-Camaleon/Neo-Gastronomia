@@ -168,6 +168,7 @@ export type Database = {
           color_primary: string | null
           created_at: string | null
           current_period_ends_at: string | null
+          deletion_reason: string | null
           descripcion: string | null
           direccion: string | null
           direccion_notas: string | null
@@ -188,8 +189,10 @@ export type Database = {
           mp_status: string | null
           mp_subscription_id: string | null
           nombre: string
+          phone: string | null
           plan_tier: string
           recepcion_pausada: boolean
+          referral_source: string | null
           slug: string
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
@@ -201,6 +204,7 @@ export type Database = {
           updated_at: string | null
           user_id: string | null
           whatsapp: string | null
+          whatsapp_mensajes: Json | null
           youtube_url: string | null
         }
         Insert: {
@@ -211,6 +215,7 @@ export type Database = {
           color_primary?: string | null
           created_at?: string | null
           current_period_ends_at?: string | null
+          deletion_reason?: string | null
           descripcion?: string | null
           direccion?: string | null
           direccion_notas?: string | null
@@ -231,8 +236,10 @@ export type Database = {
           mp_status?: string | null
           mp_subscription_id?: string | null
           nombre: string
+          phone?: string | null
           plan_tier?: string
           recepcion_pausada?: boolean
+          referral_source?: string | null
           slug: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -244,6 +251,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
           whatsapp?: string | null
+          whatsapp_mensajes?: Json | null
           youtube_url?: string | null
         }
         Update: {
@@ -254,6 +262,7 @@ export type Database = {
           color_primary?: string | null
           created_at?: string | null
           current_period_ends_at?: string | null
+          deletion_reason?: string | null
           descripcion?: string | null
           direccion?: string | null
           direccion_notas?: string | null
@@ -274,8 +283,10 @@ export type Database = {
           mp_status?: string | null
           mp_subscription_id?: string | null
           nombre?: string
+          phone?: string | null
           plan_tier?: string
           recepcion_pausada?: boolean
+          referral_source?: string | null
           slug?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -287,6 +298,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
           whatsapp?: string | null
+          whatsapp_mensajes?: Json | null
           youtube_url?: string | null
         }
         Relationships: []
@@ -453,6 +465,7 @@ export type Database = {
       promos: {
         Row: {
           activo: boolean | null
+          aplicar_a: Json | null
           codigo: string | null
           created_at: string | null
           descripcion: string | null
@@ -467,6 +480,7 @@ export type Database = {
         }
         Insert: {
           activo?: boolean | null
+          aplicar_a?: Json | null
           codigo?: string | null
           created_at?: string | null
           descripcion?: string | null
@@ -481,6 +495,7 @@ export type Database = {
         }
         Update: {
           activo?: boolean | null
+          aplicar_a?: Json | null
           codigo?: string | null
           created_at?: string | null
           descripcion?: string | null

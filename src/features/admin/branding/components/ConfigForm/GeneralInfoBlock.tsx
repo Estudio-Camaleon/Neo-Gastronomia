@@ -1,7 +1,8 @@
 "use client";
 
-import { Globe, Hash, Phone, XCircle } from "lucide-react";
+import { Globe, Hash, Phone, XCircle, MapPin } from "lucide-react";
 import type { ConfigFormState } from "../../types";
+import { LOCALIDADES_TUCUMAN } from "../../types";
 
 export interface GeneralInfoBlockProps {
   formData: ConfigFormState;
@@ -114,16 +115,22 @@ export function GeneralInfoBlock({
 
         <div className="space-y-1">
           <label className="font-medium text-[var(--admin-text-muted)] flex items-center gap-1">
-            Localidad / Zona Administrativa
+            <MapPin size={12} /> Localidad
             <span className="text-[9px] font-medium text-[var(--admin-text-muted)]/60 px-1.5 py-0.5 rounded border border-[var(--admin-border)]">Opcional</span>
           </label>
           <input
             name="localidad"
             value={formData.localidad}
             onChange={onChange}
+            list="localidad-list"
             className="w-full p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)] transition-all font-medium text-xs"
             placeholder="Ej: San Miguel de Tucumán"
           />
+          <datalist id="localidad-list">
+            {LOCALIDADES_TUCUMAN.map((loc) => (
+              <option key={loc} value={loc} />
+            ))}
+          </datalist>
         </div>
 
         <div className="sm:col-span-2 flex items-center gap-3 pt-1">

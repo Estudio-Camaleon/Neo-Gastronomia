@@ -32,7 +32,6 @@ export interface BrandingBlockProps {
   tiktok_url?: string;
   twitter_url?: string;
   youtube_url?: string;
-  tripadvisor_url?: string;
   direcciones?: DireccionFisica[];
   localidad?: string;
   uploading: string | null;
@@ -70,7 +69,6 @@ export function BrandingBlock({
   tiktok_url,
   twitter_url,
   youtube_url,
-  tripadvisor_url,
   direcciones,
   localidad,
   uploading,
@@ -127,8 +125,7 @@ export function BrandingBlock({
     facebook_url ||
     tiktok_url ||
     twitter_url ||
-    youtube_url ||
-    tripadvisor_url;
+    youtube_url;
 
   return (
     <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl overflow-hidden shadow-sm">
@@ -308,13 +305,6 @@ export function BrandingBlock({
                         </svg>
                       </span>
                     )}
-                    {tripadvisor_url && (
-                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/80">
-                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                          <path d="M17.18 9.48a4.27 4.27 0 100 8.54 4.27 4.27 0 000-8.54zm-10.36 0a4.27 4.27 0 100 8.54 4.27 4.27 0 000-8.54zM12 6.84c-1.2 0-2.62.36-4.09 1.07a4.24 4.24 0 00-.1 2.14c.8 1.6 2.26 2.7 4.19 2.7s3.39-1.1 4.19-2.7a4.24 4.24 0 00-.1-2.14C14.62 7.2 13.2 6.84 12 6.84zm0 2.98c-2.19 0-3.96 1.77-3.96 3.96S9.81 17.74 12 17.74s3.96-1.77 3.96-3.96S14.19 9.82 12 9.82zm0 1.98c1.09 0 1.98.89 1.98 1.98s-.89 1.98-1.98 1.98-1.98-.89-1.98-1.98.89-1.98 1.98-1.98zM12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm0 2.5c5.25 0 9.5 4.25 9.5 9.5s-4.25 9.5-9.5 9.5S2.5 17.25 2.5 12 6.75 2.5 12 2.5z" />
-                        </svg>
-                      </span>
-                    )}
                   </div>
                 )}
 
@@ -366,6 +356,7 @@ export function BrandingBlock({
               />
             </label>
           </div>
+          <p className="text-[9px] text-[var(--admin-text-muted)]/60 -mt-2 mb-1">Máx. 5MB — JPG, PNG, WEBP</p>
 
           <div className="space-y-3">
             {/* Shape selector */}
@@ -490,6 +481,7 @@ export function BrandingBlock({
               />
             </label>
           </div>
+          <p className="text-[9px] text-[var(--admin-text-muted)]/60 -mt-2">Máx. 5MB — JPG, PNG, WEBP</p>
 
           {/* Banner controls */}
           <div className="flex flex-wrap items-end justify-between gap-3">

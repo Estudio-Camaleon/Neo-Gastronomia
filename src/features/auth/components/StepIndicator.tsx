@@ -3,7 +3,7 @@ interface StepIndicatorProps {
 }
 
 export function StepIndicator({ currentStep }: StepIndicatorProps) {
-  const steps = ["Cuenta", "Negocio"];
+  const steps = ["Titular", "Negocio", "Acceso"];
 
   return (
     <div className="flex items-center justify-center gap-3 mb-8 select-none">

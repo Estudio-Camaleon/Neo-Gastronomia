@@ -1,6 +1,6 @@
 "use client";
 
-import { User, Trophy, MessageCircle, StickyNote, Calendar } from "lucide-react";
+import { User, Trophy, MessageCircle, StickyNote, Calendar, Trash2 } from "lucide-react";
 import type { ClienteResumen } from "@/core/types/domain";
 import { formatPesos, esClienteVirtual } from "@/features/admin/clients/client-utils";
 import { toast } from "sonner";
@@ -31,9 +31,10 @@ function daysSince(iso: string | null): string | null {
 interface TablaEscritorioProps {
   clientes: ClienteResumen[];
   onEditNotes: (cliente: ClienteResumen) => void;
+  onDeleteClient: (cliente: ClienteResumen) => void;
 }
 
-export function TablaEscritorio({ clientes, onEditNotes }: TablaEscritorioProps) {
+export function TablaEscritorio({ clientes, onEditNotes, onDeleteClient }: TablaEscritorioProps) {
   return (
     <div className="hidden md:block overflow-x-auto">
       <table className="w-full text-left border-collapse">
@@ -145,6 +146,14 @@ export function TablaEscritorio({ clientes, onEditNotes }: TablaEscritorioProps)
                       aria-label={`Editar notas de ${cliente.nombre}`}
                     >
                       <StickyNote size={16} />
+                    </button>
+                    <button
+                      onClick={() => onDeleteClient(cliente)}
+                      className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all duration-200 border border-transparent hover:border-red-500/20 active:scale-90"
+                      title="Eliminar cliente"
+                      aria-label={`Eliminar ${cliente.nombre}`}
+                    >
+                      <Trash2 size={16} />
                     </button>
                     {cliente.telefono && (
                       <a

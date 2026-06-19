@@ -1,6 +1,6 @@
 "use client";
 
-import { User, Trophy, MessageCircle, StickyNote, Calendar } from "lucide-react";
+import { User, Trophy, MessageCircle, StickyNote, Calendar, Trash2 } from "lucide-react";
 import type { ClienteResumen } from "@/core/types/domain";
 import { formatPesos, esClienteVirtual } from "@/features/admin/clients/client-utils";
 import { toast } from "sonner";
@@ -31,9 +31,10 @@ function daysSince(iso: string | null): string | null {
 interface TarjetasMovilProps {
   clientes: ClienteResumen[];
   onEditNotes: (cliente: ClienteResumen) => void;
+  onDeleteClient: (cliente: ClienteResumen) => void;
 }
 
-export function TarjetasMovil({ clientes, onEditNotes }: TarjetasMovilProps) {
+export function TarjetasMovil({ clientes, onEditNotes, onDeleteClient }: TarjetasMovilProps) {
   return (
     <div className="grid grid-cols-1 gap-4 md:hidden p-4">
       {clientes.map((cliente, index) => {
@@ -114,7 +115,7 @@ export function TarjetasMovil({ clientes, onEditNotes }: TarjetasMovilProps) {
               </p>
             )}
 
-            <div className="grid grid-cols-2 gap-3 pt-1 shrink-0">
+            <div className="grid grid-cols-3 gap-2 pt-1 shrink-0">
               <button
                 onClick={() => {
                   if (esClienteVirtual(cliente.id)) {
@@ -127,6 +128,13 @@ export function TarjetasMovil({ clientes, onEditNotes }: TarjetasMovilProps) {
                 aria-label={`Editar notas de ${cliente.nombre}`}
               >
                 <StickyNote size={14} /> Anotaciones
+              </button>
+              <button
+                onClick={() => onDeleteClient(cliente)}
+                className="flex-1 inline-flex items-center justify-center gap-1 py-2.5 px-2 rounded-xl text-[11px] font-bold transition-all active:scale-95 text-red-600 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20"
+                aria-label={`Eliminar ${cliente.nombre}`}
+              >
+                <Trash2 size={14} /> Eliminar
               </button>
               {cliente.telefono ? (
                 <a

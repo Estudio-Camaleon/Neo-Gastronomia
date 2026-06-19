@@ -63,27 +63,28 @@ export async function loginAction(payload: {
   redirect("/pedidos");
 }
 
-export async function checkDuplicateAction(field: string, value: string) {
-  // Chequea nombre/slug/whatsapp y ahora también email (por petición de UX)
-  // Nota: protegemos con rate limiting para evitar abuso.
+const NOMBRE_SUFFIXES = [
+  "Pro", "Online", "Express", "Digital", "Directo", "Ya",
+  "Web", "Market", "Premium", "Full", "Total", "Max",
+  "Top", "Plus", "GO", "Net", "Easy", "Fast", "Smart", "Prime",
+];
 
+export async function checkDuplicateAction(field: string, value: string) {
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
   if (!(await checkRateLimit(`check:${ip}`, 30))) {
     return { error: "Demasiadas solicitudes. Intentalo de nuevo." };
   }
 
-  // Sanitizar input
-  const cleanValue = value.trim().toLowerCase();
+  const cleanValue = value.replace(/\s+/g, " ").trim();
 
   if (!cleanValue) return { exists: false };
 
   try {
     if (field === "email") {
       try {
-        // Usar admin API para listar usuarios por email
         const { data: usuarios, error } = await supabaseAdmin.auth.admin.listUsers();
         if (error) return { exists: false };
-        const found = usuarios?.users?.some((u: any) => (u.email || "").toLowerCase() === cleanValue);
+        const found = usuarios?.users?.some((u) => (u.email ?? "").toLowerCase() === cleanValue.toLowerCase());
         return { exists: !!found };
       } catch {
         return { exists: false };
@@ -91,12 +92,63 @@ export async function checkDuplicateAction(field: string, value: string) {
     }
 
     const column = field === "nombre" ? "nombre" : field;
+    // Normalizar espacios en la búsqueda: colapsar espacios múltiples
+    const searchValue = field === "nombre"
+      ? cleanValue
+      : cleanValue.replace(/\s+/g, "");
     const { data: resultados } = await supabaseAdmin
       .from("negocios")
-      .select("id")
-      .eq(column, cleanValue)
+      .select("id, nombre")
+      .ilike(column, searchValue)
       .limit(1);
-    return { exists: !!resultados?.[0] };
+    const exists = !!resultados?.[0];
+    let suggestions: string[] | undefined;
+
+    if (exists && field === "nombre") {
+      const baseName = cleanValue;
+      const { data: similares } = await supabaseAdmin
+        .from("negocios")
+        .select("nombre")
+        .ilike("nombre", `${baseName}%`)
+        .limit(20);
+
+      const existingNames = new Set((similares ?? []).map((n) => n.nombre.toLowerCase()));
+      const pool = [...NOMBRE_SUFFIXES];
+      const result: string[] = [];
+
+      // shuffle pool
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+
+      for (const suffix of pool) {
+        if (result.length >= 3) break;
+        const candidate = `${baseName} ${suffix}`;
+        if (!existingNames.has(candidate.toLowerCase())) {
+          result.push(candidate);
+        }
+      }
+
+      // si no alcanzamos 3 con sufijos, completar con números aleatorios
+      if (result.length < 3) {
+        const seen = new Set(result.map((r) => r.toLowerCase()));
+        for (let attempt = 0; attempt < 50; attempt++) {
+          if (result.length >= 3) break;
+          const num = Math.floor(Math.random() * 900) + 100;
+          const candidate = `${baseName} ${num}`;
+          const key = candidate.toLowerCase();
+          if (!existingNames.has(key) && !seen.has(key)) {
+            seen.add(key);
+            result.push(candidate);
+          }
+        }
+      }
+
+      suggestions = result;
+    }
+
+    return { exists, ...(suggestions ? { suggestions } : {}) };
   } catch {
     return { exists: false };
   }
@@ -105,11 +157,13 @@ export async function checkDuplicateAction(field: string, value: string) {
 export async function registerAction(payload: {
   email: string;
   password: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  referralSource?: string;
   nombreNegocio: string;
   slug: string;
   whatsapp?: string;
-  direccion?: string;
-  color_primary?: string;
 }) {
   const parsed = registerSchema.safeParse(payload);
   if (!parsed.success) {
@@ -121,11 +175,13 @@ export async function registerAction(payload: {
   const {
     email,
     password,
+    firstName,
+    lastName,
+    phone,
+    referralSource,
     nombreNegocio,
     slug,
     whatsapp,
-    direccion,
-    color_primary,
   } = parsed.data;
 
   const ip = (await headers()).get("x-forwarded-for") ?? "unknown";
@@ -137,10 +193,10 @@ export async function registerAction(payload: {
   try {
     const { data: listResp, error: listErr } = await supabaseAdmin.auth.admin.listUsers();
     if (!listErr) {
-      const exists = listResp?.users?.some((u: any) => (u.email || "").toLowerCase() === email.toLowerCase());
+      const exists = listResp?.users?.some((u) => (u.email ?? "").toLowerCase() === email.toLowerCase());
       if (exists) return { error: "El correo electrónico ya está registrado." };
     }
-  } catch (e) {
+  } catch {
     // silencioso: en caso de fallo, dejamos que createUser maneje la validación
   }
 
@@ -163,6 +219,15 @@ export async function registerAction(payload: {
     return { error: "El slug ya está en uso. Elegí otro." };
   }
 
+  const { data: phonesEncontrados } = await supabaseAdmin
+    .from("negocios")
+    .select("id")
+    .eq("phone", phone)
+    .limit(1);
+  if (phonesEncontrados?.[0]) {
+    return { error: "El celular ya está registrado por otro usuario." };
+  }
+
   if (whatsapp) {
     const { data: whatsappsEncontrados } = await supabaseAdmin
       .from("negocios")
@@ -182,9 +247,11 @@ export async function registerAction(payload: {
   const negocioMeta = {
     nombre_negocio: nombreNegocio,
     slug,
+    first_name: firstName,
+    last_name: lastName,
+    phone,
+    referral_source: referralSource,
     ...(whatsapp ? { whatsapp } : {}),
-    ...(direccion ? { direccion } : {}),
-    ...(color_primary ? { color_primary } : {}),
   };
 
   const { error: signUpError } = await supabase.auth.signUp({

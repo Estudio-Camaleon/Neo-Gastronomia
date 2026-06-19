@@ -42,7 +42,11 @@ describe("loginSchema", () => {
 describe("registerSchema", () => {
   const valid = {
     email: "test@example.com",
-    password: "12345678",
+    password: "Test@1234",
+    firstName: "Juan",
+    lastName: "Pérez",
+    phone: "+5491123456789",
+    referralSource: "google",
     nombreNegocio: "Mi Local",
     slug: "mi-local",
   };
@@ -100,10 +104,13 @@ describe("registerSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("provides default color", () => {
+  it("parses all fields", () => {
     const result = registerSchema.safeParse(valid);
     expect(result.success).toBe(true);
-    if (result.success) expect(result.data.color_primary).toBe("#10b981");
+    if (result.success) {
+      expect(result.data.firstName).toBe("Juan");
+      expect(result.data.referralSource).toBe("google");
+    }
   });
 });
 

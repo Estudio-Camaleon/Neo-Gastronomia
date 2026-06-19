@@ -26,6 +26,12 @@ export interface PaymentMethodStats {
   revenue: number;
 }
 
+export interface TopProduct {
+  nombre_producto: string;
+  cantidad: number;
+  total: number;
+}
+
 export interface ExportRow {
   id: string;
   created_at: string;
@@ -41,6 +47,7 @@ export interface StatsData {
   summary: StatsSummary;
   dailyBreakdown: DailyStats[];
   paymentMethods: PaymentMethodStats[];
+  topProduct: TopProduct | null;
   totalCount: number;
 }
 
@@ -107,10 +114,46 @@ export async function getStats(filters: Filters): Promise<StatsData> {
     methodMap.entries(),
   ).map(([method, data]) => ({ method, ...data }));
 
+  let topProduct: TopProduct | null = null;
+  if (lista.length > 0) {
+    const { data: items } = await supabase
+      .from("pedido_items")
+      .select("nombre_producto, cantidad")
+      .in(
+        "pedido_id",
+        lista.map((o) => o.id),
+      );
+    if (items && items.length > 0) {
+      const productMap = new Map<
+        string,
+        { cantidad: number; total: number }
+      >();
+      for (const item of items) {
+        const name = item.nombre_producto ?? "Producto sin nombre";
+        const prev = productMap.get(name) ?? { cantidad: 0, total: 0 };
+        prev.cantidad += item.cantidad;
+        prev.total += item.cantidad;
+        productMap.set(name, prev);
+      }
+      const sorted = Array.from(productMap.entries()).sort(
+        (a, b) => b[1].cantidad - a[1].cantidad,
+      );
+      const top = sorted[0];
+      if (top) {
+        topProduct = {
+          nombre_producto: top[0],
+          cantidad: top[1].cantidad,
+          total: top[1].total,
+        };
+      }
+    }
+  }
+
   return {
     summary,
     dailyBreakdown,
     paymentMethods,
+    topProduct,
     totalCount: lista.length,
   };
 }

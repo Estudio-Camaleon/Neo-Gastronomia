@@ -64,10 +64,9 @@ export async function updateTenantBrandingAction(
       tiktok_url: payload.tiktok_url.trim(),
       twitter_url: payload.twitter_url.trim(),
       youtube_url: payload.youtube_url.trim(),
-      tripadvisor_url: payload.tripadvisor_url.trim(),
-      floating_shapes: payload.floating_shapes as unknown as Json,
       horarios: payload.horarios as Json,
       direcciones: payload.direcciones as unknown as Json,
+      whatsapp_mensajes: payload.whatsapp_mensajes as unknown as Json,
       updated_at: new Date().toISOString(),
     })
     .eq("id", payload.id)
@@ -117,7 +116,7 @@ export async function updateTenantBrandingAction(
 /**
  * Purga de raíz un negocio, sus archivos multimedia físicos en Storage y su cascada relacional.
  */
-export async function deleteTenantBrandingAction(id: string) {
+export async function deleteTenantBrandingAction(id: string, reason?: string) {
   const supabase = await createClient();
 
   // 1. Reaseguro estricto de identidad en sesión activa
@@ -127,6 +126,15 @@ export async function deleteTenantBrandingAction(id: string) {
   } = await supabase.auth.getUser();
   if (authError || !user) {
     throw new Error("Acceso denegado. Terminal no autenticada.");
+  }
+
+  // 1b. Guardar el motivo de baja antes de purgar
+  if (reason) {
+    await supabase
+      .from("negocios")
+      .update({ deletion_reason: reason })
+      .eq("id", id)
+      .eq("user_id", user.id);
   }
 
   // 2. Consulta defensiva previa para capturar las URLs de los assets antes de eliminarlos

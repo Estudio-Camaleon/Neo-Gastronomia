@@ -73,8 +73,8 @@ export async function GET(request: Request) {
 
   const metaSlug = meta["slug"] as string | undefined;
   const metaWhatsapp = meta["whatsapp"] as string | undefined;
-  const metaDireccion = meta["direccion"] as string | undefined;
-  const metaColor = meta["color_primary"] as string | undefined;
+  const metaPhone = meta["phone"] as string | undefined;
+  const metaReferralSource = meta["referral_source"] as string | undefined;
 
   const defaultSlug =
     metaSlug ||
@@ -105,8 +105,8 @@ export async function GET(request: Request) {
       nombre: nombreNegocio,
       slug: finalSlug,
       ...(metaWhatsapp ? { whatsapp: metaWhatsapp } : {}),
-      ...(metaDireccion ? { direccion: metaDireccion } : {}),
-      ...(metaColor ? { color_primary: metaColor } : {}),
+      ...(metaPhone ? { phone: metaPhone } : {}),
+      ...(metaReferralSource ? { referral_source: metaReferralSource } : {}),
     });
 
     if (!err) {
@@ -127,5 +127,5 @@ export async function GET(request: Request) {
     console.error("[CALLBACK]: Error creando negocio:", createError.message);
   }
 
-  return NextResponse.redirect(`${origin}/onboarding`);
+  return NextResponse.redirect(`${origin}/login?confirmed=true`);
 }

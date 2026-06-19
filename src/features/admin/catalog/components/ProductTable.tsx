@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Edit3, Trash2, Tag, Package, Search, X } from "lucide-react";
+import { Edit3, Trash2, Tag, Package, Search, X, Power, PowerOff } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/core/lib/supabase/client";
 import Image from "next/image";
 import { IngredientBadge } from "./IngredientBadge";
-import { deleteProductAction } from "../actions";
+import { deleteProductAction, toggleProductAction } from "../actions";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { useDebounce } from "@/core/hooks/useDebounce";
 import type { RealtimeChannel } from "@supabase/supabase-js";
@@ -22,6 +22,7 @@ export interface UnifiedProduct {
   imagen_url: string | null;
   categoria_id: string | null;
   disponible: boolean;
+  created_at: string | null;
   configuracion: {
     grupos_opciones?: Array<Record<string, unknown>>;
     variantes?: Array<{ nombre: string; precio: number | string }>;
@@ -37,6 +38,8 @@ interface ProductTableProps {
 const PAGE_SIZE = 20;
 const formatPrecio = (n: number) =>
   new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", minimumFractionDigits: 2 }).format(n);
+const formatDate = (d: string | null) =>
+  d ? new Intl.DateTimeFormat("es-AR", { dateStyle: "short" }).format(new Date(d)) : "—";
 
 export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
   const [productos, setProductos] = useState<UnifiedProduct[]>([]);
@@ -68,7 +71,7 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
         let request = supabase
           .from("productos")
           .select(
-            `id, nombre, descripcion, precio, imagen_url, disponible, categoria_id, configuracion, categorias(nombre)`,
+            `id, nombre, descripcion, precio, imagen_url, disponible, created_at, categoria_id, configuracion, categorias(nombre)`,
             { count: "exact" },
           )
           .eq("negocio_id", negocioId)
@@ -127,6 +130,19 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
   useEffect(() => {
     cargarProductos(page, searchQuery);
   }, [page, searchQuery, cargarProductos]);
+
+  const handleToggleDisponible = async (prod: UnifiedProduct) => {
+    try {
+      await toggleProductAction(prod.id, !prod.disponible);
+      toast.success(
+        prod.disponible
+          ? `"${prod.nombre}" pausado`
+          : `"${prod.nombre}" activado`,
+      );
+    } catch {
+      toast.error("Error al cambiar estado");
+    }
+  };
 
   const handleEliminar = async () => {
     if (!deleteConfirm) return;
@@ -202,6 +218,9 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
             <th className="p-3 border-b border-[var(--admin-border)] hidden sm:table-cell">
               Precio
             </th>
+            <th className="p-3 border-b border-[var(--admin-border)] hidden lg:table-cell">
+              Cargado
+            </th>
             <th className="p-3 border-b border-[var(--admin-border)] hidden sm:table-cell">
               Estado
             </th>
@@ -273,6 +292,9 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
               <td className="p-3 font-semibold text-[var(--admin-text)] hidden sm:table-cell text-sm whitespace-nowrap">
                 {formatPrecio(prod.precio)}
               </td>
+              <td className="p-3 hidden lg:table-cell text-xs text-[var(--admin-text-muted)] whitespace-nowrap">
+                {formatDate(prod.created_at)}
+              </td>
               <td className="p-3 hidden sm:table-cell">
                 {prod.disponible ? (
                   <Badge
@@ -292,6 +314,18 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
               </td>
               <td className="p-3 pr-4 sm:pr-6 text-right">
                 <div className="flex justify-end gap-1">
+                  <button
+                    onClick={() => handleToggleDisponible(prod)}
+                    className={`p-1.5 rounded-lg transition-colors border border-transparent ${
+                      prod.disponible
+                        ? "text-green-500 hover:bg-green-500/10 hover:border-green-500/20"
+                        : "text-[var(--admin-text-muted)] hover:text-amber-500 hover:bg-amber-500/10 hover:border-amber-500/20"
+                    }`}
+                    title={prod.disponible ? "Pausar producto" : "Activar producto"}
+                    aria-label={`${prod.disponible ? "Pausar" : "Activar"} ${prod.nombre}`}
+                  >
+                    {prod.disponible ? <Power size={15} /> : <PowerOff size={15} />}
+                  </button>
                   <button
                     onClick={() => onEdit(prod)}
                     className="p-1.5 text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] hover:bg-[var(--admin-accent)]/10 rounded-lg transition-colors border border-transparent hover:border-[var(--admin-accent)]/20"

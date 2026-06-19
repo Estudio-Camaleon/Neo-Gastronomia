@@ -1,6 +1,5 @@
 import { createClient } from "@/core/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { MapPin } from "lucide-react";
 import { PedidosRadar } from "@/features/admin/orders/PedidosRadar";
 import type { PedidoData } from "@/core/types/domain";
 
@@ -16,15 +15,18 @@ export default async function PedidosPage() {
   let negocioNombre = "";
   let panicModeInicial = false;
 
+  let whatsappMensajes: Record<string, string> | null = null;
+
   const { data: negocios } = await supabase
     .from("negocios")
-    .select("id, nombre, recepcion_pausada")
+    .select("id, nombre, recepcion_pausada, whatsapp_mensajes")
     .eq("user_id", user.id);
 
   if (negocios && negocios.length > 0) {
     negocioIds = negocios.map((n) => n.id);
     negocioNombre = negocios.map((n) => n.nombre).join(", ");
     panicModeInicial = negocios.some((n) => n.recepcion_pausada === true);
+    whatsappMensajes = negocios[0]?.whatsapp_mensajes as Record<string, string> | null;
   } else {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: memberships } = await (supabase.from("team_members" as any) as any)
@@ -62,20 +64,17 @@ export default async function PedidosPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 relative z-10 ">
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-[var(--admin-border)]/50 ">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-[var(--admin-border)]/50 ">
         <div className="space-y-2 ">
           <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-[var(--admin-text)]">
-            Pedidos en vivo
+            Recepción de pedidos
           </h1>
           <p className="text-xs sm:text-sm text-[var(--admin-text-muted)] font-medium">
             Control de órdenes y despacho inmediato en tiempo real
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-[var(--admin-accent)] text-white px-3 sm:px-4 py-2 rounded-xl shadow-md shadow-[var(--admin-accent)]/20 font-semibold text-xs tracking-wide">
-          <MapPin size={16} />
-          {negocioNombre}
-        </div>
+        
       </header>
 
       <PedidosRadar
@@ -83,6 +82,7 @@ export default async function PedidosPage() {
         negocioIds={negocioIds}
         negocioNombre={negocioNombre}
         panicModeInicial={panicModeInicial}
+        whatsappMensajes={whatsappMensajes}
       />
     </div>
   );

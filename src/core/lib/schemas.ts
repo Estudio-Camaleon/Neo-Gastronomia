@@ -28,6 +28,25 @@ export const registerSchema = z.object({
     .email("El correo no tiene un formato válido")
     .transform((v) => v.trim().toLowerCase()),
   password: passwordSchema,
+  firstName: z
+    .string()
+    .min(2, "El nombre debe tener al menos 2 caracteres")
+    .max(60, "El nombre es demasiado largo")
+    .transform((v) => v.trim()),
+  lastName: z
+    .string()
+    .min(2, "El apellido debe tener al menos 2 caracteres")
+    .max(60, "El apellido es demasiado largo")
+    .transform((v) => v.trim()),
+  phone: z
+    .string()
+    .regex(
+      /^\+?\d{7,15}$/,
+      "Ingresa un número válido con código de país (ej: +5491123456789)",
+    ),
+  referralSource: z
+    .string()
+    .optional(),
   nombreNegocio: z
     .string()
     .min(2, "El nombre debe tener al menos 2 caracteres")
@@ -47,15 +66,6 @@ export const registerSchema = z.object({
     )
     .optional()
     .or(z.literal("")),
-  direccion: z
-    .string()
-    .max(200, "La dirección es demasiado larga")
-    .optional()
-    .or(z.literal("")),
-  color_primary: z
-    .string()
-    .regex(/^#[0-9a-fA-F]{6}$/, "Color inválido")
-    .default("#10b981"),
 });
 
 const productVariantSchema = z.object({
@@ -125,6 +135,14 @@ export const upsertPromoSchema = z
       .optional(),
     activo: z.boolean().default(true),
     items_combo: z.array(comboItemSchema).default([]),
+    aplicar_a: z
+      .object({
+        productos: z.array(z.string()).default([]),
+        categorias: z.array(z.string()).default([]),
+      })
+      .nullable()
+      .optional()
+      .default(null),
   })
   .superRefine((data, ctx) => {
     if (data.tipo_descuento === "porcentaje") {

@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { Users } from "lucide-react";
 import { toast } from "sonner";
-import { updateClientSystemNotes } from "./actions";
+import { updateClientSystemNotes, deleteClientAction } from "./actions";
 import { NotesModal } from "@/components/ui/notes-modal";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { useDebounce } from "@/core/hooks/useDebounce";
 import { TablaEscritorio } from "@/features/admin/clients/components/TablaEscritorio";
 import { TarjetasMovil } from "@/features/admin/clients/components/TarjetasMovil";
@@ -21,6 +22,7 @@ export function ClientRadar({ initialClientes }: ClientRadarProps) {
     id: string;
     notas: string | null;
   } | null>(null);
+  const [deletingCliente, setDeletingCliente] = useState<ClienteResumen | null>(null);
 
   const clientesFiltrados = initialClientes.filter(
     (c) =>
@@ -83,12 +85,14 @@ export function ClientRadar({ initialClientes }: ClientRadarProps) {
         <TablaEscritorio
           clientes={clientesFiltrados}
           onEditNotes={handleEditNotes}
+          onDeleteClient={(c) => setDeletingCliente(c)}
         />
 
         {/* TARJETAS: MÓVIL */}
         <TarjetasMovil
           clientes={clientesFiltrados}
           onEditNotes={handleEditNotes}
+          onDeleteClient={(c) => setDeletingCliente(c)}
         />
 
         {/* SIN RESULTADOS */}
@@ -107,6 +111,27 @@ export function ClientRadar({ initialClientes }: ClientRadarProps) {
           initialValue={editingCliente.notas ?? ""}
           onSave={handleSaveNotes}
           onClose={() => setEditingCliente(null)}
+        />
+      )}
+
+      {deletingCliente && (
+        <ConfirmModal
+          title="Eliminar Cliente"
+          message={`¿Estás seguro de eliminar a ${deletingCliente.nombre}? Esta acción no se puede deshacer y se perderá todo su historial.`}
+          confirmLabel="Sí, eliminar"
+          cancelLabel="No, mantener"
+          variant="danger"
+          onConfirm={async () => {
+            try {
+              await deleteClientAction(deletingCliente.id);
+              toast.success("Cliente eliminado con éxito");
+              setDeletingCliente(null);
+            } catch (err) {
+              const msg = err instanceof Error ? err.message : "Error de conexión";
+              toast.error("Error al eliminar el cliente", { description: msg });
+            }
+          }}
+          onCancel={() => setDeletingCliente(null)}
         />
       )}
     </div>

@@ -9,6 +9,9 @@ import {
   XCircle,
   AlertTriangle,
   Clock,
+  Palette,
+  FileText,
+  Settings2,
 } from "lucide-react";
 import { FoodMini } from "@/components/ui/food-loading";
 import {
@@ -19,18 +22,17 @@ import { generateSlug } from "@/core/lib/slug";
 import type { UpdateTenantBrandingPayload } from "@/core/types/domain";
 import { useUnsavedChanges } from "@/core/hooks/useUnsavedChanges";
 import { UnsavedChangesModal } from "@/components/ui/unsaved-changes-modal";
-import { parseFloatingShapes } from "../utils";
 import type { NegocioInitialData, ConfigFormState } from "../types";
 import { MAX_IMAGE_SIZE_MB, MAX_IMAGE_SIZE_BYTES } from "../types";
 export type { NegocioInitialData }; // Re-export for backward compatibility
 import { BrandingBlock } from "./ConfigForm/BrandingBlock";
 import { GeneralInfoBlock } from "./ConfigForm/GeneralInfoBlock";
 import { SocialLinksBlock } from "./ConfigForm/SocialLinksBlock";
-import { FloatingShapesBlock } from "./ConfigForm/FloatingShapesBlock";
 import { CatalogDesignBlock } from "./ConfigForm/CatalogDesignBlock";
 import { ScheduleBlock } from "./ConfigForm/ScheduleBlock";
 import { DireccionesBlock } from "./ConfigForm/DireccionesBlock";
 import { DangerZone } from "./ConfigForm/DangerZone";
+import { WhatsAppMessagesBlock } from "./ConfigForm/WhatsAppMessagesBlock";
 
 export function ConfigForm({
   initialData,
@@ -53,7 +55,11 @@ export function ConfigForm({
     banner_url: initialData?.banner_url || "",
   });
 
-  const initialParsed = parseFloatingShapes(initialData?.floating_shapes);
+  const DEFAULT_WHATSAPP_MENSAJES: Record<string, string> = {
+    en_preparacion: "¡Hola {cliente}! 👋 Soy de {negocio}. Te confirmo que recibimos tu pedido correctamente y ya entró a cocina. 🍳🔥 Te aviso por acá apenas esté listo. ¡Muchas gracias!",
+    entregado: "¡Buenas noticias {cliente}! 🥳 Tu pedido de {negocio} ya está listo. {entrega} ¡Que lo disfrutes!",
+    cancelado: "Hola {cliente}, te contactamos de {negocio}. Lamentablemente no vamos a poder procesar tu pedido en este momento. 🙏 Disculpá las molestias.",
+  };
 
   const [formData, setFormData] = useState<ConfigFormState>({
     nombre: initialData?.nombre || "",
@@ -78,11 +84,9 @@ export function ConfigForm({
     tiktok_url: initialData?.tiktok_url || "",
     twitter_url: initialData?.twitter_url || "",
     youtube_url: initialData?.youtube_url || "",
-    tripadvisor_url: initialData?.tripadvisor_url || "",
     horarios: initialData?.horarios || {},
     direcciones: initialData?.direcciones || [],
-    floating_shapes: initialParsed.shapes,
-    floating_density: initialParsed.density,
+    whatsapp_mensajes: initialData?.whatsapp_mensajes || DEFAULT_WHATSAPP_MENSAJES,
   });
 
   const initialIdRef = useRef(initialData?.id);
@@ -98,8 +102,6 @@ export function ConfigForm({
       logo_url: initialData?.logo_url || "",
       banner_url: initialData?.banner_url || "",
     });
-
-    const parsed = parseFloatingShapes(initialData?.floating_shapes);
 
     setFormData({
       nombre: initialData?.nombre || "",
@@ -124,11 +126,9 @@ export function ConfigForm({
       tiktok_url: initialData?.tiktok_url || "",
       twitter_url: initialData?.twitter_url || "",
       youtube_url: initialData?.youtube_url || "",
-      tripadvisor_url: initialData?.tripadvisor_url || "",
       horarios: initialData?.horarios || {},
       direcciones: initialData?.direcciones || [],
-      floating_shapes: parsed.shapes,
-      floating_density: parsed.density,
+      whatsapp_mensajes: initialData?.whatsapp_mensajes || DEFAULT_WHATSAPP_MENSAJES,
     });
   }, [initialData?.id]);
 
@@ -238,7 +238,6 @@ export function ConfigForm({
 
   const handleReset = useCallback(() => {
     if (!initialData) return;
-    const parsed = parseFloatingShapes(initialData?.floating_shapes);
     setFormData({
       nombre: initialData?.nombre || "",
       slug: initialData?.slug || "",
@@ -262,11 +261,9 @@ export function ConfigForm({
       tiktok_url: initialData?.tiktok_url || "",
       twitter_url: initialData?.twitter_url || "",
       youtube_url: initialData?.youtube_url || "",
-      tripadvisor_url: initialData?.tripadvisor_url || "",
       horarios: initialData?.horarios || {},
       direcciones: initialData?.direcciones || [],
-      floating_shapes: parsed.shapes,
-      floating_density: parsed.density,
+      whatsapp_mensajes: initialData?.whatsapp_mensajes || DEFAULT_WHATSAPP_MENSAJES,
     });
     setImagePreviews({
       logo_url: initialData?.logo_url || "",
@@ -331,13 +328,9 @@ export function ConfigForm({
         tiktok_url: formData.tiktok_url,
         twitter_url: formData.twitter_url,
         youtube_url: formData.youtube_url,
-        tripadvisor_url: formData.tripadvisor_url,
         horarios: formData.horarios as Record<string, unknown>,
         direcciones: formData.direcciones,
-        floating_shapes: {
-          shapes: formData.floating_shapes,
-          density: formData.floating_density,
-        },
+        whatsapp_mensajes: formData.whatsapp_mensajes,
       };
 
       const res = await updateTenantBrandingAction(payload);
@@ -361,18 +354,13 @@ export function ConfigForm({
     }
   };
 
-  const handleDeleteBusiness = async () => {
+  const handleDeleteBusiness = async (reason: string) => {
     if (!initialData?.id) return;
     if (isDeleting) return;
-    if (confirmName !== initialData.nombre) {
-      return toast.error(
-        "El nombre ingresado no coincide con el registro original.",
-      );
-    }
 
     setIsDeleting(true);
     try {
-      await deleteTenantBrandingAction(initialData.id);
+      await deleteTenantBrandingAction(initialData.id, reason);
       toast.success("Estructura comercial purgada por completo del SaaS.");
       window.location.href = "/login";
     } catch (err: unknown) {
@@ -404,14 +392,57 @@ export function ConfigForm({
       errors.color_primary = "Formato hexadecimal inválido (ej: #34a35f)";
     }
 
+    const socialFields = ["instagram_url", "facebook_url", "tiktok_url", "twitter_url", "youtube_url"] as const;
+    for (const field of socialFields) {
+      const val = formData[field];
+      if (val && !/^https:\/\/.+/i.test(val.trim())) {
+        errors[field] = "Debe comenzar con https://";
+      }
+    }
+
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   }, [formData]);
 
+  const TABS = [
+    { id: "identidad", label: "Identidad Visual", icon: Palette },
+    { id: "informacion", label: "Información", icon: FileText },
+    { id: "operacion", label: "Operación", icon: Settings2 },
+    { id: "peligro", label: "Peligro", icon: AlertTriangle },
+  ] as const;
+
+  const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["id"]>("identidad");
+
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-12 select-none">
+      {/* BARRA DE TABS */}
+      <div className="sticky top-0 z-50 -mx-4 sm:-mx-6 lg:-mx-0 px-4 sm:px-6 lg:px-0 pt-0 lg:pt-0">
+        <nav
+          className="flex gap-1 bg-[var(--admin-bg)]/90 backdrop-blur-md border-b border-[var(--admin-border)] rounded-t-xl overflow-x-auto"
+          role="tablist"
+          aria-label="Secciones de configuración"
+        >
+          {TABS.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              role="tab"
+              aria-selected={activeTab === id}
+              onClick={() => setActiveTab(id)}
+              className={`flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-semibold whitespace-nowrap border-b-2 transition-all ${
+                activeTab === id
+                  ? "border-[var(--admin-accent)] text-[var(--admin-accent)]"
+                  : "border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:border-[var(--admin-border)]"
+              } ${id === "peligro" && activeTab !== "peligro" ? "opacity-40 hover:opacity-100" : ""}`}
+            >
+              <Icon size={14} />
+              {label}
+            </button>
+          ))}
+        </nav>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* ALERTA CRÍTICA: MUTACIÓN DE URL */}
+        {/* ALERTA CRÍTICA: MUTACIÓN DE URL — visible en todos los tabs */}
         {hasSlugChanged && (
           <div className="admin-warning-bg admin-warning-border p-4 rounded-xl flex items-start gap-3 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
             <AlertTriangle className="h-5 w-5 shrink-0 admin-warning-text mt-0.5" />
@@ -432,90 +463,66 @@ export function ConfigForm({
           </div>
         )}
 
-        {/* BLOQUE MULTIMEDIA (BRANDING) */}
-        <BrandingBlock
-          logoUrl={imagePreviews.logo_url || formData.logo_url}
-          bannerUrl={imagePreviews.banner_url || formData.banner_url}
-          bannerPosicion={formData.banner_posicion}
-          bannerHeight={formData.banner_height}
-          bannerScale={formData.banner_scale}
-          logoScale={formData.logo_scale}
-          logoPosicion={formData.logo_posicion}
-          logoFit={formData.logo_fit}
-          logoShape={formData.logo_shape}
-          nombre={formData.nombre}
-          descripcion={formData.descripcion}
-          mostrarNombre={formData.mostrar_nombre}
-          colorPrimary={formData.color_primary}
-          whatsapp={formData.whatsapp}
-          instagram_url={formData.instagram_url}
-          facebook_url={formData.facebook_url}
-          tiktok_url={formData.tiktok_url}
-          twitter_url={formData.twitter_url}
-          youtube_url={formData.youtube_url}
-          tripadvisor_url={formData.tripadvisor_url}
-          direcciones={formData.direcciones}
-          localidad={formData.localidad}
-          uploading={uploading}
-          imageError={fieldErrors.image}
-          onImageUpload={handleImageUpload}
-          onLogoScaleChange={(val) => {
-            setIsDirty(true);
-            setFormData((p) => ({ ...p, logo_scale: val }));
-          }}
-          onLogoPosicionChange={(val) => {
-            setIsDirty(true);
-            setFormData((p) => ({ ...p, logo_posicion: val }));
-          }}
-          onLogoFitChange={(val) => {
-            setIsDirty(true);
-            setFormData((p) => ({ ...p, logo_fit: val }));
-          }}
-          onLogoShapeChange={(val) => {
-            setIsDirty(true);
-            setFormData((p) => ({ ...p, logo_shape: val }));
-          }}
-          onBannerPosicionChange={(val) => {
-            setIsDirty(true);
-            setFormData((p) => ({ ...p, banner_posicion: val }));
-          }}
-          onBannerScaleChange={(val) => {
-            setIsDirty(true);
-            setFormData((p) => ({ ...p, banner_scale: val }));
-          }}
-          onBannerHeightChange={(val) => {
-            setIsDirty(true);
-            setFormData((p) => ({ ...p, banner_height: val }));
-          }}
-        />
+        {/* ── TAB: IDENTIDAD VISUAL ── */}
+        {activeTab === "identidad" && (
+          <>
+            {/* BLOQUE MULTIMEDIA (BRANDING) */}
+            <BrandingBlock
+              logoUrl={imagePreviews.logo_url || formData.logo_url}
+              bannerUrl={imagePreviews.banner_url || formData.banner_url}
+              bannerPosicion={formData.banner_posicion}
+              bannerHeight={formData.banner_height}
+              bannerScale={formData.banner_scale}
+              logoScale={formData.logo_scale}
+              logoPosicion={formData.logo_posicion}
+              logoFit={formData.logo_fit}
+              logoShape={formData.logo_shape}
+              nombre={formData.nombre}
+              descripcion={formData.descripcion}
+              mostrarNombre={formData.mostrar_nombre}
+              colorPrimary={formData.color_primary}
+              whatsapp={formData.whatsapp}
+              instagram_url={formData.instagram_url}
+              facebook_url={formData.facebook_url}
+              tiktok_url={formData.tiktok_url}
+              twitter_url={formData.twitter_url}
+              youtube_url={formData.youtube_url}
+              direcciones={formData.direcciones}
+              localidad={formData.localidad}
+              uploading={uploading}
+              imageError={fieldErrors.image}
+              onImageUpload={handleImageUpload}
+              onLogoScaleChange={(val) => {
+                setIsDirty(true);
+                setFormData((p) => ({ ...p, logo_scale: val }));
+              }}
+              onLogoPosicionChange={(val) => {
+                setIsDirty(true);
+                setFormData((p) => ({ ...p, logo_posicion: val }));
+              }}
+              onLogoFitChange={(val) => {
+                setIsDirty(true);
+                setFormData((p) => ({ ...p, logo_fit: val }));
+              }}
+              onLogoShapeChange={(val) => {
+                setIsDirty(true);
+                setFormData((p) => ({ ...p, logo_shape: val }));
+              }}
+              onBannerPosicionChange={(val) => {
+                setIsDirty(true);
+                setFormData((p) => ({ ...p, banner_posicion: val }));
+              }}
+              onBannerScaleChange={(val) => {
+                setIsDirty(true);
+                setFormData((p) => ({ ...p, banner_scale: val }));
+              }}
+              onBannerHeightChange={(val) => {
+                setIsDirty(true);
+                setFormData((p) => ({ ...p, banner_height: val }));
+              }}
+            />
 
-        {/* BLOQUE INFORMACIÓN GENERAL */}
-        <GeneralInfoBlock
-          formData={formData}
-          errors={fieldErrors}
-          onChange={handleChange}
-          onClearError={clearFieldError}
-          onToggleMostrarNombre={(val) => {
-            setIsDirty(true);
-            setFormData((p) => ({ ...p, mostrar_nombre: val }));
-          }}
-        />
-
-        {/* BLOQUE SUCURSALES */}
-        <DireccionesBlock
-          direcciones={formData.direcciones}
-          onChange={(direcciones) => {
-            setIsDirty(true);
-            setFormData((p) => ({ ...p, direcciones }));
-          }}
-        />
-
-        {/* BLOQUE MIXTO COMPACTO RESPONSIVE: REDES + CROMÁTICA */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-7">
-            <SocialLinksBlock formData={formData} onChange={handleChange} />
-          </div>
-          <div className="lg:col-span-5">
+            {/* VISTA PREVIA DEL CATÁLOGO */}
             <CatalogDesignBlock
               colorPrimary={formData.color_primary}
               error={fieldErrors.color_primary}
@@ -536,89 +543,132 @@ export function ConfigForm({
               bannerPosicion={formData.banner_posicion}
               bannerHeight={formData.banner_height}
             />
-          </div>
-        </div>
+          </>
+        )}
 
-        {/* BLOQUE FORMAS FLOTANTES */}
-        <FloatingShapesBlock
-          selected={formData.floating_shapes}
-          onChange={(shapes) => {
-            setIsDirty(true);
-            setFormData((p) => ({ ...p, floating_shapes: shapes }));
-          }}
-          density={formData.floating_density}
-          onDensityChange={(density) => {
-            setIsDirty(true);
-            setFormData((p) => ({ ...p, floating_density: density }));
-          }}
-          colorPrimary={formData.color_primary}
-        />
+        {/* ── TAB: INFORMACIÓN ── */}
+        {activeTab === "informacion" && (
+          <>
+            {/* BLOQUE INFORMACIÓN GENERAL */}
+            <GeneralInfoBlock
+              formData={formData}
+              errors={fieldErrors}
+              onChange={handleChange}
+              onClearError={clearFieldError}
+              onToggleMostrarNombre={(val) => {
+                setIsDirty(true);
+                setFormData((p) => ({ ...p, mostrar_nombre: val }));
+              }}
+            />
 
-        {/* BLOQUE CORE: CONTROL HORARIO */}
-        <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-5 shadow-sm space-y-5">
-          <div className="flex items-center gap-3 border-b border-[var(--admin-border)] pb-4">
-            <div className="p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text-muted)]">
-              <Clock size={16} />
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-[var(--admin-text)] flex items-center gap-1">
-                Cronograma Operativo Semanal
-                <span className="text-[9px] font-medium text-[var(--admin-text-muted)]/60 px-1.5 py-0.5 rounded border border-[var(--admin-border)]">Opcional</span>
-              </h3>
-              <p className="text-[11px] text-[var(--admin-text-muted)] mt-0.5">
-                Horarios de atención. Si no configurás horarios, el negocio aparecerá como "Sin horarios".
-              </p>
-            </div>
-          </div>
-          <ScheduleBlock
-            schedule={formData.horarios}
-            onChange={(newSchedule) => {
-              setIsDirty(true);
-              setFormData((p) => ({ ...p, horarios: newSchedule }));
-            }}
-          />
-        </div>
+            {/* BLOQUE SUCURSALES */}
+            <DireccionesBlock
+              direcciones={formData.direcciones}
+              onChange={(direcciones) => {
+                setIsDirty(true);
+                setFormData((p) => ({ ...p, direcciones }));
+              }}
+            />
 
-        {/* BOTÓN FLOTANTE ACCIONABLE ULTRA-LIMPIO */}
-        <div className="sticky bottom-20 md:bottom-5 z-40 flex justify-end">
-          <button
-            type="submit"
-            disabled={saveStatus !== "idle" || isDeleting || !!uploading}
-            className={`px-6 py-2.5 rounded-lg text-xs font-medium shadow-md flex items-center gap-2 disabled:opacity-40 disabled:pointer-events-none transition-all duration-300 ${
-              saveStatus === "success"
-                ? "bg-emerald-500 text-white scale-105"
-                : saveStatus === "error"
-                  ? "admin-danger-bg text-white animate-[shake_0.4s_ease-in-out]"
-                  : "bg-[var(--admin-accent)] text-white hover:opacity-90 active:scale-[0.98]"
-            }`}
-          >
-            {saveStatus === "saving" ? (
-              <FoodMini size={14} />
-            ) : saveStatus === "success" ? (
-              <CheckCircle2
-                className="animate-in zoom-in-50 duration-200"
-                size={14}
+            {/* BLOQUE REDES SOCIALES */}
+            <SocialLinksBlock formData={formData} onChange={handleChange} />
+          </>
+        )}
+
+        {/* ── TAB: OPERACIÓN ── */}
+        {activeTab === "operacion" && (
+          <>
+            {/* BLOQUE MENSAJES WHATSAPP */}
+            <WhatsAppMessagesBlock
+              mensajes={formData.whatsapp_mensajes}
+              negocioNombre={formData.nombre}
+              onChange={(mensajes) => {
+                setIsDirty(true);
+                setFormData((p) => ({ ...p, whatsapp_mensajes: mensajes }));
+              }}
+            />
+
+            {/* BLOQUE CORE: CONTROL HORARIO */}
+            <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-5 shadow-sm space-y-5">
+              <div className="flex items-center gap-3 border-b border-[var(--admin-border)] pb-4">
+                <div className="p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text-muted)]">
+                  <Clock size={16} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-[var(--admin-text)] flex items-center gap-1">
+                    Cronograma Operativo Semanal
+                    <span className="text-[9px] font-medium text-[var(--admin-text-muted)]/60 px-1.5 py-0.5 rounded border border-[var(--admin-border)]">Opcional</span>
+                  </h3>
+                  <p className="text-[11px] text-[var(--admin-text-muted)] mt-0.5">
+                    Horarios de atención. Si no configurás horarios, el negocio aparecerá como &ldquo;Sin horarios&rdquo;.
+                  </p>
+                </div>
+              </div>
+              <ScheduleBlock
+                schedule={formData.horarios}
+                onChange={(newSchedule) => {
+                  setIsDirty(true);
+                  setFormData((p) => ({ ...p, horarios: newSchedule }));
+                }}
               />
-            ) : saveStatus === "error" ? (
-              <XCircle
-                className="animate-in zoom-in-50 duration-200"
-                size={14}
-              />
-            ) : (
-              <Save size={14} />
-            )}
-            <span>
-              {saveStatus === "saving"
-                ? "Guardando ajustes..."
-                : saveStatus === "success"
-                  ? "¡Guardado!"
+            </div>
+          </>
+        )}
+
+        {/* BOTÓN FLOTANTE ACCIONABLE ULTRA-LIMPIO — visible en todos los tabs excepto Peligro */}
+        {activeTab !== "peligro" && (
+          <div className="sticky bottom-20 md:bottom-5 z-40 flex justify-end">
+            <button
+              type="submit"
+              disabled={saveStatus !== "idle" || isDeleting || !!uploading}
+              className={`px-6 py-2.5 rounded-lg text-xs font-medium shadow-md flex items-center gap-2 disabled:opacity-40 disabled:pointer-events-none transition-all duration-300 ${
+                saveStatus === "success"
+                  ? "bg-emerald-500 text-white scale-105"
                   : saveStatus === "error"
-                    ? "Error al guardar"
-                    : "Guardar Cambios"}
-            </span>
-          </button>
-        </div>
+                    ? "admin-danger-bg text-white animate-[shake_0.4s_ease-in-out]"
+                    : "bg-[var(--admin-accent)] text-white hover:opacity-90 active:scale-[0.98]"
+              }`}
+            >
+              {saveStatus === "saving" ? (
+                <FoodMini size={14} />
+              ) : saveStatus === "success" ? (
+                <CheckCircle2
+                  className="animate-in zoom-in-50 duration-200"
+                  size={14}
+                />
+              ) : saveStatus === "error" ? (
+                <XCircle
+                  className="animate-in zoom-in-50 duration-200"
+                  size={14}
+                />
+              ) : (
+                <Save size={14} />
+              )}
+              <span>
+                {saveStatus === "saving"
+                  ? "Guardando ajustes..."
+                  : saveStatus === "success"
+                    ? "¡Guardado!"
+                    : saveStatus === "error"
+                      ? "Error al guardar"
+                      : "Guardar Cambios"}
+              </span>
+            </button>
+          </div>
+        )}
       </form>
+
+      {/* ── TAB: PELIGRO — fuera del <form> para evitar submit accidental */}
+      {activeTab === "peligro" && (
+        <DangerZone
+          initialData={initialData}
+          isDeleting={isDeleting}
+          confirmName={confirmName}
+          onConfirmNameChange={setConfirmName}
+          onDelete={handleDeleteBusiness}
+          saveStatus={saveStatus}
+        />
+      )}
 
       <UnsavedChangesModal
         open={showUnsavedModal}
@@ -626,16 +676,8 @@ export function ConfigForm({
         onCancel={stayOnPage}
         onDiscard={discardChanges}
       />
-
-      {/* ZONA DE PELIGRO (DANGER ZONE) */}
-      <DangerZone
-        initialData={initialData}
-        isDeleting={isDeleting}
-        confirmName={confirmName}
-        onConfirmNameChange={setConfirmName}
-        onDelete={handleDeleteBusiness}
-        saveStatus={saveStatus}
-      />
     </div>
   );
 }
+
+

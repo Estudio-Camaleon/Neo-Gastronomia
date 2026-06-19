@@ -26,14 +26,14 @@ export default async function ProductosAdminPage() {
     <div className="space-y-8 max-w-7xl mx-auto pb-16 relative z-10">
       {/* HEADER DE ALMACÉN */}
       <header className="border-b border-[var(--admin-border)]/50 pb-6 space-y-3">
-        <div className="flex items-center gap-2 text-[var(--admin-text-muted)]">
-          <Package size={16} />
-          <span className="text-xs font-semibold uppercase tracking-wider">
+       
+        <h1 >
+          <div className="flex items-center gap-2 text-[var(--admin-text-muted)]">
+          <Package size={30} />
+          <span className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-[var(--admin-text)]">
             Gestión de Catálogo
           </span>
         </div>
-        <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-[var(--admin-text)]">
-          Menú & Stock
         </h1>
         <p className="text-[var(--admin-text-muted)] text-sm font-medium">
           Administrando las existencias del catálogo público de:{" "}

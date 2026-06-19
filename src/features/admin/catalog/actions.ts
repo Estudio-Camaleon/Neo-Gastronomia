@@ -110,6 +110,55 @@ export async function upsertProductAction(
   return { success: true };
 }
 
+const toggleProductSchema = z.object({
+  id: z.string().min(1),
+  disponible: z.boolean(),
+});
+
+export async function toggleProductAction(
+  productId: string,
+  disponible: boolean,
+  negocioSlug?: string,
+) {
+  const parsed = toggleProductSchema.safeParse({ id: productId, disponible });
+  if (!parsed.success) throw new Error("Datos inválidos");
+
+  const supabase = await createClient();
+  const { user } = (await supabase.auth.getUser()).data;
+  const tenantId = await getAuthenticatedTenant(supabase);
+
+  const slug = negocioSlug ?? (await getSlugForTenant(supabase, tenantId));
+
+  const { data: old } = await supabase
+    .from("productos")
+    .select("nombre, disponible")
+    .eq("id", parsed.data.id)
+    .limit(1)
+    .single();
+
+  const { error } = await supabase
+    .from("productos")
+    .update({ disponible: parsed.data.disponible })
+    .eq("id", parsed.data.id)
+    .eq("negocio_id", tenantId);
+
+  if (error) throw new Error(`Fallo de persistencia: ${error.message}`);
+
+  logAuditEvent({
+    negocio_id: tenantId,
+    user_id: user?.id ?? "",
+    accion: "update",
+    entidad: "producto",
+    entidad_id: parsed.data.id,
+    cambios_previos: old ?? undefined,
+    cambios_nuevos: { disponible: parsed.data.disponible } as unknown as Record<string, unknown>,
+  });
+
+  revalidatePath("/productos");
+  revalidateMenus(slug);
+  return { success: true };
+}
+
 const deleteProductSchema = z.string().min(1, "ID de producto requerido");
 
 export async function deleteProductAction(productId: string, negocioSlug?: string) {

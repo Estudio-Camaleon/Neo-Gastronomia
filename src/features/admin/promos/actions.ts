@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/core/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { getAuthenticatedTenant, parseStorageUrl } from "@/core/lib/tenant";
 import { upsertPromoSchema } from "@/core/lib/schemas";
+import type { Json } from "@/core/types/database.types";
 import { z } from "zod";
 
 async function getSlugForTenant(
@@ -58,6 +59,8 @@ export async function upsertPromoAction(
     }
   }
 
+  const aplicarA = parsed.data.aplicar_a ?? null;
+
   const row = {
     negocio_id: negocioId,
     nombre: parsed.data.nombre,
@@ -68,6 +71,7 @@ export async function upsertPromoAction(
     codigo: parsed.data.codigo ?? null,
     activo: parsed.data.activo,
     items_combo: parsed.data.tipo_descuento === "combo" ? parsed.data.items_combo : [],
+    aplicar_a: aplicarA as unknown as Json,
   };
 
   const { error } = promoId
@@ -133,6 +137,30 @@ export async function getComboProductsAction() {
     .order("nombre");
 
   return data ?? [];
+}
+
+export async function getProductsAndCategoriesAction() {
+  const supabase = await createClient();
+  const negocioId = await getAuthenticatedTenant(supabase);
+
+  const [productosRes, categoriasRes] = await Promise.all([
+    supabase
+      .from("productos")
+      .select("id, nombre, precio")
+      .eq("negocio_id", negocioId)
+      .eq("disponible", true)
+      .order("nombre"),
+    supabase
+      .from("categorias")
+      .select("id, nombre")
+      .eq("negocio_id", negocioId)
+      .order("nombre"),
+  ]);
+
+  return {
+    productos: productosRes.data ?? [],
+    categorias: categoriasRes.data ?? [],
+  };
 }
 
 export async function togglePromoAction(promoId: string, activo: boolean) {

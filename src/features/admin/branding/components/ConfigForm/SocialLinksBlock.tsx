@@ -9,7 +9,6 @@ export interface SocialLinksBlockProps {
     tiktok_url: string;
     twitter_url: string;
     youtube_url: string;
-    tripadvisor_url: string;
   };
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
@@ -103,21 +102,6 @@ export function SocialLinksBlock({
               value={formData.youtube_url}
               onChange={onChange}
               placeholder="https://youtube.com/@tu_marca"
-              className="w-full p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] text-xs focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] transition-all"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="font-medium text-[var(--admin-text-muted)] flex items-center gap-1">
-              TripAdvisor
-              <span className="text-[9px] font-medium text-[var(--admin-text-muted)]/60 px-1.5 py-0.5 rounded border border-[var(--admin-border)]">Opcional</span>
-            </label>
-            <input
-              name="tripadvisor_url"
-              type="url"
-              value={formData.tripadvisor_url}
-              onChange={onChange}
-              placeholder="https://tripadvisor.com/..."
               className="w-full p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] text-xs focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] transition-all"
             />
           </div>

@@ -1,24 +1,4 @@
 import type { DireccionFisica } from "@/core/types/domain";
-import {
-  Pizza,
-  Beef,
-  Coffee,
-  CupSoda,
-  Sandwich,
-  IceCream,
-  UtensilsCrossed,
-  Apple,
-  Cookie,
-  Croissant,
-  Star,
-  Heart,
-  Sparkles,
-  Moon,
-  Diamond,
-  Ghost,
-  Wine,
-  Salad,
-} from "lucide-react";
 
 // ── Horarios ─────────────────────────────────────────────
 export interface FranjaHoraria {
@@ -70,14 +50,9 @@ export interface NegocioInitialData {
   tiktok_url?: string;
   twitter_url?: string;
   youtube_url?: string;
-  tripadvisor_url?: string;
   horarios: ScheduleData;
   direcciones?: DireccionFisica[];
-  /**
-   * Puede venir como string[] (legacy) o como
-   * { shapes: string[]; density: 'low' | 'medium' | 'high' } (nuevo formato).
-   */
-  floating_shapes?: string[] | { shapes: string[]; density: string };
+  whatsapp_mensajes?: Record<string, string> | null;
 }
 
 export interface ConfigFormState {
@@ -103,11 +78,9 @@ export interface ConfigFormState {
   tiktok_url: string;
   twitter_url: string;
   youtube_url: string;
-  tripadvisor_url: string;
   horarios: ScheduleData;
   direcciones: DireccionFisica[];
-  floating_shapes: string[];
-  floating_density: "low" | "medium" | "high";
+  whatsapp_mensajes: Record<string, string>;
 }
 
 // ── Color palettes ───────────────────────────────────────
@@ -210,36 +183,28 @@ export const LOGO_SHAPE_OPTIONS = [
   { value: "square", label: "Cuadrado" },
 ] as const;
 
-// ── Floating shapes ──────────────────────────────────────
-export interface ShapeOption {
-  value: string;
-  label: string;
-  Icon: React.ComponentType<{ size?: number; strokeWidth?: number }>;
-  category: "comida" | "bebida" | "abstracto";
-}
-
-export const FOOD_SHAPES: ShapeOption[] = [
-  // ── Comida ─────────────────────────────
-  { value: "Pizza", label: "Pizza", Icon: Pizza, category: "comida" },
-  { value: "Beef", label: "Hamburguesa", Icon: Beef, category: "comida" },
-  { value: "Sandwich", label: "Sándwich", Icon: Sandwich, category: "comida" },
-  { value: "IceCream", label: "Helado", Icon: IceCream, category: "comida" },
-  { value: "UtensilsCrossed", label: "Pastas", Icon: UtensilsCrossed, category: "comida" },
-  { value: "Cookie", label: "Galleta", Icon: Cookie, category: "comida" },
-  { value: "Croissant", label: "Croissant", Icon: Croissant, category: "comida" },
-  { value: "Apple", label: "Manzana", Icon: Apple, category: "comida" },
-  { value: "Salad", label: "Ensalada", Icon: Salad, category: "comida" },
-  // ── Bebida ─────────────────────────────
-  { value: "Coffee", label: "Café", Icon: Coffee, category: "bebida" },
-  { value: "CupSoda", label: "Gaseosa", Icon: CupSoda, category: "bebida" },
-  { value: "Wine", label: "Vino", Icon: Wine, category: "bebida" },
-  // ── Abstracto ──────────────────────────
-  { value: "Star", label: "Estrella", Icon: Star, category: "abstracto" },
-  { value: "Heart", label: "Corazón", Icon: Heart, category: "abstracto" },
-  { value: "Sparkles", label: "Destellos", Icon: Sparkles, category: "abstracto" },
-  { value: "Moon", label: "Luna", Icon: Moon, category: "abstracto" },
-  { value: "Diamond", label: "Diamante", Icon: Diamond, category: "abstracto" },
-  { value: "Ghost", label: "Fantasma", Icon: Ghost, category: "abstracto" },
+// ── Localidades ──────────────────────────────────────────
+export const LOCALIDADES_TUCUMAN = [
+  "San Miguel de Tucumán",
+  "Yerba Buena",
+  "Tafí Viejo",
+  "Concepción",
+  "Aguilares",
+  "Lules",
+  "Famaillá",
+  "Monteros",
+  "Banda del Río Salí",
+  "Alderetes",
+  "Tafí del Valle",
+  "Simoca",
+  "Juan Bautista Alberdi",
+  "Bella Vista",
+  "La Cocha",
+  "Graneros",
+  "Trancas",
+  "Burruyacú",
+  "Chicligasta",
+  "Río Chico",
 ];
 
 // ── Image limits ─────────────────────────────────────────

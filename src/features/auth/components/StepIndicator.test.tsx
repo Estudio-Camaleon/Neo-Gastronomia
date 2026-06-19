@@ -5,8 +5,9 @@ import { StepIndicator } from "./StepIndicator";
 describe("StepIndicator", () => {
   it("renders all steps", () => {
     render(<StepIndicator currentStep={1} />);
-    expect(screen.getByText("Cuenta")).toBeInTheDocument();
+    expect(screen.getByText("Titular")).toBeInTheDocument();
     expect(screen.getByText("Negocio")).toBeInTheDocument();
+    expect(screen.getByText("Acceso")).toBeInTheDocument();
   });
 
   it("shows checkmark for completed steps", () => {
