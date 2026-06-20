@@ -23,14 +23,8 @@ export interface Variant {
   precio: number;
 }
 
-interface CategoriaOption {
-  id: string;
-  nombre: string;
-}
-
 interface ProductoFormProps {
   negocioId: string;
-  categorias: CategoriaOption[];
   initialData?: UnifiedProduct | null;
   onSuccess?: () => void;
   onUnsavedChange?: (hasChanges: boolean) => void;
@@ -38,7 +32,6 @@ interface ProductoFormProps {
 
 export function ProductoForm({
   negocioId,
-  categorias,
   initialData,
   onSuccess,
   onUnsavedChange,
@@ -49,8 +42,16 @@ export function ProductoForm({
   const [formData, setFormData] = useState({
     nombre: initialData?.nombre || "",
     descripcion: initialData?.descripcion || "",
-    precio: initialData?.precio ?? 0,
-    imagen_url: initialData?.imagen_url || null,
+    precio: initialData?.precio ?? "",
+    imagenes: (() => {
+      const imgs: string[] = [];
+      if (initialData?.imagen_url) imgs.push(initialData.imagen_url);
+      const extras = initialData?.configuracion?.imagenes_extra ?? [];
+      for (const url of extras) {
+        if (url) imgs.push(url);
+      }
+      return imgs.length > 0 ? imgs : [""];
+    })(),
     categoria_id: initialData?.categoria_id || "",
     disponible: initialData?.disponible ?? true,
   });
@@ -105,6 +106,7 @@ export function ProductoForm({
     grupoId: string;
     itemIndex: number;
   } | null>(null);
+  const [dragImageIndex, setDragImageIndex] = useState<number | null>(null);
 
   const moveVariant = (from: number, to: number) => {
     const nuevas = [...variantes];
@@ -125,6 +127,26 @@ export function ProductoForm({
     );
   };
 
+  const moveImage = (from: number, to: number) => {
+    const nuevas = [...formData.imagenes];
+    const [movido] = nuevas.splice(from, 1);
+    nuevas.splice(to, 0, movido);
+    setFormData((prev) => ({ ...prev, imagenes: nuevas }));
+  };
+
+  const addImageSlot = () => {
+    if (formData.imagenes.length >= 3) return;
+    setFormData((prev) => ({ ...prev, imagenes: [...prev.imagenes, ""] }));
+  };
+
+  const removeImageSlot = (idx: number) => {
+    if (formData.imagenes.length <= 1) return;
+    setFormData((prev) => ({
+      ...prev,
+      imagenes: prev.imagenes.filter((_, i) => i !== idx),
+    }));
+  };
+
   const [gruposOpciones, setGruposOpciones] = useState<ExtraGroup[]>(() => {
     if (!initialData?.configuracion?.grupos_opciones) return [];
     return initialData.configuracion.grupos_opciones.map((g: Record<string, unknown>) => ({
@@ -140,13 +162,53 @@ export function ProductoForm({
     }));
   });
 
+  const [touched, setTouched] = useState<Record<string, true>>({});
+
+  const touch = (key: string) => setTouched((prev) => ({ ...prev, [key]: true }));
+
+  const allErrors = (() => {
+    const e: Record<string, string> = {};
+    if (!formData.nombre.trim()) e["nombre"] = "El nombre es obligatorio";
+    if (!formData.categoria_id) e["categoria_id"] = "Seleccioná una categoría";
+    if (Number(formData.precio) < 0) e["precio"] = "No puede ser negativo";
+    if (formData.precio === "" && variantes.length === 0)
+      e["precio"] = "Ingresá un precio";
+    variantes.forEach((v, i) => {
+      if (!v.nombre.trim()) e[`v_n_${i}`] = "Obligatorio";
+      if (v.precio < 0) e[`v_p_${i}`] = "Inválido";
+    });
+    gruposOpciones.forEach((g) => {
+      if (!g.titulo.trim()) e[`g_t_${g.id}`] = "Obligatorio";
+      g.items.forEach((item) => {
+        if (!item.nombre.trim())
+          e[`g_i_n_${g.id}_${item.id}`] = "Obligatorio";
+      });
+    });
+    return e;
+  })();
+
+  const err = (key: string): string | undefined =>
+    touched[key] ? allErrors[key] : undefined;
+
+  const errBorder = "border-red-400 focus:border-red-500 focus:ring-red-500";
+
   useEffect(() => {
     if (!onUnsavedChange) return;
+    const getInitialImages = (data: UnifiedProduct | null | undefined): string[] => {
+      const imgs: string[] = [];
+      if (data?.imagen_url) imgs.push(data.imagen_url);
+      const extras = data?.configuracion?.imagenes_extra ?? [];
+      for (const url of extras) {
+        if (url) imgs.push(url);
+      }
+      return imgs.length > 0 ? imgs : [""];
+    };
     const hasChanges =
       formData.nombre !== (initialData?.nombre || "") ||
       formData.descripcion !== (initialData?.descripcion || "") ||
       formData.precio !== (initialData?.precio ?? 0) ||
-      formData.imagen_url !== (initialData?.imagen_url || null) ||
+      JSON.stringify(formData.imagenes) !==
+        JSON.stringify(getInitialImages(initialData)) ||
       formData.categoria_id !== (initialData?.categoria_id || "") ||
       formData.disponible !== (initialData?.disponible ?? true) ||
       JSON.stringify(variantes) !==
@@ -236,23 +298,35 @@ export function ProductoForm({
     e.preventDefault();
     if (!negocioId) return toast.error("Error crítico: Negocio ID ausente.");
 
+    // Touch all fields
+    const allKeys = [
+      "nombre",
+      "precio",
+      "categoria_id",
+      ...variantes.flatMap((_, i) => [`v_n_${i}`, `v_p_${i}`]),
+      ...gruposOpciones.flatMap((g) => [
+        `g_t_${g.id}`,
+        ...g.items.map((item) => `g_i_n_${g.id}_${item.id}`),
+      ]),
+    ];
+    setTouched(Object.fromEntries(allKeys.map((k) => [k, true as const])));
+
+    if (Object.keys(allErrors).length > 0) {
+      toast.error("Corregí los campos marcados antes de guardar");
+      setIsPending(false);
+      return;
+    }
+
     setIsPending(true);
 
     try {
-      const precio = Number(formData.precio);
-      if (isNaN(precio) || precio < 0) {
-        toast.error("Precio inválido", {
-          description: "Ingresá un número válido mayor o igual a 0.",
-        });
-        setIsPending(false);
-        return;
-      }
+      const precio = Number(formData.precio) || 0;
 
       const payload = {
         nombre: formData.nombre.trim(),
         descripcion: formData.descripcion.trim() || null,
         precio,
-        imagen_url: formData.imagen_url || null,
+        imagen_url: formData.imagenes[0] || null,
         categoria_id: formData.categoria_id || null,
         disponible: formData.disponible,
         configuracion: {
@@ -269,6 +343,7 @@ export function ProductoForm({
               precio: Number(i.precio),
             })),
           })),
+          imagenes_extra: formData.imagenes.slice(1).filter(Boolean) as string[],
         },
       };
 
@@ -290,7 +365,7 @@ export function ProductoForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex h-full min-h-0 w-full max-w-5xl flex-col rounded-xl bg-[var(--admin-surface)] font-sans"
+      className="flex h-full min-h-0 w-full max-w-7xl flex-col rounded-xl bg-[var(--admin-surface)] font-sans"
     >
       {/* HEADER */}
       <div className="flex flex-col gap-4 border-b border-[var(--admin-border)] bg-[var(--admin-bg)]/50 p-6 pr-14 shrink-0 md:flex-row md:items-center md:justify-between rounded-t-xl">
@@ -318,185 +393,23 @@ export function ProductoForm({
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           {/* COLUMNA IZQUIERDA */}
           <div className="space-y-5 lg:col-span-5 lg:min-h-0">
-            <div className="space-y-1.5">
-              <label className="text-sm font-semibold text-[var(--admin-text)] block">
-                Nombre Comercial
-              </label>
-              <input
-                required
-                type="text"
-                value={formData.nombre}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, nombre: e.target.value }))
-                }
-                className="w-full p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-sm text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
-                placeholder="Ej: Triple Bacon Burger"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-semibold text-[var(--admin-text)] block">
-                Descripción Corta
-              </label>
-              <textarea
-                value={formData.descripcion || ""}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    descripcion: e.target.value,
-                  }))
-                }
-                maxLength={300}
-                className="w-full p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-sm text-[var(--admin-text)] resize-none h-24 focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
-                placeholder="Detalla los ingredientes del plato..."
-              />
-              <div className="flex justify-end">
-                <span className="text-[10px] tabular-nums text-[var(--admin-text-muted)] opacity-60">
-                  {(formData.descripcion || "").length}/300
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <ImageUpload
-                value={formData.imagen_url ?? ""}
-                onChange={(url) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    imagen_url: url === "" ? null : url,
-                  }))
-                }
-                alt="Vista previa del producto"
-              />
-              <p className="text-[11px] text-[var(--admin-text-muted)] opacity-70 leading-relaxed">
-                Formato cuadrado recomendado. Peso máximo: 2MB. Formatos: JPG, PNG, WEBP.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-[var(--admin-text)] block">
-                  Precio Base ($)
-                </label>
-                <input
-                  required
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.precio}
-                  disabled={variantes.length > 0}
-                  onChange={(e) => {
-                    const val = e.target.valueAsNumber;
-                    setFormData((prev) => ({ ...prev, precio: isNaN(val) ? 0 : val }));
-                  }}
-                  className="w-full p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] font-medium text-sm text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
-                  placeholder="0.00"
-                />
-                {variantes.length > 0 && (
-                  <p className="text-[10px] text-amber-600 font-medium">
-                    Usá las variantes para definir precios.
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-semibold text-[var(--admin-text)]">
-                    Categoría
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowNewCategory(true);
-                      setNewCategoryName("");
-                    }}
-                    className="text-[10px] font-semibold text-[var(--admin-accent)] hover:underline"
-                  >
-                    + Nueva
-                  </button>
-                </div>
-                {showNewCategory ? (
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={newCategoryName}
-                      onChange={(e) => setNewCategoryName(e.target.value)}
-                      placeholder="Nombre de la nueva sección"
-                      className="flex-1 p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-sm text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
-                      autoFocus
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleCreateCategory();
-                        }
-                        if (e.key === "Escape") {
-                          setShowNewCategory(false);
-                        }
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleCreateCategory}
-                      disabled={creatingCategory || !newCategoryName.trim()}
-                      className="shrink-0 px-3 py-2 text-xs font-semibold bg-[var(--admin-accent)] text-white rounded-lg disabled:opacity-50 hover:opacity-90 transition-opacity"
-                    >
-                      {creatingCategory ? "..." : "Crear"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowNewCategory(false)}
-                      className="shrink-0 px-2 py-2 text-xs font-medium text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                ) : (
-                  <CategorySelect
-                    key={categoryRefreshKey}
-                    negocioId={negocioId}
-                    selectedId={formData.categoria_id || ""}
-                    onChange={(id) =>
-                      setFormData((prev) => ({ ...prev, categoria_id: id }))
-                    }
-                  />
-                )}
-              </div>
-            </div>
-
-            <div className="flex flex-row items-center justify-between gap-4 bg-[var(--admin-bg)]/50 border border-[var(--admin-border)] rounded-xl p-4 mt-2">
-              <div className="space-y-0.5">
-                <label className="text-sm font-semibold text-[var(--admin-text)] block">
-                  Estado de Venta
-                </label>
-                <p className="text-xs text-[var(--admin-text-muted)]">
-                  ¿Mostrar en el catálogo público?
-                </p>
-              </div>
-              <Switch
-                checked={formData.disponible}
-                onCheckedChange={(checked) =>
-                  setFormData((prev) => ({ ...prev, disponible: checked }))
-                }
-                className="data-[state=checked]:bg-[var(--admin-accent)]"
-              />
-            </div>
-          </div>
-
-          {/* COLUMNA DERECHA */}
-          <div className="space-y-8 border-t border-[var(--admin-border)] pt-8 lg:col-span-7 lg:min-h-0 lg:border-l lg:border-t-0 lg:pl-8">
-            {/* PREVIEW CARD */}
             <div className="hidden lg:block rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg)]/30 overflow-hidden">
               <div className="flex items-stretch gap-0">
-                <div className="w-24 shrink-0 bg-[var(--admin-bg)] overflow-hidden">
-                  {formData.imagen_url ? (
+                <div className="w-24 shrink-0 bg-[var(--admin-bg)] overflow-hidden relative">
+                  {formData.imagenes[0] ? (
                     <img
-                      src={formData.imagen_url}
+                      src={formData.imagenes[0]}
                       alt={formData.nombre || "Vista previa"}
                       className="h-full w-full object-cover"
                     />
                   ) : (
                     <div className="flex h-full min-h-[88px] items-center justify-center text-[var(--admin-text-muted)]/30">
                       <Package size={28} />
+                    </div>
+                  )}
+                  {formData.imagenes.length > 1 && (
+                    <div className="absolute bottom-0.5 right-0.5 rounded-full bg-black/60 px-1.5 py-[1px] text-[8px] font-bold text-white">
+                      +{formData.imagenes.length}
                     </div>
                   )}
                 </div>
@@ -509,7 +422,7 @@ export function ProductoForm({
                   </p>
                   <div className="flex items-center gap-2 pt-1">
                     <span className="text-base font-black text-[var(--admin-accent)] leading-none">
-                      ${formData.precio.toLocaleString("es-AR")}
+                      ${(formData.precio || 0).toLocaleString("es-AR")}
                     </span>
                     <span
                       className={`ml-auto inline-block rounded-full px-2 py-[1px] text-[9px] font-bold uppercase tracking-wide ${
@@ -529,6 +442,258 @@ export function ProductoForm({
                 </div>
               </div>
             </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-[var(--admin-text)] block">
+                Nombre Comercial
+              </label>
+              <input
+                required
+                type="text"
+                value={formData.nombre}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, nombre: e.target.value }))
+                }
+                onBlur={() => touch("nombre")}
+                className={`w-full p-2.5 bg-[var(--admin-bg)] border rounded-lg text-sm text-[var(--admin-text)] focus:outline-none focus:ring-1 transition-all ${
+                  err("nombre")
+                    ? errBorder
+                    : "border-[var(--admin-border)] focus:border-[var(--admin-accent)] focus:ring-[var(--admin-accent)]"
+                }`}
+                placeholder="Ej: Triple Bacon Burger"
+              />
+              {err("nombre") && (
+                <p className="text-[11px] text-red-500 font-medium mt-1">{err("nombre")}</p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-[var(--admin-text)] block">
+                Descripción Corta
+              </label>
+              <textarea
+                value={formData.descripcion || ""}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    descripcion: e.target.value,
+                  }))
+                }
+                maxLength={300}
+                className="w-full p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-sm text-[var(--admin-text)] resize-none h-24 focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
+                placeholder="Detalla los ingredientes del plato..."
+              />
+              <div className="flex justify-end">
+                <span
+                  className={`text-[10px] tabular-nums font-medium transition-colors ${
+                    (formData.descripcion || "").length >= 280
+                      ? "text-amber-500 opacity-100"
+                      : "text-[var(--admin-text-muted)] opacity-60"
+                  }`}
+                >
+                  {(formData.descripcion || "").length}/300
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-[var(--admin-text)] block">
+                Imágenes del Producto
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {formData.imagenes.map((url, idx) => (
+                  <div
+                    key={`img-${idx}`}
+                    draggable
+                    onDragStart={() => setDragImageIndex(idx)}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      if (
+                        dragImageIndex !== null &&
+                        dragImageIndex !== idx
+                      ) {
+                        moveImage(dragImageIndex, idx);
+                        setDragImageIndex(idx);
+                      }
+                    }}
+                    onDragEnd={() => setDragImageIndex(null)}
+                    className={`relative flex flex-col gap-1.5 rounded-xl border bg-[var(--admin-bg)]/30 p-2 transition-all ${
+                      dragImageIndex === idx
+                        ? "border-[var(--admin-accent)] opacity-60"
+                        : "border-[var(--admin-border)]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1 px-1">
+                      <span
+                        className="cursor-grab active:cursor-grabbing text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors"
+                        title="Arrastrar para reordenar"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="8" y1="6" x2="16" y2="6" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="8" y1="18" x2="16" y2="18" />
+                        </svg>
+                      </span>
+                      {idx === 0 && (
+                        <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider ml-1">
+                          ★ Principal
+                        </span>
+                      )}
+                      <div className="ml-auto flex items-center gap-1">
+                        {formData.imagenes.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeImageSlot(idx)}
+                            className="p-1 text-[var(--admin-text-muted)] hover:text-[var(--admin-danger)] rounded-md transition-colors"
+                            title="Eliminar imagen"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <ImageUpload
+                      compact
+                      value={url}
+                      onChange={(newUrl) =>
+                        setFormData((prev) => {
+                          const next = [...prev.imagenes];
+                          next[idx] = newUrl === "" ? "" : newUrl;
+                          return { ...prev, imagenes: next };
+                        })
+                      }
+                      alt={`Imagen ${idx + 1}`}
+                    />
+                  </div>
+                ))}
+                {formData.imagenes.length < 3 && (
+                  <button
+                    type="button"
+                    onClick={addImageSlot}
+                    className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[var(--admin-border)] min-h-[130px] text-[var(--admin-text-muted)] hover:border-[var(--admin-accent)] hover:text-[var(--admin-accent)] hover:bg-[var(--admin-accent)]/5 transition-all cursor-pointer"
+                  >
+                    <Plus size={24} />
+                    <span className="text-xs font-medium mt-1">
+                      Agregar imagen
+                    </span>
+                  </button>
+                )}
+              </div>
+              <p className="text-[11px] text-[var(--admin-text-muted)] opacity-70 leading-relaxed">
+                Arrastrá para reordenar. La primera imagen es la principal. Máximo 3 imágenes (5MB c/u, JPG/PNG/WEBP).
+              </p>
+            </div>
+
+          </div>
+
+          {/* COLUMNA DERECHA */}
+          <div className="space-y-8 border-t border-[var(--admin-border)] pt-8 lg:col-span-7 lg:min-h-0 lg:border-l lg:border-t-0 lg:pl-8">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-[var(--admin-text)] block">
+                  Precio Base ($)
+                </label>
+                <input
+                  required
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.precio}
+                  disabled={variantes.length > 0}
+                  onChange={(e) => {
+                    const val = e.target.valueAsNumber;
+                    setFormData((prev) => ({ ...prev, precio: isNaN(val) ? "" : val }));
+                  }}
+                  onBlur={() => touch("precio")}
+                  className={`w-full p-2.5 bg-[var(--admin-bg)] border font-medium text-sm text-[var(--admin-text)] focus:outline-none focus:ring-1 transition-all rounded-lg disabled:opacity-40 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${
+                    err("precio")
+                      ? errBorder
+                      : "border-[var(--admin-border)] focus:border-[var(--admin-accent)] focus:ring-[var(--admin-accent)]"
+                  }`}
+                  placeholder="0.00"
+                />
+                {err("precio") && (
+                  <p className="text-[11px] text-red-500 font-medium mt-1">{err("precio")}</p>
+                )}
+                {variantes.length > 0 && !err("precio") && (
+                  <p className="text-[10px] text-amber-600 font-medium">
+                    Usá las variantes para definir precios.
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-semibold text-[var(--admin-text)]">
+                    Categoría
+                  </label>
+                  {showNewCategory ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowNewCategory(false)}
+                      className="text-xs font-medium text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowNewCategory(true);
+                        setNewCategoryName("");
+                      }}
+                      className="inline-flex items-center justify-center size-7 rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] hover:border-[var(--admin-accent)]/30 hover:bg-[var(--admin-accent)]/10 transition-all"
+                      title="Crear nueva categoría"
+                    >
+                      <Plus size={14} />
+                    </button>
+                  )}
+                </div>
+                {showNewCategory ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      placeholder="Nombre de la nueva sección"
+                      className="flex-1 p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-sm text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleCreateCategory();
+                        }
+                        if (e.key === "Escape") {
+                          setShowNewCategory(false);
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCreateCategory}
+                      disabled={creatingCategory || !newCategoryName.trim()}
+                      className="shrink-0 px-4 py-2.5 text-xs font-semibold bg-[var(--admin-accent)] text-white rounded-lg disabled:opacity-50 hover:opacity-90 transition-opacity"
+                    >
+                      {creatingCategory ? "..." : "Crear"}
+                    </button>
+                  </div>
+                ) : (
+                  <CategorySelect
+                    key={categoryRefreshKey}
+                    negocioId={negocioId}
+                    selectedId={formData.categoria_id || ""}
+                    hideLabel
+                    onChange={(id) => {
+                      setFormData((prev) => ({ ...prev, categoria_id: id }));
+                      touch("categoria_id");
+                    }}
+                    onBlur={() => touch("categoria_id")}
+                  />
+                )}
+                {err("categoria_id") && (
+                  <p className="text-[11px] text-red-500 font-medium mt-1">{err("categoria_id")}</p>
+                )}
+              </div>
+            </div>
+
+
 
             {/* SECCIÓN VARIANTES */}
             <div className="space-y-4">
@@ -580,8 +745,13 @@ export function ProductoForm({
                       onChange={(e) =>
                         actualizarVariante(idx, { nombre: e.target.value })
                       }
+                      onBlur={() => touch(`v_n_${idx}`)}
                       placeholder="Ej: Grande"
-                      className="flex-1 min-w-[100px] p-2 bg-[var(--admin-bg)] border-transparent rounded-md text-sm font-medium text-[var(--admin-text)] focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] outline-none transition-all"
+                      className={`flex-1 min-w-[100px] p-2 bg-[var(--admin-bg)] rounded-md text-sm font-medium text-[var(--admin-text)] focus:ring-1 outline-none transition-all ${
+                        err(`v_n_${idx}`)
+                          ? "border-red-400 focus:border-red-500 focus:ring-red-500"
+                          : "border-transparent focus:border-[var(--admin-accent)] focus:ring-[var(--admin-accent)]"
+                      }`}
                     />
                     <div className="relative">
                       <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm">
@@ -599,8 +769,13 @@ export function ProductoForm({
                                 : Number(e.target.value),
                           })
                         }
+                        onBlur={() => touch(`v_p_${idx}`)}
                         placeholder="0.00"
-                        className="w-24 p-2 pl-6 bg-[var(--admin-bg)] border-transparent rounded-md text-sm font-medium text-[var(--admin-text)] focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] outline-none transition-all"
+                        className={`w-24 p-2 pl-6 bg-[var(--admin-bg)] rounded-md text-sm font-medium text-[var(--admin-text)] focus:ring-1 outline-none transition-all ${
+                          err(`v_p_${idx}`)
+                            ? "border-red-400 focus:border-red-500 focus:ring-red-500"
+                            : "border-transparent focus:border-[var(--admin-accent)] focus:ring-[var(--admin-accent)]"
+                        }`}
                       />
                     </div>
                     <button
@@ -649,8 +824,13 @@ export function ProductoForm({
                         onChange={(e) =>
                           actualizarGrupoOpcion(grupo.id, e.target.value)
                         }
+                        onBlur={() => touch(`g_t_${grupo.id}`)}
                         placeholder="Nombre (Ej: Elige tus salsas)"
-                        className="flex-1 p-2 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-md text-sm font-semibold text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
+                        className={`flex-1 p-2 bg-[var(--admin-surface)] border rounded-md text-sm font-semibold text-[var(--admin-text)] focus:outline-none focus:ring-1 transition-all ${
+                          err(`g_t_${grupo.id}`)
+                            ? errBorder
+                            : "border-[var(--admin-border)] focus:border-[var(--admin-accent)] focus:ring-[var(--admin-accent)]"
+                        }`}
                       />
                       <div className="flex gap-2 shrink-0">
                         <button
@@ -751,8 +931,13 @@ export function ProductoForm({
                                 nombre: e.target.value,
                               })
                             }
+                            onBlur={() => touch(`g_i_n_${grupo.id}_${item.id}`)}
                             placeholder="Ingrediente extra"
-                            className="flex-1 min-w-[80px] p-2 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-md text-sm text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
+                            className={`flex-1 min-w-[80px] p-2 bg-[var(--admin-surface)] border rounded-md text-sm text-[var(--admin-text)] focus:outline-none focus:ring-1 transition-all ${
+                              err(`g_i_n_${grupo.id}_${item.id}`)
+                                ? errBorder
+                                : "border-[var(--admin-border)] focus:border-[var(--admin-accent)] focus:ring-[var(--admin-accent)]"
+                            }`}
                           />
                           <div className="relative">
                             <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--admin-text-muted)] text-sm">

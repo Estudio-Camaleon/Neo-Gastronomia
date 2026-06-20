@@ -16,14 +16,17 @@ interface Categoria {
 interface CategorySelectProps {
   negocioId?: string;
   selectedId?: string;
-  // CORREGIDO: Eliminamos la propiedad duplicada/huérfana 'category_id'
+  hideLabel?: boolean;
   onChange: (id: string) => void;
+  onBlur?: React.FocusEventHandler<HTMLSelectElement>;
 }
 
 export function CategorySelect({
   negocioId,
   selectedId,
+  hideLabel = false,
   onChange,
+  onBlur,
 }: CategorySelectProps) {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,13 +59,16 @@ export function CategorySelect({
 
   return (
     <div className="flex flex-col gap-1.5 w-full">
-      <label className="text-sm font-semibold text-[var(--admin-text)]">
-        Categoría
-      </label>
+      {!hideLabel && (
+        <label className="text-sm font-semibold text-[var(--admin-text)]">
+          Categoría
+        </label>
+      )}
       <div className="relative w-full">
         <select
           value={selectedId}
           onChange={(e) => onChange(e.target.value)}
+          onBlur={onBlur}
           disabled={loading}
           className="w-full bg-[var(--admin-bg)] border border-[var(--admin-border)] p-2.5 pr-10 rounded-lg text-sm text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
           style={{

@@ -20,13 +20,13 @@ export interface UnifiedProduct {
   descripcion: string | null;
   precio: number;
   imagen_url: string | null;
-  imagenes_extra?: string[];
   categoria_id: string | null;
   disponible: boolean;
   created_at: string | null;
   configuracion: {
     grupos_opciones?: Array<Record<string, unknown>>;
     variantes?: Array<{ nombre: string; precio: number | string }>;
+    imagenes_extra?: string[];
   } | null;
   categorias: { nombre: string } | null;
 }

@@ -10,6 +10,7 @@ interface ImageUploadProps {
   onChange: (_url: string) => void;
   uploadEndpoint?: string;
   alt?: string;
+  compact?: boolean;
 }
 
 export function ImageUpload({
@@ -17,6 +18,7 @@ export function ImageUpload({
   onChange,
   uploadEndpoint = "/api/admin/product-images",
   alt = "Vista previa de la imagen",
+  compact = false,
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -136,13 +138,9 @@ export function ImageUpload({
 
   return (
     <div className="space-y-2 h-full flex flex-col">
-      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">
-        Fotografía del Producto
-      </label>
-
-      <div className="relative group flex-1 min-h-[250px]">
+      <div className={`relative group flex-1 ${compact ? "min-h-[120px]" : "min-h-[250px]"}`}>
         {value || previewUrl ? (
-          <div className="relative h-full w-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-white dark:bg-zinc-950 shadow-sm transition-all hover:border-[var(--admin-accent,#34a35f)]">
+          <div className="relative h-full w-full rounded-xl overflow-hidden border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-sm transition-all hover:border-[var(--admin-accent)]">
             <img
               src={previewUrl || value || ""}
               alt={alt}
@@ -152,7 +150,7 @@ export function ImageUpload({
             <button
               type="button"
               onClick={removeImage}
-              className="absolute top-2 right-2 p-1.5 bg-white text-gray-700 hover:text-red-600 rounded-full border border-gray-200 shadow-sm hover:scale-105 active:scale-95 transition-all z-10 dark:bg-zinc-900 dark:border-gray-800 dark:text-gray-300 dark:hover:text-red-500"
+              className="absolute top-2 right-2 p-1.5 bg-[var(--admin-surface)] text-[var(--admin-text-muted)] hover:text-[var(--admin-danger)] rounded-full border border-[var(--admin-border)] shadow-sm hover:scale-105 active:scale-95 transition-all z-10"
             >
               <X size={16} />
             </button>
@@ -169,34 +167,36 @@ export function ImageUpload({
               rounded-xl border-2 border-dashed transition-all cursor-pointer select-none
               ${
                 isUploading
-                  ? "bg-gray-50 border-gray-300 dark:bg-zinc-900 dark:border-gray-700"
-                  : "bg-gray-50 border-gray-300 hover:bg-gray-100 hover:border-gray-400 dark:bg-zinc-900 dark:border-gray-700 dark:hover:bg-zinc-800 dark:hover:border-gray-600"
+                  ? "bg-[var(--admin-bg)] border-[var(--admin-border)]"
+                  : "bg-[var(--admin-bg)] border-[var(--admin-border)] hover:border-[var(--admin-border-strong)]"
               }
             `}
           >
             {isUploading ? (
               <div className="flex flex-col items-center gap-2">
                 <FoodMini size={24} />
-                <span className="text-sm font-medium text-gray-500">
+                <span className="text-sm font-medium text-[var(--admin-text-muted)]">
                   Subiendo...
                 </span>
               </div>
             ) : (
-              <div className="flex flex-col items-center gap-3 p-6 text-center">
-                <div className="p-3 bg-white dark:bg-zinc-950 rounded-full border border-gray-200 dark:border-gray-800 shadow-sm">
+              <div className={`flex flex-col items-center gap-3 ${compact ? 'p-3' : 'p-6'} text-center`}>
+                <div className={`${compact ? 'p-2' : 'p-3'} bg-[var(--admin-surface)] rounded-full border border-[var(--admin-border)] shadow-sm`}>
                   <UploadCloud
-                    className="text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors"
-                    size={24}
+                    className="text-[var(--admin-text-muted)] transition-colors"
+                    size={compact ? 18 : 24}
                   />
                 </div>
-                <div className="space-y-1">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 block">
-                    Haga clic para subir una imagen
-                  </span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 block">
-                    MAX 5MB (JPG/PNG/WEBP)
-                  </span>
-                </div>
+                {!compact && (
+                  <div className="space-y-1">
+                    <span className="text-sm font-medium text-[var(--admin-text)] block">
+                      Haga clic para subir una imagen
+                    </span>
+                    <span className="text-xs text-[var(--admin-text-muted)] block">
+                      MAX 5MB (JPG/PNG/WEBP)
+                    </span>
+                  </div>
+                )}
               </div>
             )}
             <input

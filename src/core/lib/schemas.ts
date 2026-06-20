@@ -90,6 +90,7 @@ const extraGroupSchema = z.object({
 const productConfigSchema = z.object({
   variantes: z.array(productVariantSchema).default([]),
   grupos_opciones: z.array(extraGroupSchema).default([]),
+  imagenes_extra: z.array(z.string()).default([]),
 });
 
 export const upsertProductSchema = z.object({

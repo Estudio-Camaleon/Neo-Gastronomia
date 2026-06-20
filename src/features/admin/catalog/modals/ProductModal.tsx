@@ -1,19 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { createClient } from "@/core/lib/supabase/client";
+import { useState, useCallback } from "react";
 import { X } from "lucide-react";
-import { FoodMini } from "@/components/ui/food-loading";
 import { ProductoForm } from "../forms/ProductoForm";
 import { UnsavedChangesModal } from "@/components/ui/unsaved-changes-modal";
 import type { UnifiedProduct } from "../components/ProductTable";
-
-const supabase = createClient();
-
-interface Categoria {
-  id: string;
-  nombre: string;
-}
 
 interface ProductModalProps {
   negocioId: string;
@@ -26,28 +17,8 @@ export function ProductModal({
   onClose,
   initialData = null,
 }: ProductModalProps) {
-  const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [loadingCats, setLoadingCats] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
-
-  useEffect(() => {
-    const fetchCategorias = async () => {
-      const { data } = await supabase
-        .from("categorias")
-        .select("id, nombre")
-        .eq("negocio_id", negocioId);
-
-      if (data) setCategorias(data);
-      setLoadingCats(false);
-    };
-    fetchCategorias();
-
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [negocioId]);
 
   const handleClose = useCallback(() => {
     if (hasUnsavedChanges) {
@@ -88,20 +59,12 @@ export function ProductModal({
         </button>
 
         <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-2xl">
-          {loadingCats ? (
-            <div className="flex flex-col justify-center items-center h-[50vh] text-[var(--admin-text-muted)] gap-3 bg-[var(--admin-surface)]">
-              <FoodMini size={28} />
-              <p className="text-sm font-medium">Cargando formulario...</p>
-            </div>
-          ) : (
-            <ProductoForm
-              negocioId={negocioId}
-              categorias={categorias}
-              initialData={initialData}
-              onSuccess={onClose}
-              onUnsavedChange={setHasUnsavedChanges}
-            />
-          )}
+          <ProductoForm
+            negocioId={negocioId}
+            initialData={initialData}
+            onSuccess={onClose}
+            onUnsavedChange={setHasUnsavedChanges}
+          />
         </div>
       </div>
 
