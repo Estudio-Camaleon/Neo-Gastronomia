@@ -197,21 +197,13 @@ export function PublicMenuHeader({
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="relative overflow-hidden pt-16 sm:pt-20 pb-20 sm:pb-24"
+        className="relative overflow-visible pt-16 sm:pt-20 pb-0 z-20"
       >
         {/* Banner background */}
         {negocio.banner_url && (
           <div
             className="pointer-events-none absolute inset-0 overflow-hidden"
             aria-hidden
-            style={{
-              height:
-                negocio.banner_height === "compact"
-                  ? "60%"
-                  : negocio.banner_height === "large"
-                    ? "120%"
-                    : "100%",
-            }}
           >
             <div
               className="absolute inset-0"
@@ -237,7 +229,7 @@ export function PublicMenuHeader({
         )}
 
         {/* ── Brand Card ── */}
-        <div className="relative z-10 flex flex-col items-center px-4">
+        <div className="relative z-10 flex flex-col items-center px-4 -mb-12 sm:-mb-16 lg:-mb-35">
           <div className="relative w-[88%] max-w-[700px]">
             {/* Logo — protrudes from top of card */}
             <div className="absolute left-1/2 -translate-x-1/2 -top-[52px] z-20">
