@@ -76,7 +76,7 @@ export default async function AdminPanelLayout({
         <div className="fixed top-[-10%] left-[-5%] w-96 h-96 bg-[var(--admin-accent)] rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-40 pointer-events-none animate-blob" />
         <div className="fixed bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-[var(--admin-accent-secondary)]/60 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none animate-blob-reverse" />
 
-        {/* Sidebar expandido (md+ y lg+) */}
+        {/* Sidebar expandido (lg+ ) */}
         <aside className="hidden lg:flex lg:w-72 lg:flex-col lg:fixed lg:inset-y-0 z-20">
           <Sidebar slug={negocio.slug} negocioNombre={negocio.nombre} negocioId={negocio.id} />
         </aside>
@@ -86,7 +86,7 @@ export default async function AdminPanelLayout({
           {/* Header mobile con logo + acciones */}
           <MobileHeader slug={negocio.slug} />
 
-          <main id="main-content" className="flex-1 p-3 sm:p-4 lg:p-6 xl:p-10 w-full max-w-7xl mx-auto animate-in fade-in duration-300 relative">
+          <main id="main-content" className="flex-1 p-5 sm:p-6 md:p-8 lg:p-6 xl:p-10 w-full animate-in fade-in duration-300 relative">
             <Suspense
               fallback={
                 <div className="flex items-center justify-center h-[60vh]">

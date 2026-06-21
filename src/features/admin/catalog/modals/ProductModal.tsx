@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { X } from "lucide-react";
 import { ProductoForm } from "../forms/ProductoForm";
 import { UnsavedChangesModal } from "@/components/ui/unsaved-changes-modal";
+import { useScrollLock } from "@/core/hooks/useScrollLock";
 import type { UnifiedProduct } from "../components/ProductTable";
 
 interface ProductModalProps {
@@ -19,6 +20,8 @@ export function ProductModal({
 }: ProductModalProps) {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+  const submitRef = useRef<(() => Promise<void>) | null>(null);
+  useScrollLock(true);
 
   const handleClose = useCallback(() => {
     if (hasUnsavedChanges) {
@@ -28,7 +31,12 @@ export function ProductModal({
     onClose();
   }, [hasUnsavedChanges, onClose]);
 
-  const confirmClose = useCallback(() => {
+  const confirmSave = useCallback(() => {
+    setShowUnsavedModal(false);
+    submitRef.current?.();
+  }, []);
+
+  const discardClose = useCallback(() => {
     setShowUnsavedModal(false);
     onClose();
   }, [onClose]);
@@ -64,15 +72,16 @@ export function ProductModal({
             initialData={initialData}
             onSuccess={onClose}
             onUnsavedChange={setHasUnsavedChanges}
+            submitRef={submitRef}
           />
         </div>
       </div>
 
       <UnsavedChangesModal
         open={showUnsavedModal}
-        onConfirm={confirmClose}
+        onConfirm={confirmSave}
         onCancel={cancelClose}
-        onDiscard={confirmClose}
+        onDiscard={discardClose}
       />
     </div>
   );

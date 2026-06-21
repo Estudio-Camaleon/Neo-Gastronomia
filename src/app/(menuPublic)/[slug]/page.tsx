@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { CatalogClient } from "@/features/public-menu/components/CatalogClient";
 import type { Categoria, NegocioPublico, Producto } from "@/features/public-menu/types";
-import type { PromoRow } from "@/core/types/domain";
+import type { ProductoConfiguracion, PromoRow } from "@/core/types/domain";
 
 export const revalidate = 60;
 
@@ -79,9 +79,17 @@ export default async function PublicMenuPage({ params }: PublicPageProps) {
     .order("nombre")
     .returns<Categoria[]>();
 
+  function mapearProducto(p: Producto): Producto {
+    const config = p.configuracion as ProductoConfiguracion | null;
+    return { ...p, imagenes_extra: config?.imagenes_extra ?? [] };
+  }
+
   const categoriasFormateadas =
-    categorias?.filter(
-      (cat) => cat.productos && cat.productos.length > 0,
+    categorias?.map((cat) => ({
+      ...cat,
+      productos: (cat.productos ?? []).map(mapearProducto),
+    })).filter(
+      (cat) => cat.productos.length > 0,
     ) || [];
 
   // Productos sin categoria - para mostrarlos en "Todos"
@@ -106,7 +114,7 @@ export default async function PublicMenuPage({ params }: PublicPageProps) {
       negocio={negocio}
       categorias={categoriasFormateadas}
       promos={promos ?? []}
-      uncategorizedProducts={uncategorized ?? []}
+      uncategorizedProducts={(uncategorized ?? []).map(mapearProducto)}
     />
   );
 }

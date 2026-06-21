@@ -12,6 +12,8 @@ import {
   Palette,
   FileText,
   Settings2,
+  Sparkles,
+  LifeBuoy,
 } from "lucide-react";
 import { FoodMini } from "@/components/ui/food-loading";
 import {
@@ -33,13 +35,17 @@ import { ScheduleBlock } from "./ConfigForm/ScheduleBlock";
 import { DireccionesBlock } from "./ConfigForm/DireccionesBlock";
 import { DangerZone } from "./ConfigForm/DangerZone";
 import { WhatsAppMessagesBlock } from "./ConfigForm/WhatsAppMessagesBlock";
+import { SubscriptionBlock } from "./ConfigForm/SubscriptionBlock";
+import { SupportBlock } from "./ConfigForm/SupportBlock";
 
 export function ConfigForm({
   initialData,
   userId,
+  upgradeAction,
 }: {
   initialData: NegocioInitialData | null;
   userId: string;
+  upgradeAction: "success" | "cancel" | "checkout" | null;
 }) {
   const router = useRouter();
   const [saveStatus, setSaveStatus] = useState<
@@ -420,37 +426,44 @@ export function ConfigForm({
   }, [formData]);
 
   const TABS = [
-    { id: "identidad", label: "Identidad Visual", icon: Palette },
-    { id: "informacion", label: "Información", icon: FileText },
-    { id: "operacion", label: "Operación", icon: Settings2 },
-    { id: "peligro", label: "Peligro", icon: AlertTriangle },
+    { id: "identidad", label: "Identidad Visual", icon: Palette, color: "#8b5cf6" },
+    { id: "informacion", label: "Información", icon: FileText, color: "#3b82f6" },
+    { id: "operacion", label: "Operación", icon: Settings2, color: "#64748b" },
+    { id: "suscripcion", label: "Suscripción", icon: Sparkles, color: "#f59e0b" },
+    { id: "soporte", label: "Soporte", icon: LifeBuoy, color: "#14b8a6" },
+    { id: "peligro", label: "Peligro", icon: AlertTriangle, color: "#ef4444" },
   ] as const;
 
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["id"]>("identidad");
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-12 select-none">
+    <div className="space-y-8 pb-12 select-none px-4 sm:px-6 lg:px-0">
       {/* BARRA DE TABS */}
-      <div className="sticky top-0 z-50 -mx-4 sm:-mx-6 lg:-mx-0 px-4 sm:px-6 lg:px-0 pt-0 lg:pt-0">
+      <div className="sticky top-0 z-50 -mx-4 sm:-mx-6 lg:mx-0 lg:px-0">
         <nav
-          className="flex gap-1 bg-[var(--admin-bg)]/90 backdrop-blur-md border-b border-[var(--admin-border)] rounded-t-xl overflow-x-auto"
+          className="flex items-center gap-0.5 bg-[var(--admin-surface)]/80 backdrop-blur-xl border border-[var(--admin-border)] rounded-xl px-1.5 py-1.5 overflow-x-auto scrollbar-none shadow-sm relative after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-8 after:bg-gradient-to-r after:from-transparent after:to-[var(--admin-surface)]/80 after:rounded-r-xl"
           role="tablist"
           aria-label="Secciones de configuración"
         >
-          {TABS.map(({ id, label, icon: Icon }) => (
+          {TABS.map(({ id, label, icon: Icon, color }) => (
             <button
               key={id}
               role="tab"
               aria-selected={activeTab === id}
               onClick={() => setActiveTab(id)}
-              className={`flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-semibold whitespace-nowrap border-b-2 transition-all ${
+              style={
                 activeTab === id
-                  ? "border-[var(--admin-accent)] text-[var(--admin-accent)]"
-                  : "border-transparent text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:border-[var(--admin-border)]"
-              } ${id === "peligro" && activeTab !== "peligro" ? "opacity-40 hover:opacity-100" : ""}`}
+                  ? { "--tab-color": color, "--tab-color-alpha": `${color}1a` } as React.CSSProperties
+                  : undefined
+              }
+              className={`flex items-center gap-1 max-sm:gap-0.5 px-2.5 max-sm:px-1.5 py-2 text-xs font-semibold whitespace-nowrap rounded-lg transition-all duration-200 ${
+                activeTab === id
+                  ? "bg-[var(--tab-color-alpha)] text-[var(--tab-color)] shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]"
+                  : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-bg)]/50"
+              } ${(id === "peligro" || id === "suscripcion" || id === "soporte") && activeTab !== id ? "opacity-40 hover:opacity-100" : ""}`}
             >
-              <Icon size={14} />
-              {label}
+              <Icon className="size-3.5 max-sm:size-3" strokeWidth={activeTab === id ? 2.5 : 1.5} />
+              <span className="max-sm:hidden">{label}</span>
             </button>
           ))}
         </nav>
@@ -486,11 +499,9 @@ export function ConfigForm({
               logoUrl={imagePreviews.logo_url || formData.logo_url}
               bannerUrl={imagePreviews.banner_url || formData.banner_url}
               bannerPosicion={formData.banner_posicion}
-              bannerHeight={formData.banner_height}
               bannerScale={formData.banner_scale}
               logoScale={formData.logo_scale}
               logoPosicion={formData.logo_posicion}
-              logoFit={formData.logo_fit}
               logoShape={formData.logo_shape}
               nombre={formData.nombre}
               descripcion={formData.descripcion}
@@ -515,10 +526,6 @@ export function ConfigForm({
                 setIsDirty(true);
                 setFormData((p) => ({ ...p, logo_posicion: val }));
               }}
-              onLogoFitChange={(val) => {
-                setIsDirty(true);
-                setFormData((p) => ({ ...p, logo_fit: val }));
-              }}
               onLogoShapeChange={(val) => {
                 setIsDirty(true);
                 setFormData((p) => ({ ...p, logo_shape: val }));
@@ -530,10 +537,6 @@ export function ConfigForm({
               onBannerScaleChange={(val) => {
                 setIsDirty(true);
                 setFormData((p) => ({ ...p, banner_scale: val }));
-              }}
-              onBannerHeightChange={(val) => {
-                setIsDirty(true);
-                setFormData((p) => ({ ...p, banner_height: val }));
               }}
             />
 
@@ -553,7 +556,6 @@ export function ConfigForm({
               nombreForm={formData.nombre}
               logoScale={formData.logo_scale}
               logoPosicion={formData.logo_posicion}
-              logoFit={formData.logo_fit}
               logoShape={formData.logo_shape}
               bannerPosicion={formData.banner_posicion}
               bannerHeight={formData.banner_height}
@@ -633,7 +635,7 @@ export function ConfigForm({
         )}
 
         {/* BOTÓN FLOTANTE ACCIONABLE ULTRA-LIMPIO — visible en todos los tabs excepto Peligro */}
-        {activeTab !== "peligro" && (
+        {activeTab !== "peligro" && activeTab !== "suscripcion" && activeTab !== "soporte" && (
           <div className="sticky bottom-20 md:bottom-5 z-40 flex justify-end">
             <button
               type="submit"
@@ -674,6 +676,20 @@ export function ConfigForm({
           </div>
         )}
       </form>
+
+      {/* ── TAB: SUSCRIPCIÓN — fuera del <form> para evitar submit accidental */}
+      {activeTab === "suscripcion" && (
+        <SubscriptionBlock
+          planTier={initialData?.plan_tier}
+          subscriptionStatus={initialData?.subscription_status}
+          currentPeriodEndsAt={initialData?.current_period_ends_at}
+          createdAt={initialData?.created_at}
+          upgradeAction={upgradeAction}
+        />
+      )}
+
+      {/* ── TAB: SOPORTE — fuera del <form> para evitar submit accidental */}
+      {activeTab === "soporte" && <SupportBlock />}
 
       {/* ── TAB: PELIGRO — fuera del <form> para evitar submit accidental */}
       {activeTab === "peligro" && (

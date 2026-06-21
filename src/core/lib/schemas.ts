@@ -77,6 +77,7 @@ const extraItemSchema = z.object({
   id: z.string(),
   nombre: z.string(),
   precio: z.number(),
+  icono: z.string().optional(),
 });
 
 const extraGroupSchema = z.object({

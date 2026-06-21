@@ -97,7 +97,7 @@ export function GeneralInfoBlock({
               name="whatsapp_pais"
               value={formData.whatsapp_pais}
               onChange={(e) => { onChange(e); onClearError("whatsapp_numero"); }}
-              className="shrink-0 w-[130px] p-2 bg-[var(--admin-bg)] border rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)] transition-all font-medium text-xs"
+              className="shrink-0 w-auto sm:w-[130px] p-2 bg-[var(--admin-bg)] border rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)] transition-all font-medium text-xs"
             >
               {PAISES.map((p) => (
                 <option key={p.code} value={p.code}>{p.label}</option>

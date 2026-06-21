@@ -98,7 +98,7 @@ export function DireccionesBlock({
                 key={dir.id}
                 className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg p-3"
               >
-                <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full min-w-0">
                   <input
                     type="text"
                     value={dir.nombre}

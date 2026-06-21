@@ -186,9 +186,9 @@ export function PromosSection({ negocioId }: PromosSectionProps) {
     <div className="space-y-6">
       {/* HEADER */}
       <div className="admin-card p-5">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl border border-purple-500/20 text-purple-500">
+            <div className="p-2.5 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl border border-purple-500/20 text-purple-500 shrink-0">
               <Sparkles size={20} />
             </div>
             <div>
@@ -202,7 +202,7 @@ export function PromosSection({ negocioId }: PromosSectionProps) {
           </div>
           <button
             onClick={openCreate}
-            className="flex items-center gap-1.5 px-4 py-2 bg-[var(--admin-accent)] text-white rounded-xl text-xs font-bold hover:opacity-90 transition-all active:scale-95 shadow-sm"
+            className="self-stretch sm:self-auto flex items-center justify-center gap-1.5 px-4 py-2 bg-[var(--admin-accent)] text-white rounded-xl text-xs font-bold hover:opacity-90 transition-all active:scale-95 shadow-sm"
           >
             <Plus size={14} />
             Crear Promoción
@@ -212,7 +212,7 @@ export function PromosSection({ negocioId }: PromosSectionProps) {
 
       {promos.length === 0 ? (
         /* EMPTY STATE */
-        <div className="admin-card p-10 flex flex-col items-center justify-center text-center border-dashed">
+        <div className="admin-card p-6 sm:p-10 flex flex-col items-center justify-center text-center border-dashed">
           <div className="p-4 rounded-2xl bg-[var(--admin-accent)]/5 text-[var(--admin-text-muted)] mb-4">
             <Percent size={40} strokeWidth={1.5} />
           </div>
@@ -244,7 +244,7 @@ export function PromosSection({ negocioId }: PromosSectionProps) {
                 className="w-full pl-9 pr-3 py-2 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl text-sm text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] transition-all"
               />
             </div>
-            <div className="flex gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-none pb-0.5 sm:pb-0">
               {(["all", "activas", "inactivas", "combo", "descuento"] as const).map((f) => (
                 <button
                   key={f}

@@ -23,7 +23,7 @@ export default async function ProductosAdminPage() {
   if (!negocio) redirect("/configuracion");
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-16 relative z-10">
+    <div className="space-y-8 pb-16 relative z-10">
       {/* HEADER DE ALMACÉN */}
       <header className="border-b border-[var(--admin-border)]/50 pb-6 space-y-3">
        

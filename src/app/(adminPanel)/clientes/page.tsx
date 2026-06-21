@@ -108,7 +108,7 @@ export default async function ClientesPage() {
   );
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto relative z-10 transition-colors duration-200">
+    <div className="space-y-8 relative z-10 transition-colors duration-200">
       {/* HEADER DE COMUNIDAD */}
       <header className="space-y-4 border-b border-[var(--admin-border)] pb-6">
         <div className="flex items-center gap-3">

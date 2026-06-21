@@ -2,13 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 
-/**
- * Hook que detecta si el usuario tiene cambios sin guardar.
- * Ofrece un modal de confirmación + beforeunload nativo.
- *
- * @param isDirty - señal externa de que hay cambios
- * @param onReset - función que resetea el formulario a su estado inicial
- */
 export function useUnsavedChanges(
   isDirty: boolean,
   onReset?: () => void,
@@ -16,7 +9,6 @@ export function useUnsavedChanges(
   const [showModal, setShowModal] = useState(false);
   const pendingActionRef = useRef<(() => void) | null>(null);
 
-  // Bloquea navegación interna (clicks en links, router.back, etc.)
   const blockNavigation = useCallback(
     (callback: () => void) => {
       if (!isDirty) {
@@ -29,7 +21,6 @@ export function useUnsavedChanges(
     [isDirty],
   );
 
-  // Bloquea cierre de ventana / recarga (beforeunload)
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
       if (isDirty) {
@@ -43,10 +34,8 @@ export function useUnsavedChanges(
 
   const confirmLeave = useCallback(() => {
     setShowModal(false);
-    if (pendingActionRef.current) {
-      pendingActionRef.current();
-      pendingActionRef.current = null;
-    }
+    pendingActionRef.current?.();
+    pendingActionRef.current = null;
   }, []);
 
   const cancelLeave = useCallback(() => {
@@ -57,7 +46,9 @@ export function useUnsavedChanges(
   const discardAndReset = useCallback(() => {
     setShowModal(false);
     onReset?.();
+    const action = pendingActionRef.current;
     pendingActionRef.current = null;
+    action?.();
   }, [onReset]);
 
   return {

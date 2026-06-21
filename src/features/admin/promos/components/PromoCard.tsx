@@ -70,7 +70,7 @@ export function PromoCard({ promo, onToggle, onEdit, onDelete, isDeleting }: Pro
       </div>
 
       {/* Value */}
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-2 mb-2 flex-wrap">
         <span className={`text-lg font-black ${
           isCombo ? "text-blue-500" : promo.tipo_descuento === "porcentaje" ? "text-purple-500" : "text-amber-500"
         }`}>

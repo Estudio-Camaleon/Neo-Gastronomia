@@ -227,7 +227,7 @@ export function PromoFormModal({
             <label className="text-xs font-semibold text-[var(--admin-text)] block">
               Tipo de promoción
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {TYPE_OPTIONS.map((opt) => {
                 const isActive = formData.tipo_descuento === opt.value;
                 const Icon = opt.icon;
@@ -246,7 +246,7 @@ export function PromoFormModal({
                     key={opt.value}
                     type="button"
                     onClick={() => setType(opt.value)}
-                    className={`text-left p-3 rounded-xl border transition-all ${
+                    className={`text-left p-3 rounded-xl border transition-all overflow-hidden ${
                       isActive
                         ? `bg-[var(--admin-surface)] ${activeMap[opt.color]} shadow-sm`
                         : `border-[var(--admin-border)] bg-[var(--admin-bg)] hover:border-[var(--admin-text-muted)]/30`
@@ -257,12 +257,12 @@ export function PromoFormModal({
                     }`}>
                       <Icon size={16} />
                     </div>
-                    <p className={`text-xs font-bold mb-0.5 ${
+                    <p className={`text-xs font-bold mb-0.5 truncate ${
                       isActive ? `text-${opt.color}-600` : "text-[var(--admin-text)]"
                     }`}>
                       {opt.title}
                     </p>
-                    <p className="text-[9px] text-[var(--admin-text-muted)] leading-tight">
+                    <p className="text-[9px] text-[var(--admin-text-muted)] leading-tight truncate">
                       {opt.example}
                     </p>
                   </button>

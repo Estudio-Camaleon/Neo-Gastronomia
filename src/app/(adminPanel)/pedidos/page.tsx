@@ -63,7 +63,7 @@ export default async function PedidosPage() {
   const listaPedidos = pedidosIniciales || [];
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 relative z-10 ">
+    <div className="space-y-8 relative z-10">
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-[var(--admin-border)]/50 ">
         <div className="space-y-2 ">
           <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-[var(--admin-text)]">

@@ -62,6 +62,7 @@ export interface ExtraItem {
   id: string;
   nombre: string;
   precio: number;
+  icono?: string;
 }
 
 export interface ExtraGroup {
@@ -75,6 +76,7 @@ export interface ExtraGroup {
 export interface ProductoConfiguracion {
   variantes?: Array<{ nombre: string; precio: number }>;
   grupos_opciones?: ExtraGroup[];
+  imagenes_extra?: string[];
 }
 
 export interface ProductoConConfig extends Omit<ProductoRow, "configuracion"> {

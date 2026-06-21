@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { upsertProductAction } from "@/features/admin/catalog/actions";
 import type { ExtraGroup, ExtraItem } from "@/core/types/domain";
 import { ImageUpload } from "@/components/ui/image-upload";
@@ -9,6 +9,7 @@ import {
   Package,
   Save,
   Plus,
+  X,
   Trash2,
   CheckCircle,
   ListPlus,
@@ -17,6 +18,7 @@ import { FoodMini } from "@/components/ui/food-loading";
 import { CategorySelect } from "../components/CategorySelect";
 import type { UnifiedProduct } from "../components/ProductTable";
 import { Switch } from "@/components/ui/switch";
+import { FoodIconPicker } from "@/components/ui/food-icon-picker";
 
 export interface Variant {
   nombre: string;
@@ -28,6 +30,7 @@ interface ProductoFormProps {
   initialData?: UnifiedProduct | null;
   onSuccess?: () => void;
   onUnsavedChange?: (hasChanges: boolean) => void;
+  submitRef?: React.MutableRefObject<(() => Promise<void>) | null>;
 }
 
 export function ProductoForm({
@@ -35,9 +38,12 @@ export function ProductoForm({
   initialData,
   onSuccess,
   onUnsavedChange,
+  submitRef,
 }: ProductoFormProps) {
   const [isPending, setIsPending] = useState(false);
   const submitLabel = initialData ? "Guardar Cambios" : "Cargar Producto";
+  const savedOnceRef = useRef(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const [formData, setFormData] = useState({
     nombre: initialData?.nombre || "",
@@ -154,13 +160,22 @@ export function ProductoForm({
       titulo: String(g["titulo"] || ""),
       requerido: Boolean(g["requerido"]),
       multiple: Boolean(g["multiple"]),
-      items: (Array.isArray(g["items"]) ? g["items"] : []).map((i: Record<string, unknown>) => ({
-        id: String(i["id"] || ""),
-        nombre: String(i["nombre"] || ""),
-        precio: Number(i["precio"]) || 0,
-      })),
+        items: (Array.isArray(g["items"]) ? g["items"] : []).map((i: Record<string, unknown>) => ({
+          id: String(i["id"] || ""),
+          nombre: String(i["nombre"] || ""),
+          precio: Number(i["precio"]) || 0,
+          icono: String(i["icono"] || ""),
+        })),
     }));
   });
+
+  useEffect(() => {
+    if (!submitRef) return;
+    submitRef.current = async () => {
+      formRef.current?.requestSubmit();
+    };
+    return () => { submitRef.current = null; };
+  }, [submitRef]);
 
   const [touched, setTouched] = useState<Record<string, true>>({});
 
@@ -194,10 +209,14 @@ export function ProductoForm({
 
   useEffect(() => {
     if (!onUnsavedChange) return;
-    const getInitialImages = (data: UnifiedProduct | null | undefined): string[] => {
+    if (savedOnceRef.current) {
+      onUnsavedChange(false);
+      return;
+    }
+    const getInitialImages = (): string[] => {
       const imgs: string[] = [];
-      if (data?.imagen_url) imgs.push(data.imagen_url);
-      const extras = data?.configuracion?.imagenes_extra ?? [];
+      if (initialData?.imagen_url) imgs.push(initialData.imagen_url);
+      const extras = initialData?.configuracion?.imagenes_extra ?? [];
       for (const url of extras) {
         if (url) imgs.push(url);
       }
@@ -206,9 +225,8 @@ export function ProductoForm({
     const hasChanges =
       formData.nombre !== (initialData?.nombre || "") ||
       formData.descripcion !== (initialData?.descripcion || "") ||
-      formData.precio !== (initialData?.precio ?? 0) ||
-      JSON.stringify(formData.imagenes) !==
-        JSON.stringify(getInitialImages(initialData)) ||
+      formData.precio !== (initialData?.precio ?? "") ||
+      JSON.stringify(formData.imagenes) !== JSON.stringify(getInitialImages()) ||
       formData.categoria_id !== (initialData?.categoria_id || "") ||
       formData.disponible !== (initialData?.disponible ?? true) ||
       JSON.stringify(variantes) !==
@@ -353,6 +371,8 @@ export function ProductoForm({
         icon: <CheckCircle className="text-[var(--admin-accent)]" />,
       });
 
+      savedOnceRef.current = true;
+      onUnsavedChange?.(false);
       if (onSuccess) onSuccess();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Hubo un problema de conexión.";
@@ -364,6 +384,7 @@ export function ProductoForm({
 
   return (
     <form
+      ref={formRef}
       onSubmit={handleSubmit}
       className="flex h-full min-h-0 w-full max-w-7xl flex-col rounded-xl bg-[var(--admin-surface)] font-sans"
     >
@@ -442,6 +463,69 @@ export function ProductoForm({
                 </div>
               </div>
             </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-semibold text-[var(--admin-text)]">
+                  Categoría
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowNewCategory((prev) => !prev);
+                    setNewCategoryName("");
+                  }}
+                  className="inline-flex items-center justify-center size-7 rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] hover:border-[var(--admin-accent)]/30 hover:bg-[var(--admin-accent)]/10 transition-all"
+                  title={showNewCategory ? "Cancelar" : "Crear nueva categoría"}
+                >
+                  {showNewCategory ? <X size={14} /> : <Plus size={14} />}
+                </button>
+              </div>
+              {showNewCategory ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    placeholder="Nombre de la nueva sección"
+                    className="flex-1 p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-sm text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleCreateCategory();
+                      }
+                      if (e.key === "Escape") {
+                        setShowNewCategory(false);
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCreateCategory}
+                    disabled={creatingCategory || !newCategoryName.trim()}
+                    className="shrink-0 px-4 py-2.5 text-xs font-semibold bg-[var(--admin-accent)] text-white rounded-lg disabled:opacity-50 hover:opacity-90 transition-opacity"
+                  >
+                    {creatingCategory ? "..." : "Crear"}
+                  </button>
+                </div>
+              ) : (
+                <CategorySelect
+                  key={categoryRefreshKey}
+                  negocioId={negocioId}
+                  selectedId={formData.categoria_id || ""}
+                  hideLabel
+                  onChange={(id) => {
+                    setFormData((prev) => ({ ...prev, categoria_id: id }));
+                    touch("categoria_id");
+                  }}
+                  onBlur={() => touch("categoria_id")}
+                />
+              )}
+              {err("categoria_id") && (
+                <p className="text-[11px] text-red-500 font-medium mt-1">{err("categoria_id")}</p>
+              )}
+            </div>
+
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-[var(--admin-text)] block">
                 Nombre Comercial
@@ -619,81 +703,7 @@ export function ProductoForm({
                 )}
               </div>
 
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-semibold text-[var(--admin-text)]">
-                    Categoría
-                  </label>
-                  {showNewCategory ? (
-                    <button
-                      type="button"
-                      onClick={() => setShowNewCategory(false)}
-                      className="text-xs font-medium text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors"
-                    >
-                      Cancelar
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowNewCategory(true);
-                        setNewCategoryName("");
-                      }}
-                      className="inline-flex items-center justify-center size-7 rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] hover:border-[var(--admin-accent)]/30 hover:bg-[var(--admin-accent)]/10 transition-all"
-                      title="Crear nueva categoría"
-                    >
-                      <Plus size={14} />
-                    </button>
-                  )}
-                </div>
-                {showNewCategory ? (
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={newCategoryName}
-                      onChange={(e) => setNewCategoryName(e.target.value)}
-                      placeholder="Nombre de la nueva sección"
-                      className="flex-1 p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-sm text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
-                      autoFocus
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleCreateCategory();
-                        }
-                        if (e.key === "Escape") {
-                          setShowNewCategory(false);
-                        }
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleCreateCategory}
-                      disabled={creatingCategory || !newCategoryName.trim()}
-                      className="shrink-0 px-4 py-2.5 text-xs font-semibold bg-[var(--admin-accent)] text-white rounded-lg disabled:opacity-50 hover:opacity-90 transition-opacity"
-                    >
-                      {creatingCategory ? "..." : "Crear"}
-                    </button>
-                  </div>
-                ) : (
-                  <CategorySelect
-                    key={categoryRefreshKey}
-                    negocioId={negocioId}
-                    selectedId={formData.categoria_id || ""}
-                    hideLabel
-                    onChange={(id) => {
-                      setFormData((prev) => ({ ...prev, categoria_id: id }));
-                      touch("categoria_id");
-                    }}
-                    onBlur={() => touch("categoria_id")}
-                  />
-                )}
-                {err("categoria_id") && (
-                  <p className="text-[11px] text-red-500 font-medium mt-1">{err("categoria_id")}</p>
-                )}
-              </div>
             </div>
-
-
 
             {/* SECCIÓN VARIANTES */}
             <div className="space-y-4">
@@ -760,18 +770,16 @@ export function ProductoForm({
                       <input
                         type="number"
                         required
-                        value={v.precio}
-                        onChange={(e) =>
+                        value={v.precio || ""}
+                        onChange={(e) => {
+                          const val = e.target.valueAsNumber;
                           actualizarVariante(idx, {
-                            precio:
-                              e.target.value === ""
-                                ? 0
-                                : Number(e.target.value),
-                          })
-                        }
+                            precio: isNaN(val) ? 0 : val,
+                          });
+                        }}
                         onBlur={() => touch(`v_p_${idx}`)}
-                        placeholder="0.00"
-                        className={`w-24 p-2 pl-6 bg-[var(--admin-bg)] rounded-md text-sm font-medium text-[var(--admin-text)] focus:ring-1 outline-none transition-all ${
+                        placeholder="0"
+                        className={`w-24 p-2 pl-6 bg-[var(--admin-bg)] rounded-md text-sm font-medium text-[var(--admin-text)] focus:ring-1 outline-none transition-all [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${
                           err(`v_p_${idx}`)
                             ? "border-red-400 focus:border-red-500 focus:ring-red-500"
                             : "border-transparent focus:border-[var(--admin-accent)] focus:ring-[var(--admin-accent)]"
@@ -922,6 +930,12 @@ export function ProductoForm({
                               <line x1="8" y1="6" x2="16" y2="6" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="8" y1="18" x2="16" y2="18" />
                             </svg>
                           </span>
+                          <FoodIconPicker
+                            value={item.icono || ""}
+                            onChange={(icono) =>
+                              actualizarItemDeGrupo(grupo.id, item.id, { icono })
+                            }
+                          />
                           <input
                             type="text"
                             required
@@ -946,17 +960,15 @@ export function ProductoForm({
                             <input
                               type="number"
                               required
-                              value={item.precio}
-                              onChange={(e) =>
+                              value={item.precio || ""}
+                              onChange={(e) => {
+                                const val = e.target.valueAsNumber;
                                 actualizarItemDeGrupo(grupo.id, item.id, {
-                                  precio:
-                                    e.target.value === ""
-                                      ? 0
-                                      : Number(e.target.value),
-                                })
-                              }
-                              placeholder="0.00"
-                              className="w-20 p-2 pl-7 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-md text-sm text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
+                                  precio: isNaN(val) ? 0 : val,
+                                });
+                              }}
+                              placeholder="0"
+                              className="w-20 p-2 pl-7 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-md text-sm text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                             />
                           </div>
                           <button

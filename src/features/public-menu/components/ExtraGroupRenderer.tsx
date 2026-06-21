@@ -2,6 +2,7 @@
 
 import { Check, Flame, Plus } from "lucide-react";
 import type { ExtraGroup } from "@/features/public-menu/types";
+import { FOOD_ICONS } from "@/components/ui/food-icons";
 
 interface ExtraGroupRendererProps {
   groups: ExtraGroup[];
@@ -68,7 +69,15 @@ export function ExtraGroupRenderer({
                       </span>
                     )}
                     <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-custom-100)] text-sm">
-                      {item.nombre.charAt(0)}
+                      {item.icono && item.icono in FOOD_ICONS ? (
+                        <img
+                          src={FOOD_ICONS[item.icono as keyof typeof FOOD_ICONS].path}
+                          alt={item.nombre}
+                          className="size-5 object-contain"
+                        />
+                      ) : (
+                        item.nombre.charAt(0)
+                      )}
                     </span>
                   </span>
                   <span className="text-[11px] font-semibold text-[var(--color-custom-900)] leading-tight line-clamp-2">

@@ -28,7 +28,7 @@ export function CategoryTabs({
       }}
       initial="hidden"
       animate="visible"
-      className="mt-4 flex flex-wrap gap-1.5 justify-center"
+      className="mt-12 flex flex-wrap gap-1.5 justify-center"
       role="tablist"
       aria-label="Categorías del menú"
     >

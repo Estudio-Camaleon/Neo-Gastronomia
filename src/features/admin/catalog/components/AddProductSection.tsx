@@ -1,15 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import dynamic from "next/dynamic";
-import { Plus, FolderPlus, Layers, Package } from "lucide-react";
+import { Plus, Layers, Package } from "lucide-react";
 import { ProductModal } from "../modals/ProductModal";
 import { ProductTable, type UnifiedProduct } from "./ProductTable";
-
-const CategoriaManager = dynamic(
-  () => import("../modals/CategoriaManager").then((mod) => mod.CategoriaManager),
-  { ssr: false },
-);
 
 interface AddProductSectionProps {
   negocioId: string;
@@ -17,7 +11,6 @@ interface AddProductSectionProps {
 
 export function AddProductSection({ negocioId }: AddProductSectionProps) {
   const [isProductOpen, setIsProductOpen] = useState(false);
-  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [productoAEditar, setProductoAEditar] = useState<UnifiedProduct | null>(
     null,
   );
@@ -48,13 +41,6 @@ export function AddProductSection({ negocioId }: AddProductSectionProps) {
 
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
           <button
-            onClick={() => setIsCategoryOpen(true)}
-            className="flex-1 md:flex-initial bg-[var(--admin-bg)] border border-[var(--admin-border)] text-[var(--admin-text)] hover:border-[var(--admin-accent)] hover:text-[var(--admin-accent)] rounded-lg font-semibold text-sm px-4 py-2.5 flex items-center justify-center gap-2 transition-all shadow-sm"
-          >
-            <FolderPlus size={16} /> Categorias
-          </button>
-
-          <button
             onClick={() => setIsProductOpen(true)}
             className="flex-1 md:flex-initial bg-[var(--admin-accent)] text-white hover:opacity-90 rounded-lg font-semibold text-sm px-4 py-2.5 flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
           >
@@ -80,13 +66,6 @@ export function AddProductSection({ negocioId }: AddProductSectionProps) {
           negocioId={negocioId}
           initialData={productoAEditar}
           onClose={handleCerrarModal}
-        />
-      )}
-
-      {isCategoryOpen && (
-        <CategoriaManager
-          negocioId={negocioId}
-          onClose={() => setIsCategoryOpen(false)}
         />
       )}
     </div>
