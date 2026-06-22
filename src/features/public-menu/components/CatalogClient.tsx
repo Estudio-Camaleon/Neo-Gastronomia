@@ -185,7 +185,7 @@ export function CatalogClient({
     <>
       {/* Fixed category tab bar — appears when inline tabs scroll out of view */}
       <div
-        className={`fixed top-0 inset-x-0 z-40 bg-[var(--color-custom-surface)] border-b border-[var(--color-custom-200)] shadow-sm px-4 lg:px-6 py-2 transition-opacity duration-200 ${
+        className={`fixed top-0 inset-x-0 z-40 bg-[var(--color-custom-surface)] border-b border-[var(--color-custom-200)] shadow-sm px-2 lg:px-3 py-2 transition-opacity duration-200 ${
           showFixedTabs ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       >
@@ -193,6 +193,7 @@ export function CatalogClient({
           categorias={categorias}
           activeCategory={activeCategory}
           onSelectCategory={scrollToCategory}
+          scrollable
         />
       </div>
 
@@ -202,8 +203,6 @@ export function CatalogClient({
           negocio={negocio}
           isOpenNow={isOpenNow}
           todayKey={todayKey}
-          showSchedule={showSchedule}
-          setShowSchedule={setShowSchedule}
           recepcionPausada={!!negocio.recepcion_pausada}
         />
 
@@ -319,7 +318,7 @@ export function CatalogClient({
               </motion.div>
 
               {/* Anchor for scroll detection (inline tabs) */}
-              <div id="category-tabs-anchor" className={showFixedTabs ? 'invisible' : ''}>
+              <div id="category-tabs-anchor" className={`mt-12 ${showFixedTabs ? 'invisible' : ''}`}>
                 <CategoryTabs
                   categorias={categorias}
                   activeCategory={activeCategory}

@@ -63,6 +63,8 @@ export interface ExtraItem {
   nombre: string;
   precio: number;
   icono?: string;
+  /** Maximum quantity the customer can select (undefined = unlimited) */
+  max?: number;
 }
 
 export interface ExtraGroup {

@@ -8,18 +8,19 @@ import {
   Smartphone,
   ChevronRight,
 } from "lucide-react";
+import { TransitionLink } from "@/components/ui/transition-link";
 
 export function SupportBlock() {
-  const supportEmail = "soporte@neocatalog.com";
+  const supportEmail = "soporteneotuc@gmail.com";
   const whatsappNumber = "+5491123456789";
-  const appVersion = "v1.1.1";
+  const appVersion = "1.1.1";
 
   const links = [
     {
       icon: FileText,
       label: "Centro de Ayuda",
       desc: "Guías, tutoriales y preguntas frecuentes",
-      href: "#",
+      href: "/ayuda",
     },
     {
       icon: MessageCircle,
@@ -60,14 +61,11 @@ export function SupportBlock() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {links.map((link) => {
           const Icon = link.icon;
-          return (
-            <a
-              key={link.label}
-              href={link.href}
-              target={link.href.startsWith("http") ? "_blank" : undefined}
-              rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
-              className="group bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 shadow-sm hover:border-[var(--admin-accent)]/30 hover:shadow-md transition-all duration-200"
-            >
+          const isExternal = link.href.startsWith("http");
+          const sharedClass = "group bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 shadow-sm hover:border-[var(--admin-accent)]/30 hover:shadow-md transition-all duration-200";
+
+          const inner = (
+            <>
               <div className="flex items-start justify-between">
                 <div className="p-2 bg-[var(--admin-accent)]/5 text-[var(--admin-accent)] rounded-lg group-hover:bg-[var(--admin-accent)]/10 transition-colors">
                   <Icon size={18} strokeWidth={1.5} />
@@ -83,7 +81,27 @@ export function SupportBlock() {
               <p className="text-[10px] text-[var(--admin-text-muted)] leading-relaxed">
                 {link.desc}
               </p>
-            </a>
+            </>
+          );
+
+          if (isExternal) {
+            return (
+              <a
+                key={link.label}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={sharedClass}
+              >
+                {inner}
+              </a>
+            );
+          }
+
+          return (
+            <TransitionLink key={link.label} href={link.href} className={sharedClass}>
+              {inner}
+            </TransitionLink>
           );
         })}
       </div>

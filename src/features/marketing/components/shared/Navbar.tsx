@@ -36,6 +36,7 @@ export function Navbar() {
     { name: "Beneficios", href: "#features" },
     { name: "Pasos", href: "#how-it-works" },
     { name: "Planes", href: "#planes" },
+    { name: "Ayuda", href: "/ayuda" },
   ];
 
   const close = () => setIsOpen(false);

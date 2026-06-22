@@ -165,6 +165,7 @@ export function ProductoForm({
           nombre: String(i["nombre"] || ""),
           precio: Number(i["precio"]) || 0,
           icono: String(i["icono"] || ""),
+          max: i["max"] != null ? Number(i["max"]) : undefined,
         })),
     }));
   });
@@ -971,6 +972,20 @@ export function ProductoForm({
                               className="w-20 p-2 pl-7 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-md text-sm text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                             />
                           </div>
+                          <input
+                            type="number"
+                            min={1}
+                            value={item.max ?? ""}
+                            onChange={(e) => {
+                              const val = e.target.valueAsNumber;
+                              actualizarItemDeGrupo(grupo.id, item.id, {
+                                max: e.target.value === "" ? undefined : (isNaN(val) ? undefined : val),
+                              });
+                            }}
+                            placeholder="∞"
+                            title="Cantidad máxima por cliente"
+                            className="w-14 p-2 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-md text-sm text-[var(--admin-text-muted)] text-center focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                          />
                           <button
                             type="button"
                             onClick={() =>

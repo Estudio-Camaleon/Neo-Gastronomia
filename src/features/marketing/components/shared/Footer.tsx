@@ -33,7 +33,8 @@ export function Footer() {
       links: [
         { name: "Ingresar al panel", href: "/login" },
         { name: "Crear mi menú gratis", href: "/registro" },
-        { name: "Soporte por WhatsApp", href: "#" },
+        { name: "Centro de Ayuda", href: "/ayuda" },
+        { name: "Guías y Tutoriales", href: "/ayuda/guias" },
       ],
     },
     {

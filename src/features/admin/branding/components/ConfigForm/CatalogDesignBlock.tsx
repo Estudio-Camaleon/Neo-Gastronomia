@@ -7,21 +7,10 @@ export interface CatalogDesignBlockProps {
   colorPrimary: string;
   error?: string;
   onChange: (val: string) => void;
-  bannerUrl?: string | null;
-  bannerPosicion?: string;
-  bannerHeight?: string;
-  bannerScale?: number;
-  logoUrl?: string | null;
-  logoPosicion?: string;
-  logoShape?: string;
-  mostrarNombre?: boolean;
-  nombreForm?: string;
-  logoScale?: number;
 }
 
 export function CatalogDesignBlock({
   colorPrimary,
-  nombreForm,
   onChange,
 }: CatalogDesignBlockProps) {
   return (
@@ -32,36 +21,6 @@ export function CatalogDesignBlock({
         <h2 className="text-xs font-semibold text-[var(--admin-text)]">
           Color de Acento del Catálogo
         </h2>
-      </div>
-
-      {/* ── LIVE PREVIEW CARD ── */}
-      <div className="bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-xl overflow-hidden">
-        <div className="h-12" style={{ backgroundColor: colorPrimary }} />
-        <div className="p-3 space-y-2">
-          <p className="text-sm font-bold text-[var(--admin-text)] leading-tight">
-            {nombreForm || "Nombre del negocio"}
-          </p>
-          <div className="flex gap-1.5">
-            <span
-              className="text-[10px] font-medium text-white px-2 py-0.5 rounded-full"
-              style={{ backgroundColor: colorPrimary }}
-            >
-              Ver menú
-            </span>
-            <span className="text-[10px] font-medium text-[var(--admin-text-muted)] bg-[var(--admin-surface)] border border-[var(--admin-border)] px-2 py-0.5 rounded-full">
-              Pedir
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5 pt-1 border-t border-[var(--admin-border)]">
-            <span
-              className="w-3 h-3 rounded inline-block shrink-0 border border-[var(--admin-border)]"
-              style={{ backgroundColor: colorPrimary }}
-            />
-            <span className="text-[10px] font-mono text-[var(--admin-text-muted)] uppercase">
-              {colorPrimary}
-            </span>
-          </div>
-        </div>
       </div>
 
       {/* ── PALETTES ── */}

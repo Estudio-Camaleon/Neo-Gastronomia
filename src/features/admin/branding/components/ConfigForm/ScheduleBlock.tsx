@@ -68,7 +68,7 @@ export function ScheduleBlock({
   };
 
   return (
-    <div className="border border-[var(--admin-border)] rounded-lg overflow-hidden text-xs">
+    <div className="border border-[var(--admin-border)] rounded-lg overflow-x-auto text-xs">
       <div className="divide-y divide-[var(--admin-border)]">
         {DIAS.map((dia) => {
           const turnos = getTurnos(dia.id);

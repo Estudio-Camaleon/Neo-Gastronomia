@@ -56,6 +56,7 @@ export function ComboDetailModal({
         item_id: i.producto_id,
         item_nombre: `${i.cantidad}x ${i.nombre_producto}`,
         item_precio: 0,
+        cantidad: 1,
       })),
     });
   };

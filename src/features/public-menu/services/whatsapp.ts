@@ -17,7 +17,12 @@ export function formatearExtras(i: CartItem): string {
       return "";
     }
   }
-  return i.extras.map((e) => `${e.item_nombre}`).join(", ");
+  return i.extras
+    .map((e) => {
+      const cant = e.cantidad ?? 1;
+      return cant > 1 ? `${cant}x ${e.item_nombre}` : e.item_nombre;
+    })
+    .join(", ");
 }
 
 export function dispararWhatsAppExterno(

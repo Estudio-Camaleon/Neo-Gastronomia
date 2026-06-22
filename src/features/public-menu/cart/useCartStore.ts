@@ -7,6 +7,7 @@ export interface CartExtra {
   item_id: string;
   item_nombre: string;
   item_precio: number;
+  cantidad: number;
 }
 
 export interface CartItem {

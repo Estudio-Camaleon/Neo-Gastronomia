@@ -1,11 +1,12 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https: blob:",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.vercel.com https://vitals.vercel-insights.com",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.vercel.com https://vitals.vercel-insights.com https://*.ingest.sentry.io",
   "font-src 'self'",
   "frame-ancestors 'none'",
   "base-uri 'self'",
@@ -35,7 +36,6 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
 
   experimental: {
-    // Tree-shake iconos de lucide-react: solo incluye los que se importan
     optimizePackageImports: ["lucide-react", "framer-motion", "date-fns", "zod"],
   },
 
@@ -53,7 +53,6 @@ const nextConfig: NextConfig = {
   },
 
   compiler: {
-    // Limpia logs del cliente en producción, pero preserva errores
     removeConsole:
       process.env.NODE_ENV === "production"
         ? { exclude: ["error"] }
@@ -72,4 +71,15 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  org: process.env["SENTRY_ORG"],
+  project: process.env["SENTRY_PROJECT"],
+  silent: process.env.NODE_ENV !== "production",
+  widenClientFileUpload: true,
+  sourcemaps: { disable: true },
+  webpack: {
+    treeshake: { removeDebugLogging: true },
+    automaticVercelMonitors: true,
+    reactComponentAnnotation: { enabled: true },
+  },
+});

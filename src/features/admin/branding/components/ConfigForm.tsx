@@ -37,6 +37,7 @@ import { DangerZone } from "./ConfigForm/DangerZone";
 import { WhatsAppMessagesBlock } from "./ConfigForm/WhatsAppMessagesBlock";
 import { SubscriptionBlock } from "./ConfigForm/SubscriptionBlock";
 import { SupportBlock } from "./ConfigForm/SupportBlock";
+import { QrCodeBlock } from "./ConfigForm/QrCodeBlock";
 
 export function ConfigForm({
   initialData,
@@ -241,17 +242,6 @@ export function ConfigForm({
     };
   }, []);
 
-  useEffect(() => {
-    const handler = (e: BeforeUnloadEvent) => {
-      if (isDirty) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
-    };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [isDirty]);
-
   const handleReset = useCallback(() => {
     if (!initialData) return;
     const wp = parseWhatsApp(initialData?.whatsapp || "");
@@ -439,9 +429,9 @@ export function ConfigForm({
   return (
     <div className="space-y-8 pb-12 select-none px-4 sm:px-6 lg:px-0">
       {/* BARRA DE TABS */}
-      <div className="sticky top-0 z-50 -mx-4 sm:-mx-6 lg:mx-0 lg:px-0">
+      <div className="sticky top-0 z-50 max-w-full">
         <nav
-          className="flex items-center gap-0.5 bg-[var(--admin-surface)]/80 backdrop-blur-xl border border-[var(--admin-border)] rounded-xl px-1.5 py-1.5 overflow-x-auto scrollbar-none shadow-sm relative after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-8 after:bg-gradient-to-r after:from-transparent after:to-[var(--admin-surface)]/80 after:rounded-r-xl"
+          className="flex items-center gap-0.5 bg-[var(--admin-surface)]/80 backdrop-blur-xl border border-[var(--admin-border)] rounded-xl px-1.5 py-1.5 overflow-x-auto overscroll-x-contain scrollbar-none shadow-sm relative after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-8 after:bg-gradient-to-r after:from-transparent after:to-[var(--admin-surface)]/80 after:rounded-r-xl"
           role="tablist"
           aria-label="Secciones de configuración"
         >
@@ -456,20 +446,38 @@ export function ConfigForm({
                   ? { "--tab-color": color, "--tab-color-alpha": `${color}1a` } as React.CSSProperties
                   : undefined
               }
-              className={`flex items-center gap-1 max-sm:gap-0.5 px-2.5 max-sm:px-1.5 py-2 text-xs font-semibold whitespace-nowrap rounded-lg transition-all duration-200 ${
-                activeTab === id
+className={`flex items-center gap-1 max-sm:gap-1 px-2.5 max-sm:px-2 py-2 text-xs font-semibold whitespace-nowrap rounded-lg transition-all duration-200 ${
+                 activeTab === id
                   ? "bg-[var(--tab-color-alpha)] text-[var(--tab-color)] shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]"
                   : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-bg)]/50"
               } ${(id === "peligro" || id === "suscripcion" || id === "soporte") && activeTab !== id ? "opacity-40 hover:opacity-100" : ""}`}
             >
               <Icon className="size-3.5 max-sm:size-3" strokeWidth={activeTab === id ? 2.5 : 1.5} />
-              <span className="max-sm:hidden">{label}</span>
+              <span className="max-sm:text-[9px] max-sm:leading-tight">{label}</span>
             </button>
           ))}
         </nav>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* INDICADOR DE CAMBIOS SIN GUARDAR */}
+        {isDirty && (
+          <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="flex items-center gap-2.5">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-60" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-500" />
+              </span>
+              <span className="text-xs font-medium text-amber-800 dark:text-amber-300">
+                Cambios sin guardar
+              </span>
+            </div>
+            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-mono">
+              Recordá guardar antes de salir
+            </span>
+          </div>
+        )}
+
         {/* ALERTA CRÍTICA: MUTACIÓN DE URL — visible en todos los tabs */}
         {hasSlugChanged && (
           <div className="admin-warning-bg admin-warning-border p-4 rounded-xl flex items-start gap-3 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
@@ -540,7 +548,7 @@ export function ConfigForm({
               }}
             />
 
-            {/* VISTA PREVIA DEL CATÁLOGO */}
+            {/* SELECTOR DE COLOR */}
             <CatalogDesignBlock
               colorPrimary={formData.color_primary}
               error={fieldErrors.color_primary}
@@ -549,16 +557,6 @@ export function ConfigForm({
                 clearFieldError("color_primary");
                 setFormData((p) => ({ ...p, color_primary: val }));
               }}
-              bannerUrl={imagePreviews.banner_url || formData.banner_url}
-              bannerScale={formData.banner_scale}
-              logoUrl={imagePreviews.logo_url || formData.logo_url}
-              mostrarNombre={formData.mostrar_nombre}
-              nombreForm={formData.nombre}
-              logoScale={formData.logo_scale}
-              logoPosicion={formData.logo_posicion}
-              logoShape={formData.logo_shape}
-              bannerPosicion={formData.banner_posicion}
-              bannerHeight={formData.banner_height}
             />
           </>
         )}
@@ -591,6 +589,9 @@ export function ConfigForm({
 
             {/* BLOQUE REDES SOCIALES */}
             <SocialLinksBlock formData={formData} onChange={handleChange} />
+
+            {/* CÓDIGO QR DEL MENÚ PÚBLICO */}
+            <QrCodeBlock slug={initialData?.slug ?? formData.slug} />
           </>
         )}
 

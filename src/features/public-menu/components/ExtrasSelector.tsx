@@ -27,10 +27,13 @@ export function ExtrasSelector({
   simbolo = "$",
 }: ExtrasSelectorProps) {
   const {
-    selected,
+    quantities,
     hasError,
     extraTotal,
     toggleItem,
+    addItem,
+    removeItem,
+    getQuantity,
     buildExtras,
   } = useExtrasSelection(groups);
 
@@ -76,8 +79,11 @@ export function ExtrasSelector({
         <div className="max-h-[50vh] overflow-y-auto overscroll-y-contain px-5 py-4 space-y-5">
           <ExtraGroupRenderer
             groups={groups}
-            selected={selected}
+            quantities={quantities}
             onToggle={toggleItem}
+            onAdd={addItem}
+            onRemove={removeItem}
+            getQuantity={getQuantity}
             simbolo={simbolo}
             formatMoney={formatMoney}
           />

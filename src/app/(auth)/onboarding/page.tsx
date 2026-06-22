@@ -26,13 +26,13 @@ export default function OnboardingPage() {
       <div className="max-w-lg w-full space-y-8 sm:space-y-10">
         <div className="text-center space-y-3 sm:space-y-4">
           <div className="flex justify-center">
-            <div className="relative h-8 sm:h-10 w-24 sm:w-28">
+            <div className="h-8 sm:h-10 w-24 sm:w-28">
               <Image
                 src="/icons/neo_logo_negro.webp"
                 alt="NEO"
-                fill
-                sizes="112px"
-                className="object-contain"
+                width={112}
+                height={40}
+                className="object-contain w-full h-full"
                 priority
               />
             </div>

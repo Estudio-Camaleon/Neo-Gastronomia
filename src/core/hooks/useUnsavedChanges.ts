@@ -22,11 +22,10 @@ export function useUnsavedChanges(
   );
 
   useEffect(() => {
+    if (!isDirty) return;
     const handler = (e: BeforeUnloadEvent) => {
-      if (isDirty) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
+      e.preventDefault();
+      e.returnValue = "";
     };
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);

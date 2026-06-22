@@ -64,14 +64,16 @@ export function MobileHeader({ slug }: MobileHeaderProps) {
           <Image
             src="/icons/neo_logo_negro.webp"
             alt="NEO"
-            fill
+            width={36}
+            height={36}
             className="object-contain dark:hidden"
             priority
           />
           <Image
             src="/icons/neo_logo_blanco.webp"
             alt="NEO"
-            fill
+            width={36}
+            height={36}
             className="object-contain hidden dark:block"
             priority
           />

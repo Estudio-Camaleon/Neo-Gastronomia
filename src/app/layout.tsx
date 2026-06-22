@@ -4,6 +4,7 @@ import { LoadingProvider } from "@/core/providers/LoadingProvider";
 import { Geist } from "next/font/google";
 import { cn } from "@core/lib/utils";
 import { Analytics } from "@vercel/analytics/react";
+import { Toaster } from "sonner";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -41,7 +42,25 @@ export default function RootLayout({
         >
           Saltar al contenido principal
         </a>
-        <LoadingProvider>{children}</LoadingProvider>
+        <LoadingProvider>
+          {children}
+          <Toaster
+            richColors
+            closeButton
+            position="top-right"
+            duration={4000}
+            visibleToasts={5}
+            gap={10}
+            toastOptions={{
+              classNames: {
+                title: "text-sm font-semibold",
+                description: "text-xs opacity-90",
+                closeButton:
+                  "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900",
+              },
+            }}
+          />
+        </LoadingProvider>
         {process.env.NODE_ENV === "production" && <Analytics />}
       </body>
     </html>

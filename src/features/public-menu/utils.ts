@@ -1,4 +1,5 @@
-import type { HorarioDia } from "./types";
+import type { HorarioDia, PromoRow } from "./types";
+import type { CartItem } from "@/features/public-menu/cart/useCartStore";
 
 export const DAYS_ORDER = [
   "lunes",
@@ -58,4 +59,50 @@ export function formatTurnos(dia?: HorarioDia | null) {
   if (hasFullDay) return "24 horas";
 
   return turnos.map((turno) => `${turno.inicio} - ${turno.fin}`).join(" · ");
+}
+
+export function getDiscountLabel(promo: PromoRow): string {
+  if (promo.tipo_descuento === "porcentaje") {
+    return `${promo.valor_descuento}% OFF`;
+  }
+  return `$${Number(promo.valor_descuento).toLocaleString("es-AR")} OFF`;
+}
+
+export function getPromoSubtotal(
+  promo: PromoRow,
+  cart: CartItem[],
+  productCategoryMap: Record<string, string>,
+): number {
+  const aplicarA = promo.aplicar_a as
+    | { productos?: string[]; categorias?: string[] }
+    | null
+    | undefined;
+
+  if (!aplicarA) {
+    return cart.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
+  }
+
+  const affected = new Set(aplicarA.productos ?? []);
+
+  const catIds = aplicarA.categorias ?? [];
+  if (catIds.length > 0) {
+    const targetCats = new Set(catIds);
+    for (const item of cart) {
+      const catId = productCategoryMap[item.producto_id];
+      if (catId && targetCats.has(catId)) {
+        affected.add(item.producto_id);
+      }
+    }
+  }
+
+  if (affected.size === 0) {
+    return cart.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
+  }
+
+  return cart.reduce((acc, item) => {
+    if (affected.has(item.producto_id)) {
+      return acc + item.precio * item.cantidad;
+    }
+    return acc;
+  }, 0);
 }

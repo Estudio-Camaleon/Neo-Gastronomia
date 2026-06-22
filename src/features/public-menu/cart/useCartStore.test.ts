@@ -25,6 +25,7 @@ const mockItemWithExtras: CartItem = {
       item_id: "opt-1",
       item_nombre: "Mozzarella",
       item_precio: 20,
+      cantidad: 1,
     },
   ],
 };
@@ -124,8 +125,8 @@ describe("generateItemId", () => {
 
   it("generates unique id based on extras", () => {
     const extras = [
-      { grupo_id: "g1", item_id: "i1", grupo_titulo: "", item_nombre: "", item_precio: 0 },
-      { grupo_id: "g2", item_id: "i2", grupo_titulo: "", item_nombre: "", item_precio: 0 },
+      { grupo_id: "g1", item_id: "i1", grupo_titulo: "", item_nombre: "", item_precio: 0, cantidad: 1 },
+      { grupo_id: "g2", item_id: "i2", grupo_titulo: "", item_nombre: "", item_precio: 0, cantidad: 1 },
     ];
     const id = generateItemId("prod-1", extras);
     expect(id).toContain("prod-1");
@@ -135,12 +136,12 @@ describe("generateItemId", () => {
 
   it("sorts extras to produce consistent ids", () => {
     const extrasA = [
-      { grupo_id: "g2", item_id: "i2", grupo_titulo: "", item_nombre: "", item_precio: 0 },
-      { grupo_id: "g1", item_id: "i1", grupo_titulo: "", item_nombre: "", item_precio: 0 },
+      { grupo_id: "g2", item_id: "i2", grupo_titulo: "", item_nombre: "", item_precio: 0, cantidad: 1 },
+      { grupo_id: "g1", item_id: "i1", grupo_titulo: "", item_nombre: "", item_precio: 0, cantidad: 1 },
     ];
     const extrasB = [
-      { grupo_id: "g1", item_id: "i1", grupo_titulo: "", item_nombre: "", item_precio: 0 },
-      { grupo_id: "g2", item_id: "i2", grupo_titulo: "", item_nombre: "", item_precio: 0 },
+      { grupo_id: "g1", item_id: "i1", grupo_titulo: "", item_nombre: "", item_precio: 0, cantidad: 1 },
+      { grupo_id: "g2", item_id: "i2", grupo_titulo: "", item_nombre: "", item_precio: 0, cantidad: 1 },
     ];
     expect(generateItemId("prod-1", extrasA)).toBe(generateItemId("prod-1", extrasB));
   });

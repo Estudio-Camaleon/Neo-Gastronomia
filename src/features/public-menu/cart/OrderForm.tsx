@@ -17,7 +17,11 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { FoodMini } from "@/components/ui/food-loading";
-import { formatMoney } from "@/features/public-menu/utils";
+import {
+  formatMoney,
+  getDiscountLabel,
+  getPromoSubtotal,
+} from "@/features/public-menu/utils";
 import {
   orderFormSchema,
   sanitize,
@@ -30,59 +34,6 @@ import { submitOrderPublicAction } from "../../admin/orders/actions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { PromoRow } from "@/features/public-menu/types";
-import type { CartItem } from "./useCartStore";
-
-function getDiscountLabel(promo: PromoRow): string {
-  if (promo.tipo_descuento === "porcentaje") {
-    return `${promo.valor_descuento}% OFF`;
-  }
-  return `$${Number(promo.valor_descuento).toLocaleString("es-AR")} OFF`;
-}
-
-/** Returns the subtotal of cart items that this promo actually applies to,
- *  based on the `aplicar_a` column (productos / categorías). */
-function getPromoSubtotal(
-  promo: PromoRow,
-  cart: CartItem[],
-  productCategoryMap: Record<string, string>,
-): number {
-  const aplicarA = promo.aplicar_a as
-    | { productos?: string[]; categorias?: string[] }
-    | null
-    | undefined;
-
-  // null → applies to all items
-  if (!aplicarA) {
-    return cart.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
-  }
-
-  // Build set of affected product IDs
-  const affected = new Set(aplicarA.productos ?? []);
-
-  // Add products belonging to affected categories
-  const catIds = aplicarA.categorias ?? [];
-  if (catIds.length > 0) {
-    const targetCats = new Set(catIds);
-    for (const item of cart) {
-      const catId = productCategoryMap[item.producto_id];
-      if (catId && targetCats.has(catId)) {
-        affected.add(item.producto_id);
-      }
-    }
-  }
-
-  // If no products/categories specified, apply to all
-  if (affected.size === 0) {
-    return cart.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
-  }
-
-  return cart.reduce((acc, item) => {
-    if (affected.has(item.producto_id)) {
-      return acc + item.precio * item.cantidad;
-    }
-    return acc;
-  }, 0);
-}
 
 interface OrderFormProps {
   negocioId: string;

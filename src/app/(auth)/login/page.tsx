@@ -59,8 +59,8 @@ export default async function LoginPage(props: {
                 <Image
                   src="/icons/neo_logo_negro.webp"
                   alt="NEO Logo"
-                  fill
-                  sizes="96px"
+                  width={96}
+                  height={32}
                   className="object-contain"
                   priority
                 />
@@ -115,8 +115,8 @@ export default async function LoginPage(props: {
                   <Image
                     src="/icons/neo_logo_negro.webp"
                     alt="NEO Logo"
-                    fill
-                    sizes="96px"
+                    width={96}
+                    height={32}
                     className="object-contain"
                     priority
                   />

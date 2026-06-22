@@ -45,12 +45,9 @@ export async function POST(req: Request) {
     }
 
     const originUrl = req.headers.get("origin");
-    const siteUrl =
-      process.env["NEXT_PUBLIC_SITE_URL"] ??
-      originUrl ??
-      "http://localhost:3000";
+    const siteUrl = process.env["NEXT_PUBLIC_SITE_URL"] ?? originUrl ?? "";
 
-    const backUrl = `${siteUrl}/configuracion`;
+    const backUrl = siteUrl ? `${siteUrl}/configuracion` : undefined;
 
     console.log("[MP PREAPPROVAL] Debug:", {
       NEXT_PUBLIC_SITE_URL: process.env["NEXT_PUBLIC_SITE_URL"],

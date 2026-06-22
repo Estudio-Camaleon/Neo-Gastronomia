@@ -46,7 +46,7 @@ function SkeletonCard({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function NeoLogo() {
+export function NeoLogo() {
   return (
     <div className="relative flex items-center gap-3">
       <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--neo-brand)] shadow-lg shadow-[var(--neo-brand)]/30">
@@ -73,20 +73,6 @@ function NeoLogo() {
           Sistema de Pedidos
         </p>
       </div>
-    </div>
-  );
-}
-
-function NeoSpinner() {
-  return (
-    <div className="relative flex items-center gap-2.5">
-      <span className="relative flex h-3 w-3">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--neo-brand)] opacity-40" />
-        <span className="relative inline-flex h-3 w-3 rounded-full bg-[var(--neo-brand)]" />
-      </span>
-      <span className="text-sm font-semibold tracking-wide text-[var(--neo-muted)]">
-        Cargando
-      </span>
     </div>
   );
 }

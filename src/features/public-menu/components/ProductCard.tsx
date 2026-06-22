@@ -81,7 +81,7 @@ export function ProductCard({
               alt={product.nombre}
               fill
               draggable={false}
-              loading="lazy"
+              loading="eager"
               className="object-cover transition-transform duration-500 group-hover:scale-105 select-none"
               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />

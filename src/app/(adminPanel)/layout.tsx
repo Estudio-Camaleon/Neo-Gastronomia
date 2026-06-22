@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { LoadingFallback } from "@/components/ui/loading-fallback";
 import { Sidebar } from "@/features/admin/shared/Sidebar";
 import { MobileHeader } from "@/features/admin/shared/MobileHeader";
 import { BottomTabBar } from "@/features/admin/shared/BottomTabBar";
@@ -87,39 +88,7 @@ export default async function AdminPanelLayout({
           <MobileHeader slug={negocio.slug} />
 
           <main id="main-content" className="flex-1 p-5 sm:p-6 md:p-8 lg:p-6 xl:p-10 w-full animate-in fade-in duration-300 relative">
-            <Suspense
-              fallback={
-                <div className="flex items-center justify-center h-[60vh]">
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--neo-brand)] shadow-lg shadow-[var(--neo-brand)]/30">
-                      <svg
-                        viewBox="0 0 24 24"
-                        className="h-6 w-6 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                        <path d="M2 17l10 5 10-5" />
-                        <path d="M2 12l10 5 10-5" />
-                      </svg>
-                      <div className="absolute inset-0 animate-pulse rounded-xl bg-white/20" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="relative flex h-2.5 w-2.5">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--neo-brand)] opacity-50" />
-                        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[var(--neo-brand)]" />
-                      </span>
-                      <p className="text-sm font-semibold text-[var(--admin-text-muted)]">
-                        Cargando...
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              }
-            >
+            <Suspense fallback={<LoadingFallback />}>
               {children}
             </Suspense>
           </main>

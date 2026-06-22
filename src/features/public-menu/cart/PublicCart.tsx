@@ -98,6 +98,8 @@ export function PublicCart({
           subtotal={subtotal}
           negocioNombre={negocioNombre}
           config={config}
+          promos={promos}
+          productCategoryMap={productCategoryMap}
           onVaciar={handleVaciar}
           onConfirmar={() => setShowOrderForm(true)}
         />

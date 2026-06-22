@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { X, Plus, Minus, ShoppingBag, ImageIcon } from "lucide-react";
+import { useState, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Plus, Minus, ShoppingBag, ImageIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import type { CartExtra } from "@/features/public-menu/cart/useCartStore";
 import { generateItemId } from "@/features/public-menu/cart/useCartStore";
 import type { Producto } from "@/features/public-menu/types";
@@ -47,15 +47,19 @@ export function ProductDetailModal({
     null,
   );
   const {
-    selected: selectedExtras,
+    quantities,
     hasError: hasRequiredError,
     extraTotal,
-    toggleItem: toggleExtra,
+    toggleItem,
+    addItem,
+    removeItem,
+    getQuantity,
     buildExtras,
   } = useExtrasSelection(groups);
   const [cantidad, setCantidad] = useState(1);
   const [nota, setNota] = useState("");
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
+  const [showImageZoom, setShowImageZoom] = useState(false);
 
   const images = [product.imagen_url, ...(product.imagenes_extra ?? [])].filter(
     (u): u is string => !!u,
@@ -88,7 +92,39 @@ export function ProductDetailModal({
     });
   };
 
+  const touchStartX = useRef(0);
+
+  const goToPrevImage = useCallback(() => {
+    setSelectedImageIdx((prev) => (prev > 0 ? prev - 1 : images.length - 1));
+  }, [images.length]);
+
+  const goToNextImage = useCallback(() => {
+    setSelectedImageIdx((prev) => (prev < images.length - 1 ? prev + 1 : 0));
+  }, [images.length]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  }, []);
+
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      const diff = touchStartX.current - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) goToNextImage();
+        else goToPrevImage();
+      }
+    },
+    [goToNextImage, goToPrevImage],
+  );
+
   const containerRef = useFocusTrap(true);
+
+  const handleBackdropKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+    },
+    [onCancel],
+  );
 
   return (
     <motion.div
@@ -98,10 +134,12 @@ export function ProductDetailModal({
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center sm:p-4"
       tabIndex={-1}
+      onKeyDown={handleBackdropKeyDown}
     >
       <div
         className="absolute inset-0 bg-black/50 sm:backdrop-blur-sm"
         aria-hidden="true"
+        onClick={onCancel}
       />
       <motion.div
         initial={isMobile ? { y: "100%" } : { opacity: 0, scale: 0.92, y: 20 }}
@@ -111,14 +149,28 @@ export function ProductDetailModal({
         className="relative w-full max-w-[460px] sm:max-w-4xl bg-[var(--color-custom-surface-strong)] shadow-2xl overflow-hidden flex flex-col sm:flex-row max-sm:rounded-t-2xl max-sm:rounded-b-none max-sm:max-h-[92vh] sm:rounded-2xl sm:max-h-[85vh] lg:max-h-[80vh]"
       >
         {/* Image - left side on desktop */}
-        <div className="relative sm:w-2/5 shrink-0 overflow-hidden bg-[var(--color-custom-100)] max-sm:aspect-video sm:flex sm:items-center sm:justify-center">
+        <div className="relative sm:w-2/5 shrink-0 overflow-hidden bg-[var(--color-custom-100)] max-sm:aspect-video sm:flex sm:items-center sm:justify-center"
+          onTouchStart={images.length > 1 ? handleTouchStart : undefined}
+          onTouchEnd={images.length > 1 ? handleTouchEnd : undefined}
+        >
           {images.length > 0 ? (
-            <div className="w-full h-full min-h-[140px] sm:min-h-full sm:flex sm:items-center sm:justify-center">
-              <img
-                src={images[selectedImageIdx]}
-                alt={product.nombre}
-                className="h-full w-full object-cover sm:object-contain sm:h-auto sm:max-h-full"
-              />
+            <div
+              className="w-full h-full min-h-[140px] sm:min-h-full sm:flex sm:items-center sm:justify-center cursor-pointer"
+              onClick={() => setShowImageZoom(true)}
+            >
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={images[selectedImageIdx]}
+                  src={images[selectedImageIdx]}
+                  alt={product.nombre}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="h-full w-full object-cover sm:object-contain sm:h-auto sm:max-h-full"
+                  draggable={false}
+                />
+              </AnimatePresence>
             </div>
           ) : (
             <div className="flex h-full w-full min-h-[140px] sm:min-h-full items-center justify-center text-[var(--color-custom-text-muted)]" role="img" aria-label={`${product.nombre} — sin imagen`}>
@@ -126,22 +178,32 @@ export function ProductDetailModal({
             </div>
           )}
 
-          {/* Gallery dots */}
+          {/* Arrow buttons */}
           {images.length > 1 && (
-            <div className="absolute left-0 right-0 bottom-16 z-10 flex items-center justify-center gap-1.5">
-              {images.map((_, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setSelectedImageIdx(idx)}
-                  aria-label={`Imagen ${idx + 1}`}
-                  className={`rounded-full transition-all ${
-                    idx === selectedImageIdx
-                      ? "h-2 w-5 bg-white"
-                      : "h-2 w-2 bg-white/50 hover:bg-white/70"
-                  }`}
-                />
-              ))}
+            <div className="absolute inset-0 z-10 flex items-center justify-between pointer-events-none">
+              <button
+                type="button"
+                onClick={goToPrevImage}
+                aria-label="Imagen anterior"
+                className="pointer-events-auto ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white/80 backdrop-blur-sm transition-all hover:bg-black/60 hover:text-white active:scale-90"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <button
+                type="button"
+                onClick={goToNextImage}
+                aria-label="Imagen siguiente"
+                className="pointer-events-auto mr-1 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white/80 backdrop-blur-sm transition-all hover:bg-black/60 hover:text-white active:scale-90"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          )}
+
+          {/* Image counter */}
+          {images.length > 1 && (
+            <div className="absolute top-3 left-3 z-10 rounded-full bg-black/50 backdrop-blur-sm px-2.5 py-0.5 text-[10px] font-semibold text-white/90 tabular-nums">
+              {selectedImageIdx + 1}/{images.length}
             </div>
           )}
 
@@ -170,7 +232,7 @@ export function ProductDetailModal({
         </button>
 
         {/* Content - right side on desktop */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0">
 
           <div className="overflow-y-auto overscroll-y-contain px-4 sm:px-5 py-3 sm:py-4 space-y-4 sm:space-y-5 flex-1 min-h-0">
           {/* Price */}
@@ -203,7 +265,7 @@ export function ProductDetailModal({
                     type="button"
                     role="radio"
                     aria-checked={selectedVariantIdx === idx}
-                    onClick={() => setSelectedVariantIdx(idx)}
+                    onClick={() => setSelectedVariantIdx(idx === selectedVariantIdx ? null : idx)}
                     className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm transition-all min-w-0 ${
                       selectedVariantIdx === idx
                         ? "border-[var(--color-custom-500)] bg-[var(--color-custom-500)]/5 text-[var(--color-custom-900)]"
@@ -239,8 +301,11 @@ export function ProductDetailModal({
               </span>
               <ExtraGroupRenderer
                 groups={groups}
-                selected={selectedExtras}
-                onToggle={toggleExtra}
+                quantities={quantities}
+                onToggle={toggleItem}
+                onAdd={addItem}
+                onRemove={removeItem}
+                getQuantity={getQuantity}
                 simbolo={simbolo}
                 formatMoney={formatMoney}
               />
@@ -279,14 +344,15 @@ export function ProductDetailModal({
               >
                 <Minus size={15} />
               </button>
-              <span className="w-10 sm:w-8 text-center text-sm font-bold tabular-nums text-[var(--color-custom-900)]" aria-live="polite" aria-atomic="true">
+              <span className="min-w-[2.5rem] text-center text-sm font-bold tabular-nums text-[var(--color-custom-900)]" aria-live="polite" aria-atomic="true">
                 {cantidad}
               </span>
               <button
                 type="button"
-                onClick={() => setCantidad(cantidad + 1)}
+                onClick={() => setCantidad(Math.min(99, cantidad + 1))}
+                disabled={cantidad >= 99}
                 aria-label="Aumentar cantidad"
-                className="flex h-10 w-10 sm:h-8 sm:w-8 items-center justify-center rounded-lg border border-[var(--color-custom-border)] text-[var(--color-custom-text-muted)] transition-colors hover:bg-[var(--color-custom-100)] active:scale-90"
+                className="flex h-10 w-10 sm:h-8 sm:w-8 items-center justify-center rounded-lg border border-[var(--color-custom-border)] text-[var(--color-custom-text-muted)] transition-colors hover:bg-[var(--color-custom-100)] disabled:opacity-30 active:scale-90"
               >
                 <Plus size={15} />
               </button>
@@ -310,7 +376,7 @@ export function ProductDetailModal({
 
           <motion.button
             type="button"
-            disabled={!!hasRequiredError || !product}
+            disabled={!!hasRequiredError}
             onClick={(e) => {
               if (!isOpenNow) return;
               handleConfirm();
@@ -337,6 +403,71 @@ export function ProductDetailModal({
           </div>
         </div>
       </motion.div>
+
+      {/* ── Full-screen image zoom ── */}
+      <AnimatePresence>
+        {showImageZoom && images.length > 0 && (
+          <motion.div
+            key="image-zoom"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/90 backdrop-blur-md"
+            onClick={() => setShowImageZoom(false)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setShowImageZoom(false);
+            }}
+            tabIndex={0}
+          >
+            <button
+              type="button"
+              onClick={() => setShowImageZoom(false)}
+              aria-label="Cerrar imagen"
+              className="absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/80 backdrop-blur-sm transition-all hover:bg-white/20 hover:text-white active:scale-90"
+            >
+              <X size={20} />
+            </button>
+
+            {images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); goToPrevImage(); }}
+                  aria-label="Imagen anterior"
+                  className="absolute left-2 sm:left-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/80 backdrop-blur-sm transition-all hover:bg-white/20 hover:text-white active:scale-90"
+                >
+                  <ChevronLeft size={22} />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); goToNextImage(); }}
+                  aria-label="Imagen siguiente"
+                  className="absolute right-2 sm:right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/80 backdrop-blur-sm transition-all hover:bg-white/20 hover:text-white active:scale-90"
+                >
+                  <ChevronRight size={22} />
+                </button>
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 rounded-full bg-white/10 backdrop-blur-sm px-3 py-1 text-xs font-semibold text-white/90 tabular-nums">
+                  {selectedImageIdx + 1}/{images.length}
+                </div>
+              </>
+            )}
+
+            <motion.img
+              key={images[selectedImageIdx]}
+              src={images[selectedImageIdx]}
+              alt={product.nombre}
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.85, opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="max-h-[90vh] max-w-[95vw] object-contain select-none"
+              draggable={false}
+              onClick={(e) => e.stopPropagation()}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

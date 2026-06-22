@@ -126,7 +126,7 @@ export function BrandingBlock({
 
   const previewContent = (
     <div className="relative bg-[var(--admin-bg)] rounded-b-xl">
-      <div className="relative w-full" style={{ aspectRatio: "21/6", minHeight: "280px" }}>
+      <div className="relative w-full overflow-hidden" style={{ aspectRatio: "21/6", minHeight: "280px" }}>
         {bannerUrl ? (
           <div
             className="absolute inset-0"
@@ -168,7 +168,7 @@ export function BrandingBlock({
                   isSticker
                     ? "relative flex items-center justify-center"
                     : "w-[104px] h-[104px] sm:w-[120px] sm:h-[120px] overflow-hidden bg-white " +
-                      (isRoundedShape ? "rounded-2xl" : "rounded-full")
+                      (isCircularShape ? "rounded-full" : isRoundedShape ? "rounded-2xl" : "")
                 }
                 style={
                   isSticker
@@ -361,7 +361,7 @@ export function BrandingBlock({
             {/* Phone frame */}
             <div className="bg-black rounded-[38px] p-2.5 shadow-2xl">
               <div className="bg-[var(--admin-bg)] rounded-[30px] overflow-hidden max-w-full" style={{ width: "280px" }}>
-                <div className="relative w-full" style={{ aspectRatio: "1/1", minHeight: "300px" }}>
+                <div className="relative w-full overflow-hidden" style={{ aspectRatio: "1/1", minHeight: "300px" }}>
                   {bannerUrl ? (
                     <div
                       className="absolute inset-0"
@@ -403,7 +403,7 @@ export function BrandingBlock({
                             isSticker
                               ? "relative flex items-center justify-center"
                               : "w-[88px] h-[88px] overflow-hidden bg-white " +
-                                (isRoundedShape ? "rounded-2xl" : "rounded-full")
+                                (isCircularShape ? "rounded-full" : isRoundedShape ? "rounded-2xl" : "")
                           }
                           style={
                             isSticker

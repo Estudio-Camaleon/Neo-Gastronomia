@@ -2,9 +2,8 @@
 
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, MapPin, MessageCircle, ChevronDown } from "lucide-react";
+import { Clock, MessageCircle } from "lucide-react";
 import { formatTurnos } from "@/features/public-menu/utils";
-import { ScheduleGrid } from "@/features/public-menu/components/ScheduleGrid";
 import { useFocusTrap } from "@/core/hooks/useFocusTrap";
 import { useScrollLock } from "@/core/hooks/useScrollLock";
 
@@ -15,19 +14,14 @@ export function PublicMenuHeader({
   negocio,
   isOpenNow,
   todayKey,
-  showSchedule,
-  setShowSchedule,
   recepcionPausada,
 }: {
   negocio: NegocioPublico;
   isOpenNow: boolean;
   todayKey: string | null;
-  showSchedule: boolean;
-  setShowSchedule: (v: boolean) => void;
   recepcionPausada?: boolean;
 }) {
   const [showClosedModal, setShowClosedModal] = useState(false);
-  const [showAddresses, setShowAddresses] = useState(false);
   const closedModalRef = useFocusTrap(
     showClosedModal && !isOpenNow,
   );
@@ -161,7 +155,6 @@ export function PublicMenuHeader({
                   <button
                     type="button"
                     onClick={() => {
-                      setShowSchedule(true);
                       setShowClosedModal(false);
                       setTimeout(() => {
                         const el = document.getElementById("schedule-grid");
@@ -427,119 +420,27 @@ export function PublicMenuHeader({
                 </motion.div>
               )}
 
-              {/* Address & Schedule trigger buttons */}
-              <div className="flex justify-center gap-2 mt-4">
-                <motion.button
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.35, delay: 0.35 }}
-                  onClick={() => setShowAddresses(!showAddresses)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white/80 text-xs sm:text-sm transition-all hover:bg-white/20 active:scale-95"
-                  aria-expanded={showAddresses}
-                  aria-controls="addresses-panel"
-                >
-                  <MapPin size={15} />
-                  <span className="max-w-[100px] sm:max-w-[140px] truncate">
-                    {negocio.direcciones && negocio.direcciones.length > 0
-                      ? negocio.direcciones[0]?.nombre ||
-                        negocio.direcciones[0]?.direccion
-                      : negocio.localidad || "Ubicación"}
-                  </span>
-                  {negocio.direcciones && negocio.direcciones.length > 1 && (
-                    <ChevronDown
-                      size={11}
-                      className={`shrink-0 opacity-60 transition-transform ${
-                        showAddresses ? "rotate-180" : ""
-                      }`}
-                    />
-                  )}
-                </motion.button>
-
-                <motion.button
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.35, delay: 0.4 }}
-                  onClick={() => setShowSchedule(!showSchedule)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white/80 text-xs sm:text-sm transition-all hover:bg-white/20 active:scale-95"
-                  aria-expanded={showSchedule}
-                  aria-controls="schedule-grid"
-                >
+              {/* Today's hours */}
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.4 }}
+                className="flex justify-center mt-4"
+              >
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white/80 text-xs sm:text-sm">
                   <Clock size={15} />
-                  <span>{showSchedule ? "Ocultar" : "Horarios"}</span>
-                  <ChevronDown
-                    size={11}
-                    className={`shrink-0 opacity-60 transition-transform ${
-                      showSchedule ? "rotate-180" : ""
-                    }`}
-                  />
-                </motion.button>
-              </div>
+                  <span>
+                    Hoy: {negocio.horarios && todayKey
+                      ? negocio.horarios[todayKey]
+                        ? formatTurnos(negocio.horarios[todayKey])
+                        : "Cerrado"
+                      : "Sin horarios"}
+                  </span>
+                </div>
+              </motion.div>
             </div>
           </div>
 
-          {/* ── Addresses dropdown (below brand card) ── */}
-          <div className="w-[88%] max-w-[700px] mt-2">
-            <AnimatePresence>
-              {showAddresses &&
-                negocio.direcciones &&
-                negocio.direcciones.length > 0 && (
-                  <motion.div
-                    id="addresses-panel"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.25, ease: "easeInOut" }}
-                    className="overflow-hidden"
-                  >
-                    <div
-                      className="backdrop-blur-xl rounded-2xl p-4 text-sm text-white/90 shadow-lg mt-2"
-                      style={{ backgroundColor: `color-mix(in srgb, ${cardBgStyle}, transparent 15%)` }}
-                    >
-                      {negocio.direcciones.map((dir) => (
-                        <div key={dir.id} className="flex items-start gap-2.5 py-1.5">
-                          <span className="mt-1.5 shrink-0 w-1.5 h-1.5 rounded-full bg-white/30" />
-                          <div>
-                            <span className="font-semibold text-white">
-                              {dir.nombre}
-                            </span>
-                            {", "}
-                            {dir.direccion}
-                            {dir.localidad && (
-                              <span className="text-white/60">
-                                , {dir.localidad}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* ── Schedule dropdown (below brand card) ── */}
-            <AnimatePresence>
-              {showSchedule && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.25, ease: "easeInOut" }}
-                  className="overflow-hidden"
-                >
-                  <div
-                    id="schedule-grid"
-                    className="backdrop-blur-xl rounded-2xl p-4 shadow-lg mt-2"
-                    style={{ backgroundColor: `color-mix(in srgb, ${cardBgStyle}, transparent 15%)` }}
-                  >
-                    <div className="grid grid-cols-2 gap-2">
-                      <ScheduleGrid horarios={negocio.horarios} />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
         </div>
       </motion.header>
     </>

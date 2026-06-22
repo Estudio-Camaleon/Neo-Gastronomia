@@ -119,8 +119,8 @@ export default function ResetPasswordPage() {
                   <Image
                     src="/icons/neo_logo_negro.webp"
                     alt="NEO"
-                    fill
-                    sizes="96px"
+                    width={96}
+                    height={32}
                     className="object-contain"
                     priority
                   />
@@ -153,28 +153,28 @@ export default function ResetPasswordPage() {
               <div className="flex lg:hidden justify-center mb-4">
                 <TransitionLink href="/">
                   <div className="relative h-8 w-24">
-                    <Image
-                      src="/icons/neo_logo_negro.webp"
-                      alt="NEO"
-                      fill
-                      sizes="96px"
-                      className="object-contain"
-                      priority
-                    />
-                  </div>
-                </TransitionLink>
-              </div>
-              <div className="text-center lg:text-left space-y-2">
-                <h2 className="text-2xl font-black tracking-tight text-[var(--auth-accent)] uppercase">
-                  Listo{" "}
-                  <span className="font-light normal-case text-[var(--auth-accent-muted)]">
-                    / NEO
-                  </span>
-                </h2>
-                <p className="text-[var(--auth-text-muted)] text-xs font-medium">
-                  Ahora iniciá sesión con tu nueva contraseña.
-                </p>
-              </div>
+                  <Image
+                    src="/icons/neo_logo_negro.webp"
+                    alt="NEO"
+                    width={96}
+                    height={32}
+                    className="object-contain"
+                    priority
+                  />
+                </div>
+              </TransitionLink>
+            </div>
+            <div className="text-center lg:text-left space-y-2">
+              <h2 className="text-2xl font-black tracking-tight text-[var(--auth-accent)] uppercase">
+                Listo{" "}
+                <span className="font-light normal-case text-[var(--auth-accent-muted)]">
+                  / NEO
+                </span>
+              </h2>
+              <p className="text-[var(--auth-text-muted)] text-xs font-medium">
+                Ahora iniciá sesión con tu nueva contraseña.
+              </p>
+            </div>
               <button
                 onClick={() => router.push("/login")}
                 className="auth-btn-primary"
@@ -221,8 +221,8 @@ export default function ResetPasswordPage() {
                 <Image
                   src="/icons/neo_logo_negro.webp"
                   alt="NEO Logo"
-                  fill
-                  sizes="96px"
+                  width={96}
+                  height={32}
                   className="object-contain"
                   priority
                 />
