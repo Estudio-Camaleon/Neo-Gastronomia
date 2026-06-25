@@ -8,6 +8,7 @@ import type { DireccionFisica } from "@/core/types/domain";
 
 interface HeaderPreviewProps {
   variant: "desktop" | "mobile";
+  compact?: boolean;
   bannerUrl: string;
   bannerPosicion: string;
   bannerScale: number;
@@ -66,19 +67,9 @@ const SOCIAL_ICONS: Record<string, React.ReactNode> = {
   ),
 };
 
-function SocialIcon({ id }: { id: string }) {
-  const icon = SOCIAL_ICONS[id];
-  if (!icon) return null;
-
-  return (
-    <span className="flex items-center justify-center rounded-full bg-white/10 text-white/80 size-8 sm:size-10">
-      {icon}
-    </span>
-  );
-}
-
 export function HeaderPreview({
   variant,
+  compact = false,
   bannerUrl,
   bannerPosicion,
   bannerScale,
@@ -96,6 +87,7 @@ export function HeaderPreview({
   uploading,
 }: HeaderPreviewProps) {
   const isMobile = variant === "mobile";
+  const isCompact = compact || isMobile;
   const isSticker = logoShape === "none";
   const isRoundedShape = logoShape === "rounded";
   const isCircularShape = logoShape === "circle";
@@ -124,7 +116,9 @@ export function HeaderPreview({
     fallbackStyle.marginTop = stickerMarginTop;
   }
 
-  const logoContainerSize = "w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] md:w-[120px] md:h-[120px]";
+  const logoContainerSize = isCompact
+    ? "w-[64px] h-[64px]"
+    : "w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] md:w-[120px] md:h-[120px]";
 
   const logoContainerClasses = isSticker
     ? "relative flex items-center justify-center"
@@ -143,7 +137,7 @@ export function HeaderPreview({
       <img
         src={logoUrl}
         alt={nombre}
-        className="max-h-24 max-w-24 sm:max-h-28 sm:max-w-28 md:max-h-36 md:max-w-36 drop-shadow-2xl"
+        className={isCompact ? "max-h-20 max-w-20" : "max-h-24 max-w-24 sm:max-h-28 sm:max-w-28 md:max-h-36 md:max-w-36 drop-shadow-2xl"}
         style={logoStyle}
       />
     ) : (
@@ -156,8 +150,14 @@ export function HeaderPreview({
     )
   ) : (
     <div
-      className={`flex items-center justify-center text-white font-black text-[21px] sm:text-[23px] md:text-[33px] ${
-        isSticker ? "w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] md:w-[120px] md:h-[120px]" : "h-full w-full"
+      className={`flex items-center justify-center text-white font-black ${
+        isCompact ? "text-[18px]" : "text-[21px] sm:text-[23px] md:text-[33px]"
+      } ${
+        isSticker
+          ? isCompact
+            ? "w-[64px] h-[64px]"
+            : "w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] md:w-[120px] md:h-[120px]"
+          : "h-full w-full"
       }${isCircularShape ? " rounded-full" : ""}`}
       style={fallbackStyle}
     >
@@ -167,16 +167,18 @@ export function HeaderPreview({
     </div>
   );
 
-  const cardWidth = "w-full max-w-[380px]";
-  const cardPadding = "px-4 sm:px-5 pb-5 sm:pb-6 pt-[56px] sm:pt-[68px]";
-  const cardRadius = "rounded-[22px] md:rounded-[28px]";
-  const logoOffset = "-top-[44px] md:-top-[52px]";
+  const cardWidth = isCompact ? "w-full max-w-[320px]" : "w-full max-w-[380px]";
+  const cardPadding = isCompact
+    ? "px-3 pb-4 pt-[44px]"
+    : "px-4 sm:px-5 pb-5 sm:pb-6 pt-[56px] sm:pt-[68px]";
+  const cardRadius = isCompact ? "rounded-[18px]" : "rounded-[22px] md:rounded-[28px]";
+  const logoOffset = isCompact ? "-top-[32px]" : "-top-[44px] md:-top-[52px]";
 
   return (
     <div className="relative">
       <div
         className="relative w-full overflow-hidden"
-        style={{ aspectRatio: isMobile ? "4/3" : "21/6", minHeight: isMobile ? "260px" : "240px" }}
+        style={{ aspectRatio: !isCompact ? "21/6" : undefined, minHeight: isCompact ? "180px" : "200px" }}
       >
         {bannerUrl ? (
           <div
@@ -224,7 +226,9 @@ export function HeaderPreview({
             >
               {mostrarNombre && (
                 <h1
-                  className="text-center text-white font-extrabold leading-tight tracking-tight text-[19px] sm:text-[21px] md:text-[27px]"
+                  className={`text-center text-white font-extrabold leading-tight tracking-tight ${
+                    isCompact ? "text-[16px]" : "text-[19px] sm:text-[21px] md:text-[27px]"
+                  }`}
                 >
                   {nombre || "Nombre del negocio"}
                 </h1>
@@ -232,35 +236,49 @@ export function HeaderPreview({
 
               {descripcion && (
                 <p
-                  className="text-center text-white/70 mt-1.5 mx-auto leading-relaxed text-[13px] sm:text-[15px] md:text-[17px] max-w-[500px]"
+                  className={`text-center text-white/70 mx-auto leading-relaxed ${
+                    isCompact ? "text-[12px] mt-1" : "text-[13px] sm:text-[15px] md:text-[17px] mt-1.5 max-w-[500px]"
+                  }`}
                 >
                   {descripcion}
                 </p>
               )}
 
               {hasSocials && (
-                <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 mt-2.5 sm:mt-3">
+                <div className={`flex flex-wrap justify-center gap-1.5 ${
+                  isCompact ? "mt-2" : "sm:gap-2 mt-2.5 sm:mt-3"
+                }`}>
                   {topSocialIds.map((id) => (
-                    <SocialIcon key={id} id={id} />
+                    <span key={id} className={`flex items-center justify-center rounded-full bg-white/10 text-white/80 ${
+                      isCompact ? "size-6" : "size-8 sm:size-10"
+                    }`}>
+                      {SOCIAL_ICONS[id] ?? null}
+                    </span>
                   ))}
                 </div>
               )}
 
-              <div className="flex justify-center gap-2 mt-2.5 sm:mt-3">
+              <div className={`flex justify-center gap-2 ${
+                isCompact ? "mt-2" : "mt-2.5 sm:mt-3"
+              }`}>
                 <div
-                  className="flex items-center rounded-full bg-white/10 text-white/80 gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-[12px] sm:text-[13px] md:text-[15px]"
+                  className={`flex items-center rounded-full bg-white/10 text-white/80 gap-1 ${
+                    isCompact ? "px-1.5 py-0.5 text-[10px]" : "sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-[12px] sm:text-[13px] md:text-[15px]"
+                  }`}
                 >
-                  <MapPin className="size-3 sm:size-3.5" />
-                  <span className="truncate max-w-[50px] sm:max-w-[60px] md:max-w-[80px]">
+                  <MapPin className={isCompact ? "size-2.5" : "size-3 sm:size-3.5"} />
+                  <span className={`truncate ${isCompact ? "max-w-[40px]" : "max-w-[50px] sm:max-w-[60px] md:max-w-[80px]"}`}>
                     {direcciones && direcciones.length > 0
                       ? direcciones[0]?.nombre || direcciones[0]?.direccion
                       : localidad || "Ubicación"}
                   </span>
                 </div>
                 <div
-                  className="flex items-center rounded-full bg-white/10 text-white/80 gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-[12px] sm:text-[13px] md:text-[15px]"
+                  className={`flex items-center rounded-full bg-white/10 text-white/80 gap-1 ${
+                    isCompact ? "px-1.5 py-0.5 text-[10px]" : "sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-[12px] sm:text-[13px] md:text-[15px]"
+                  }`}
                 >
-                  <Clock className="size-3 sm:size-3.5" />
+                  <Clock className={isCompact ? "size-2.5" : "size-3 sm:size-3.5"} />
                   <span>Horarios</span>
                 </div>
               </div>

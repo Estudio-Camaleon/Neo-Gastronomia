@@ -113,13 +113,13 @@ export function BrandingBlock({
         </div>
       </div>
 
-      {/* Vista previa inline en desktop y mobile */}
+      {/* Vista previa inline */}
       <div className="px-5 py-4">
         <div className="hidden md:block">
           <HeaderPreview variant="desktop" {...previewProps} />
         </div>
         <div className="md:hidden">
-          <HeaderPreview variant="desktop" {...previewProps} />
+          <HeaderPreview variant="desktop" compact {...previewProps} />
         </div>
       </div>
 
