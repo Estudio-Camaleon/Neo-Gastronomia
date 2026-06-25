@@ -70,11 +70,11 @@ export function MobileHeader({ slug }: MobileHeaderProps) {
         {/* Logo + Sección */}
         <div className="flex items-center gap-2.5 min-w-0">
           <Image
-            src="/icons/neo_logo_negro.webp"
+            src={theme === "dark" ? "/icons/neo_logo_blanco.webp" : "/icons/neo_logo_negro.webp"}
             alt="NEO"
             width={32}
             height={32}
-            className="object-contain dark:invert shrink-0"
+            className="object-contain shrink-0"
             priority
           />
           {sectionName && (
