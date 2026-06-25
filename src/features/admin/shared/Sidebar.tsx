@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/core/lib/supabase/client";
 import { useTheme } from "@/core/providers/ThemeProvider";
 import { useOrderNotifications } from "@/features/admin/orders/OrderNotificationProvider";
+import { NotificationBell } from "@/features/admin/notifications/NotificationBell";
 import { TransitionLink } from "@/components/ui/transition-link";
 import { LogoutModal } from "@/components/ui/logout-modal";
 import {
@@ -19,7 +20,7 @@ import {
   Moon,
   ExternalLink,
   LogOut,
-  Sparkles,
+  Crown,
 } from "lucide-react";
 
 const supabase = createClient();
@@ -99,8 +100,13 @@ export function Sidebar({
       <>
         <aside className="admin-sidebar p-2 relative h-full flex flex-col items-center w-full min-h-0 select-none">
           {/* Logo compacto */}
-          <div className="flex items-center justify-center shrink-0 w-10 h-10 rounded-xl bg-[var(--admin-accent)] text-white font-bold text-base mb-3">
-            N
+          <div className="flex flex-col items-center gap-0.5 mb-3 shrink-0">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-[var(--admin-accent)] text-white font-bold text-base">
+              N
+            </div>
+            <span className="text-[7px] font-semibold text-[var(--admin-text-muted)] opacity-50 leading-none">
+              v1.1.1
+            </span>
           </div>
 
           <div className="w-full border-t border-[var(--admin-border)] mb-2 shrink-0" />
@@ -142,6 +148,9 @@ export function Sidebar({
             })}
           </nav>
 
+          {/* Notification bell compacto */}
+          <NotificationBell variant="sidebar" />
+
           {/* Plan indicator compacto */}
           {planTier === "free" && (
             <button
@@ -151,7 +160,7 @@ export function Sidebar({
               aria-label="Actualizar a PRO"
               className="flex items-center justify-center w-10 h-10 mx-auto rounded-xl transition-all active:scale-95 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20"
             >
-              <Sparkles size={15} />
+              <Crown size={15} />
             </button>
           )}
 
@@ -211,20 +220,28 @@ export function Sidebar({
         <div className="flex flex-col flex-1 min-h-0">
           {/* Logo */}
           <div className="flex items-center justify-start gap-3 group shrink-0">
-            {theme === "dark" ? (
-              <img
-                src="/icons/neo_logo_blanco.webp"
-                alt="NEO Sistema Gastronómico"
-                className="h-6 lg:h-7 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.01]"
-              />
-            ) : (
-              <img
-                src="/icons/neo_logo_negro.webp"
-                alt="NEO Sistema Gastronómico"
-                className="h-6 lg:h-7 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.01]"
-              />
-            )}
+            <div className="relative">
+              {theme === "dark" ? (
+                <img
+                  src="/icons/neo_logo_blanco.webp"
+                  alt="NEO Sistema Gastronómico"
+                  className="h-6 lg:h-7 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.01]"
+                />
+              ) : (
+                <img
+                  src="/icons/neo_logo_negro.webp"
+                  alt="NEO Sistema Gastronómico"
+                  className="h-6 lg:h-7 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.01]"
+                />
+              )}
+              <span className="absolute -bottom-3.5 right-0 text-[7px] font-semibold text-[var(--admin-text-muted)] opacity-50 leading-none select-none pointer-events-none">
+                v1.1.1
+              </span>
+            </div>
           </div>
+
+          {/* spacer to compensate version label */}
+          <div className="h-3 shrink-0" />
 
           <div className="my-4 border-t border-[var(--admin-border)] shrink-0" />
 
@@ -276,6 +293,11 @@ export function Sidebar({
           </nav>
         </div>
 
+        {/* Notification bell */}
+        <div className="mb-3">
+          <NotificationBell variant="sidebar" />
+        </div>
+
         {/* Footer */}
         <div className="mt-auto pt-3 lg:pt-4 border-t border-[var(--admin-border)] space-y-3 shrink-0">
           {/* Plan badge + upgrade */}
@@ -293,7 +315,7 @@ export function Sidebar({
                 Plan {planTier === "pro" ? "PRO" : "GRATIS"}
               </span>
               {planTier === "free" && (
-                <Sparkles size={11} className="text-amber-500" />
+                <Crown size={11} className="text-amber-500" />
               )}
             </div>
             {planTier === "free" ? (
@@ -302,7 +324,7 @@ export function Sidebar({
                 onClick={handleUpgrade}
                 className="w-full mt-1 flex items-center justify-center gap-1.5 py-1.5 text-[11px] lg:text-xs font-bold rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-all active:scale-[0.97]"
               >
-                <Sparkles size={12} />
+                <Crown size={12} />
                 Actualizar a PRO
               </button>
             ) : (

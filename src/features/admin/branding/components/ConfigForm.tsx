@@ -9,11 +9,6 @@ import {
   XCircle,
   AlertTriangle,
   Clock,
-  Palette,
-  FileText,
-  Settings2,
-  Sparkles,
-  LifeBuoy,
 } from "lucide-react";
 import { FoodMini } from "@/components/ui/food-loading";
 import {
@@ -26,7 +21,8 @@ import { useUnsavedChanges } from "@/core/hooks/useUnsavedChanges";
 import { UnsavedChangesModal } from "@/components/ui/unsaved-changes-modal";
 import type { NegocioInitialData, ConfigFormState } from "../types";
 import { MAX_IMAGE_SIZE_MB, MAX_IMAGE_SIZE_BYTES } from "../types";
-export type { NegocioInitialData }; // Re-export for backward compatibility
+import { parseWhatsApp, DEFAULT_WHATSAPP_MENSAJES } from "../utils";
+export type { NegocioInitialData };
 import { BrandingBlock } from "./ConfigForm/BrandingBlock";
 import { GeneralInfoBlock } from "./ConfigForm/GeneralInfoBlock";
 import { SocialLinksBlock } from "./ConfigForm/SocialLinksBlock";
@@ -38,6 +34,9 @@ import { WhatsAppMessagesBlock } from "./ConfigForm/WhatsAppMessagesBlock";
 import { SubscriptionBlock } from "./ConfigForm/SubscriptionBlock";
 import { SupportBlock } from "./ConfigForm/SupportBlock";
 import { QrCodeBlock } from "./ConfigForm/QrCodeBlock";
+import { TabBar } from "./ConfigForm/TabBar";
+import type { TabId } from "./ConfigForm/TabBar";
+import { NotificationPreferencesBlock } from "./ConfigForm/NotificationPreferencesBlock";
 
 export function ConfigForm({
   initialData,
@@ -61,19 +60,6 @@ export function ConfigForm({
     logo_url: initialData?.logo_url || "",
     banner_url: initialData?.banner_url || "",
   });
-
-  const DEFAULT_WHATSAPP_MENSAJES: Record<string, string> = {
-    en_preparacion: "¡Hola {cliente}! 👋 Soy de {negocio}. Te confirmo que recibimos tu pedido correctamente y ya entró a cocina. 🍳🔥 Te aviso por acá apenas esté listo. ¡Muchas gracias!",
-    entregado: "¡Buenas noticias {cliente}! 🥳 Tu pedido de {negocio} ya está listo. {entrega} ¡Que lo disfrutes!",
-    cancelado: "Hola {cliente}, te contactamos de {negocio}. Lamentablemente no vamos a poder procesar tu pedido en este momento. 🙏 Disculpá las molestias.",
-  };
-
-  const parseWhatsApp = (full: string) => {
-    if (full.startsWith("54")) return { pais: "54", numero: full.slice(2) };
-    if (full.startsWith("52")) return { pais: "52", numero: full.slice(2) };
-    if (full.startsWith("1")) return { pais: "1", numero: full.slice(1) };
-    return { pais: "54", numero: full };
-  };
 
   const [formData, setFormData] = useState<ConfigFormState>({
     nombre: initialData?.nombre || "",
@@ -99,6 +85,7 @@ export function ConfigForm({
     tiktok_url: initialData?.tiktok_url || "",
     twitter_url: initialData?.twitter_url || "",
     youtube_url: initialData?.youtube_url || "",
+    redes_principales: initialData?.redes_principales || [],
     horarios: initialData?.horarios || {},
     direcciones: initialData?.direcciones || [],
     whatsapp_mensajes: initialData?.whatsapp_mensajes || DEFAULT_WHATSAPP_MENSAJES,
@@ -143,6 +130,7 @@ export function ConfigForm({
       tiktok_url: initialData?.tiktok_url || "",
       twitter_url: initialData?.twitter_url || "",
       youtube_url: initialData?.youtube_url || "",
+      redes_principales: initialData?.redes_principales || [],
       horarios: initialData?.horarios || {},
       direcciones: initialData?.direcciones || [],
       whatsapp_mensajes: initialData?.whatsapp_mensajes || DEFAULT_WHATSAPP_MENSAJES,
@@ -269,6 +257,7 @@ export function ConfigForm({
       tiktok_url: initialData?.tiktok_url || "",
       twitter_url: initialData?.twitter_url || "",
       youtube_url: initialData?.youtube_url || "",
+      redes_principales: initialData?.redes_principales || [],
       horarios: initialData?.horarios || {},
       direcciones: initialData?.direcciones || [],
       whatsapp_mensajes: initialData?.whatsapp_mensajes || DEFAULT_WHATSAPP_MENSAJES,
@@ -337,6 +326,7 @@ export function ConfigForm({
         tiktok_url: formData.tiktok_url,
         twitter_url: formData.twitter_url,
         youtube_url: formData.youtube_url,
+        redes_principales: formData.redes_principales,
         horarios: formData.horarios as Record<string, unknown>,
         direcciones: formData.direcciones,
         whatsapp_mensajes: formData.whatsapp_mensajes,
@@ -415,49 +405,11 @@ export function ConfigForm({
     return Object.keys(errors).length === 0;
   }, [formData]);
 
-  const TABS = [
-    { id: "identidad", label: "Identidad Visual", icon: Palette, color: "#8b5cf6" },
-    { id: "informacion", label: "Información", icon: FileText, color: "#3b82f6" },
-    { id: "operacion", label: "Operación", icon: Settings2, color: "#64748b" },
-    { id: "suscripcion", label: "Suscripción", icon: Sparkles, color: "#f59e0b" },
-    { id: "soporte", label: "Soporte", icon: LifeBuoy, color: "#14b8a6" },
-    { id: "peligro", label: "Peligro", icon: AlertTriangle, color: "#ef4444" },
-  ] as const;
-
-  const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["id"]>("identidad");
+  const [activeTab, setActiveTab] = useState<TabId>("identidad");
 
   return (
-    <div className="space-y-8 pb-12 select-none px-4 sm:px-6 lg:px-0">
-      {/* BARRA DE TABS */}
-      <div className="sticky top-0 z-50 max-w-full">
-        <nav
-          className="flex items-center gap-0.5 bg-[var(--admin-surface)]/80 backdrop-blur-xl border border-[var(--admin-border)] rounded-xl px-1.5 py-1.5 overflow-x-auto overscroll-x-contain scrollbar-none shadow-sm relative after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-8 after:bg-gradient-to-r after:from-transparent after:to-[var(--admin-surface)]/80 after:rounded-r-xl"
-          role="tablist"
-          aria-label="Secciones de configuración"
-        >
-          {TABS.map(({ id, label, icon: Icon, color }) => (
-            <button
-              key={id}
-              role="tab"
-              aria-selected={activeTab === id}
-              onClick={() => setActiveTab(id)}
-              style={
-                activeTab === id
-                  ? { "--tab-color": color, "--tab-color-alpha": `${color}1a` } as React.CSSProperties
-                  : undefined
-              }
-className={`flex items-center gap-1 max-sm:gap-1 px-2.5 max-sm:px-2 py-2 text-xs font-semibold whitespace-nowrap rounded-lg transition-all duration-200 ${
-                 activeTab === id
-                  ? "bg-[var(--tab-color-alpha)] text-[var(--tab-color)] shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]"
-                  : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-bg)]/50"
-              } ${(id === "peligro" || id === "suscripcion" || id === "soporte") && activeTab !== id ? "opacity-40 hover:opacity-100" : ""}`}
-            >
-              <Icon className="size-3.5 max-sm:size-3" strokeWidth={activeTab === id ? 2.5 : 1.5} />
-              <span className="max-sm:text-[9px] max-sm:leading-tight">{label}</span>
-            </button>
-          ))}
-        </nav>
-      </div>
+    <div className="space-y-8 pb-12 select-none w-full max-w-full min-w-0 px-4 sm:px-6 lg:px-0">
+      <TabBar activeTab={activeTab} onChange={setActiveTab} />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* INDICADOR DE CAMBIOS SIN GUARDAR */}
@@ -581,17 +533,30 @@ className={`flex items-center gap-1 max-sm:gap-1 px-2.5 max-sm:px-2 py-2 text-xs
               direcciones={formData.direcciones}
               whatsappPais={formData.whatsapp_pais}
               whatsappNumero={formData.whatsapp_numero}
+              error={fieldErrors.direcciones}
               onChange={(direcciones) => {
                 setIsDirty(true);
                 setFormData((p) => ({ ...p, direcciones }));
               }}
             />
 
-            {/* BLOQUE REDES SOCIALES */}
-            <SocialLinksBlock formData={formData} onChange={handleChange} />
-
-            {/* CÓDIGO QR DEL MENÚ PÚBLICO */}
-            <QrCodeBlock slug={initialData?.slug ?? formData.slug} />
+            {/* FILA: REDES SOCIALES + CÓDIGO QR */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <SocialLinksBlock
+                  formData={formData}
+                  redes_principales={formData.redes_principales}
+                  onChange={handleChange}
+                  onRedesPrincipalesChange={(redes) => {
+                    setIsDirty(true);
+                    setFormData((p) => ({ ...p, redes_principales: redes }));
+                  }}
+                />
+              </div>
+              <div className="lg:col-span-1">
+                <QrCodeBlock slug={formData.slug} />
+              </div>
+            </div>
           </>
         )}
 
@@ -632,12 +597,15 @@ className={`flex items-center gap-1 max-sm:gap-1 px-2.5 max-sm:px-2 py-2 text-xs
                 }}
               />
             </div>
+
+            {/* BLOQUE NOTIFICACIONES */}
+            <NotificationPreferencesBlock />
           </>
         )}
 
         {/* BOTÓN FLOTANTE ACCIONABLE ULTRA-LIMPIO — visible en todos los tabs excepto Peligro */}
         {activeTab !== "peligro" && activeTab !== "suscripcion" && activeTab !== "soporte" && (
-          <div className="sticky bottom-20 md:bottom-5 z-40 flex justify-end">
+          <div className="sticky bottom-24 md:bottom-5 z-40 flex justify-end" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
             <button
               type="submit"
               disabled={saveStatus !== "idle" || isDeleting || !!uploading}

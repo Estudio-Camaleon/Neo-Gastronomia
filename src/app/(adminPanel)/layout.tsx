@@ -5,6 +5,7 @@ import { MobileHeader } from "@/features/admin/shared/MobileHeader";
 import { BottomTabBar } from "@/features/admin/shared/BottomTabBar";
 import { ThemeProvider } from "@/core/providers/ThemeProvider";
 import { OrderNotificationProvider } from "@/features/admin/orders/OrderNotificationProvider";
+import { NotificationProvider } from "@/features/admin/notifications/NotificationProvider";
 import { createClient } from "@/core/lib/supabase/server";
 import { redirect } from "next/navigation";
 import "@/features/admin/shared/admin-panel.css";
@@ -72,6 +73,7 @@ export default async function AdminPanelLayout({
   return (
     <ThemeProvider>
       <OrderNotificationProvider negocioIds={negocioIds}>
+      <NotificationProvider negocioId={negocio.id}>
       <div className="flex min-h-screen bg-[var(--admin-bg)] text-[var(--admin-text)] font-sans antialiased w-full transition-colors duration-200">
         {/* Blobs orgánicos animados */}
         <div className="fixed top-[-10%] left-[-5%] w-96 h-96 bg-[var(--admin-accent)] rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-40 pointer-events-none animate-blob" />
@@ -83,11 +85,11 @@ export default async function AdminPanelLayout({
         </aside>
 
         {/* Contenedor de Trabajo Principal */}
-        <div className="flex-1 flex flex-col lg:pl-72 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] lg:pb-0">
+        <div className="flex-1 flex flex-col lg:pl-72 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] lg:pb-0 overflow-x-clip">
           {/* Header mobile con logo + acciones */}
           <MobileHeader slug={negocio.slug} />
 
-          <main id="main-content" className="flex-1 p-5 sm:p-6 md:p-8 lg:p-6 xl:p-10 w-full animate-in fade-in duration-300 relative">
+          <main id="main-content" className="flex-1 p-5 sm:p-6 md:p-8 lg:p-6 xl:p-10 w-full max-w-full animate-in fade-in duration-300 relative">
             <Suspense fallback={<LoadingFallback />}>
               {children}
             </Suspense>
@@ -96,6 +98,7 @@ export default async function AdminPanelLayout({
 
         <BottomTabBar />
       </div>
+      </NotificationProvider>
       </OrderNotificationProvider>
     </ThemeProvider>
   );

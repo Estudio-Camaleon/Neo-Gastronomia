@@ -39,6 +39,7 @@ export interface NegocioPublico {
   twitter_url: string | null;
   youtube_url: string | null;
   tripadvisor_url: string | null;
+  redes_principales?: string[];
   horarios: Record<string, HorarioDia> | null;
   whatsapp_mensajes?: Record<string, string> | null;
   recepcion_pausada?: boolean;
@@ -170,6 +171,7 @@ export interface UpdateTenantBrandingPayload {
   tiktok_url: string;
   twitter_url: string;
   youtube_url: string;
+  redes_principales: string[];
   horarios: Record<string, unknown>;
   direcciones: DireccionFisica[];
   whatsapp_mensajes?: Record<string, string> | null;
@@ -183,6 +185,58 @@ export type PromoConGaleria = PromoRow & { imagenes_extra?: string[] };
 export interface CatalogClientProps {
   negocio: NegocioPublico;
   categorias: CategoriaConProductos[];
+}
+
+// ── Notificaciones ────────────────────────────────────
+export type NotificationType =
+  | "new_order"
+  | "order_update"
+  | "system"
+  | "promo_ending"
+  | "stock_alert";
+
+export const NOTIFICATION_TYPES: NotificationType[] = [
+  "new_order",
+  "order_update",
+  "system",
+  "promo_ending",
+  "stock_alert",
+];
+
+export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
+  new_order: "Nuevo pedido",
+  order_update: "Actualización de pedido",
+  system: "Aviso del sistema",
+  promo_ending: "Promoción por vencer",
+  stock_alert: "Stock bajo",
+};
+
+export const NOTIFICATION_TYPE_DESCRIPTIONS: Record<NotificationType, string> = {
+  new_order: "Cuando un cliente realiza un pedido nuevo",
+  order_update: "Cuando cambia el estado de un pedido",
+  system: "Avisos importantes sobre el sistema o tu cuenta",
+  promo_ending: "Cuando una promoción está por finalizar",
+  stock_alert: "Cuando un producto tiene poco stock",
+};
+
+export type NotificationRow = Tables<"notifications">;
+
+export interface NotificationData {
+  id: string;
+  negocio_id: string;
+  type: NotificationType;
+  title: string;
+  body: string | null;
+  data: Record<string, unknown> | null;
+  read: boolean;
+  created_at: string;
+}
+
+export interface NotificationPreference {
+  id: string;
+  negocio_id: string;
+  notification_type: NotificationType;
+  enabled: boolean;
 }
 
 export const ORDER_STATUS = {

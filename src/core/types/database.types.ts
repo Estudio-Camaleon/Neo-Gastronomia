@@ -192,6 +192,7 @@ export type Database = {
           phone: string | null
           plan_tier: string
           recepcion_pausada: boolean
+          redes_principales: Json | null
           referral_source: string | null
           slug: string
           stripe_customer_id: string | null
@@ -239,6 +240,7 @@ export type Database = {
           phone?: string | null
           plan_tier?: string
           recepcion_pausada?: boolean
+          redes_principales?: Json | null
           referral_source?: string | null
           slug: string
           stripe_customer_id?: string | null
@@ -286,6 +288,7 @@ export type Database = {
           phone?: string | null
           plan_tier?: string
           recepcion_pausada?: boolean
+          redes_principales?: Json | null
           referral_source?: string | null
           slug?: string
           stripe_customer_id?: string | null
@@ -302,6 +305,79 @@ export type Database = {
           youtube_url?: string | null
         }
         Relationships: []
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          negocio_id: string
+          notification_type: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          negocio_id: string
+          notification_type: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          negocio_id?: string
+          notification_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_negocio_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "negocios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          data: Json | null
+          id: string
+          negocio_id: string
+          read: boolean
+          title: string
+          type: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          data?: Json | null
+          id?: string
+          negocio_id: string
+          read?: boolean
+          title: string
+          type: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          data?: Json | null
+          id?: string
+          negocio_id?: string
+          read?: boolean
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_negocio_id_fkey"
+            columns: ["negocio_id"]
+            isOneToOne: false
+            referencedRelation: "negocios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pedido_items: {
         Row: {
