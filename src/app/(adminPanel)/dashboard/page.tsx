@@ -128,7 +128,7 @@ export default async function DashboardPage() {
     <div className="space-y-8 relative z-10">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-[var(--admin-text)]">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-[var(--admin-text)] break-words">
             Hola, {negocio.nombre}
           </h1>
           <p className="text-[var(--admin-text-muted)] text-sm font-medium capitalize">
@@ -215,13 +215,13 @@ export default async function DashboardPage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        <div className="lg:col-span-2 admin-card p-6">
-          <h2 className="text-lg font-bold text-[var(--admin-text)] mb-5 flex items-center gap-2">
-            <Layers size={18} className="text-[var(--admin-accent)]" />
-            Pipeline de Pedidos
+        <div className="lg:col-span-2 admin-card p-4 sm:p-6">
+          <h2 className="text-base sm:text-lg font-bold text-[var(--admin-text)] mb-4 sm:mb-5 flex items-center gap-2">
+            <Layers size={18} className="text-[var(--admin-accent)] shrink-0" />
+            <span>Pipeline de pedidos</span>
           </h2>
           {listaPedidos.length > 0 ? (
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
               <PipelineBadge
                 label="Pendientes"
                 value={pendientes}
@@ -250,10 +250,10 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        <div className="admin-card p-6">
-          <h2 className="text-lg font-bold text-[var(--admin-text)] mb-5 flex items-center gap-2">
-            <ListChecks size={18} className="text-[var(--admin-accent)]" />
-            Resumen del Día
+        <div className="admin-card p-4 sm:p-6">
+          <h2 className="text-base sm:text-lg font-bold text-[var(--admin-text)] mb-4 sm:mb-5 flex items-center gap-2">
+            <ListChecks size={18} className="text-[var(--admin-accent)] shrink-0" />
+            <span>Resumen del Día</span>
           </h2>
           <div className="space-y-4">
             <ResumenRow
@@ -281,11 +281,11 @@ export default async function DashboardPage() {
       </div>
 
       {pedidosRecientes.length > 0 && (
-        <div className="admin-card p-6">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-bold text-[var(--admin-text)] flex items-center gap-2">
-              <ShoppingBag size={18} className="text-[var(--admin-accent)]" />
-              Órdenes Recientes
+        <div className="admin-card p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-4 sm:mb-5">
+            <h2 className="text-base sm:text-lg font-bold text-[var(--admin-text)] flex items-center gap-2">
+              <ShoppingBag size={18} className="text-[var(--admin-accent)] shrink-0" />
+              <span>Órdenes Recientes</span>
             </h2>
             <a
               href="/pedidos"
@@ -433,9 +433,9 @@ function PipelineBadge({
 
   return (
     <div
-      className={`flex flex-col items-center justify-center gap-2 ${c.bg} ${c.border} border rounded-xl p-4`}
+      className={`flex flex-col items-center justify-center gap-1 sm:gap-2 ${c.bg} ${c.border} border rounded-xl p-2.5 sm:p-4`}
     >
-      <span className={`text-3xl font-black ${c.text} leading-none`}>
+      <span className={`text-2xl sm:text-3xl font-black ${c.text} leading-none`}>
         {value}
       </span>
       <div className="flex items-center gap-1.5">
@@ -460,7 +460,7 @@ function ResumenRow({
       <span className="text-xs font-medium text-[var(--admin-text-muted)]">
         {label}
       </span>
-      <span className="text-sm font-bold text-[var(--admin-text)]">{value}</span>
+      <span className="text-sm font-bold text-[var(--admin-text)] truncate max-w-[120px] sm:max-w-[180px]">{value}</span>
     </div>
   );
 }
@@ -497,14 +497,14 @@ function EstadoLabel({ estado }: { estado: string }) {
 
 function PromoCard() {
   return (
-    <div className="admin-card p-6">
-      <div className="flex items-start justify-between mb-5">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl border border-purple-500/20 text-purple-500">
-            <Sparkles size={20} />
+    <div className="admin-card p-4 sm:p-6">
+      <div className="flex items-start justify-between gap-3 mb-4 sm:mb-5">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          <div className="p-2 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl border border-purple-500/20 text-purple-500 shrink-0">
+            <Sparkles size={18} />
           </div>
-          <div>
-            <h2 className="text-lg font-bold text-[var(--admin-text)]">
+          <div className="min-w-0">
+            <h2 className="text-base sm:text-lg font-bold text-[var(--admin-text)]">
               Promociones
             </h2>
             <p className="text-xs text-[var(--admin-text-muted)] font-medium">
@@ -512,21 +512,21 @@ function PromoCard() {
             </p>
           </div>
         </div>
-        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-500 border border-purple-500/20">
+        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-500 border border-purple-500/20 shrink-0">
           Nuevo
         </span>
       </div>
 
-      <div className="bg-gradient-to-br from-purple-500/5 to-pink-500/5 border border-purple-500/10 rounded-xl p-4 mb-5">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/20 flex items-center justify-center">
-            <Percent size={20} className="text-purple-500" />
+      <div className="bg-gradient-to-br from-purple-500/5 to-pink-500/5 border border-purple-500/10 rounded-xl p-3 sm:p-4 mb-4 sm:mb-5">
+        <div className="flex items-center gap-2.5 sm:gap-3 mb-2.5 sm:mb-3">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/20 flex items-center justify-center shrink-0">
+            <Percent size={18} className="text-purple-500" />
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-bold text-[var(--admin-text)]">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs sm:text-sm font-bold text-[var(--admin-text)]">
               Gestioná tus ofertas
             </p>
-            <p className="text-xs text-[var(--admin-text-muted)]">
+            <p className="text-[10px] sm:text-xs text-[var(--admin-text-muted)]">
               Porcentajes, montos fijos y códigos promocionales
             </p>
           </div>
