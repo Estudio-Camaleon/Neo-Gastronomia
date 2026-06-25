@@ -117,7 +117,7 @@ export function HeaderPreview({
   }
 
   const logoContainerSize = isCompact
-    ? "w-[64px] h-[64px]"
+    ? "w-[52px] h-[52px]"
     : "w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] md:w-[120px] md:h-[120px]";
 
   const logoContainerClasses = isSticker
@@ -137,7 +137,7 @@ export function HeaderPreview({
       <img
         src={logoUrl}
         alt={nombre}
-        className={isCompact ? "max-h-20 max-w-20" : "max-h-24 max-w-24 sm:max-h-28 sm:max-w-28 md:max-h-36 md:max-w-36 drop-shadow-2xl"}
+        className={isCompact ? "max-h-14 max-w-14" : "max-h-24 max-w-24 sm:max-h-28 sm:max-w-28 md:max-h-36 md:max-w-36 drop-shadow-2xl"}
         style={logoStyle}
       />
     ) : (
@@ -151,11 +151,11 @@ export function HeaderPreview({
   ) : (
     <div
       className={`flex items-center justify-center text-white font-black ${
-        isCompact ? "text-[18px]" : "text-[21px] sm:text-[23px] md:text-[33px]"
+        isCompact ? "text-[16px]" : "text-[21px] sm:text-[23px] md:text-[33px]"
       } ${
         isSticker
           ? isCompact
-            ? "w-[64px] h-[64px]"
+            ? "w-[52px] h-[52px]"
             : "w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] md:w-[120px] md:h-[120px]"
           : "h-full w-full"
       }${isCircularShape ? " rounded-full" : ""}`}
@@ -167,18 +167,18 @@ export function HeaderPreview({
     </div>
   );
 
-  const cardWidth = isCompact ? "w-full max-w-[320px]" : "w-full max-w-[380px]";
+  const cardWidth = isCompact ? "w-full max-w-[260px]" : "w-full max-w-[380px]";
   const cardPadding = isCompact
-    ? "px-3 pb-4 pt-[44px]"
+    ? "px-2.5 pb-3 pt-[34px]"
     : "px-4 sm:px-5 pb-5 sm:pb-6 pt-[56px] sm:pt-[68px]";
-  const cardRadius = isCompact ? "rounded-[18px]" : "rounded-[22px] md:rounded-[28px]";
-  const logoOffset = isCompact ? "-top-[32px]" : "-top-[44px] md:-top-[52px]";
+  const cardRadius = isCompact ? "rounded-[14px]" : "rounded-[22px] md:rounded-[28px]";
+  const logoOffset = isCompact ? "-top-[24px]" : "-top-[44px] md:-top-[52px]";
 
   return (
     <div className="relative">
       <div
         className="relative w-full overflow-hidden"
-        style={{ aspectRatio: !isCompact ? "21/6" : undefined, minHeight: isCompact ? "180px" : "200px" }}
+        style={{ aspectRatio: !isCompact ? "21/6" : undefined, minHeight: isCompact ? "150px" : "200px" }}
       >
         {bannerUrl ? (
           <div
@@ -227,7 +227,7 @@ export function HeaderPreview({
               {mostrarNombre && (
                 <h1
                   className={`text-center text-white font-extrabold leading-tight tracking-tight ${
-                    isCompact ? "text-[16px]" : "text-[19px] sm:text-[21px] md:text-[27px]"
+                    isCompact ? "text-[13px]" : "text-[19px] sm:text-[21px] md:text-[27px]"
                   }`}
                 >
                   {nombre || "Nombre del negocio"}
@@ -237,7 +237,7 @@ export function HeaderPreview({
               {descripcion && (
                 <p
                   className={`text-center text-white/70 mx-auto leading-relaxed ${
-                    isCompact ? "text-[12px] mt-1" : "text-[13px] sm:text-[15px] md:text-[17px] mt-1.5 max-w-[500px]"
+                    isCompact ? "text-[10px] mt-0.5" : "text-[13px] sm:text-[15px] md:text-[17px] mt-1.5 max-w-[500px]"
                   }`}
                 >
                   {descripcion}
@@ -245,12 +245,12 @@ export function HeaderPreview({
               )}
 
               {hasSocials && (
-                <div className={`flex flex-wrap justify-center gap-1.5 ${
-                  isCompact ? "mt-2" : "sm:gap-2 mt-2.5 sm:mt-3"
+                <div className={`flex flex-wrap justify-center gap-1 ${
+                  isCompact ? "mt-1.5" : "sm:gap-2 mt-2.5 sm:mt-3"
                 }`}>
                   {topSocialIds.map((id) => (
                     <span key={id} className={`flex items-center justify-center rounded-full bg-white/10 text-white/80 ${
-                      isCompact ? "size-6" : "size-8 sm:size-10"
+                      isCompact ? "size-5" : "size-8 sm:size-10"
                     }`}>
                       {SOCIAL_ICONS[id] ?? null}
                     </span>
@@ -258,16 +258,16 @@ export function HeaderPreview({
                 </div>
               )}
 
-              <div className={`flex justify-center gap-2 ${
-                isCompact ? "mt-2" : "mt-2.5 sm:mt-3"
+              <div className={`flex justify-center gap-1.5 ${
+                isCompact ? "mt-1.5" : "mt-2.5 sm:mt-3"
               }`}>
                 <div
                   className={`flex items-center rounded-full bg-white/10 text-white/80 gap-1 ${
-                    isCompact ? "px-1.5 py-0.5 text-[10px]" : "sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-[12px] sm:text-[13px] md:text-[15px]"
+                    isCompact ? "px-1.5 py-0.5 text-[9px]" : "sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-[12px] sm:text-[13px] md:text-[15px]"
                   }`}
                 >
-                  <MapPin className={isCompact ? "size-2.5" : "size-3 sm:size-3.5"} />
-                  <span className={`truncate ${isCompact ? "max-w-[40px]" : "max-w-[50px] sm:max-w-[60px] md:max-w-[80px]"}`}>
+                  <MapPin className={isCompact ? "size-2" : "size-3 sm:size-3.5"} />
+                  <span className={`truncate ${isCompact ? "max-w-[30px]" : "max-w-[50px] sm:max-w-[60px] md:max-w-[80px]"}`}>
                     {direcciones && direcciones.length > 0
                       ? direcciones[0]?.nombre || direcciones[0]?.direccion
                       : localidad || "Ubicación"}
@@ -275,7 +275,7 @@ export function HeaderPreview({
                 </div>
                 <div
                   className={`flex items-center rounded-full bg-white/10 text-white/80 gap-1 ${
-                    isCompact ? "px-1.5 py-0.5 text-[10px]" : "sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-[12px] sm:text-[13px] md:text-[15px]"
+                    isCompact ? "px-1.5 py-0.5 text-[9px]" : "sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-[12px] sm:text-[13px] md:text-[15px]"
                   }`}
                 >
                   <Clock className={isCompact ? "size-2.5" : "size-3 sm:size-3.5"} />
