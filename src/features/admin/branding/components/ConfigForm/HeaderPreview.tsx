@@ -178,7 +178,7 @@ export function HeaderPreview({
     <div className="relative">
       <div
         className="relative w-full overflow-hidden"
-        style={{ aspectRatio: !isCompact ? "21/6" : undefined, minHeight: isCompact ? "130px" : "180px" }}
+        style={{ aspectRatio: !isCompact ? "21/7" : undefined, minHeight: isCompact ? "150px" : "200px" }}
       >
         {bannerUrl ? (
           <div
