@@ -26,7 +26,7 @@ export function QrCodeBlock({ slug }: QrCodeBlockProps) {
     <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-5 shadow-sm">
       <div className="flex items-center gap-2 border-b border-[var(--admin-border)] pb-2.5 mb-4">
         <QrCode size={14} className="text-[var(--admin-text-muted)]" />
-        <h2 className="text-xs font-semibold text-[var(--admin-text)]">
+        <h2 className="text-[15px] font-semibold text-[var(--admin-text)]">
           Código QR del Menú
         </h2>
       </div>
@@ -46,10 +46,10 @@ export function QrCodeBlock({ slug }: QrCodeBlockProps) {
         </div>
 
         <div className="flex-1 space-y-2.5 text-center sm:text-left">
-          <p className="text-xs font-semibold text-[var(--admin-text)]">
+          <p className="text-[15px] font-semibold text-[var(--admin-text)]">
             Escaneá y probá tu menú digital
           </p>
-          <p className="text-[10px] text-[var(--admin-text-muted)] leading-relaxed">
+          <p className="text-[13px] text-[var(--admin-text-muted)] leading-relaxed">
             Este QR lleva a los clientes directo a tu carta digital. Imprimilo y
             ponelo en tu local, en mesas o en la vidriera.
           </p>
@@ -57,7 +57,7 @@ export function QrCodeBlock({ slug }: QrCodeBlockProps) {
             href={menuUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[10px] font-medium text-[var(--admin-accent)] hover:underline inline-flex items-center gap-1"
+            className="text-[13px] font-medium text-[var(--admin-accent)] hover:underline inline-flex items-center gap-1"
           >
             <ExternalLink size={10} />
             {menuUrl}
@@ -66,7 +66,7 @@ export function QrCodeBlock({ slug }: QrCodeBlockProps) {
             <button
               type="button"
               onClick={downloadQr}
-              className="inline-flex items-center gap-1.5 text-[10px] font-semibold px-3 py-1.5 rounded-lg bg-[var(--admin-accent)] text-white hover:opacity-90 transition-all shadow-sm"
+              className="inline-flex items-center gap-1.5 text-[13px] font-semibold px-3 py-1.5 rounded-lg bg-[var(--admin-accent)] text-white hover:opacity-90 transition-all shadow-sm"
             >
               <Download size={10} />
               Descargar QR

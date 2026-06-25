@@ -32,19 +32,19 @@ export function DangerZone({
         <div className="px-5 py-3.5 border-b border-red-500/20 bg-red-500/5 flex items-center gap-2.5">
           <Trash2 size={16} className="text-red-500" />
           <div>
-            <h2 className="font-semibold text-xs text-red-500">
+            <h2 className="font-semibold text-[15px] text-red-500">
               Zona de Peligro Comercial
             </h2>
-            <p className="text-[10px] text-[var(--admin-text-muted)]">
+            <p className="text-[13px] text-[var(--admin-text-muted)]">
               Acciones irreversibles de desinstalación de infraestructura SaaS.
             </p>
           </div>
         </div>
 
         <div className="p-5 space-y-4">
-          <div className="flex gap-3 text-xs items-start bg-red-500/10 p-3 rounded-lg border border-red-500/20">
+          <div className="flex gap-3 text-[15px] items-start bg-red-500/10 p-3 rounded-lg border border-red-500/20">
             <AlertTriangle className="text-red-500 shrink-0 w-4 h-4 mt-0.5" />
-            <p className="text-[var(--admin-text)] text-[11px] leading-relaxed">
+            <p className="text-[var(--admin-text)] text-[14px] leading-relaxed">
               Al confirmar la baja, tu catálogo público se cerrará de inmediato.
               Se purgarán de forma definitiva todos tus{" "}
               <strong className="text-red-500">
@@ -56,9 +56,9 @@ export function DangerZone({
           </div>
 
           <div className="space-y-2 max-w-md">
-            <label className="text-[11px] font-medium text-[var(--admin-text-muted)] block">
+            <label className="text-[14px] font-medium text-[var(--admin-text-muted)] block">
               Para confirmar, escribe{" "}
-              <span className="font-semibold select-all font-mono text-[var(--admin-text)] bg-[var(--admin-bg)] border border-[var(--admin-border)] px-1 py-0.5 rounded text-xs">
+              <span className="font-semibold select-all font-mono text-[var(--admin-text)] bg-[var(--admin-bg)] border border-[var(--admin-border)] px-1 py-0.5 rounded text-[15px]">
                 {initialData.nombre}
               </span>{" "}
               abajo:
@@ -70,7 +70,7 @@ export function DangerZone({
                 onChange={(e) => onConfirmNameChange(e.target.value)}
                 disabled={saveStatus !== "idle" || isDeleting}
                 placeholder="Nombre del negocio exacto"
-                className="flex-1 p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 transition-all text-xs"
+                className="flex-1 p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 transition-all text-[15px]"
               />
               <button
                 type="button"
@@ -80,7 +80,7 @@ export function DangerZone({
                   saveStatus !== "idle" ||
                   isDeleting
                 }
-                className="bg-red-500 hover:bg-red-600 text-white font-medium text-xs px-4 py-2 rounded-lg shadow-sm transition-all disabled:opacity-30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:hover:bg-red-500 flex items-center justify-center gap-1.5 shrink-0"
+                className="bg-red-500 hover:bg-red-600 text-white font-medium text-[15px] px-4 py-2 rounded-lg shadow-sm transition-all disabled:opacity-30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:hover:bg-red-500 flex items-center justify-center gap-1.5 shrink-0"
               >
                 {isDeleting ? <FoodMini size={12} /> : <Trash2 size={13} />}
                 <span>Destruir Negocio</span>

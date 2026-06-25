@@ -110,9 +110,14 @@ export function MobileSidebar({ slug, negocioNombre }: MobileSidebarProps) {
                     N
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-base font-bold text-[var(--admin-text)] leading-tight">
-                      NEO Admin
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-base font-bold text-[var(--admin-text)] leading-tight">
+                        NEO Admin
+                      </span>
+                      <span className="text-[8px] font-semibold text-[var(--admin-text-muted)] opacity-50 leading-none mt-0.5">
+                        v1.1.1
+                      </span>
+                    </div>
                     <span className="text-[11px] font-semibold text-[var(--admin-text-muted)] truncate max-w-[180px]">
                       {negocioNombre || "Panel de control"}
                     </span>

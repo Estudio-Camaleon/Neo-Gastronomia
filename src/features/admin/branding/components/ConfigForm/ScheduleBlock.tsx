@@ -68,7 +68,7 @@ export function ScheduleBlock({
   };
 
   return (
-    <div className="border border-[var(--admin-border)] rounded-lg overflow-x-auto text-xs">
+    <div className="border border-[var(--admin-border)] rounded-lg overflow-x-auto text-[15px]">
       <div className="divide-y divide-[var(--admin-border)]">
         {DIAS.map((dia) => {
           const turnos = getTurnos(dia.id);
@@ -93,6 +93,9 @@ export function ScheduleBlock({
                 </span>
                 <button
                   type="button"
+                  role="switch"
+                  aria-checked={isOpen}
+                  aria-label={`${dia.label} ${isOpen ? "abierto" : "cerrado"}`}
                   onClick={() => updateDay(dia.id, !isOpen)}
                   className={`relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-150 outline-none ${
                     isOpen
@@ -122,9 +125,9 @@ export function ScheduleBlock({
                           onChange={(e) =>
                             updateTime(dia.id, idx, "inicio", e.target.value)
                           }
-                          className="bg-transparent text-xs font-medium outline-none text-[var(--admin-text)] p-0.5 cursor-pointer"
+                          className="bg-transparent text-[15px] font-medium outline-none text-[var(--admin-text)] p-0.5 cursor-pointer"
                         />
-                        <span className="text-[9px] font-bold text-[var(--admin-text-muted)]">
+                        <span className="text-[12px] font-bold text-[var(--admin-text-muted)]">
                           A
                         </span>
                         <input
@@ -133,7 +136,7 @@ export function ScheduleBlock({
                           onChange={(e) =>
                             updateTime(dia.id, idx, "fin", e.target.value)
                           }
-                          className="bg-transparent text-xs font-medium outline-none text-[var(--admin-text)] p-0.5 cursor-pointer"
+                          className="bg-transparent text-[15px] font-medium outline-none text-[var(--admin-text)] p-0.5 cursor-pointer"
                         />
                         <button
                           type="button"
@@ -147,7 +150,7 @@ export function ScheduleBlock({
                     ))}
                   </div>
                 ) : (
-                  <span className="text-[10px] font-normal text-[var(--admin-text-muted)] opacity-70 italic">
+                  <span className="text-[13px] font-normal text-[var(--admin-text-muted)] opacity-70 italic">
                     Cerrado (Sin operaciones)
                   </span>
                 )}
@@ -160,7 +163,7 @@ export function ScheduleBlock({
                       <button
                         type="button"
                         onClick={() => addFranja(dia.id)}
-                        className="p-1 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-bg)] rounded-md transition-colors flex items-center gap-0.5 font-medium text-[10px]"
+                        className="p-1 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-bg)] rounded-md transition-colors flex items-center gap-0.5 font-medium text-[13px]"
                       >
                         <Plus size={11} /> Turno
                       </button>
@@ -168,7 +171,7 @@ export function ScheduleBlock({
                     <button
                       type="button"
                       onClick={() => cloneToAll(dia.id)}
-                      className="p-1 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-bg)] rounded-md transition-colors flex items-center gap-1 font-medium text-[10px]"
+                      className="p-1 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-bg)] rounded-md transition-colors flex items-center gap-1 font-medium text-[13px]"
                       title="Propagar este esquema semanalmente"
                     >
                       <Copy size={10} /> Semanal

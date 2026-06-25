@@ -45,10 +45,10 @@ export function SupportBlock() {
             <LifeBuoy size={28} strokeWidth={1.5} />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-[var(--admin-text)] mb-1">
+            <h3 className="text-[17px] font-semibold text-[var(--admin-text)] mb-1">
               ¿Necesitás ayuda?
             </h3>
-            <p className="text-xs text-[var(--admin-text-muted)] leading-relaxed max-w-lg">
+            <p className="text-[15px] text-[var(--admin-text-muted)] leading-relaxed max-w-lg">
               Estamos acá para ayudarte a sacar el máximo provecho de tu
               catálogo. Elegí el canal que prefieras y te respondemos a la
               brevedad.
@@ -75,10 +75,10 @@ export function SupportBlock() {
                   className="text-[var(--admin-text-muted)]/40 group-hover:text-[var(--admin-accent)] group-hover:translate-x-0.5 transition-all"
                 />
               </div>
-              <h4 className="text-xs font-semibold text-[var(--admin-text)] mt-3 mb-0.5">
+              <h4 className="text-[15px] font-semibold text-[var(--admin-text)] mt-3 mb-0.5">
                 {link.label}
               </h4>
-              <p className="text-[10px] text-[var(--admin-text-muted)] leading-relaxed">
+              <p className="text-[13px] text-[var(--admin-text-muted)] leading-relaxed">
                 {link.desc}
               </p>
             </>
@@ -111,14 +111,14 @@ export function SupportBlock() {
         <div className="flex items-center gap-3">
           <Smartphone size={16} className="text-[var(--admin-text-muted)] shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-[var(--admin-text)]">
+            <p className="text-[15px] font-medium text-[var(--admin-text)]">
               App v{appVersion}
             </p>
-            <p className="text-[10px] text-[var(--admin-text-muted)]">
+            <p className="text-[13px] text-[var(--admin-text-muted)]">
               NeoCatalog &mdash; Gesti&oacute;n inteligente de cat&aacute;logos digitales
             </p>
           </div>
-          <span className="text-[9px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/5 border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
+          <span className="text-[12px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/5 border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
             <span className="w-1 h-1 rounded-full bg-emerald-500" />
             Operativo
           </span>

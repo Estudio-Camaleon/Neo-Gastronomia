@@ -64,6 +64,7 @@ export async function updateTenantBrandingAction(
       tiktok_url: payload.tiktok_url.trim(),
       twitter_url: payload.twitter_url.trim(),
       youtube_url: payload.youtube_url.trim(),
+      redes_principales: payload.redes_principales as Json,
       horarios: payload.horarios as Json,
       direcciones: payload.direcciones as unknown as Json,
       whatsapp_mensajes: payload.whatsapp_mensajes as unknown as Json,

@@ -18,19 +18,19 @@ export function CatalogDesignBlock({
       {/* ── HEADER ── */}
       <div className="flex items-center gap-2 border-b border-[var(--admin-border)] pb-2.5">
         <Palette size={14} className="text-[var(--admin-text-muted)]" />
-        <h2 className="text-xs font-semibold text-[var(--admin-text)]">
+        <h2 className="text-[15px] font-semibold text-[var(--admin-text)]">
           Color de Acento del Catálogo
         </h2>
       </div>
 
       {/* ── PALETTES ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        <span className="col-span-full text-[9px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
+        <span className="col-span-full text-[12px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
           Seleccionar color
         </span>
         {COLOR_PALETTES.map((group) => (
           <div key={group.label} className="space-y-1.5">
-            <span className="text-[10px] font-medium text-[var(--admin-text-muted)]/70 block">
+            <span className="text-[13px] font-medium text-[var(--admin-text-muted)]/70 block">
               {group.label}
             </span>
             <div className="flex flex-wrap gap-2">
@@ -44,6 +44,8 @@ export function CatalogDesignBlock({
                     onClick={() => onChange(color)}
                     className="relative"
                     title={color}
+                    aria-label={`Color primario: ${color}`}
+                    aria-pressed={isSelected}
                   >
                     <span
                       className={`block w-7 h-7 rounded-lg border transition-all ${
@@ -79,9 +81,9 @@ export function CatalogDesignBlock({
           size={12}
           className="shrink-0 text-[var(--admin-text-muted)] mt-0.5"
         />
-        <p className="text-[10px] text-[var(--admin-text-muted)] leading-normal">
+        <p className="text-[13px] text-[var(--admin-text-muted)] leading-normal">
           La paleta se genera automáticamente y se inyecta como variables CSS{" "}
-          <code className="text-[9px] bg-[var(--admin-surface)] px-1 py-0.5 rounded border border-[var(--admin-border)]">
+          <code className="text-[12px] bg-[var(--admin-surface)] px-1 py-0.5 rounded border border-[var(--admin-border)]">
             --color-custom-*
           </code>{" "}
           en el catálogo público.

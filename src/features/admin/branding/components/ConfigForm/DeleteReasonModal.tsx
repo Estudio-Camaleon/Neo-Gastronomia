@@ -62,11 +62,11 @@ export function DeleteReasonModal({
 
         <h3
           id="delete-reason-title"
-          className="font-bold text-xl text-[var(--admin-text)] text-center tracking-tight mb-1"
+          className="font-bold text-[23px] text-[var(--admin-text)] text-center tracking-tight mb-1"
         >
           Destruir {negocioName}
         </h3>
-        <p className="text-sm font-medium text-[var(--admin-text-muted)] text-center leading-relaxed mb-6">
+        <p className="text-[17px] font-medium text-[var(--admin-text-muted)] text-center leading-relaxed mb-6">
           Esta acción no se puede deshacer. Decinos por qué te vas para ayudarnos a mejorar:
         </p>
 
@@ -74,7 +74,7 @@ export function DeleteReasonModal({
           {REASONS.map((reason) => (
             <label
               key={reason.value}
-              className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all text-sm ${
+              className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all text-[17px] ${
                 selectedReason === reason.value
                   ? "border-red-500 bg-red-500/10 text-[var(--admin-text)]"
                   : "border-[var(--admin-border)] hover:bg-[var(--admin-bg)] text-[var(--admin-text-muted)]"
@@ -99,7 +99,7 @@ export function DeleteReasonModal({
             onChange={(e) => setCustomReason(e.target.value)}
             placeholder="Contanos brevemente..."
             rows={3}
-            className="w-full p-3 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-xl text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 transition-all text-sm resize-none mb-6"
+            className="w-full p-3 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-xl text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 transition-all text-[17px] resize-none mb-6"
           />
         )}
 
@@ -116,7 +116,7 @@ export function DeleteReasonModal({
             type="button"
             onClick={onCancel}
             disabled={isDeleting}
-            className="w-full py-3.5 border border-[var(--admin-border)] bg-transparent text-[var(--admin-text)] rounded-xl font-bold text-sm hover:bg-[var(--admin-bg)] transition-colors"
+            className="w-full py-3.5 border border-[var(--admin-border)] bg-transparent text-[var(--admin-text)] rounded-xl font-bold text-[17px] hover:bg-[var(--admin-bg)] transition-colors"
           >
             Cancelar
           </button>

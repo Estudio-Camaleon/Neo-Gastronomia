@@ -50,6 +50,7 @@ export interface NegocioInitialData {
   tiktok_url?: string;
   twitter_url?: string;
   youtube_url?: string;
+  redes_principales?: string[];
   horarios: ScheduleData;
   direcciones?: DireccionFisica[];
   whatsapp_mensajes?: Record<string, string> | null;
@@ -83,10 +84,22 @@ export interface ConfigFormState {
   tiktok_url: string;
   twitter_url: string;
   youtube_url: string;
+  redes_principales: string[];
   horarios: ScheduleData;
   direcciones: DireccionFisica[];
   whatsapp_mensajes: Record<string, string>;
 }
+
+// ── Redes sociales ───────────────────────────────────────
+export const REDES_SOCIALES = [
+  { id: "instagram", label: "Instagram", campo: "instagram_url" },
+  { id: "facebook", label: "Facebook", campo: "facebook_url" },
+  { id: "tiktok", label: "TikTok", campo: "tiktok_url" },
+  { id: "twitter", label: "X (Twitter)", campo: "twitter_url" },
+  { id: "youtube", label: "YouTube", campo: "youtube_url" },
+] as const;
+
+export type RedSocialId = (typeof REDES_SOCIALES)[number]["id"];
 
 // ── Color palettes ───────────────────────────────────────
 export interface ColorPaletteGroup {

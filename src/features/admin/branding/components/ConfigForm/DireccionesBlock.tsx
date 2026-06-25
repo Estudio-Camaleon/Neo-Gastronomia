@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Plus, MapPin, Trash2 } from "lucide-react";
+import { Plus, MapPin, Trash2, XCircle } from "lucide-react";
 import type { DireccionFisica } from "@/core/types/domain";
 import {
   detectarRegion,
@@ -14,6 +14,7 @@ export interface DireccionesBlockProps {
   onChange: (d: DireccionFisica[]) => void;
   whatsappPais: string;
   whatsappNumero: string;
+  error?: string;
 }
 
 export function DireccionesBlock({
@@ -21,6 +22,7 @@ export function DireccionesBlock({
   onChange,
   whatsappPais,
   whatsappNumero,
+  error,
 }: DireccionesBlockProps) {
   const region = useMemo(
     () => detectarRegion(whatsappPais, whatsappNumero),
@@ -61,31 +63,38 @@ export function DireccionesBlock({
       <div className="flex items-center justify-between gap-2 border-b border-[var(--admin-border)] pb-2.5">
         <div className="flex items-center gap-2">
           <MapPin size={14} className="text-[var(--admin-text-muted)]" />
-          <h2 className="text-xs font-semibold text-[var(--admin-text)]">
+          <h2 className="text-[15px] font-semibold text-[var(--admin-text)]">
             Sucursales / Direcciones
           </h2>
-          <span className="text-[9px] font-bold text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded">Obligatorio</span>
+          <span className="text-[12px] font-bold text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded">Obligatorio</span>
         </div>
         <button
           type="button"
           onClick={agregar}
-          className="text-xs font-semibold flex items-center gap-1 text-[var(--admin-accent)] hover:bg-[var(--admin-accent)]/10 px-2.5 py-1.5 rounded-md transition-colors"
+          className="text-[15px] font-semibold flex items-center gap-1 text-[var(--admin-accent)] hover:bg-[var(--admin-accent)]/10 px-2.5 py-1.5 rounded-md transition-colors"
         >
           <Plus size={13} /> Agregar sucursal
         </button>
       </div>
 
       {region && (
-        <p className="text-[10px] text-[var(--admin-accent)] flex items-center gap-1">
+        <p className="text-[13px] text-[var(--admin-accent)] flex items-center gap-1">
           <MapPin size={11} />
-          Región detectada: <span className="font-semibold">{region}</span>
+          Regi&oacute;n detectada: <span className="font-semibold">{region}</span>
+        </p>
+      )}
+
+      {error && (
+        <p className="text-[13px] text-red-500 flex items-center gap-1 mt-1">
+          <XCircle size={10} />
+          {error}
         </p>
       )}
 
       {direcciones.length === 0 ? (
-        <p className="text-xs text-[var(--admin-text-muted)] italic py-2">
+        <p className="text-[15px] text-[var(--admin-text-muted)] italic py-2">
           No hay sucursales registradas. Agregá al menos una dirección para tu negocio.
-          <span className="block text-[10px] text-red-500/70 not-italic mt-1 font-medium">
+          <span className="block text-[13px] text-red-500/70 not-italic mt-1 font-medium">
             * Al menos una sucursal es obligatoria para recibir pedidos.
           </span>
         </p>
@@ -104,7 +113,7 @@ export function DireccionesBlock({
                     value={dir.nombre}
                     onChange={(e) => actualizar(dir.id, { nombre: e.target.value })}
                     placeholder="Nombre (Ej: Local Centro)"
-                    className="w-full p-2 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-md text-xs font-medium text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
+                    className="w-full p-2 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-md text-[15px] font-medium text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
                   />
                   <select
                     value={dir.localidad}
@@ -116,7 +125,7 @@ export function DireccionesBlock({
                         direccion: dirs.length > 0 ? dirs[0] : "",
                       });
                     }}
-                    className="w-full p-2 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-md text-xs text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
+                    className="w-full p-2 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-md text-[15px] text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
                   >
                     <option value="">Seleccioná localidad</option>
                     {localidadesDisponibles.map((loc) => (
@@ -126,7 +135,7 @@ export function DireccionesBlock({
                   <select
                     value={dir.direccion}
                     onChange={(e) => actualizar(dir.id, { direccion: e.target.value })}
-                    className="w-full p-2 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-md text-xs text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
+                    className="w-full p-2 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-md text-[15px] text-[var(--admin-text)] focus:outline-none focus:border-[var(--admin-accent)] focus:ring-1 focus:ring-[var(--admin-accent)] transition-all"
                   >
                     <option value="">Seleccioná zona</option>
                     {zonas.map((d) => (
@@ -136,7 +145,7 @@ export function DireccionesBlock({
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {dir.es_principal && (
-                    <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
+                    <span className="text-[13px] font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
                       Principal
                     </span>
                   )}

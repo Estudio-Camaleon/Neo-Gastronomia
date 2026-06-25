@@ -30,7 +30,7 @@ export default async function ConfiguracionPage(props: {
   const { data: negocios } = await supabase
     .from("negocios")
     .select(
-      `id, nombre, slug, whatsapp, descripcion, direccion, localidad, direccion_notas, color_primary, logo_url, logo_scale, logo_posicion, logo_fit, logo_shape, banner_url, banner_posicion, banner_height, banner_scale, mostrar_nombre, horarios, instagram_url, facebook_url, tiktok_url, twitter_url, youtube_url, direcciones, whatsapp_mensajes, plan_tier, subscription_status, current_period_ends_at, created_at`,
+      `id, nombre, slug, whatsapp, descripcion, direccion, localidad, direccion_notas, color_primary, logo_url, logo_scale, logo_posicion, logo_fit, logo_shape, banner_url, banner_posicion, banner_height, banner_scale, mostrar_nombre, horarios, instagram_url, facebook_url, tiktok_url, twitter_url, youtube_url, redes_principales, direcciones, whatsapp_mensajes, plan_tier, subscription_status, current_period_ends_at, created_at`,
     )
     .eq("user_id", user?.id ?? "")
     .limit(1)
@@ -39,7 +39,7 @@ export default async function ConfiguracionPage(props: {
   const negocio = negocios?.[0] ?? null;
 
   return (
-    <div className="space-y-8 pb-16 relative z-10">
+    <div className="space-y-8 relative z-10">
       {firstLogin && <WelcomeToast />}
 
       {/* HEADER DE AUDITORÍA */}
