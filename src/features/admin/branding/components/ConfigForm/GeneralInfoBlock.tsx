@@ -77,7 +77,7 @@ export function GeneralInfoBlock({
             </p>
           )}
           {!errors.slug && (
-            <p className="text-[12px] text-[var(--admin-text-muted)] mt-1 leading-normal">
+            <p className="text-[12px] text-[var(--admin-text-muted)] mt-1 leading-normal break-all">
               Enlace público directo:{" "}
               <span className="font-mono">
                 neo.app/<b>{formData.slug || "comercio"}</b>
@@ -97,7 +97,7 @@ export function GeneralInfoBlock({
               name="whatsapp_pais"
               value={formData.whatsapp_pais}
               onChange={(e) => { onChange(e); onClearError("whatsapp_numero"); }}
-              className="shrink-0 max-w-[120px] sm:max-w-[140px] p-2 bg-[var(--admin-bg)] border rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)] transition-all font-medium text-[15px] truncate"
+              className="shrink-0 max-w-[100px] sm:max-w-[140px] p-2 bg-[var(--admin-bg)] border rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)] transition-all font-medium text-[15px] truncate"
             >
               {PAISES.map((p) => (
                 <option key={p.code} value={p.code}>{p.label}</option>
@@ -108,7 +108,7 @@ export function GeneralInfoBlock({
               value={formData.whatsapp_numero}
               onChange={(e) => { onChange(e); onClearError("whatsapp_numero"); }}
               type="tel"
-              className={`flex-1 w-full p-2 bg-[var(--admin-bg)] border rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 transition-all font-medium text-[15px] ${
+              className={`flex-1 min-w-0 p-2 bg-[var(--admin-bg)] border rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 transition-all font-medium text-[15px] ${
                 errors.whatsapp_numero ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-[var(--admin-border)] focus:border-[var(--admin-accent)]"
               }`}
               placeholder="Ej: 9 381 1234567"
@@ -120,13 +120,13 @@ export function GeneralInfoBlock({
               {errors.whatsapp_numero}
             </p>
           ) : (
-            <p className="text-[12px] text-[var(--admin-text-muted)] leading-tight">
+            <p className="text-[12px] text-[var(--admin-text-muted)] leading-tight break-all">
               Sin espacios ni símbolos. Ej: <span className="font-mono">9 381 1234567</span> (sin el +54)
             </p>
           )}
         </div>
 
-        <div className="sm:col-span-2 flex items-center gap-3 pt-1">
+        <div className="sm:col-span-2 flex items-start gap-3 pt-1">
           <label className="relative inline-flex items-center cursor-pointer">
             <input
               type="checkbox"
