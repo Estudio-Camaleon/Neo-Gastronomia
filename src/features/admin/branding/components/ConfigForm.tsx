@@ -271,13 +271,14 @@ export function ConfigForm({
 
   const {
     showModal: showUnsavedModal,
-    confirmLeave: saveAndLeave,
+    blockNavigation,
+    confirmLeave: saveAndLeaveRaw,
     cancelLeave: stayOnPage,
     discardAndReset: discardChanges,
   } = useUnsavedChanges(isDirty, handleReset);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!initialData?.id) {
       return toast.error("Error estructural: Falta el ID del tenant.");
     }
@@ -353,6 +354,11 @@ export function ConfigForm({
     }
   };
 
+  const saveAndLeave = useCallback(async () => {
+    if (isDirty) await handleSubmit();
+    saveAndLeaveRaw();
+  }, [isDirty, handleSubmit, saveAndLeaveRaw]);
+
   const handleDeleteBusiness = async (reason: string) => {
     if (!initialData?.id) return;
     if (isDeleting) return;
@@ -407,9 +413,13 @@ export function ConfigForm({
 
   const [activeTab, setActiveTab] = useState<TabId>("identidad");
 
+  const handleTabChange = useCallback((tab: TabId) => {
+    blockNavigation(() => setActiveTab(tab));
+  }, [blockNavigation]);
+
   return (
     <div className="space-y-8 pb-12 select-none w-full max-w-full min-w-0 px-4 sm:px-6 lg:px-0">
-      <TabBar activeTab={activeTab} onChange={setActiveTab} />
+      <TabBar activeTab={activeTab} onChange={handleTabChange} />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* INDICADOR DE CAMBIOS SIN GUARDAR */}
