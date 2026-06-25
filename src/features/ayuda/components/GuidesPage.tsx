@@ -19,51 +19,56 @@ function GuideCard({
   category,
   readTime,
   slug,
+  steps,
 }: {
   title: string;
   description: string;
   category: string;
   readTime: string;
   slug: string;
+  steps: { title: string; description: string; image?: string }[];
 }) {
   const cat = guideCategories.find((c) => c.slug === category);
-  const gradientMap: Record<string, string> = {
-    empezando: "from-emerald-500/10 to-emerald-600/5",
-    catalogo: "from-sky-500/10 to-sky-600/5",
-    pedidos: "from-amber-500/10 to-amber-600/5",
-    personalizacion: "from-violet-500/10 to-violet-600/5",
-    facturacion: "from-rose-500/10 to-rose-600/5",
-  };
 
   return (
     <a
       href={`/ayuda/guias/${slug}`}
       className="group glass-card overflow-hidden"
     >
-      <div
-        className={`aspect-[16/10] bg-gradient-to-br ${gradientMap[category] || "from-[var(--theme-primary-soft)] to-[var(--theme-primary-soft-2)]"} flex items-center justify-center relative`}
-      >
-        <BookOpen
-          size={40}
-          className="text-[var(--theme-primary)]/30 group-hover:scale-110 group-hover:text-[var(--theme-primary)]/50 transition-all duration-300"
-        />
-        <span className="absolute top-3 left-3 text-[9px] font-bold text-[var(--theme-primary)] bg-[var(--theme-surface-strong)]/80 backdrop-blur-sm px-2.5 py-1 rounded-full border border-[var(--theme-border)]">
+      <div className="aspect-video relative bg-[var(--theme-primary-soft)] text-[var(--theme-primary)] overflow-hidden">
+        {steps[0]?.image ? (
+          <div className="absolute inset-6 scale-[0.7]">
+            <Image
+              src={steps[0].image}
+              alt={title}
+              fill
+              className="object-contain group-hover:scale-105 transition-transform duration-500"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          </div>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <BookOpen size={24} />
+          </div>
+        )}
+        <span className="absolute top-3 left-3 text-[9px] font-bold text-white bg-[var(--theme-primary)] backdrop-blur-sm px-2.5 py-1 rounded-full border border-[var(--theme-border)] z-10">
           {cat?.label || category}
         </span>
       </div>
-      <div className="p-4 sm:p-5">
-        <h3 className="text-sm font-bold text-[var(--theme-text)] group-hover:text-[var(--theme-primary)] transition-colors line-clamp-2">
+
+      <div className="p-4 sm:p-5 bg-[var(--theme-primary)]">
+        <h3 className="text-sm font-bold text-[var(--theme-surface-strong)] group-hover:text-[var(--theme-surface-strong)] transition-colors line-clamp-2">
           {title}
         </h3>
-        <p className="text-xs text-[var(--theme-text-muted)] mt-1.5 leading-relaxed line-clamp-2">
+        <p className="text-xs text-[var(--theme-surface-strong)] mt-1.5 leading-relaxed line-clamp-2">
           {description}
         </p>
         <div className="flex items-center justify-between mt-3">
-          <span className="text-[10px] text-[var(--theme-text-muted)] flex items-center gap-1">
+          <span className="text-[10px] text-[var(--theme-surface-strong)] flex items-center gap-1">
             <Clock size={11} />
             {readTime}
           </span>
-          <span className="text-[10px] font-semibold text-[var(--theme-primary)] flex items-center gap-0.5 group-hover:gap-1 transition-all">
+          <span className="text-[10px] font-semibold text-[var(--theme-surface-strong)] flex items-center gap-0.5 group-hover:gap-1 transition-all">
             Ver guía <ChevronRight size={12} />
           </span>
         </div>
@@ -117,7 +122,7 @@ export function GuidesPage() {
           <main className="flex-grow w-full">
             {/* ── Hero ── */}
             <section className="relative px-4 sm:px-6 lg:px-8 pt-12 sm:pt-20 pb-8">
-              <div className="mx-auto max-w-3xl text-center">
+              <div className="mx-auto max-w-4xl text-center">
                 <div className="inline-flex items-center gap-2 rounded-full bg-[var(--theme-primary-soft)] px-4 py-1.5 text-[10px] font-bold text-[var(--theme-primary)] uppercase tracking-wider mb-6">
                   <BookOpen size={12} />
                   Guías y Tutoriales
@@ -169,7 +174,7 @@ export function GuidesPage() {
 
             {/* ── Grid de guías ── */}
             <section className="px-4 sm:px-6 lg:px-8 pb-16">
-              <div className="mx-auto max-w-5xl">
+              <div className="mx-auto max-w-7xl">
                 {filtered.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                     {filtered.map((guide) => (
@@ -200,7 +205,7 @@ export function GuidesPage() {
 
           {/* ── Footer ── */}
           <footer className="border-t border-[var(--theme-border)] px-4 sm:px-6 lg:px-8 py-6">
-            <div className="mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 max-w-5xl">
+            <div className="mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 max-w-7xl">
               <div className="text-[10px] text-[var(--theme-text-muted)]">
                 NeoCatalog — Guías y tutoriales
               </div>

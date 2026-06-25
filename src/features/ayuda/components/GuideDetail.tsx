@@ -118,7 +118,7 @@ export function GuideDetail({ guide }: { guide: Guide }) {
           <main className="flex-grow w-full">
             {/* ── Header de la guía ── */}
             <section className="relative px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16 pb-8">
-              <div className="mx-auto max-w-3xl">
+              <div className="mx-auto max-w-4xl">
                 <a
                   href="/ayuda/guias"
                   className="inline-flex items-center gap-1 text-[10px] font-semibold text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] transition-colors mb-6"
@@ -148,7 +148,7 @@ export function GuideDetail({ guide }: { guide: Guide }) {
 
             {/* ── Pasos ── */}
             <section className="px-4 sm:px-6 lg:px-8 pb-16">
-              <div className="mx-auto max-w-3xl space-y-8">
+              <div className="mx-auto max-w-4xl space-y-8">
                 {guide.steps.map((step, idx) => (
                   <div
                     key={idx}
@@ -167,18 +167,9 @@ export function GuideDetail({ guide }: { guide: Guide }) {
                           {step.description}
                         </p>
 
-                        {/* Imagen del paso (placeholder si no hay imagen real) */}
+                        {/* Imagen del paso */}
                         {step.image && (
-                          <div
-                            className={`mt-4 aspect-video rounded-xl bg-gradient-to-br ${gradientMap[guide.category] || "from-[var(--theme-primary-soft)] to-[var(--theme-primary-soft-2)]"} flex items-center justify-center relative overflow-hidden`}
-                          >
-                            <div className="flex flex-col items-center gap-2 text-[var(--theme-primary)]/40">
-                              <BookOpen size={32} />
-                              <span className="text-[10px] font-medium">
-                                {step.title}
-                              </span>
-                            </div>
-                            {/* Cuando tengas la imagen real:
+                          <div className="mt-4 aspect-video rounded-xl overflow-hidden relative bg-[var(--theme-surface-strong)]">
                             <Image
                               src={step.image}
                               alt={step.title}
@@ -186,7 +177,6 @@ export function GuideDetail({ guide }: { guide: Guide }) {
                               className="object-cover"
                               sizes="(max-width: 768px) 100vw, 672px"
                             />
-                            */}
                           </div>
                         )}
 

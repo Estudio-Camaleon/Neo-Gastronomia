@@ -243,7 +243,7 @@ export function HelpPage() {
           <main className="flex-grow w-full">
             {/* ── Hero ── */}
             <section className="relative px-4 sm:px-6 lg:px-8 pt-12 sm:pt-20 pb-8">
-              <div className="mx-auto max-w-3xl text-center">
+              <div className="mx-auto max-w-4xl text-center">
                 <div className="inline-flex items-center gap-2 rounded-full bg-[var(--theme-primary-soft)] px-4 py-1.5 text-[10px] font-bold text-[var(--theme-primary)] uppercase tracking-wider mb-6">
                   <LifeBuoy size={12} />
                   Centro de Ayuda
@@ -273,7 +273,7 @@ export function HelpPage() {
 
             {/* ── Canales de soporte ── */}
             <section className="px-4 sm:px-6 lg:px-8 pb-8">
-              <div className="mx-auto max-w-3xl grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="mx-auto max-w-4xl grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <a
                   href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}`}
                   target="_blank"
@@ -317,7 +317,7 @@ export function HelpPage() {
 
             {/* ── FAQ ── */}
             <section className="px-4 sm:px-6 lg:px-8 pb-16">
-              <div className="mx-auto max-w-3xl space-y-6">
+              <div className="mx-auto max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-5">
                 {faqCategories.map((cat) => (
                   <FaqCategoryCard key={cat.titulo} category={cat} searchQuery={searchQuery} />
                 ))}
@@ -329,7 +329,7 @@ export function HelpPage() {
                         item.respuesta.toLowerCase().includes(searchQuery.toLowerCase()),
                     ).length === 0,
                 ) && (
-                  <div className="glass-card p-8 text-center">
+                  <div className="glass-card p-8 text-center col-span-full">
                     <p className="text-sm font-semibold text-[var(--theme-text)]">
                       No encontramos resultados para "{searchQuery}"
                     </p>
@@ -344,7 +344,7 @@ export function HelpPage() {
 
           {/* ── Footer ── */}
           <footer className="border-t border-[var(--theme-border)] px-4 sm:px-6 lg:px-8 py-6">
-            <div className="mx-auto max-w-3xl flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="mx-auto max-w-5xl flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-[10px] text-[var(--theme-text-muted)]">
                 <Smartphone size={12} />
                 <span>App v{appVersion}</span>

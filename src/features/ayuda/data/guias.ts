@@ -27,7 +27,7 @@ export const guideCategories = [
 export const guias: Guide[] = [
   {
     slug: "crear-mi-catalogo",
-    title: "Crear tu catálogo digital",
+    title: "Crea tu catálogo digital",
     description:
       "Aprendé a configurar tu negocio, agregar productos y tener tu menú digital funcionando en minutos.",
     category: "empezando",
@@ -37,7 +37,7 @@ export const guias: Guide[] = [
         title: "Registrate en NEO",
         description:
           "Ingresá a neocatalog.com.ar y creá tu cuenta con tu número de WhatsApp. Es gratis y no requiere tarjeta.",
-        image: "/ayuda/guias/thumb-crear-mi-catalogo.webp",
+        image: "/ayuda/guias/thumb-crear-mi-catalogo.svg",
       },
       {
         title: "Completá los datos de tu negocio",
@@ -70,7 +70,7 @@ export const guias: Guide[] = [
         title: "Subí tu logo",
         description:
           "Desde Configuración → Marca, subí el logo de tu negocio. Se mostrará en la cabecera de tu menú digital. Usá una imagen cuadrada de al menos 200×200 px para mejor resultado.",
-        image: "/ayuda/guias/thumb-personalizar-mi-catalogo.webp",
+        image: "/ayuda/guias/thumb-personalizar-mi-catalogo.svg",
       },
       {
         title: "Elegí los colores de tu marca",
@@ -98,7 +98,7 @@ export const guias: Guide[] = [
         title: "Crear un producto nuevo",
         description:
           "En el panel, andá a Productos → Agregar producto. Completá nombre, descripción (opcional) y precio base.",
-        image: "/ayuda/guias/thumb-agregar-productos.webp",
+        image: "/ayuda/guias/thumb-agregar-productos.svg",
       },
       {
         title: "Agregar foto del producto",
@@ -131,7 +131,7 @@ export const guias: Guide[] = [
         title: "Crear una categoría",
         description:
           "Andá a Categorías en el panel. Hacé clic en 'Agregar categoría', poné un nombre (ej: 'Platos principales', 'Bebidas') y guardá.",
-        image: "/ayuda/guias/thumb-categorias-y-orden.webp",
+        image: "/ayuda/guias/thumb-categorias-y-orden.svg",
       },
       {
         title: "Ordenar categorías",
@@ -159,7 +159,7 @@ export const guias: Guide[] = [
         title: "Crear un grupo de extras",
         description:
           "Al editar un producto, andá a la sección 'Personalización'. Creá un grupo (ej: 'Agregados', 'Bebida incluida') y definí si el cliente puede elegir una o varias opciones.",
-        image: "/ayuda/guias/thumb-opciones-extras.webp",
+        image: "/ayuda/guias/thumb-opciones-extras.svg",
       },
       {
         title: "Agregar opciones al grupo",
@@ -187,7 +187,7 @@ export const guias: Guide[] = [
         title: "Configurar recepción de pedidos",
         description:
           "En el panel, andá a Configuración → Pedidos. Ingresá tu número de WhatsApp donde querés recibir las notificaciones de cada pedido.",
-        image: "/ayuda/guias/thumb-gestionar-pedidos.webp",
+        image: "/ayuda/guias/thumb-gestionar-pedidos.svg",
       },
       {
         title: "Configurar delivery y retiro",
@@ -215,7 +215,7 @@ export const guias: Guide[] = [
         title: "Comparar planes",
         description:
           "NEO ofrece dos planes: FREE (gratuito, con todas las funciones esenciales) y PRO (con funcionalidades avanzadas como suscripciones recurrentes mediante Mercado Pago).",
-        image: "/ayuda/guias/thumb-planes-y-suscripcion.webp",
+        image: "/ayuda/guias/thumb-planes-y-suscripcion.svg",
       },
       {
         title: "Suscribirte al plan PRO",
