@@ -56,12 +56,12 @@ export function NotificationTray({ onClose, variant }: NotificationTrayProps) {
   const positionClasses =
     variant === "sidebar"
       ? "left-1/2 -translate-x-1/2 bottom-full mb-2"
-      : "right-0 top-full mt-1";
+      : "fixed left-1/2 -translate-x-1/2 top-16 z-[100] sm:absolute sm:right-0 sm:left-auto sm:translate-x-0 sm:top-full sm:mt-1";
 
   const widthClasses =
     variant === "sidebar"
       ? "w-80"
-      : "w-80 md:w-96 max-w-[calc(100vw-0.75rem)]";
+      : "w-[calc(100vw-1.5rem)] sm:w-80 md:w-96";
 
   return (
     <div
