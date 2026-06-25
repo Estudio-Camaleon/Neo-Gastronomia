@@ -105,44 +105,37 @@ export function BrandingBlock({
         <Camera size={16} className="text-[var(--admin-text-muted)]" />
         <div>
           <h2 className="font-semibold text-[15px] text-[var(--admin-text)]">
-            Previsualizaci&oacute;n en vivo del encabezado
+            Previsualizaci&oacute;n del encabezado
           </h2>
           <p className="text-[13px] text-[var(--admin-text-muted)]">
-            Vista aproximada de c&oacute;mo se ver&aacute; el encabezado en el men&uacute; p&uacute;blico.
+            Vista ilustrativa. Los valores reales en el men&uacute; p&uacute;blico pueden variar seg&uacute;n el dispositivo.
           </p>
         </div>
       </div>
 
-      {/* Desktop: inline preview */}
-      <div className="hidden md:block">
-        <HeaderPreview variant="desktop" {...previewProps} />
+      {/* Vista previa inline en desktop y mobile */}
+      <div className="px-5 py-4">
+        <div className="hidden md:block">
+          <HeaderPreview variant="desktop" {...previewProps} />
+        </div>
+        <div className="md:hidden">
+          <HeaderPreview variant="desktop" {...previewProps} />
+        </div>
       </div>
 
-      {/* Mobile/Tablet: trigger card */}
-      <div className="md:hidden">
+      {/* Botón para abrir mockup de teléfono */}
+      <div className="px-5 pb-5 -mt-2">
         <button
           type="button"
           onClick={() => setPreviewOpen(true)}
-          className="w-full flex items-center gap-3 p-4 bg-[var(--admin-bg)] border border-dashed border-[var(--admin-border)] rounded-lg text-left transition-all hover:bg-[var(--admin-accent)]/5 hover:border-[var(--admin-accent)]/30 active:scale-[0.99]"
+          className="w-full flex items-center justify-center gap-2 py-2.5 text-[13px] font-medium text-[var(--admin-text-muted)] bg-[var(--admin-bg)] border border-dashed border-[var(--admin-border)] rounded-lg transition-all hover:bg-[var(--admin-accent)]/5 hover:border-[var(--admin-accent)]/30 active:scale-[0.99]"
         >
-          <div className="w-10 h-12 rounded-lg border border-[var(--admin-border)] flex items-center justify-center bg-[var(--admin-surface)]">
-            <Smartphone size={18} className="text-[var(--admin-text-muted)]" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <span className="text-[14px] font-semibold text-[var(--admin-text)] block">
-              Toc&aacute; para previsualizar
-            </span>
-            <span className="text-[13px] text-[var(--admin-text-muted)] block truncate">
-              {nombre || "Nombre del negocio"}
-            </span>
-          </div>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--admin-text-muted)] shrink-0">
-            <path d="m9 18 6-6-6-6" />
-          </svg>
+          <Smartphone size={14} />
+          Ver en simulaci&oacute;n de tel&eacute;fono
         </button>
       </div>
 
-      {/* Mobile: modal with phone mockup */}
+      {/* Modal: mockup de teléfono */}
       {previewOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
