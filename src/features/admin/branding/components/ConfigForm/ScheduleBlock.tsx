@@ -117,7 +117,7 @@ export function ScheduleBlock({
                     {turnos.map((t, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center gap-1.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-md p-1 animate-in zoom-in-95 duration-100"
+                        className="flex items-center gap-1.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-md p-1.5 animate-in zoom-in-95 duration-100"
                       >
                         <input
                           type="time"
@@ -125,9 +125,9 @@ export function ScheduleBlock({
                           onChange={(e) =>
                             updateTime(dia.id, idx, "inicio", e.target.value)
                           }
-                          className="bg-transparent text-[15px] font-medium outline-none text-[var(--admin-text)] p-0.5 cursor-pointer"
+                          className="bg-transparent text-[15px] font-medium outline-none text-[var(--admin-text)] p-1 cursor-pointer min-w-[80px] sm:min-w-0"
                         />
-                        <span className="text-[12px] font-bold text-[var(--admin-text-muted)]">
+                        <span className="text-[12px] font-bold text-[var(--admin-text-muted)] shrink-0">
                           A
                         </span>
                         <input
@@ -136,7 +136,7 @@ export function ScheduleBlock({
                           onChange={(e) =>
                             updateTime(dia.id, idx, "fin", e.target.value)
                           }
-                          className="bg-transparent text-[15px] font-medium outline-none text-[var(--admin-text)] p-0.5 cursor-pointer"
+                          className="bg-transparent text-[15px] font-medium outline-none text-[var(--admin-text)] p-1 cursor-pointer min-w-[80px] sm:min-w-0"
                         />
                         <button
                           type="button"
@@ -156,7 +156,7 @@ export function ScheduleBlock({
                 )}
               </div>
 
-              <div className="px-4 py-1.5 flex items-center justify-end gap-1.5 shrink-0 md:w-[150px] border-t md:border-t-0 md:border-l border-[var(--admin-border)]">
+              <div className="px-4 py-1.5 flex items-center justify-end gap-1.5 shrink-0 md:w-[140px] border-t md:border-t-0 md:border-l border-[var(--admin-border)]">
                 {isOpen && (
                   <>
                     {turnos.length < 2 && (

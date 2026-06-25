@@ -92,12 +92,12 @@ export function GeneralInfoBlock({
             <Phone size={12} /> WhatsApp Receptor de Comandas
             <span className="text-[12px] font-bold text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded">Obligatorio</span>
           </label>
-          <div className="flex gap-2">
+          <div className="flex gap-2 min-w-0">
             <select
               name="whatsapp_pais"
               value={formData.whatsapp_pais}
               onChange={(e) => { onChange(e); onClearError("whatsapp_numero"); }}
-              className="shrink-0 w-auto sm:w-[130px] p-2 bg-[var(--admin-bg)] border rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)] transition-all font-medium text-[15px]"
+              className="shrink-0 max-w-[120px] sm:max-w-[140px] p-2 bg-[var(--admin-bg)] border rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)] transition-all font-medium text-[15px] truncate"
             >
               {PAISES.map((p) => (
                 <option key={p.code} value={p.code}>{p.label}</option>
