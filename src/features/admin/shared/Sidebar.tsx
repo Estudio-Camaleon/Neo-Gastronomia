@@ -16,11 +16,10 @@ import {
   BarChart3,
   Percent,
   Settings,
-  Sun,
-  Moon,
-  ExternalLink,
   LogOut,
   Crown,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 const supabase = createClient();
@@ -328,54 +327,6 @@ export function Sidebar({
               </p>
             )}
           </div>
-
-          <div className="flex bg-[var(--admin-bg)] rounded-lg p-0.5 border border-[var(--admin-border)]">
-            <button
-              onClick={() => setTheme("light")}
-              aria-label="Tema claro"
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-[11px] lg:text-xs font-bold rounded-md transition-all active:scale-[0.97] ${
-                theme === "light"
-                  ? "bg-[var(--admin-surface)] text-[var(--admin-text)] shadow-xs border border-[var(--admin-border)]"
-                  : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface)]/40"
-              }`}
-            >
-              <Sun size={13} /> <span className="hidden lg:inline">Claro</span>
-            </button>
-            <button
-              onClick={() => setTheme("dark")}
-              aria-label="Tema oscuro"
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-[11px] lg:text-xs font-bold rounded-md transition-all active:scale-[0.97] ${
-                theme === "dark"
-                  ? "bg-[var(--admin-surface)] text-[var(--admin-text)] shadow-xs border border-[var(--admin-border)]"
-                  : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-surface)]/40"
-              }`}
-            >
-              <Moon size={13} />{" "}
-              <span className="hidden lg:inline">Oscuro</span>
-            </button>
-          </div>
-
-          {slug && (
-            <div className="bg-[var(--admin-surface-accent)]/30 rounded-xl p-2.5 lg:p-3 group transition-all border border-[var(--admin-border)]">
-              <div className="flex items-center justify-between mb-0.5">
-                <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-wider text-[var(--admin-accent)]">
-                  Tu Tienda Online
-                </span>
-                <ExternalLink
-                  size={11}
-                  className="text-[var(--admin-accent)] opacity-60 group-hover:opacity-100 transition-all shrink-0"
-                />
-              </div>
-              <a
-                href={`/${slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[11px] lg:text-xs font-bold text-[var(--admin-text)] truncate block hover:text-[var(--admin-accent)] transition-colors"
-              >
-                neo.app/{slug}
-              </a>
-            </div>
-          )}
 
           <button
             type="button"
