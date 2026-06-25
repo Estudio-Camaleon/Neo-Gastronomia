@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Camera, Upload, ArrowUp, ArrowDown, Minus, Smartphone, X, XCircle } from "lucide-react";
+import { Camera, Upload, ArrowUp, ArrowDown, Minus, Smartphone, X, XCircle, Lock, PenLine } from "lucide-react";
 import {
   LOGO_SHAPE_OPTIONS,
   LOGO_POSITION_OPTIONS,
@@ -70,6 +70,7 @@ export function BrandingBlock({
   onBannerScaleChange,
 }: BrandingBlockProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [lockedScales, setLockedScales] = useState({ logo: true, banner: true });
 
   const socials = [
     { id: "whatsapp" as const, url: whatsapp },
@@ -305,9 +306,24 @@ export function BrandingBlock({
 
           <div className="space-y-1 pt-1">
             <div className="flex items-center justify-between">
-              <span className="text-[12px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
-                Escala del logo
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
+                  Escala del logo
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setLockedScales((p) => ({ ...p, logo: !p.logo }))}
+                  className={`p-1 rounded-md transition-all ${
+                    lockedScales.logo
+                      ? "text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] hover:bg-[var(--admin-accent)]/10"
+                      : "text-[var(--admin-accent)] bg-[var(--admin-accent)]/10"
+                  }`}
+                  aria-label={lockedScales.logo ? "Desbloquear escala del logo" : "Bloquear escala del logo"}
+                  title={lockedScales.logo ? "Habilitar edición" : "Deshabilitar edición"}
+                >
+                  {lockedScales.logo ? <PenLine size={12} /> : <Lock size={12} />}
+                </button>
+              </div>
               <span className="text-[13px] font-mono text-[var(--admin-text-muted)]">
                 {logoScale.toFixed(1)}x
               </span>
@@ -321,7 +337,12 @@ export function BrandingBlock({
                 step="0.1"
                 value={logoScale}
                 onChange={(e) => onLogoScaleChange(parseFloat(e.target.value))}
-                className="flex-1 h-1.5 bg-[var(--admin-bg)] rounded-full appearance-none cursor-pointer accent-[var(--admin-accent)] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--admin-accent)] [&::-webkit-slider-thumb]:shadow-sm"
+                disabled={lockedScales.logo}
+                className={`flex-1 h-1.5 rounded-full appearance-none transition-opacity ${
+                  lockedScales.logo
+                    ? "bg-[var(--admin-bg)] opacity-40 cursor-not-allowed"
+                    : "bg-[var(--admin-bg)] cursor-pointer accent-[var(--admin-accent)] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--admin-accent)] [&::-webkit-slider-thumb]:shadow-sm"
+                }`}
               />
               <span className="text-[12px] text-[var(--admin-text-muted)]/60 font-mono">2x</span>
             </div>
@@ -329,9 +350,24 @@ export function BrandingBlock({
 
           <div className="space-y-1 pt-1">
             <div className="flex items-center justify-between">
-              <span className="text-[12px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
-                Escala del banner
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
+                  Escala del banner
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setLockedScales((p) => ({ ...p, banner: !p.banner }))}
+                  className={`p-1 rounded-md transition-all ${
+                    lockedScales.banner
+                      ? "text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] hover:bg-[var(--admin-accent)]/10"
+                      : "text-[var(--admin-accent)] bg-[var(--admin-accent)]/10"
+                  }`}
+                  aria-label={lockedScales.banner ? "Desbloquear escala del banner" : "Bloquear escala del banner"}
+                  title={lockedScales.banner ? "Habilitar edición" : "Deshabilitar edición"}
+                >
+                  {lockedScales.banner ? <PenLine size={12} /> : <Lock size={12} />}
+                </button>
+              </div>
               <span className="text-[13px] font-mono text-[var(--admin-text-muted)]">
                 {bannerScale.toFixed(1)}x
               </span>
@@ -345,7 +381,12 @@ export function BrandingBlock({
                 step="0.1"
                 value={bannerScale}
                 onChange={(e) => onBannerScaleChange(parseFloat(e.target.value))}
-                className="flex-1 h-1.5 bg-[var(--admin-bg)] rounded-full appearance-none cursor-pointer accent-[var(--admin-accent)] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--admin-accent)] [&::-webkit-slider-thumb]:shadow-sm"
+                disabled={lockedScales.banner}
+                className={`flex-1 h-1.5 rounded-full appearance-none transition-opacity ${
+                  lockedScales.banner
+                    ? "bg-[var(--admin-bg)] opacity-40 cursor-not-allowed"
+                    : "bg-[var(--admin-bg)] cursor-pointer accent-[var(--admin-accent)] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--admin-accent)] [&::-webkit-slider-thumb]:shadow-sm"
+                }`}
               />
               <span className="text-[12px] text-[var(--admin-text-muted)]/60 font-mono">2x</span>
             </div>
