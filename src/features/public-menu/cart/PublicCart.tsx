@@ -39,6 +39,8 @@ export function PublicCart({
 }: PublicCartProps) {
   const cart = useCartStore((state) => state.cart);
   const clearCart = useCartStore((state) => state.clearCart);
+  const updateItemQuantity = useCartStore((state) => state.updateItemQuantity);
+  const removeItemEntry = useCartStore((state) => state.removeItemEntry);
 
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [lastOrderId, setLastOrderId] = useState<string | null>(null);
@@ -82,7 +84,7 @@ export function PublicCart({
   }, [isDrawer]);
 
   const renderCartContent = () => (
-    <div className="flex h-full flex-col">
+    <div className="flex flex-1 flex-col min-h-0">
       {cart.length === 0 ? (
         <EmptyCart
           showOrderForm={showOrderForm}
@@ -102,6 +104,8 @@ export function PublicCart({
           productCategoryMap={productCategoryMap}
           onVaciar={handleVaciar}
           onConfirmar={() => setShowOrderForm(true)}
+          onUpdateQuantity={updateItemQuantity}
+          onRemoveEntry={removeItemEntry}
         />
       ) : (
         <motion.div
@@ -185,8 +189,8 @@ export function PublicCart({
             </button>
           </div>
 
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto overscroll-y-contain px-5 py-4">
+          {/* Content — el scroll interno está en la lista de ítems */}
+          <div className="flex-1 flex flex-col min-h-0 px-5 py-4">
             {renderCartContent()}
           </div>
         </motion.div>
@@ -212,8 +216,8 @@ export function PublicCart({
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain px-5 py-4">
+      {/* Content — el scroll interno está en la lista de ítems */}
+      <div className="flex-1 flex flex-col min-h-0 px-5 py-4">
         {renderCartContent()}
       </div>
     </div>

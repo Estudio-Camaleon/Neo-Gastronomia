@@ -19,6 +19,7 @@ export interface CartItem {
   cantidad: number;
   detalles: string | null;
   extras: CartExtra[];
+  variantName?: string | null;
 }
 
 export function generateItemId(
@@ -44,6 +45,8 @@ interface CartState {
   negocio_id: string | null;
   addItem: (newItem: CartItem) => void;
   removeItem: (id: string) => void;
+  updateItemQuantity: (id: string, delta: number) => void;
+  removeItemEntry: (id: string) => void;
   clearCart: () => void;
   toggleCart: () => void;
   setCartOpen: (isOpen: boolean) => void;
@@ -98,6 +101,24 @@ export const useCartStore = create<CartState>()(
           }
           return { cart: state.cart };
         }),
+
+      updateItemQuantity: (id, delta) =>
+        set((state) => {
+          const idx = state.cart.findIndex((item) => item.id === id);
+          if (idx === -1) return state;
+          const nueva = state.cart[idx].cantidad + delta;
+          if (nueva <= 0) {
+            return { cart: state.cart.filter((item) => item.id !== id) };
+          }
+          const updated = [...state.cart];
+          updated[idx] = { ...updated[idx], cantidad: nueva };
+          return { cart: updated };
+        }),
+
+      removeItemEntry: (id) =>
+        set((state) => ({
+          cart: state.cart.filter((item) => item.id !== id),
+        })),
 
       clearCart: () => set({ cart: [] }),
 

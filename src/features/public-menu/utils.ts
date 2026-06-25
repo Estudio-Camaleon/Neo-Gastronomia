@@ -1,6 +1,8 @@
 import type { HorarioDia, PromoRow } from "./types";
 import type { CartItem } from "@/features/public-menu/cart/useCartStore";
 
+export const COMBO_PREFIX = "combo-";
+
 export const DAYS_ORDER = [
   "lunes",
   "martes",
@@ -105,4 +107,34 @@ export function getPromoSubtotal(
     }
     return acc;
   }, 0);
+}
+
+export interface PromoDetail {
+  nombre: string;
+  label: string;
+  monto: number;
+}
+
+export function calculateDiscounts(
+  promos: PromoRow[],
+  cart: CartItem[],
+  productCategoryMap: Record<string, string>,
+): { total: number; details: PromoDetail[] } {
+  let total = 0;
+  const details: PromoDetail[] = [];
+
+  for (const promo of promos) {
+    const applicableSubtotal = getPromoSubtotal(promo, cart, productCategoryMap);
+    if (applicableSubtotal <= 0) continue;
+    let monto = 0;
+    if (promo.tipo_descuento === "porcentaje") {
+      monto = Math.round(applicableSubtotal * (promo.valor_descuento / 100));
+    } else {
+      monto = Math.min(Number(promo.valor_descuento), applicableSubtotal);
+    }
+    total += monto;
+    details.push({ nombre: promo.nombre, label: getDiscountLabel(promo), monto });
+  }
+
+  return { total, details };
 }

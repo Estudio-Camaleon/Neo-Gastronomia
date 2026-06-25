@@ -12,9 +12,10 @@ import type { HorarioDia } from "@/features/public-menu/types";
 interface ScheduleGridProps {
   horarios: Record<string, HorarioDia | null> | null;
   withMotion?: boolean;
+  simple?: boolean;
 }
 
-export function ScheduleGrid({ horarios, withMotion = false }: ScheduleGridProps) {
+export function ScheduleGrid({ horarios, withMotion = false, simple = false }: ScheduleGridProps) {
   const todayKey = getTodayKey();
 
   if (!horarios) {
@@ -23,6 +24,41 @@ export function ScheduleGrid({ horarios, withMotion = false }: ScheduleGridProps
         <p className="text-sm text-[var(--color-custom-text-muted)]">
           Sin horarios disponibles
         </p>
+      </div>
+    );
+  }
+
+  if (simple) {
+    return (
+      <div className="divide-y divide-white/5">
+        {DAYS_ORDER.map((dayId) => {
+          const label = DAY_LABELS[dayId];
+          const config = horarios[dayId] ?? null;
+          const isToday = dayId === todayKey;
+          return (
+            <div key={dayId} className="flex items-center justify-between gap-2 py-1.5 first:pt-0 last:pb-0">
+              <span
+                className={`font-semibold uppercase tracking-wider text-[11px] ${
+                  isToday ? "text-white" : "text-white/60"
+                }`}
+              >
+                {label}
+                {isToday && (
+                  <span className="ml-1.5 text-[9px] text-white/40 font-bold">
+                    HOY
+                  </span>
+                )}
+              </span>
+              {config ? (
+                <span className="text-[11px] text-white/80 text-right leading-snug">
+                  {formatTurnos(config)}
+                </span>
+              ) : (
+                <span className="text-[11px] text-white/30 italic">Cerrado</span>
+              )}
+            </div>
+          );
+        })}
       </div>
     );
   }

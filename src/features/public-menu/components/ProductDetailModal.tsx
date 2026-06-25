@@ -24,6 +24,7 @@ interface ProductDetailModalProps {
     cantidad: number;
     detalles: string | null;
     extras: CartExtra[];
+    variantName?: string | null;
   }) => void;
   onCancel: () => void;
   simbolo?: string;
@@ -89,6 +90,7 @@ export function ProductDetailModal({
       cantidad,
       detalles: nota || null,
       extras,
+      variantName: variantName || null,
     });
   };
 

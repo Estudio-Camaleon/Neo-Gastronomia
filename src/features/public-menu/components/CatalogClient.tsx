@@ -318,7 +318,7 @@ export function CatalogClient({
               </motion.div>
 
               {/* Anchor for scroll detection (inline tabs) */}
-              <div id="category-tabs-anchor" className={`mt-12 ${showFixedTabs ? 'invisible' : ''}`}>
+              <div id="category-tabs-anchor" className={`mt-5 lg:mt-20 ${showFixedTabs ? 'invisible' : ''}`}>
                 <CategoryTabs
                   categorias={categorias}
                   activeCategory={activeCategory}

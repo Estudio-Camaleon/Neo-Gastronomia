@@ -21,6 +21,8 @@ import {
   formatMoney,
   getDiscountLabel,
   getPromoSubtotal,
+  calculateDiscounts,
+  COMBO_PREFIX,
 } from "@/features/public-menu/utils";
 import {
   orderFormSchema,
@@ -66,6 +68,8 @@ export function OrderForm({
   const [codeError, setCodeError] = useState("");
 
   useEffect(() => {
+    let cancelled = false;
+
     const checkRecepcion = async () => {
       const supabase = createClient();
       const { data } = await supabase
@@ -74,11 +78,18 @@ export function OrderForm({
         .eq("id", negocioId)
         .limit(1)
         .single();
-      if (data?.recepcion_pausada) {
+      if (!cancelled && data?.recepcion_pausada) {
         setRecepcionPausada(true);
       }
     };
+
     checkRecepcion();
+    const interval = setInterval(checkRecepcion, 30_000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, [negocioId]);
 
   // Discount promos that auto-apply (no code needed) — only show if they apply to the cart
@@ -113,29 +124,14 @@ export function OrderForm({
   };
 
   // ── Auto-applied discounts (non-code promos) ──
-  let autoDiscountAmount = 0;
-  for (const promo of discountPromos) {
-    const applicableSubtotal = getPromoSubtotal(promo, cart, productCategoryMap);
-    if (applicableSubtotal <= 0) continue;
-    if (promo.tipo_descuento === "porcentaje") {
-      autoDiscountAmount += Math.round(applicableSubtotal * (promo.valor_descuento / 100));
-    } else {
-      autoDiscountAmount += Math.min(Number(promo.valor_descuento), applicableSubtotal);
-    }
-  }
+  const { total: autoDiscountAmount } =
+    calculateDiscounts(discountPromos, cart, productCategoryMap);
 
   // ── Code-based promo discount ──
   let codeDiscountAmount = 0;
   if (appliedPromo) {
-    const applicableSubtotal = getPromoSubtotal(appliedPromo, cart, productCategoryMap);
-    if (appliedPromo.tipo_descuento === "porcentaje") {
-      codeDiscountAmount = Math.round(applicableSubtotal * (appliedPromo.valor_descuento / 100));
-    } else {
-      codeDiscountAmount = Math.min(
-        Number(appliedPromo.valor_descuento),
-        applicableSubtotal,
-      );
-    }
+    const result = calculateDiscounts([appliedPromo], cart, productCategoryMap);
+    codeDiscountAmount = result.total;
   }
 
   const discountAmount = autoDiscountAmount + codeDiscountAmount;
@@ -193,7 +189,8 @@ export function OrderForm({
         metodo_pago: formData.metodoPago,
         notas: formData.notas ? sanitize(formData.notas) : null,
         items: cart.flatMap((i) => {
-          if (i.producto_id.startsWith("combo-")) {
+          // Combo: expandir items internos
+          if (i.producto_id.startsWith(COMBO_PREFIX)) {
             try {
               const comboItems = JSON.parse(i.detalles || "[]") as Array<{
                 producto_id: string;
@@ -208,13 +205,44 @@ export function OrderForm({
               return [];
             }
           }
+
+          // Preservar nota + variante dentro del JSON de extras
+          // (se inyectan como extras con precio 0; el RPC los suma
+          //  sin afectar el total y quedan registrados en la DB)
+          let detallesPayload = i.detalles;
+          if (i.extras.length > 0 || i.variantName || i.detalles) {
+            const arr = i.extras.map((e) => ({ ...e }));
+
+            // Variante del producto (ej: "Grande", "Completo")
+            if (i.variantName) {
+              arr.push({
+                grupo_id: "__variante__",
+                grupo_titulo: "Variante",
+                item_id: "__variante__",
+                item_nombre: i.variantName,
+                item_precio: 0,
+                cantidad: 1,
+              });
+            }
+
+            // Nota del cliente
+            if (i.detalles) {
+              arr.push({
+                grupo_id: "__nota__",
+                grupo_titulo: "Nota",
+                item_id: "__nota__",
+                item_nombre: i.detalles,
+                item_precio: 0,
+                cantidad: 1,
+              });
+            }
+            detallesPayload = JSON.stringify(arr);
+          }
+
           return {
             producto_id: i.producto_id,
             cantidad: i.cantidad,
-            detalles:
-              i.extras && i.extras.length > 0
-                ? JSON.stringify(i.extras)
-                : i.detalles,
+            detalles: detallesPayload,
           };
         }),
       };
@@ -276,7 +304,7 @@ export function OrderForm({
         </motion.div>
       )}
 
-      <div className="space-y-6 overflow-y-auto overscroll-y-contain max-h-[450px] pr-2 public-scrollbar">
+      <div className="space-y-6 overflow-y-auto overscroll-y-contain max-h-[70vh] p-2 public-scrollbar">
         <button
           type="button"
           onClick={onBack}

@@ -56,6 +56,9 @@ export function MenuFooter({
   const hasDelivery =
     (negocio.pedido_minimo ?? 0) > 0 || (negocio.costo_envio ?? 0) > 0;
 
+  const colHeader =
+    "inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-white/90";
+
   return (
     <motion.footer
       initial={{ opacity: 0 }}
@@ -63,10 +66,10 @@ export function MenuFooter({
       transition={{ duration: 0.5 }}
       className="bg-[var(--color-custom-950)]"
     >
-      <div className="p-4 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm space-y-4 text-center sm:text-left">
+      <div className="p-4 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm space-y-4 lg:space-y-0">
 
-        {/* ── Sobre nosotros + Delivery + WhatsApp (compact row) ── */}
-        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[12px] text-white/70">
+        {/* ── Sobre nosotros + Delivery + WhatsApp (compact row, mobile only) ── */}
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-white/70 lg:hidden">
           {negocio.descripcion && (
             <span className="flex items-center gap-1.5">
               <Info size={12} className="shrink-0 text-white/40" />
@@ -98,87 +101,186 @@ export function MenuFooter({
           )}
         </div>
 
-        {/* ── Horarios ── */}
-        <div className="flex flex-col items-center">
-          <button
-            type="button"
-            onClick={() => setShowSchedule(!showSchedule)}
-            className={labelClass}
-            aria-expanded={showSchedule}
-            aria-controls="schedule-grid"
-          >
-            <Clock className="h-3 w-3" />
-            Horarios
-            <ChevronDown
-              size={12}
-              className={`sm:hidden transition-transform duration-200 ${
-                showSchedule ? "rotate-180" : ""
-              }`}
-            />
-          </button>
+        {/* ── 3-column grid on lg+ ── */}
+        <div className="lg:grid lg:grid-cols-3 lg:gap-6 lg:mx-auto lg:max-w-5xl">
 
-          <div className="sm:hidden w-full mt-2">
-            <AnimatePresence initial={false}>
-              {showSchedule && (
-                <motion.div
-                  id="schedule-grid-mobile"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                  className="overflow-hidden"
-                >
-                  <ScheduleGrid horarios={negocio.horarios} withMotion />
-                </motion.div>
-              )}
-            </AnimatePresence>
+          {/* ── Col 1: Horarios ── */}
+          <div className="flex flex-col items-center lg:text-center w-full">
+            {/* Mobile: toggle + accordion */}
+            <div className="lg:hidden flex flex-col items-center w-full">
+              <button
+                type="button"
+                onClick={() => setShowSchedule(!showSchedule)}
+                className={labelClass}
+                aria-expanded={showSchedule}
+                aria-controls="schedule-grid"
+              >
+                <Clock className="h-3 w-3" />
+                Horarios
+                <ChevronDown
+                  size={12}
+                  className={`transition-transform duration-200 ${
+                    showSchedule ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+              <div className="w-full mt-2">
+                <AnimatePresence initial={false}>
+                  {showSchedule && (
+                    <motion.div
+                      id="schedule-grid-mobile"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="overflow-hidden"
+                    >
+                      <ScheduleGrid horarios={negocio.horarios} simple />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+
+            {/* Desktop: always visible simple list */}
+            <div id="schedule-grid" className="hidden lg:flex lg:flex-col lg:items-center w-full">
+              <div className={colHeader}>
+                <Clock className="h-3 w-3" />
+                Horarios
+              </div>
+              <div className="mt-2 w-full max-w-[220px]">
+                <ScheduleGrid horarios={negocio.horarios} simple />
+              </div>
+            </div>
           </div>
 
-          <div
-            id="schedule-grid"
-            className="hidden sm:grid gap-1.5 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mt-2 w-full"
-          >
-            <ScheduleGrid horarios={negocio.horarios} />
+          {/* ── Col 2: Sucursales ── */}
+          {negocio.direcciones && negocio.direcciones.length > 0 && (
+            <div className="flex flex-col items-center lg:text-center w-full">
+              {/* Mobile */}
+              <div className="lg:hidden flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
+                <span className={labelClass}><MapPin className="h-3 w-3" /> Sucursales</span>
+                {negocio.direcciones.map((dir) => (
+                  <span key={dir.id} className="text-xs text-white/50">
+                    {dir.nombre || "Sucursal"}
+                    {dir.direccion && <span className="text-white/30"> · </span>}
+                    {dir.direccion && <span>{dir.direccion}</span>}
+                    {dir.localidad && <span className="text-white/30">, </span>}
+                    {dir.localidad && <span>{dir.localidad}</span>}
+                  </span>
+                ))}
+              </div>
+              {/* Desktop */}
+              <div className="hidden lg:flex lg:flex-col lg:items-center">
+                <div className={colHeader}>
+                  <MapPin className="h-3 w-3" />
+                  Sucursales
+                </div>
+                <div className="mt-2 space-y-2">
+                  {negocio.direcciones.map((dir) => (
+                    <div key={dir.id} className="text-xs text-white/60 leading-relaxed">
+                      {dir.nombre && (
+                        <span className="font-semibold text-white/80">{dir.nombre}</span>
+                      )}
+                      {dir.nombre && dir.direccion && <br />}
+                      {dir.direccion && <span>{dir.direccion}</span>}
+                      {dir.localidad && (
+                        <span className="text-white/40">, {dir.localidad}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Col 3: Redes + Contacto ── */}
+          <div className="flex flex-col items-center lg:text-center w-full">
+            {/* Mobile */}
+            <div className="lg:hidden space-y-3 w-full">
+              {links.length > 0 && (
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <span className={labelClass}><ExternalLink className="h-3 w-3" /> Redes</span>
+                  {links.map((link) => (
+                    <a
+                      key={link.label}
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs font-semibold text-white/70 transition-all hover:bg-white/10 hover:text-white"
+                    >
+                      {link.icon}
+                      <span>{link.label}</span>
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+            {/* Desktop */}
+            <div className="hidden lg:flex lg:flex-col lg:items-center space-y-3">
+              <div className={colHeader}>
+                <ExternalLink className="h-3 w-3" />
+                Contacto
+              </div>
+
+              {links.length > 0 && (
+                <div className="flex flex-wrap justify-center gap-1.5">
+                  {links.map((link) => (
+                    <a
+                      key={link.label}
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-xs font-semibold text-white/70 transition-all hover:bg-white/10 hover:text-white"
+                    >
+                      {link.icon}
+                      <span>{link.label}</span>
+                    </a>
+                  ))}
+                </div>
+              )}
+
+              {negocio.whatsapp && (
+                <a
+                  href={`https://wa.me/${negocio.whatsapp.replace(/\D/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-green-400 hover:text-green-300 transition-colors text-xs"
+                >
+                  <MessageCircle size={14} />
+                  <Phone size={12} />
+                  <span>{negocio.whatsapp}</span>
+                </a>
+              )}
+
+              {hasDelivery && (
+                <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-white/50">
+                  {(negocio.pedido_minimo ?? 0) > 0 && (
+                    <span className="flex items-center gap-1">
+                      <ShoppingBag size={12} className="text-white/30" />
+                      Mín: {formatMoney(negocio.pedido_minimo!, negocio.moneda_simbolo ?? "$")}
+                    </span>
+                  )}
+                  {(negocio.costo_envio ?? 0) > 0 && (
+                    <span className="flex items-center gap-1">
+                      <Truck size={12} className="text-white/30" />
+                      Envío: {formatMoney(negocio.costo_envio!, negocio.moneda_simbolo ?? "$")}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {negocio.descripcion && (
+                <p className="text-xs text-white/50 leading-relaxed line-clamp-3 max-w-[240px]">
+                  {negocio.descripcion}
+                </p>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* ── Sucursales ── */}
-        {negocio.direcciones && negocio.direcciones.length > 0 && (
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
-            <span className={labelClass}><MapPin className="h-3 w-3" /> Sucursales</span>
-            {negocio.direcciones.map((dir) => (
-              <span key={dir.id} className="text-[11px] text-white/50">
-                {dir.nombre || "Sucursal"}
-                {dir.direccion && <span className="text-white/30"> · </span>}
-                {dir.direccion && <span>{dir.direccion}</span>}
-                {dir.localidad && <span className="text-white/30">, </span>}
-                {dir.localidad && <span>{dir.localidad}</span>}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* ── Redes sociales ── */}
-        {links.length > 0 && (
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <span className={labelClass}><ExternalLink className="h-3 w-3" /> Redes</span>
-            {links.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[11px] font-semibold text-white/70 transition-all hover:bg-white/10 hover:text-white"
-              >
-                {link.icon}
-                <span>{link.label}</span>
-              </a>
-            ))}
-          </div>
-        )}
-
         {/* ── Branding ── */}
-        <div className="flex items-center justify-center gap-2 pt-2 border-t border-white/10 text-[10px] text-white/20">
+        <div className="flex items-center justify-center gap-2 pt-3 lg:pt-4 border-t border-white/10 text-[10px] text-white/20">
           <ShoppingBag size={11} />
           <span className="font-semibold">{negocio.nombre}</span>
           <span className="text-white/10">·</span>
