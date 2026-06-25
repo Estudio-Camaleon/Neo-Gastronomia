@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Sparkles, Search, AlertTriangle, Percent, Trash2 } from "lucide-react";
+import { Plus, Search, AlertTriangle, Percent, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { upsertPromoSchema } from "@/core/lib/schemas";
 import type { PromoRow } from "@/core/types/domain";
@@ -189,7 +189,7 @@ export function PromosSection({ negocioId }: PromosSectionProps) {
         <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl border border-purple-500/20 text-purple-500 shrink-0">
-              <Sparkles size={20} />
+              <Percent size={20} />
             </div>
             <div>
               <h2 className="text-lg font-bold text-[var(--admin-text)]">
@@ -244,12 +244,12 @@ export function PromosSection({ negocioId }: PromosSectionProps) {
                 className="w-full pl-9 pr-3 py-2 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl text-sm text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] focus:border-[var(--admin-accent)] transition-all"
               />
             </div>
-            <div className="flex gap-1.5 overflow-x-auto scrollbar-none pb-0.5 sm:pb-0">
+            <div className="flex flex-wrap gap-1.5">
               {(["all", "activas", "inactivas", "combo", "descuento"] as const).map((f) => (
                 <button
                   key={f}
                   onClick={() => setFilterType(f)}
-                  className={`shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
                     filterType === f
                       ? "bg-[var(--admin-accent)] text-white shadow-sm"
                       : "bg-[var(--admin-bg)] border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:bg-[var(--admin-surface)]"

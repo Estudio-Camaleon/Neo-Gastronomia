@@ -450,18 +450,18 @@ iframe {
   scrollbar-color: color-mix(in srgb, var(--color-custom-900) 20%, transparent) transparent;
 }
 .receipt-scrollbar::-webkit-scrollbar {
-  width: 3px;
+  width: 4px;
 }
 .receipt-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 .receipt-scrollbar::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--color-custom-900) 15%, transparent);
-  border-radius: 0;
+  background: color-mix(in srgb, var(--color-custom-900) 25%, transparent);
+  border-radius: 2px;
 }
 .receipt-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--color-custom-900) 15%, transparent) transparent;
+  scrollbar-color: color-mix(in srgb, var(--color-custom-900) 25%, transparent) transparent;
 }
 
 /* Scrollbar oculta para carruseles */

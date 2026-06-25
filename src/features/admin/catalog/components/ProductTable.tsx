@@ -182,7 +182,7 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div>
       {/* ── Search bar ── */}
       <div className="px-4 py-3 border-b border-[var(--admin-border)] bg-[var(--admin-bg)]/30">
         <div className="flex items-center gap-2 bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-[var(--admin-accent)]/30 focus-within:border-[var(--admin-accent)] transition-all">
@@ -199,7 +199,7 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
             <button
               onClick={() => setRawSearch("")}
               aria-label="Limpiar búsqueda"
-              className="p-0.5 rounded text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-bg)] transition-colors"
+              className="touch-target flex items-center justify-center w-8 h-8 rounded text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-bg)] transition-colors"
             >
               <X size={14} />
             </button>
@@ -207,7 +207,8 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
         </div>
       </div>
 
-      <table className="w-full text-left border-collapse min-w-[400px]">
+      <div className="overflow-x-auto">
+      <table className="w-full text-left border-collapse">
         <thead>
           <tr className="text-[10px] font-black uppercase tracking-widest text-[var(--admin-text-muted)]">
             <th className="p-3 pl-4 sm:pl-6 border-b border-[var(--admin-border)]">
@@ -264,7 +265,7 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
                       </span>
                     </p>
                     <IngredientBadge configuracion={prod.configuracion} />
-                    <p className="text-[11px] text-[var(--admin-text-muted)] line-clamp-1 max-w-[160px] sm:max-w-[220px]">
+                    <p className="text-[11px] text-[var(--admin-text-muted)] line-clamp-1 max-w-[140px] sm:max-w-[200px] lg:max-w-[300px]">
                       {prod.descripcion || "Sin descripción"}
                     </p>
                     {/* Mobile-only price + status row */}
@@ -315,7 +316,7 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
                 <div className="flex justify-end gap-1">
                   <button
                     onClick={() => onEdit(prod)}
-                    className="p-1.5 text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] hover:bg-[var(--admin-accent)]/10 rounded-lg transition-colors border border-transparent hover:border-[var(--admin-accent)]/20"
+                    className="touch-target flex items-center justify-center w-9 h-9 text-[var(--admin-text-muted)] hover:text-[var(--admin-accent)] hover:bg-[var(--admin-accent)]/10 rounded-lg transition-colors border border-transparent hover:border-[var(--admin-accent)]/20"
                     title="Editar producto"
                     aria-label={`Editar ${prod.nombre}`}
                   >
@@ -325,7 +326,7 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
                     onClick={() =>
                       setDeleteConfirm({ id: prod.id, nombre: prod.nombre })
                     }
-                    className="p-1.5 text-[var(--admin-text-muted)] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors border border-transparent hover:border-red-500/20"
+                    className="touch-target flex items-center justify-center w-9 h-9 text-[var(--admin-text-muted)] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors border border-transparent hover:border-red-500/20"
                     title="Eliminar producto"
                     aria-label={`Eliminar ${prod.nombre}`}
                   >
@@ -375,6 +376,7 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
           )}
         </tbody>
       </table>
+      </div>
 
       {/* ── Pagination ── */}
       {totalPages > 1 && (
@@ -386,7 +388,7 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="px-3 py-1.5 text-xs font-bold rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] text-[var(--admin-text)] hover:bg-[var(--admin-accent)]/5 hover:border-[var(--admin-accent)]/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+              className="touch-target flex items-center justify-center px-3 py-1.5 text-xs font-bold rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] text-[var(--admin-text)] hover:bg-[var(--admin-accent)]/5 hover:border-[var(--admin-accent)]/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
             >
               Anterior
             </button>
@@ -399,7 +401,7 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
                   <button
                     key={pageNum}
                     onClick={() => setPage(pageNum)}
-                    className={`w-7 h-7 text-xs font-bold rounded-lg transition-all ${
+                    className={`touch-target flex items-center justify-center w-9 h-9 text-xs font-bold rounded-lg transition-all ${
                       pageNum === page
                         ? "bg-[var(--admin-accent)] text-white shadow-sm"
                         : "text-[var(--admin-text-muted)] hover:bg-[var(--admin-accent)]/10 hover:text-[var(--admin-text)]"
@@ -413,7 +415,7 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
             <button
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
-              className="px-3 py-1.5 text-xs font-bold rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] text-[var(--admin-text)] hover:bg-[var(--admin-accent)]/5 hover:border-[var(--admin-accent)]/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+              className="touch-target flex items-center justify-center px-3 py-1.5 text-xs font-bold rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] text-[var(--admin-text)] hover:bg-[var(--admin-accent)]/5 hover:border-[var(--admin-accent)]/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
             >
               Siguiente
             </button>

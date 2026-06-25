@@ -358,57 +358,133 @@ export function PedidoCard({
               </div>
             </div>
             <div className="space-y-4 divide-y divide-[var(--admin-border)]">
-              {visibleItems.map((item) => (
-                <div key={item.id} className="pt-4 first:pt-0">
-                  <div className="flex items-start gap-3">
-                    <span className="bg-[var(--admin-accent)]/15 text-[var(--admin-accent)] px-3 py-1.5 rounded-xl text-xl font-black leading-none shrink-0 min-w-[48px] text-center">
-                      {item.cantidad}x
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-lg sm:text-xl font-bold text-[var(--admin-text)] leading-tight">
-                        {item.nombre_producto}
-                      </p>
-                      {item.precio_unitario != null && (
-                        <p className="text-xs text-[var(--admin-text-muted)] mt-1">
-                          ${Number(item.precio_unitario).toFixed(2)} c/u
-                        </p>
-                      )}
-                      {(() => {
-                        if (!item.detalles) return null;
-                        try {
-                          const extras = JSON.parse(item.detalles);
-                          if (Array.isArray(extras) && extras.length > 0) {
-                            return (
-                              <div className="mt-2 space-y-1">
-                                {extras.map(
-                                  (e: Record<string, string>, ei: number) => (
-                                    <p
-                                      key={ei}
-                                      className="text-sm font-medium text-[var(--admin-text-muted)]"
-                                    >
-                                      + {e["item_nombre"] || e["nombre"] || ""}
-                                      {e["item_precio"]
-                                        ? ` ($${Number(e["item_precio"]).toFixed(2)})`
-                                        : ""}
-                                    </p>
-                                  ),
-                                )}
+              {visibleItems.map((item) => {
+                const lineTotal = item.precio_unitario != null
+                  ? item.cantidad * Number(item.precio_unitario)
+                  : null;
+
+                // Parse detalles JSON into typed groups
+                let extrasByGroup: Array<{ titulo: string; items: { nombre: string; precio: number; cantidad: number }[] }> = [];
+                let notaCliente: string | null = null;
+                let variante: string | null = null;
+
+                if (item.detalles) {
+                  try {
+                    const parsed = JSON.parse(item.detalles);
+                    if (Array.isArray(parsed)) {
+                      const map = new Map<string, { nombre: string; precio: number; cantidad: number }[]>();
+                      for (const e of parsed) {
+                        const id = String(e.grupo_id ?? '');
+                        const titulo = String(e.grupo_titulo ?? 'Otros');
+                        const nombre = String(e.item_nombre ?? e.nombre ?? '');
+                        const precio = Number(e.item_precio ?? 0);
+                        const cantidad = Number(e.cantidad ?? 1);
+
+                        if (id === '__nota__') { notaCliente = nombre; continue; }
+                        if (id === '__variante__') { variante = nombre; continue; }
+
+                        if (!map.has(titulo)) map.set(titulo, []);
+                        map.get(titulo)!.push({ nombre, precio, cantidad });
+                      }
+                      extrasByGroup = Array.from(map.entries()).map(([titulo, items]) => ({ titulo, items }));
+                    } else {
+                      notaCliente = item.detalles;
+                    }
+                  } catch {
+                    notaCliente = item.detalles;
+                  }
+                }
+
+                const totalExtrasItems = extrasByGroup.reduce((acc, g) => acc + g.items.length, 0);
+
+                return (
+                  <div key={item.id} className="pt-4 first:pt-0">
+                    <div className="flex items-start gap-3">
+                      <span className="bg-[var(--admin-accent)]/15 text-[var(--admin-accent)] px-3 py-1.5 rounded-xl text-xl font-black leading-none shrink-0 min-w-[48px] text-center">
+                        {item.cantidad}x
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        {/* Nombre del producto + variante + precio total */}
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="text-lg sm:text-xl font-bold text-[var(--admin-text)] leading-tight">
+                              {item.nombre_producto}
+                              {variante && (
+                                <span className="ml-1.5 text-base font-semibold text-[var(--admin-accent)]">
+                                  ({variante})
+                                </span>
+                              )}
+                            </p>
+                            {item.precio_unitario != null && (
+                              <p className="text-xs text-[var(--admin-text-muted)] mt-0.5">
+                                ${Number(item.precio_unitario).toFixed(2)} c/u
+                              </p>
+                            )}
+                          </div>
+                          {lineTotal != null && (
+                            <span className="shrink-0 text-sm font-black text-[var(--admin-accent)] tabular-nums">
+                              ${lineTotal.toFixed(2)}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Extras grouped by category */}
+                        {totalExtrasItems > 0 && (
+                          <div className="mt-3 space-y-2.5 relative">
+                            {/* Línea vertical decorativa en el costado izquierdo */}
+                            <div className="absolute left-2.5 top-0 bottom-0 w-px bg-[var(--admin-border)]" />
+                            {extrasByGroup.map((group) => (
+                              <div key={group.titulo} className="relative pl-7">
+                                {/* Bullet indicador del grupo */}
+                                <span className="absolute left-[7px] top-[5px] w-[11px] h-[11px] rounded-full bg-[var(--admin-accent)]/20 border-2 border-[var(--admin-accent)]/40" />
+                                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--admin-text-muted)] mb-1">
+                                  {group.titulo}
+                                </p>
+                                <div className="space-y-1">
+                                  {group.items.map((extra, ei) => {
+                                    const extraSubtotal = extra.precio * extra.cantidad;
+                                    return (
+                                      <div
+                                        key={ei}
+                                        className="flex items-center gap-2 text-sm font-medium text-[var(--admin-text-muted)]"
+                                      >
+                                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-[var(--admin-bg)] text-[10px] font-black text-[var(--admin-text-muted)] shrink-0">
+                                          {extra.cantidad}
+                                        </span>
+                                        <span className="flex-1">{extra.nombre}</span>
+                                        {extraSubtotal > 0 && (
+                                          <span className="text-xs font-semibold text-[var(--admin-text)] tabular-nums">
+                                            +${extraSubtotal.toFixed(2)}
+                                          </span>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
                               </div>
-                            );
-                          }
-                        } catch {
-                          /* not JSON */
-                        }
-                        return (
-                          <p className="text-sm font-medium text-[var(--admin-text-muted)] mt-1 bg-[var(--admin-surface)] p-2 rounded-lg border border-[var(--admin-border)] inline-block">
-                            📝 {item.detalles}
-                          </p>
-                        );
-                      })()}
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Client note */}
+                        {notaCliente && (
+                          <div className="mt-3 flex items-start gap-2 rounded-lg border border-dashed border-amber-300 bg-amber-50 px-3 py-2.5 text-sm">
+                            <span className="shrink-0 mt-0.5 text-base">📝</span>
+                            <div>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-0.5">
+                                Nota del cliente
+                              </p>
+                              <p className="italic font-semibold text-amber-800 leading-snug">
+                                “{notaCliente}”
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {hasMoreItems && (
@@ -466,23 +542,115 @@ export function PedidoCard({
                     )}
                   </div>
                   <div className="space-y-3 divide-y divide-[var(--admin-border)]">
-                    {comandaItems.map((item) => (
-                      <div key={item.id} className="pt-3 first:pt-0 flex items-start gap-3">
-                        <span className="bg-[var(--admin-accent)]/15 text-[var(--admin-accent)] px-3 py-1 rounded-xl text-lg font-black leading-none shrink-0 min-w-[42px] text-center">
-                          {item.cantidad}x
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-[var(--admin-text)]">
-                            {item.nombre_producto}
-                          </p>
-                          {item.precio_unitario != null && (
-                            <p className="text-xs text-[var(--admin-text-muted)] mt-0.5">
-                              ${Number(item.precio_unitario).toFixed(2)} c/u
+                    {comandaItems.map((item) => {
+                      const lineTotal = item.precio_unitario != null
+                        ? item.cantidad * Number(item.precio_unitario)
+                        : null;
+                      // Parse detalles JSON into typed groups
+                      let extrasByGroup: Array<{ titulo: string; items: { nombre: string; precio: number; cantidad: number }[] }> = [];
+                      let notaCliente: string | null = null;
+                      let variante: string | null = null;
+                      if (item.detalles) {
+                        try {
+                          const parsed = JSON.parse(item.detalles);
+                          if (Array.isArray(parsed)) {
+                            const map = new Map<string, { nombre: string; precio: number; cantidad: number }[]>();
+                            for (const e of parsed) {
+                              const id = String(e.grupo_id ?? '');
+                              const titulo = String(e.grupo_titulo ?? 'Otros');
+                              const nombre = String(e.item_nombre ?? e.nombre ?? '');
+                              const precio = Number(e.item_precio ?? 0);
+                              const cantidad = Number(e.cantidad ?? 1);
+                              if (id === '__nota__') { notaCliente = nombre; continue; }
+                              if (id === '__variante__') { variante = nombre; continue; }
+                              if (!map.has(titulo)) map.set(titulo, []);
+                              map.get(titulo)!.push({ nombre, precio, cantidad });
+                            }
+                            extrasByGroup = Array.from(map.entries()).map(([titulo, items]) => ({ titulo, items }));
+                          } else {
+                            notaCliente = item.detalles;
+                          }
+                        } catch {
+                          notaCliente = item.detalles;
+                        }
+                      }
+                      const totalExtrasItems = extrasByGroup.reduce((acc, g) => acc + g.items.length, 0);
+
+                      return (
+                        <div key={item.id} className="pt-3 first:pt-0 flex items-start gap-3">
+                          <span className="bg-[var(--admin-accent)]/15 text-[var(--admin-accent)] px-3 py-1 rounded-xl text-lg font-black leading-none shrink-0 min-w-[42px] text-center">
+                            {item.cantidad}x
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-[var(--admin-text)]">
+                              {item.nombre_producto}
+                              {variante && (
+                                <span className="ml-1 text-sm font-semibold text-[var(--admin-accent)]">
+                                  ({variante})
+                                </span>
+                              )}
                             </p>
-                          )}
+                            {item.precio_unitario != null && (
+                              <div className="flex items-center gap-2 text-xs text-[var(--admin-text-muted)] mt-0.5">
+                                <span>${Number(item.precio_unitario).toFixed(2)} c/u</span>
+                                {lineTotal != null && (
+                                  <>
+                                    <span className="text-[var(--admin-border)]">•</span>
+                                    <span className="font-semibold text-[var(--admin-text)]">
+                                      ${lineTotal.toFixed(2)}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                            {totalExtrasItems > 0 && (
+                              <div className="mt-2 space-y-1.5 relative">
+                                <div className="absolute left-2 top-0 bottom-0 w-px bg-[var(--admin-border)]" />
+                                {extrasByGroup.map((group) => (
+                                  <div key={group.titulo} className="relative pl-6">
+                                    <span className="absolute left-[5px] top-[5px] w-[9px] h-[9px] rounded-full bg-[var(--admin-accent)]/20 border-2 border-[var(--admin-accent)]/40" />
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-[var(--admin-text-muted)] mb-0.5">
+                                      {group.titulo}
+                                    </p>
+                                    <div className="space-y-0.5">
+                                      {group.items.map((extra, ei) => {
+                                        const extraSubtotal = extra.precio * extra.cantidad;
+                                        return (
+                                          <div key={ei} className="flex items-center gap-1.5 text-xs font-medium text-[var(--admin-text-muted)]">
+                                            <span className="inline-flex items-center justify-center w-4 h-4 rounded bg-[var(--admin-bg)] text-[9px] font-black text-[var(--admin-text-muted)] shrink-0">
+                                              {extra.cantidad}
+                                            </span>
+                                            <span className="flex-1">{extra.nombre}</span>
+                                            {extraSubtotal > 0 && (
+                                              <span className="font-semibold text-[var(--admin-text)] tabular-nums">
+                                                +${extraSubtotal.toFixed(2)}
+                                              </span>
+                                            )}
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {notaCliente && (
+                              <div className="mt-2 flex items-start gap-1.5 rounded-lg border border-dashed border-amber-300 bg-amber-50 px-2.5 py-2 text-xs">
+                                <span className="shrink-0 mt-0.5 text-sm">📝</span>
+                                <div>
+                                  <p className="text-[9px] font-black uppercase tracking-widest text-amber-600 mb-0.5">
+                                    Nota
+                                  </p>
+                                  <p className="italic font-semibold text-amber-800 leading-snug">
+                                    “{notaCliente}”
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>
