@@ -7,7 +7,6 @@ import { Hero } from "./Hero";
 import { Features } from "./Features";
 import { Pricing } from "./Pricing";
 import { SubscriptionPlans } from "./SubscriptionPlans";
-import { Testimonials } from "./Testimonials";
 import "../style/home.css";
 import "../style/shapes.css";
 
@@ -26,12 +25,11 @@ export function HomePage() {
 
           <Navbar />
 
-          <main id="main-content" className="flex-grow w-full">
+          <main id="main-content" className="flex-grow w-full pt-20">
             <Hero />
             <Features />
             <Pricing />
             <SubscriptionPlans />
-            <Testimonials />
           </main>
 
           <Footer />

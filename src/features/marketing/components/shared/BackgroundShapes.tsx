@@ -150,6 +150,47 @@ export function BackgroundShapes() {
         </div>
       </div>
 
+      {/* 5b. MIDDLE CENTER: Mancha suave (como la del top-right) */}
+      <div className="hidden lg:flex absolute top-[56%]  w-[30%] h-[40%] bg-[var(--theme-accent)] opacity-40 rounded-tr-full" />
+      <div className="hidden lg:flex absolute top-[67%] right-[0%] w-[20%] h-[20%] bg-[var(--theme-primary-soft)] opacity-60 rounded-tl-full" />
+
+      {/* 5c. MIDDLE LEFT: Grilla de puntos pequeña (como la del center-top) (Solo Desktop) */}
+      <div className="hidden md:block absolute top-[48%] left-[5%] opacity-40 animate-float-shape" style={{ animationDelay: "1.8s" }}>
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="var(--theme-accent)">
+          <circle cx="6" cy="6" r="3" />
+          <circle cx="18" cy="6" r="3" />
+          <circle cx="30" cy="6" r="3" />
+          <circle cx="6" cy="18" r="3" />
+          <circle cx="18" cy="18" r="3" />
+          <circle cx="30" cy="18" r="3" />
+          <circle cx="6" cy="30" r="3" />
+          <circle cx="18" cy="30" r="3" />
+          <circle cx="30" cy="30" r="3" />
+        </svg>
+      </div>
+
+      {/* 5d. MIDDLE RIGHT: Icono estrella/nota flotante (Solo Desktop) */}
+      <div
+        className="hidden lg:flex absolute top-[58%] right-[15%] w-30 h-30 bg-[var(--theme-primary-soft-2)] rounded-xl items-center justify-center opacity-70 animate-float-shape shadow-sm"
+        style={{ animationDelay: "1s" }}
+      >
+        <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="var(--theme-primary)" strokeWidth="1.5">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+        </svg>
+      </div>
+
+      {/* 5e. MIDDLE LEFT: Círculo con icono de gráfico (Solo Desktop) */}
+      <div
+        className="hidden lg:flex absolute top-[60%] left-[3%] w-14 h-14 bg-[var(--theme-accent)]/80 rounded-full items-center justify-center animate-float-shape shadow-sm"
+        style={{ animationDelay: "2.2s" }}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--theme-background)" strokeWidth="2">
+          <path d="M18 20V10" />
+          <path d="M12 20V4" />
+          <path d="M6 20v-6" />
+        </svg>
+      </div>
+
       {/* 6. BOTTOM CENTER: Colina y Hojas (Solo Desktop) */}
       <div className="hidden lg:block absolute -bottom-16 left-[35%] w-80 h-48 bg-[var(--theme-primary-soft)] opacity-80 rounded-t-full" />
       <div

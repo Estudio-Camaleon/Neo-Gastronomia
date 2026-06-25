@@ -34,7 +34,7 @@ export function Navbar() {
   const navigationLinks = [
     { name: "Inicio", href: "#hero" },
     { name: "Beneficios", href: "#features" },
-    { name: "Pasos", href: "#how-it-works" },
+    { name: "Guías", href: "#how-it-works" },
     { name: "Planes", href: "#planes" },
     { name: "Ayuda", href: "/ayuda" },
   ];
@@ -42,11 +42,11 @@ export function Navbar() {
   const close = () => setIsOpen(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full px-4 sm:px-6 lg:px-8">
+    <header className="fixed top-0 z-50 w-full px-4 sm:px-6 lg:px-8">
       <nav
         className={`mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8 flex items-center justify-between rounded-[20px] relative z-[60] transition-all duration-500 ${
           isScrolled
-            ? "glass-card shadow-lg"
+            ? "bg-white/95 backdrop-blur-xl shadow-lg border border-[var(--theme-border)]"
             : "bg-transparent border border-transparent shadow-none"
         }`}
       >

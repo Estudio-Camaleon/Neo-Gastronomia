@@ -23,15 +23,13 @@ export function Footer() {
       title: "Producto",
       links: [
         { name: "Beneficios", href: "#features" },
-        { name: "Cómo funciona", href: "#how-it-works" },
+        { name: "Guías y Tutoriales", href: "#how-it-works" },
         { name: "Planes y Precios", href: "#planes" },
-        { name: "Casos de éxito", href: "#testimonials" },
       ],
     },
     {
       title: "Acceso Rápido",
       links: [
-        { name: "Ingresar al panel", href: "/login" },
         { name: "Crear mi menú gratis", href: "/registro" },
         { name: "Centro de Ayuda", href: "/ayuda" },
         { name: "Guías y Tutoriales", href: "/ayuda/guias" },

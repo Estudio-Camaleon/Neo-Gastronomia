@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, ArrowRight, Sparkles, Zap, Lock, Unlock } from "lucide-react";
+import { CheckCircle2, ArrowRight, Sparkles, Zap, Lock, Crown } from "lucide-react";
 import Link from "next/link";
 import { useScrollReveal } from "@/core/hooks/useScrollReveal";
 
@@ -40,16 +40,16 @@ export function SubscriptionPlans() {
         <div className="max-w-4xl mx-auto">
           {/* Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 mb-10">
-            {/* FREE */}
+            {/* FREE — Azul */}
             <div
-              className={`glass-card relative flex flex-col p-8 border border-[var(--theme-border)] opacity-0 ${
+              className={`glass-card relative flex flex-col p-8 border border-blue-200/60 opacity-0 ${
                 isVisible ? "animate-fade-in-up" : ""
               }`}
               style={{ animationDelay: "0ms" }}
             >
               <div className="flex items-center gap-2 mb-2">
-                <Zap className="h-4 w-4 text-[var(--theme-primary)]" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--theme-primary)]">
+                <Zap className="h-4 w-4 text-blue-500" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">
                   Para empezar
                 </span>
               </div>
@@ -68,11 +68,11 @@ export function SubscriptionPlans() {
                   .filter((f) => f.free)
                   .map((feature) => (
                     <li key={feature.label} className="flex items-start gap-3 text-sm text-[var(--theme-text-muted)]">
-                      <CheckCircle2 className="h-5 w-5 text-[var(--theme-primary)] shrink-0 mt-0.5" />
+                      <CheckCircle2 className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
                       <span>
                         {feature.label}
                         {typeof feature.free === "string" && (
-                          <span className="ml-1 text-[10px] font-bold text-[var(--theme-primary)]">
+                          <span className="ml-1 text-[10px] font-bold text-blue-600">
                             {feature.free}
                           </span>
                         )}
@@ -83,30 +83,28 @@ export function SubscriptionPlans() {
 
               <Link
                 href="/registro"
-                className="w-full group flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-black uppercase tracking-tight transition-all active:scale-95 bg-[var(--theme-accent-secondary-soft)] text-[var(--theme-accent-secondary)] hover:bg-[var(--theme-accent-secondary)] hover:text-white border border-[var(--theme-accent-secondary)]/20"
+                className="w-full group flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-black uppercase tracking-tight transition-all active:scale-95 bg-blue-500 text-white hover:bg-blue-600 shadow-[0_4px_14px_rgba(59,130,246,0.2)]"
               >
                 Comenzar gratis
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
 
-            {/* PRO */}
+            {/* PRO — Dorado */}
             <div
               className={`glass-card relative flex flex-col p-8 opacity-0 ${
                 isVisible ? "animate-fade-in-up" : ""
-              } ${
-                "border-[var(--theme-primary)] shadow-[0_0_30px_rgba(31,107,61,0.15)]"
-              }`}
+              } border-amber-400/50 shadow-[0_0_40px_rgba(245,158,11,0.12)]`}
               style={{ animationDelay: "150ms" }}
             >
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 neo-chip px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-1">
-                <Sparkles className="h-3 w-3" />
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full flex items-center gap-1 bg-amber-400 text-amber-950 shadow-[0_4px_12px_rgba(245,158,11,0.3)]">
+                <Crown className="h-3 w-3" />
                 Más elegido
               </div>
 
               <div className="flex items-center gap-2 mb-2">
-                <Unlock className="h-4 w-4 text-[var(--theme-primary)]" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--theme-primary)]">
+                <Crown className="h-4 w-4 text-amber-500" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">
                   Para crecer
                 </span>
               </div>
@@ -114,7 +112,7 @@ export function SubscriptionPlans() {
                 Plan Pro
               </h3>
               <div className="mt-3 flex items-baseline gap-1">
-                <span className="text-4xl font-black text-[var(--theme-text)]">$15.000</span>
+                <span className="text-4xl font-black text-amber-500">$30.000</span>
                 <span className="text-sm font-medium text-[var(--theme-text-muted)]">/mes</span>
               </div>
               <p className="mt-3 text-sm text-[var(--theme-text-muted)]">
@@ -124,11 +122,11 @@ export function SubscriptionPlans() {
               <ul className="mt-6 flex-1 space-y-3 mb-8">
                 {allFeatures.map((feature) => (
                   <li key={feature.label} className="flex items-start gap-3 text-sm text-[var(--theme-text-muted)]">
-                    <CheckCircle2 className="h-5 w-5 text-[var(--theme-primary)] shrink-0 mt-0.5" />
+                    <CheckCircle2 className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
                     <span>
                       {feature.label}
                       {typeof feature.pro === "string" && (
-                        <span className="ml-1 text-[10px] font-bold text-[var(--theme-primary)]">
+                        <span className="ml-1 text-[10px] font-bold text-amber-600">
                           {feature.pro}
                         </span>
                       )}
@@ -139,8 +137,9 @@ export function SubscriptionPlans() {
 
               <Link
                 href="/registro?plan=pro"
-                className="w-full group flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-black uppercase tracking-tight transition-all active:scale-95 bg-[var(--theme-primary)] text-white hover:opacity-90 shadow-[0_4px_14px_rgba(31,107,61,0.16)]"
+                className="w-full group flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-black uppercase tracking-tight transition-all active:scale-95 bg-gradient-to-r from-amber-500 to-amber-400 text-amber-950 hover:from-amber-400 hover:to-amber-300 shadow-[0_4px_16px_rgba(245,158,11,0.3)]"
               >
+                <Sparkles className="h-4 w-4" />
                 Empezar con PRO
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
