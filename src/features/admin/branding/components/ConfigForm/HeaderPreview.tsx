@@ -118,7 +118,7 @@ export function HeaderPreview({
 
   const logoContainerSize = isCompact
     ? "w-[42px] h-[42px]"
-    : "w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] md:w-[120px] md:h-[120px]";
+    : "w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] md:w-[90px] md:h-[90px] lg:w-[80px] lg:h-[80px] xl:w-[120px] xl:h-[120px]";
 
   const logoContainerClasses = isSticker
     ? "relative flex items-center justify-center"
@@ -137,7 +137,7 @@ export function HeaderPreview({
       <img
         src={logoUrl}
         alt={nombre}
-        className={isCompact ? "max-h-10 max-w-10" : "max-h-24 max-w-24 sm:max-h-28 sm:max-w-28 md:max-h-36 md:max-w-36 drop-shadow-2xl"}
+        className={isCompact ? "max-h-10 max-w-10" : "max-h-24 max-w-24 sm:max-h-28 sm:max-w-28 md:max-h-28 md:max-w-28 lg:max-h-24 lg:max-w-24 xl:max-h-36 xl:max-w-36 drop-shadow-2xl"}
         style={logoStyle}
       />
     ) : (
@@ -151,12 +151,12 @@ export function HeaderPreview({
   ) : (
     <div
       className={`flex items-center justify-center text-white font-black ${
-        isCompact ? "text-[12px]" : "text-[21px] sm:text-[23px] md:text-[33px]"
+        isCompact ? "text-[12px]" : "text-[21px] sm:text-[23px] md:text-[27px] lg:text-[23px] xl:text-[33px]"
       } ${
         isSticker
           ? isCompact
             ? "w-[42px] h-[42px]"
-            : "w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] md:w-[120px] md:h-[120px]"
+            : "w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] md:w-[90px] md:h-[90px] lg:w-[80px] lg:h-[80px] xl:w-[120px] xl:h-[120px]"
           : "h-full w-full"
       }${isCircularShape ? " rounded-full" : ""}`}
       style={fallbackStyle}
@@ -167,18 +167,18 @@ export function HeaderPreview({
     </div>
   );
 
-  const cardWidth = isCompact ? "w-full max-w-[220px]" : "w-full max-w-[380px]";
+  const cardWidth = isCompact ? "w-full max-w-[220px]" : "w-full max-w-[340px] lg:max-w-[300px] xl:max-w-[380px]";
   const cardPadding = isCompact
     ? "px-2 pb-2.5 pt-[28px]"
-    : "px-4 sm:px-5 pb-5 sm:pb-6 pt-[56px] sm:pt-[68px]";
-  const cardRadius = isCompact ? "rounded-[10px]" : "rounded-[22px] md:rounded-[28px]";
-  const logoOffset = isCompact ? "-top-[20px]" : "-top-[44px] md:-top-[52px]";
+    : "px-4 sm:px-5 pb-5 sm:pb-6 pt-[56px] sm:pt-[60px] lg:pt-[52px] xl:pt-[68px]";
+  const cardRadius = isCompact ? "rounded-[10px]" : "rounded-[22px] md:rounded-[24px] lg:rounded-[20px] xl:rounded-[28px]";
+  const logoOffset = isCompact ? "-top-[20px]" : "-top-[44px] md:-top-[46px] lg:-top-[38px] xl:-top-[52px]";
 
   return (
     <div className="relative">
       <div
         className="relative w-full overflow-hidden"
-        style={{ aspectRatio: !isCompact ? "21/6" : undefined, minHeight: isCompact ? "130px" : "200px" }}
+        style={{ aspectRatio: !isCompact ? "21/6" : undefined, minHeight: isCompact ? "130px" : "180px" }}
       >
         {bannerUrl ? (
           <div
@@ -227,7 +227,7 @@ export function HeaderPreview({
               {mostrarNombre && (
                 <h1
                   className={`text-center text-white font-extrabold leading-tight tracking-tight ${
-                    isCompact ? "text-[11px]" : "text-[19px] sm:text-[21px] md:text-[27px]"
+                    isCompact ? "text-[11px]" : "text-[19px] sm:text-[21px] md:text-[23px] lg:text-[20px] xl:text-[27px]"
                   }`}
                 >
                   {nombre || "Nombre del negocio"}
@@ -237,7 +237,7 @@ export function HeaderPreview({
               {descripcion && (
                 <p
                   className={`text-center text-white/70 mx-auto leading-relaxed ${
-                    isCompact ? "text-[9px] mt-0.5 line-clamp-1" : "text-[13px] sm:text-[15px] md:text-[17px] mt-1.5 max-w-[500px]"
+                    isCompact ? "text-[9px] mt-0.5 line-clamp-1" : "text-[13px] sm:text-[15px] md:text-[16px] lg:text-[14px] xl:text-[17px] mt-1.5 max-w-[500px]"
                   }`}
                 >
                   {descripcion}
@@ -250,7 +250,7 @@ export function HeaderPreview({
                 }`}>
                   {topSocialIds.map((id) => (
                     <span key={id} className={`flex items-center justify-center rounded-full bg-white/10 text-white/80 ${
-                      isCompact ? "size-[18px]" : "size-8 sm:size-10"
+                      isCompact ? "size-[18px]" : "size-8 sm:size-9 md:size-8 lg:size-7 xl:size-10"
                     }`}>
                       {SOCIAL_ICONS[id] ?? null}
                     </span>
@@ -263,11 +263,11 @@ export function HeaderPreview({
               }`}>
                 <div
                   className={`flex items-center rounded-full bg-white/10 text-white/80 gap-0.5 ${
-                    isCompact ? "px-1 py-0.5 text-[8px]" : "sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-[12px] sm:text-[13px] md:text-[15px]"
+                    isCompact ? "px-1 py-0.5 text-[8px]" : "sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-[12px] sm:text-[13px] md:text-[13px] lg:text-[12px] xl:text-[15px]"
                   }`}
                 >
-                  <MapPin className={isCompact ? "size-[10px]" : "size-3 sm:size-3.5"} />
-                  <span className={`truncate ${isCompact ? "max-w-[24px]" : "max-w-[50px] sm:max-w-[60px] md:max-w-[80px]"}`}>
+                  <MapPin className={isCompact ? "size-[10px]" : "size-3 sm:size-3.5 md:size-3 lg:size-2.5 xl:size-3.5"} />
+                  <span className={`truncate ${isCompact ? "max-w-[24px]" : "max-w-[50px] sm:max-w-[60px] md:max-w-[70px] lg:max-w-[60px] xl:max-w-[80px]"}`}>
                     {direcciones && direcciones.length > 0
                       ? direcciones[0]?.nombre || direcciones[0]?.direccion
                       : localidad || "Ubicación"}
@@ -275,10 +275,10 @@ export function HeaderPreview({
                 </div>
                 <div
                   className={`flex items-center rounded-full bg-white/10 text-white/80 gap-0.5 ${
-                    isCompact ? "px-1 py-0.5 text-[8px]" : "sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-[12px] sm:text-[13px] md:text-[15px]"
+                    isCompact ? "px-1 py-0.5 text-[8px]" : "sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 text-[12px] sm:text-[13px] md:text-[13px] lg:text-[12px] xl:text-[15px]"
                   }`}
                 >
-                  <Clock className={isCompact ? "size-2.5" : "size-3 sm:size-3.5"} />
+                  <Clock className={isCompact ? "size-2.5" : "size-3 sm:size-3.5 md:size-3 lg:size-2.5 xl:size-3.5"} />
                   <span>Horarios</span>
                 </div>
               </div>
