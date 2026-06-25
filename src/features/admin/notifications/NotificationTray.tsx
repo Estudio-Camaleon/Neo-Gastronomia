@@ -53,14 +53,19 @@ export function NotificationTray({ onClose, variant }: NotificationTrayProps) {
   const { notifications, markRead, markAllRead, loading } = useNotifications();
   const unread = notifications.filter((n) => !n.read);
 
-  const positionClasses =
-    variant === "sidebar"
-      ? "left-1/2 -translate-x-1/2 bottom-full mb-2"
-      : "right-0 top-full mt-1";
+  const isSidebar = variant === "sidebar";
+
+  const positionClasses = isSidebar
+    ? "left-1/2 -translate-x-1/2 bottom-full mb-2"
+    : "left-1/2 -translate-x-1/2 sm:left-auto sm:right-0 top-full mt-1";
+
+  const widthClasses = isSidebar
+    ? "w-80"
+    : "w-[calc(100vw-1.5rem)] sm:w-80 md:w-96";
 
   return (
     <div
-      className={`absolute z-[100] w-80 sm:w-96 ${positionClasses}`}
+      className={`absolute z-[100] ${widthClasses} ${positionClasses}`}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl shadow-2xl overflow-hidden backdrop-blur-xl">
