@@ -293,11 +293,6 @@ export function Sidebar({
           </nav>
         </div>
 
-        {/* Notification bell */}
-        <div className="mb-3">
-          <NotificationBell variant="sidebar" />
-        </div>
-
         {/* Footer */}
         <div className="mt-auto pt-3 lg:pt-4 border-t border-[var(--admin-border)] space-y-3 shrink-0">
           {/* Plan badge + upgrade */}

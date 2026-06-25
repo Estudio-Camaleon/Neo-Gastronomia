@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { LoadingFallback } from "@/components/ui/loading-fallback";
 import { Sidebar } from "@/features/admin/shared/Sidebar";
+import { AdminTopbar } from "@/features/admin/shared/AdminTopbar";
 import { MobileHeader } from "@/features/admin/shared/MobileHeader";
 import { BottomTabBar } from "@/features/admin/shared/BottomTabBar";
 import { ThemeProvider } from "@/core/providers/ThemeProvider";
@@ -86,10 +87,13 @@ export default async function AdminPanelLayout({
 
         {/* Contenedor de Trabajo Principal */}
         <div className="flex-1 flex flex-col lg:pl-72 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] lg:pb-0 overflow-x-clip">
+          {/* Topbar fijo en desktop */}
+          <AdminTopbar slug={negocio.slug} />
+
           {/* Header mobile con logo + acciones */}
           <MobileHeader slug={negocio.slug} />
 
-          <main id="main-content" className="flex-1 p-5 sm:p-6 md:p-8 lg:p-6 xl:p-10 w-full max-w-full animate-in fade-in duration-300 relative">
+          <main id="main-content" className="flex-1 p-5 sm:p-6 md:p-8 lg:p-6 xl:p-10 w-full max-w-full animate-in fade-in duration-300 relative lg:pt-6">
             <Suspense fallback={<LoadingFallback />}>
               {children}
             </Suspense>
