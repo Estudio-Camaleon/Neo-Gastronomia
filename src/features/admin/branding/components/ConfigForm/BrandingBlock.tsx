@@ -115,10 +115,10 @@ export function BrandingBlock({
 
       {/* Vista previa inline */}
       <div className="px-5 py-4">
-        <div className="hidden md:block">
+        <div className="hidden lg:block">
           <HeaderPreview variant="desktop" {...previewProps} />
         </div>
-        <div className="md:hidden">
+        <div className="lg:hidden">
           <HeaderPreview variant="desktop" compact {...previewProps} />
         </div>
       </div>
