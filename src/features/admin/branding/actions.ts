@@ -68,6 +68,10 @@ export async function updateTenantBrandingAction(
       horarios: payload.horarios as Json,
       direcciones: payload.direcciones as unknown as Json,
       whatsapp_mensajes: payload.whatsapp_mensajes as unknown as Json,
+      tipo_envio: payload.tipo_envio,
+      costo_envio: payload.costo_envio,
+      pedido_minimo: payload.pedido_minimo,
+      moneda_simbolo: payload.moneda_simbolo,
       updated_at: new Date().toISOString(),
     })
     .eq("id", payload.id)

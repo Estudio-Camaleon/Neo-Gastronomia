@@ -43,9 +43,10 @@ export interface NegocioPublico {
   horarios: Record<string, HorarioDia> | null;
   whatsapp_mensajes?: Record<string, string> | null;
   recepcion_pausada?: boolean;
-  moneda_simbolo?: string;
-  pedido_minimo?: number;
-  costo_envio?: number;
+  tipo_envio: string;
+  moneda_simbolo: string;
+  pedido_minimo: number;
+  costo_envio: number;
 }
 
 // ── Categoría ────────────────────────────────────────
@@ -175,6 +176,10 @@ export interface UpdateTenantBrandingPayload {
   horarios: Record<string, unknown>;
   direcciones: DireccionFisica[];
   whatsapp_mensajes?: Record<string, string> | null;
+  tipo_envio: string;
+  costo_envio: number;
+  pedido_minimo: number;
+  moneda_simbolo: string;
 }
 
 // ── Promo ────────────────────────────────────────────

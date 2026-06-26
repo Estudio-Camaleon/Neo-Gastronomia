@@ -102,6 +102,7 @@ export function CatalogClient({
     moneda_simbolo: negocio.moneda_simbolo ?? "$",
     pedido_minimo: negocio.pedido_minimo ?? 0,
     costo_envio: negocio.costo_envio ?? 0,
+    tipo_envio: negocio.tipo_envio ?? "fijo",
   };
 
   // ── Computar datos de promos para badges en productos ──

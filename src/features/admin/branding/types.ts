@@ -24,6 +24,15 @@ export const DIAS = [
   { id: "domingo", label: "Domingo" },
 ];
 
+// ── Delivery / Envío ──────────────────────────────────────
+export const TIPOS_ENVIO = [
+  { id: "fijo", label: "Costo fijo" },
+  { id: "gratuito", label: "Delivery gratuito" },
+  { id: "no_disponible", label: "Solo retiro (sin delivery)" },
+] as const;
+
+export type TipoEnvio = (typeof TIPOS_ENVIO)[number]["id"];
+
 // ── Negocio / Config Form State ──────────────────────────
 export interface NegocioInitialData {
   id: string;
@@ -54,6 +63,10 @@ export interface NegocioInitialData {
   horarios: ScheduleData;
   direcciones?: DireccionFisica[];
   whatsapp_mensajes?: Record<string, string> | null;
+  tipo_envio: string;
+  costo_envio: number;
+  pedido_minimo: number;
+  moneda_simbolo: string;
   phone?: string;
   plan_tier?: string;
   subscription_status?: string | null;
@@ -89,6 +102,10 @@ export interface ConfigFormState {
   horarios: ScheduleData;
   direcciones: DireccionFisica[];
   whatsapp_mensajes: Record<string, string>;
+  tipo_envio: string;
+  costo_envio: number;
+  pedido_minimo: number;
+  moneda_simbolo: string;
 }
 
 // ── Redes sociales ───────────────────────────────────────

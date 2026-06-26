@@ -89,6 +89,10 @@ export function ConfigForm({
     horarios: initialData?.horarios || {},
     direcciones: initialData?.direcciones || [],
     whatsapp_mensajes: initialData?.whatsapp_mensajes || DEFAULT_WHATSAPP_MENSAJES,
+    tipo_envio: initialData?.tipo_envio || "fijo",
+    costo_envio: initialData?.costo_envio ?? 0,
+    pedido_minimo: initialData?.pedido_minimo ?? 0,
+    moneda_simbolo: initialData?.moneda_simbolo || "$",
   });
 
   const initialIdRef = useRef(initialData?.id);
@@ -134,6 +138,10 @@ export function ConfigForm({
       horarios: initialData?.horarios || {},
       direcciones: initialData?.direcciones || [],
       whatsapp_mensajes: initialData?.whatsapp_mensajes || DEFAULT_WHATSAPP_MENSAJES,
+      tipo_envio: initialData?.tipo_envio || "fijo",
+      costo_envio: initialData?.costo_envio ?? 0,
+      pedido_minimo: initialData?.pedido_minimo ?? 0,
+      moneda_simbolo: initialData?.moneda_simbolo || "$",
     });
   }, [initialData?.id]);
 
@@ -148,6 +156,11 @@ export function ConfigForm({
 
     if (name === "slug") {
       setFormData((prev) => ({ ...prev, [name]: generateSlug(value) }));
+      return;
+    }
+
+    if (name === "costo_envio" || name === "pedido_minimo") {
+      setFormData((prev) => ({ ...prev, [name]: Number(value) || 0 }));
       return;
     }
 
@@ -261,6 +274,10 @@ export function ConfigForm({
       horarios: initialData?.horarios || {},
       direcciones: initialData?.direcciones || [],
       whatsapp_mensajes: initialData?.whatsapp_mensajes || DEFAULT_WHATSAPP_MENSAJES,
+      tipo_envio: initialData?.tipo_envio || "fijo",
+      costo_envio: initialData?.costo_envio ?? 0,
+      pedido_minimo: initialData?.pedido_minimo ?? 0,
+      moneda_simbolo: initialData?.moneda_simbolo || "$",
     });
     setImagePreviews({
       logo_url: initialData?.logo_url || "",
@@ -331,6 +348,10 @@ export function ConfigForm({
         horarios: formData.horarios as Record<string, unknown>,
         direcciones: formData.direcciones,
         whatsapp_mensajes: formData.whatsapp_mensajes,
+        tipo_envio: formData.tipo_envio,
+        costo_envio: formData.costo_envio,
+        pedido_minimo: formData.pedido_minimo,
+        moneda_simbolo: formData.moneda_simbolo,
       };
 
       const res = await updateTenantBrandingAction(payload);

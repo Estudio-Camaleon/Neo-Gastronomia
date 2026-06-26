@@ -166,6 +166,7 @@ export type Database = {
           banner_scale: number
           banner_url: string | null
           color_primary: string | null
+          costo_envio: number
           created_at: string | null
           current_period_ends_at: string | null
           deletion_reason: string | null
@@ -184,11 +185,13 @@ export type Database = {
           logo_scale: number
           logo_shape: string
           logo_url: string | null
+          moneda_simbolo: string
           mostrar_nombre: boolean
           mp_customer_id: string | null
           mp_status: string | null
           mp_subscription_id: string | null
           nombre: string
+          pedido_minimo: number
           phone: string | null
           plan_tier: string
           recepcion_pausada: boolean
@@ -199,6 +202,7 @@ export type Database = {
           stripe_subscription_id: string | null
           subscription_status: string | null
           tiktok_url: string | null
+          tipo_envio: string
           trial_ends_at: string | null
           tripadvisor_url: string | null
           twitter_url: string | null
@@ -214,6 +218,7 @@ export type Database = {
           banner_scale?: number
           banner_url?: string | null
           color_primary?: string | null
+          costo_envio?: number
           created_at?: string | null
           current_period_ends_at?: string | null
           deletion_reason?: string | null
@@ -232,11 +237,13 @@ export type Database = {
           logo_scale?: number
           logo_shape?: string
           logo_url?: string | null
+          moneda_simbolo?: string
           mostrar_nombre?: boolean
           mp_customer_id?: string | null
           mp_status?: string | null
           mp_subscription_id?: string | null
           nombre: string
+          pedido_minimo?: number
           phone?: string | null
           plan_tier?: string
           recepcion_pausada?: boolean
@@ -247,6 +254,7 @@ export type Database = {
           stripe_subscription_id?: string | null
           subscription_status?: string | null
           tiktok_url?: string | null
+          tipo_envio?: string
           trial_ends_at?: string | null
           tripadvisor_url?: string | null
           twitter_url?: string | null
@@ -262,6 +270,7 @@ export type Database = {
           banner_scale?: number
           banner_url?: string | null
           color_primary?: string | null
+          costo_envio?: number
           created_at?: string | null
           current_period_ends_at?: string | null
           deletion_reason?: string | null
@@ -280,11 +289,13 @@ export type Database = {
           logo_scale?: number
           logo_shape?: string
           logo_url?: string | null
+          moneda_simbolo?: string
           mostrar_nombre?: boolean
           mp_customer_id?: string | null
           mp_status?: string | null
           mp_subscription_id?: string | null
           nombre?: string
+          pedido_minimo?: number
           phone?: string | null
           plan_tier?: string
           recepcion_pausada?: boolean
@@ -295,6 +306,7 @@ export type Database = {
           stripe_subscription_id?: string | null
           subscription_status?: string | null
           tiktok_url?: string | null
+          tipo_envio?: string
           trial_ends_at?: string | null
           tripadvisor_url?: string | null
           twitter_url?: string | null

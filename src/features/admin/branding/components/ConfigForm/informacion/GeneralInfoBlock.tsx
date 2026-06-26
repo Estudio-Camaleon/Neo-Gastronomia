@@ -1,8 +1,8 @@
 "use client";
 
-import { Globe, Hash, Phone, XCircle } from "lucide-react";
+import { Globe, Hash, Phone, XCircle, Truck, DollarSign } from "lucide-react";
 import type { ConfigFormState } from "../../../types";
-import { PAISES } from "../../../types";
+import { PAISES, TIPOS_ENVIO } from "../../../types";
 
 export interface GeneralInfoBlockProps {
   formData: ConfigFormState;
@@ -141,6 +141,77 @@ export function GeneralInfoBlock({
               Sin espacios ni símbolos. Ej: <span className="font-mono">9 381 1234567</span> (sin el +54)
             </p>
           )}
+        </div>
+
+        {/* Delivery: tipo de envío */}
+        <div className="sm:col-span-2 space-y-3 border-t border-[var(--admin-border)] pt-4 mt-2">
+          <div className="flex items-center gap-2">
+            <Truck size={14} className="text-[var(--admin-text-muted)]" />
+            <h3 className="text-[14px] font-semibold text-[var(--admin-text)]">
+              Configuración de envío
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-1">
+              <label className="font-medium text-[var(--admin-text-muted)] text-[14px] flex items-center gap-1">
+                Tipo de envío
+              </label>
+              <select
+                name="tipo_envio"
+                value={formData.tipo_envio}
+                onChange={onChange}
+                className="w-full p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)] transition-all font-medium text-[15px]"
+              >
+                {TIPOS_ENVIO.map((t) => (
+                  <option key={t.id} value={t.id}>{t.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {formData.tipo_envio === "fijo" && (
+              <div className="space-y-1">
+                <label className="font-medium text-[var(--admin-text-muted)] text-[14px] flex items-center gap-1">
+                  <DollarSign size={12} /> Costo de envío
+                </label>
+                <input
+                  name="costo_envio"
+                  type="number"
+                  min={0}
+                  step={100}
+                  value={formData.costo_envio}
+                  onChange={onChange}
+                  className="w-full p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 transition-all font-medium text-[15px]"
+                  placeholder="0"
+                />
+              </div>
+            )}
+
+            {formData.tipo_envio !== "no_disponible" && (
+              <div className="space-y-1">
+                <label className="font-medium text-[var(--admin-text-muted)] text-[14px] flex items-center gap-1">
+                  Pedido mínimo
+                  <span className="text-[11px] font-medium text-[var(--admin-text-muted)]/60 px-1.5 py-0.5 rounded border border-[var(--admin-border)]">Opcional</span>
+                </label>
+                <input
+                  name="pedido_minimo"
+                  type="number"
+                  min={0}
+                  step={100}
+                  value={formData.pedido_minimo}
+                  onChange={onChange}
+                  className="w-full p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 transition-all font-medium text-[15px]"
+                  placeholder="0"
+                />
+              </div>
+            )}
+          </div>
+          <p className="text-[12px] text-[var(--admin-text-muted)] leading-tight">
+            {formData.tipo_envio === "no_disponible"
+              ? "Los clientes podrán solo retirar en el local. No aparecerá opción de delivery."
+              : formData.tipo_envio === "gratuito"
+                ? "El delivery será gratuito para el cliente. Podés configurar un pedido mínimo."
+                : "El cliente verá el costo de envío al elegir delivery en su pedido."}
+          </p>
         </div>
 
         <div className="sm:col-span-2 space-y-1">

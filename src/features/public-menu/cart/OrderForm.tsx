@@ -46,6 +46,7 @@ interface OrderFormProps {
   config: {
     moneda_simbolo?: string;
     costo_envio?: number;
+    tipo_envio?: string;
   };
   promos?: PromoRow[];
   productCategoryMap?: Record<string, string>;
@@ -364,36 +365,38 @@ export function OrderForm({
             name="esDelivery"
             render={({ field }) => (
               <div
-                className="grid grid-cols-2 gap-3"
+                className={config.tipo_envio === "no_disponible" ? "grid grid-cols-1 gap-3" : "grid grid-cols-2 gap-3"}
                 role="radiogroup"
                 aria-label="Forma de entrega"
               >
                 <button
                   type="button"
                   role="radio"
-                  aria-checked={!field.value}
+                  aria-checked={config.tipo_envio === "no_disponible" || !field.value}
                   onClick={() => field.onChange(false)}
                   className={`flex items-center justify-center gap-2 p-3 text-sm font-medium rounded-xl border transition-all ${
-                    !field.value
+                    config.tipo_envio === "no_disponible" || !field.value
                       ? "bg-[var(--color-custom-500)] border-[var(--color-custom-500)] text-white shadow-sm"
                       : "bg-[var(--color-custom-surface-strong)] border-[var(--color-custom-border)] text-[var(--color-custom-text-muted)] hover:border-[var(--color-custom-500)]"
                   }`}
                 >
                   <Store size={16} aria-hidden="true" /> Retiro
                 </button>
-                <button
-                  type="button"
-                  role="radio"
-                  aria-checked={field.value}
-                  onClick={() => field.onChange(true)}
-                  className={`flex items-center justify-center gap-2 p-3 text-sm font-medium rounded-xl border transition-all ${
-                    field.value
-                      ? "bg-[var(--color-custom-500)] border-[var(--color-custom-500)] text-white shadow-sm"
-                      : "bg-[var(--color-custom-surface-strong)] border-[var(--color-custom-border)] text-[var(--color-custom-text-muted)] hover:border-[var(--color-custom-500)]"
-                  }`}
-                >
-                  <Truck size={16} aria-hidden="true" /> Envío
-                </button>
+                {config.tipo_envio !== "no_disponible" && (
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={field.value}
+                    onClick={() => field.onChange(true)}
+                    className={`flex items-center justify-center gap-2 p-3 text-sm font-medium rounded-xl border transition-all ${
+                      field.value
+                        ? "bg-[var(--color-custom-500)] border-[var(--color-custom-500)] text-white shadow-sm"
+                        : "bg-[var(--color-custom-surface-strong)] border-[var(--color-custom-border)] text-[var(--color-custom-text-muted)] hover:border-[var(--color-custom-500)]"
+                    }`}
+                  >
+                    <Truck size={16} aria-hidden="true" /> Envío
+                  </button>
+                )}
               </div>
             )}
           />
