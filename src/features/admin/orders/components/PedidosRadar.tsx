@@ -17,13 +17,14 @@ import {
   AlertTriangle,
   PauseCircle,
   PlayCircle,
+
 } from "lucide-react";
 import { toast } from "sonner";
 import { PedidoCard } from "./PedidoCard";
 import {
   updateOrderStatusAction,
   toggleRecepcionPausadaAction,
-} from "./actions";
+} from "../actions";
 import { enviarNotificacionWhatsApp } from "@/core/lib/utils/whatsappActions";
 import { useOrderNotifications } from "./OrderNotificationProvider";
 import { useDebounce } from "@/core/hooks/useDebounce";
@@ -278,59 +279,23 @@ export function PedidosRadar({
     }
   };
 
-  const stats = useMemo(
+  const statusCounts = useMemo(
     () => ({
-      nuevos: pedidos.filter((p) => p.estado === "pendiente").length,
-      cocina: pedidos.filter((p) => p.estado === "en_preparacion").length,
-      listos: pedidos.filter((p) => p.estado === "entregado").length,
-      cancelados: pedidos.filter((p) => p.estado === "cancelado").length,
-      delivery: pedidos.filter((p) => p.es_delivery).length,
-      retiro: pedidos.filter((p) => !p.es_delivery).length,
+      pendiente: pedidos.filter((p) => p.estado === "pendiente").length,
+      en_preparacion: pedidos.filter((p) => p.estado === "en_preparacion").length,
+      entregado: pedidos.filter((p) => p.estado === "entregado").length,
+      cancelado: pedidos.filter((p) => p.estado === "cancelado").length,
+      total: pedidos.length,
     }),
     [pedidos],
   );
 
-  const radarItems = [
-    {
-      label: "Nuevos Pendientes",
-      value: stats.nuevos,
-      color: "bg-sky-500",
-      glow: "shadow-sky-500/20",
-      border: "border-[var(--admin-border)]",
-      icon: Clock,
-      textColor: "text-sky-600 dark:text-sky-400",
-      bgLight: "bg-sky-50/50 dark:bg-sky-950/10",
-    },
-    {
-      label: "En Cocina",
-      value: stats.cocina,
-      color: "admin-warning-bg",
-      glow: "shadow-amber-500/20",
-      border: "border-[var(--admin-border)]",
-      icon: ChefHat,
-      textColor: "admin-warning-text",
-      bgLight: "admin-warning-bg",
-    },
-    {
-      label: "Entregados",
-      value: stats.listos,
-      color: "admin-success-bg",
-      glow: "shadow-green-500/20",
-      border: "border-[var(--admin-border)]",
-      icon: CheckCircle2,
-      textColor: "admin-success-text",
-      bgLight: "admin-success-bg",
-    },
-    {
-      label: "Cancelados",
-      value: stats.cancelados,
-      color: "bg-red-500",
-      glow: "shadow-red-500/20",
-      border: "border-[var(--admin-border)]",
-      icon: XCircle,
-      textColor: "text-red-600 dark:text-red-400",
-      bgLight: "bg-red-50/50 dark:bg-red-950/10",
-    },
+  const statusPills = [
+    { value: "todos", label: "Todos", icon: List, count: statusCounts.total },
+    { value: "pendiente", label: "Pendientes", icon: Clock, count: statusCounts.pendiente },
+    { value: "en_preparacion", label: "En Cocina", icon: ChefHat, count: statusCounts.en_preparacion },
+    { value: "entregado", label: "Entregados", icon: CheckCircle2, count: statusCounts.entregado },
+    { value: "cancelado", label: "Cancelados", icon: XCircle, count: statusCounts.cancelado },
   ];
 
   return (
@@ -389,50 +354,13 @@ export function PedidosRadar({
         </button>
       </div>
 
-      {/* ── Stats cards ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {radarItems.map((item, idx) => (
-          <div
-            key={idx}
-            className={`admin-card !p-4 sm:!p-5 ${item.border} transition-all duration-300 rounded-2xl hover:shadow-lg ${item.glow}`}
-          >
-            <div className="flex justify-between items-start mb-2">
-              <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-[var(--admin-text-muted)] whitespace-nowrap">
-                {item.label}
-              </span>
-              <div
-                className={`p-2 rounded-xl ${item.bgLight} ${item.textColor} transition-all duration-200`}
-              >
-                <item.icon size={18} />
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <span
-                className={`text-2xl sm:text-4xl font-black tracking-tight ${item.textColor}`}
-              >
-                {item.value}
-              </span>
-              {item.value > 0 && item.label !== "Entregados" && (
-                <div
-                  className={`w-2.5 h-2.5 rounded-full ${item.color} animate-pulse shadow-sm ${item.glow}`}
-                />
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+
 
       {/* ── Filters ── */}
       <div className="flex flex-wrap items-center gap-2">
-        {/* Status pills */}
+        {/* Status pills with counts */}
         <div className="flex flex-wrap gap-1 bg-[var(--admin-bg)] p-1 rounded-xl border border-[var(--admin-border)]">
-          {[
-            { value: "todos", label: "Todos", icon: List },
-            { value: "pendiente", label: "Pendientes", icon: Clock },
-            { value: "en_preparacion", label: "En Cocina", icon: ChefHat },
-            { value: "entregado", label: "Entregados", icon: CheckCircle2 },
-            { value: "cancelado", label: "Cancelados", icon: XCircle },
-          ].map((opt) => (
+          {statusPills.map((opt) => (
             <button
               key={opt.value}
               onClick={() => {
@@ -446,7 +374,24 @@ export function PedidosRadar({
               }`}
             >
               <opt.icon size={14} />
-              {opt.label}
+              <span>{opt.label}</span>
+              <span
+                className={`ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full leading-none ${
+                  statusFilter === opt.value
+                    ? "bg-[var(--admin-accent)]/10 text-[var(--admin-accent)]"
+                    : opt.value === "pendiente"
+                      ? "bg-amber-500/10 text-amber-600"
+                      : opt.value === "en_preparacion"
+                        ? "bg-[var(--admin-accent)]/10 text-[var(--admin-accent)]"
+                        : opt.value === "entregado"
+                          ? "bg-green-500/10 text-green-600"
+                          : opt.value === "cancelado"
+                            ? "bg-red-500/10 text-red-600"
+                            : "bg-[var(--admin-bg)] text-[var(--admin-text-muted)]"
+                }`}
+              >
+                {opt.count}
+              </span>
             </button>
           ))}
         </div>

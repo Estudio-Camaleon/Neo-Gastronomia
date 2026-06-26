@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { TransitionLink } from "@/components/ui/transition-link";
-import { useOrderNotifications } from "@/features/admin/orders/OrderNotificationProvider";
+import { useOrderNotifications } from "@/features/admin/orders/components/OrderNotificationProvider";
 import {
   LayoutDashboard,
   ClipboardList,

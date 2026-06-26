@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { TransitionLink } from "@/components/ui/transition-link";
 import { LogoutModal } from "@/components/ui/logout-modal";
 import { useTheme } from "@/core/providers/ThemeProvider";
-import { useOrderNotifications } from "@/features/admin/orders/OrderNotificationProvider";
+import { useOrderNotifications } from "@/features/admin/orders/components/OrderNotificationProvider";
 import {
   LayoutDashboard,
   ClipboardList,

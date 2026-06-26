@@ -5,7 +5,7 @@ import { AdminTopbar } from "@/features/admin/shared/AdminTopbar";
 import { MobileHeader } from "@/features/admin/shared/MobileHeader";
 import { BottomTabBar } from "@/features/admin/shared/BottomTabBar";
 import { ThemeProvider } from "@/core/providers/ThemeProvider";
-import { OrderNotificationProvider } from "@/features/admin/orders/OrderNotificationProvider";
+import { OrderNotificationProvider } from "@/features/admin/orders/components/OrderNotificationProvider";
 import { NotificationProvider } from "@/features/admin/notifications/NotificationProvider";
 import { createClient } from "@/core/lib/supabase/server";
 import { redirect } from "next/navigation";

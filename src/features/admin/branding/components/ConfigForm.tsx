@@ -38,6 +38,43 @@ import { DangerZone } from "./ConfigForm/peligro/DangerZone";
 import { TabBar } from "./ConfigForm/TabBar";
 import type { TabId } from "./ConfigForm/TabBar";
 
+function buildInitialState(data: NegocioInitialData | null): ConfigFormState {
+  const wp = parseWhatsApp(data?.whatsapp || "");
+  return {
+    nombre: data?.nombre || "",
+    slug: data?.slug || "",
+    whatsapp_pais: wp.pais,
+    whatsapp_numero: wp.numero,
+    descripcion: data?.descripcion || "",
+    localidad: data?.localidad || "",
+    direccion_notas: data?.direccion_notas || "",
+    color_primary: data?.color_primary || "#34a35f",
+    logo_url: data?.logo_url || "",
+    logo_scale: data?.logo_scale ?? 1,
+    logo_posicion: data?.logo_posicion || "center",
+    logo_fit: data?.logo_fit || "contain",
+    logo_shape: data?.logo_shape || "circle",
+    banner_url: data?.banner_url || "",
+    banner_posicion: data?.banner_posicion || "center",
+    banner_height: data?.banner_height || "normal",
+    banner_scale: data?.banner_scale ?? 1,
+    mostrar_nombre: data?.mostrar_nombre ?? true,
+    instagram_url: data?.instagram_url || "",
+    facebook_url: data?.facebook_url || "",
+    tiktok_url: data?.tiktok_url || "",
+    twitter_url: data?.twitter_url || "",
+    youtube_url: data?.youtube_url || "",
+    redes_principales: data?.redes_principales || [],
+    horarios: data?.horarios || {},
+    direcciones: data?.direcciones || [],
+    whatsapp_mensajes: data?.whatsapp_mensajes || DEFAULT_WHATSAPP_MENSAJES,
+    tipo_envio: data?.tipo_envio || "fijo",
+    costo_envio: data?.costo_envio ?? 0,
+    pedido_minimo: data?.pedido_minimo ?? 0,
+    moneda_simbolo: data?.moneda_simbolo || "$",
+  };
+}
+
 export function ConfigForm({
   initialData,
   userId,
@@ -61,87 +98,31 @@ export function ConfigForm({
     banner_url: initialData?.banner_url || "",
   });
 
-  const [formData, setFormData] = useState<ConfigFormState>({
-    nombre: initialData?.nombre || "",
-    slug: initialData?.slug || "",
-    whatsapp_pais: parseWhatsApp(initialData?.whatsapp || "").pais,
-    whatsapp_numero: parseWhatsApp(initialData?.whatsapp || "").numero,
-    descripcion: initialData?.descripcion || "",
-    localidad: initialData?.localidad || "",
-    direccion_notas: initialData?.direccion_notas || "",
-    color_primary: initialData?.color_primary || "#34a35f",
-    logo_url: initialData?.logo_url || "",
-    logo_scale: initialData?.logo_scale ?? 1,
-    logo_posicion: initialData?.logo_posicion || "center",
-    logo_fit: initialData?.logo_fit || "contain",
-    logo_shape: initialData?.logo_shape || "circle",
-    banner_url: initialData?.banner_url || "",
-    banner_posicion: initialData?.banner_posicion || "center",
-    banner_height: initialData?.banner_height || "normal",
-    banner_scale: initialData?.banner_scale ?? 1,
-    mostrar_nombre: initialData?.mostrar_nombre ?? true,
-    instagram_url: initialData?.instagram_url || "",
-    facebook_url: initialData?.facebook_url || "",
-    tiktok_url: initialData?.tiktok_url || "",
-    twitter_url: initialData?.twitter_url || "",
-    youtube_url: initialData?.youtube_url || "",
-    redes_principales: initialData?.redes_principales || [],
-    horarios: initialData?.horarios || {},
-    direcciones: initialData?.direcciones || [],
-    whatsapp_mensajes: initialData?.whatsapp_mensajes || DEFAULT_WHATSAPP_MENSAJES,
-    tipo_envio: initialData?.tipo_envio || "fijo",
-    costo_envio: initialData?.costo_envio ?? 0,
-    pedido_minimo: initialData?.pedido_minimo ?? 0,
-    moneda_simbolo: initialData?.moneda_simbolo || "$",
-  });
+  const initialStateRef = useRef(buildInitialState(initialData));
+  const [formData, setFormData] = useState<ConfigFormState>(initialStateRef.current);
 
   const initialIdRef = useRef(initialData?.id);
   const [isDirty, setIsDirty] = useState(false);
+
+  /* ── Auto-detección de cambios: isDirty se sincroniza con formData ── */
+  useEffect(() => {
+    const dirty =
+      JSON.stringify(formData) !== JSON.stringify(initialStateRef.current);
+    setIsDirty(dirty);
+  }, [formData]);
 
   useEffect(() => {
     const idCambio = initialData?.id && initialData.id !== initialIdRef.current;
     if (!idCambio && initialIdRef.current) return;
     if (initialData?.id) initialIdRef.current = initialData.id;
-    setIsDirty(false);
+
+    const newState = buildInitialState(initialData);
+    initialStateRef.current = newState;
+    setFormData(newState);
 
     setImagePreviews({
       logo_url: initialData?.logo_url || "",
       banner_url: initialData?.banner_url || "",
-    });
-
-    const wp = parseWhatsApp(initialData?.whatsapp || "");
-    setFormData({
-      nombre: initialData?.nombre || "",
-      slug: initialData?.slug || "",
-      whatsapp_pais: wp.pais,
-      whatsapp_numero: wp.numero,
-      descripcion: initialData?.descripcion || "",
-      localidad: initialData?.localidad || "",
-      direccion_notas: initialData?.direccion_notas || "",
-      color_primary: initialData?.color_primary || "#34a35f",
-      logo_url: initialData?.logo_url || "",
-      logo_scale: initialData?.logo_scale ?? 1,
-      logo_posicion: initialData?.logo_posicion || "center",
-      logo_fit: initialData?.logo_fit || "contain",
-      logo_shape: initialData?.logo_shape || "circle",
-      banner_url: initialData?.banner_url || "",
-      banner_posicion: initialData?.banner_posicion || "center",
-      banner_height: initialData?.banner_height || "normal",
-      banner_scale: initialData?.banner_scale ?? 1,
-      mostrar_nombre: initialData?.mostrar_nombre ?? true,
-      instagram_url: initialData?.instagram_url || "",
-      facebook_url: initialData?.facebook_url || "",
-      tiktok_url: initialData?.tiktok_url || "",
-      twitter_url: initialData?.twitter_url || "",
-      youtube_url: initialData?.youtube_url || "",
-      redes_principales: initialData?.redes_principales || [],
-      horarios: initialData?.horarios || {},
-      direcciones: initialData?.direcciones || [],
-      whatsapp_mensajes: initialData?.whatsapp_mensajes || DEFAULT_WHATSAPP_MENSAJES,
-      tipo_envio: initialData?.tipo_envio || "fijo",
-      costo_envio: initialData?.costo_envio ?? 0,
-      pedido_minimo: initialData?.pedido_minimo ?? 0,
-      moneda_simbolo: initialData?.moneda_simbolo || "$",
     });
   }, [initialData?.id]);
 
@@ -152,7 +133,6 @@ export function ConfigForm({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
-    setIsDirty(true);
 
     if (name === "slug") {
       setFormData((prev) => ({ ...prev, [name]: generateSlug(value) }));
@@ -173,7 +153,6 @@ export function ConfigForm({
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setIsDirty(true);
     setFieldErrors((prev) => ({ ...prev, image: undefined }));
     if (file.size > MAX_IMAGE_SIZE_BYTES) {
       const msg = `La imagen supera el límite permitido de ${MAX_IMAGE_SIZE_MB}MB`;
@@ -244,47 +223,13 @@ export function ConfigForm({
   }, []);
 
   const handleReset = useCallback(() => {
-    if (!initialData) return;
-    const wp = parseWhatsApp(initialData?.whatsapp || "");
-    setFormData({
-      nombre: initialData?.nombre || "",
-      slug: initialData?.slug || "",
-      whatsapp_pais: wp.pais,
-      whatsapp_numero: wp.numero,
-      descripcion: initialData?.descripcion || "",
-      localidad: initialData?.localidad || "",
-      direccion_notas: initialData?.direccion_notas || "",
-      color_primary: initialData?.color_primary || "#34a35f",
-      logo_url: initialData?.logo_url || "",
-      logo_scale: initialData?.logo_scale ?? 1,
-      logo_posicion: initialData?.logo_posicion || "center",
-      logo_fit: initialData?.logo_fit || "contain",
-      logo_shape: initialData?.logo_shape || "circle",
-      banner_url: initialData?.banner_url || "",
-      banner_posicion: initialData?.banner_posicion || "center",
-      banner_height: initialData?.banner_height || "normal",
-      banner_scale: initialData?.banner_scale ?? 1,
-      mostrar_nombre: initialData?.mostrar_nombre ?? true,
-      instagram_url: initialData?.instagram_url || "",
-      facebook_url: initialData?.facebook_url || "",
-      tiktok_url: initialData?.tiktok_url || "",
-      twitter_url: initialData?.twitter_url || "",
-      youtube_url: initialData?.youtube_url || "",
-      redes_principales: initialData?.redes_principales || [],
-      horarios: initialData?.horarios || {},
-      direcciones: initialData?.direcciones || [],
-      whatsapp_mensajes: initialData?.whatsapp_mensajes || DEFAULT_WHATSAPP_MENSAJES,
-      tipo_envio: initialData?.tipo_envio || "fijo",
-      costo_envio: initialData?.costo_envio ?? 0,
-      pedido_minimo: initialData?.pedido_minimo ?? 0,
-      moneda_simbolo: initialData?.moneda_simbolo || "$",
-    });
+    const saved = initialStateRef.current;
+    setFormData(saved);
     setImagePreviews({
-      logo_url: initialData?.logo_url || "",
-      banner_url: initialData?.banner_url || "",
+      logo_url: saved.logo_url || "",
+      banner_url: saved.banner_url || "",
     });
-    setIsDirty(false);
-  }, [initialData]);
+  }, []);
 
   const {
     showModal: showUnsavedModal,
@@ -356,12 +301,14 @@ export function ConfigForm({
 
       const res = await updateTenantBrandingAction(payload);
 
-      setFormData((prev) => ({ ...prev, slug: res.slugSaneado }));
+      setFormData((prev) => {
+        const updated = { ...prev, slug: res.slugSaneado };
+        initialStateRef.current = updated;
+        return updated;
+      });
       setSaveStatus("success");
       if (successTimerRef.current) clearTimeout(successTimerRef.current);
       successTimerRef.current = setTimeout(() => setSaveStatus("idle"), 2000);
-
-      setIsDirty(false);
 
       toast.success("Ajustes consolidados con éxito", {
         icon: <CheckCircle2 className="text-[var(--admin-accent)]" />,
@@ -519,23 +466,23 @@ export function ConfigForm({
               imageError={fieldErrors.image}
               onImageUpload={handleImageUpload}
               onLogoScaleChange={(val) => {
-                setIsDirty(true);
+
                 setFormData((p) => ({ ...p, logo_scale: val }));
               }}
               onLogoPosicionChange={(val) => {
-                setIsDirty(true);
+
                 setFormData((p) => ({ ...p, logo_posicion: val }));
               }}
               onLogoShapeChange={(val) => {
-                setIsDirty(true);
+
                 setFormData((p) => ({ ...p, logo_shape: val }));
               }}
               onBannerPosicionChange={(val) => {
-                setIsDirty(true);
+
                 setFormData((p) => ({ ...p, banner_posicion: val }));
               }}
               onBannerScaleChange={(val) => {
-                setIsDirty(true);
+
                 setFormData((p) => ({ ...p, banner_scale: val }));
               }}
             />
@@ -545,7 +492,7 @@ export function ConfigForm({
               colorPrimary={formData.color_primary}
               error={fieldErrors.color_primary}
               onChange={(val) => {
-                setIsDirty(true);
+
                 clearFieldError("color_primary");
                 setFormData((p) => ({ ...p, color_primary: val }));
               }}
@@ -563,7 +510,7 @@ export function ConfigForm({
               onChange={handleChange}
               onClearError={clearFieldError}
               onToggleMostrarNombre={(val) => {
-                setIsDirty(true);
+
                 setFormData((p) => ({ ...p, mostrar_nombre: val }));
               }}
             />
@@ -575,7 +522,7 @@ export function ConfigForm({
               whatsappNumero={formData.whatsapp_numero}
               error={fieldErrors.direcciones}
               onChange={(direcciones) => {
-                setIsDirty(true);
+
                 setFormData((p) => ({ ...p, direcciones }));
               }}
             />
@@ -592,7 +539,7 @@ export function ConfigForm({
                 redes_principales={formData.redes_principales}
                 onChange={handleChange}
                 onRedesPrincipalesChange={(redes) => {
-                  setIsDirty(true);
+  
                   setFormData((p) => ({ ...p, redes_principales: redes }));
                 }}
               />
@@ -611,7 +558,7 @@ export function ConfigForm({
               mensajes={formData.whatsapp_mensajes}
               negocioNombre={formData.nombre}
               onChange={(mensajes) => {
-                setIsDirty(true);
+
                 setFormData((p) => ({ ...p, whatsapp_mensajes: mensajes }));
               }}
             />
@@ -638,7 +585,7 @@ export function ConfigForm({
             <ScheduleBlock
               schedule={formData.horarios}
               onChange={(newSchedule) => {
-                setIsDirty(true);
+
                 setFormData((p) => ({ ...p, horarios: newSchedule }));
               }}
             />

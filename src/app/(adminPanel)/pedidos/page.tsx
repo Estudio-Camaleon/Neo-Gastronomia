@@ -1,6 +1,6 @@
 import { createClient } from "@/core/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { PedidosRadar } from "@/features/admin/orders/PedidosRadar";
+import { PedidosRadar } from "@/features/admin/orders/components/PedidosRadar";
 import type { PedidoData } from "@/core/types/domain";
 
 export default async function PedidosPage() {

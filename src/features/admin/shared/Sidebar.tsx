@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/core/lib/supabase/client";
 import { useTheme } from "@/core/providers/ThemeProvider";
-import { useOrderNotifications } from "@/features/admin/orders/OrderNotificationProvider";
+import { useOrderNotifications } from "@/features/admin/orders/components/OrderNotificationProvider";
 import { NotificationBell } from "@/features/admin/notifications/NotificationBell";
 import { TransitionLink } from "@/components/ui/transition-link";
 import { LogoutModal } from "@/components/ui/logout-modal";

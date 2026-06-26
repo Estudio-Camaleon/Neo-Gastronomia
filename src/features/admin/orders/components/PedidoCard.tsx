@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Smartphone,
   Truck,
@@ -16,10 +16,12 @@ import {
   AlertTriangle,
   Undo2,
 } from "lucide-react";
+import { useReactToPrint } from "react-to-print";
 import { FoodMini } from "@/components/ui/food-loading";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { useScrollLock } from "@/core/hooks/useScrollLock";
 import type { PedidoData } from "@/core/types/domain";
+import { ComandaPrintView, injectPrintStyles } from "./ComandaPrintView";
 
 const STATUS_CONFIG = {
   pendiente: {
@@ -66,45 +68,6 @@ function formatElapsed(createdAt: string): string {
   return `${h}h ${m}m`;
 }
 
-function printComanda(pedido: PedidoData): void {
-  const itemsHtml = (pedido.pedido_items ?? [])
-    .map(
-      (item) =>
-        `<tr>
-          <td style="font-size:28px;font-weight:900;text-align:center;padding:8px 12px;background:#f5f5f5;border-radius:8px;">${item.cantidad}x</td>
-          <td style="font-size:22px;font-weight:700;padding:8px 12px;">${item.nombre_producto}</td>
-        </tr>`,
-    )
-    .join("");
-
-  const win = window.open("", "_blank");
-  if (!win) return;
-  win.document.write(`
-    <html>
-    <head><title>Comanda #${pedido.id.slice(0, 6)}</title>
-    <style>
-      body { font-family: 'Courier New', monospace; padding: 16px; max-width: 80mm; margin: 0 auto; }
-      h1 { font-size: 20px; text-align: center; border-bottom: 2px dashed #000; padding-bottom: 8px; }
-      .cliente { font-size: 16px; font-weight: bold; margin: 8px 0; }
-      .meta { font-size: 12px; color: #555; margin: 4px 0; }
-      table { width: 100%; border-collapse: collapse; margin: 12px 0; }
-      .footer { border-top: 1px dashed #000; padding-top: 8px; font-size: 11px; text-align: center; color: #888; margin-top: 12px; }
-    </style>
-    </head>
-    <body>
-      <h1>🍔 COMANDA</h1>
-      <div class="cliente">${pedido.cliente_nombre}</div>
-      <div class="meta">#${pedido.id.slice(0, 6)} · ${pedido.es_delivery ? "🚚 Envío" : "🏪 Retiro"} · ${pedido.metodo_pago}</div>
-      <table>${itemsHtml}</table>
-      ${pedido.notas ? `<div style="font-size:14px;font-weight:bold;color:#d97706;background:#fef3c7;padding:8px;border-radius:6px;">📝 ${pedido.notas}</div>` : ""}
-      <div class="footer">${new Date().toLocaleString("es-AR")}</div>
-      <script>window.print();window.close();</script>
-    </body>
-    </html>
-  `);
-  win.document.close();
-}
-
 interface PedidoCardProps {
   pedido: PedidoData;
   onUpdateStatus: (id: string, nuevoEstado: PedidoData["estado"]) => void;
@@ -123,6 +86,21 @@ export function PedidoCard({
   const [showComandaModal, setShowComandaModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const printRef = useRef<HTMLDivElement>(null);
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Comanda-#${pedido.id.slice(0, 6)}`,
+    onBeforePrint: useCallback(() => {
+      injectPrintStyles();
+      return Promise.resolve();
+    }, []),
+    pageStyle: `
+      @page { size: 80mm auto; margin: 0; }
+      @media print {
+        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      }
+    `,
+  });
   const style = STATUS_CONFIG[pedido.estado];
   const MAX_VISIBLE_ITEMS = 3;
   const comandaItems = pedido.pedido_items ?? [];
@@ -157,6 +135,10 @@ export function PedidoCard({
 
   return (
     <>
+      {/* Hidden print receipt */}
+      <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+        <ComandaPrintView ref={printRef} pedido={pedido} />
+      </div>
       <div
         className={`admin-card overflow-hidden flex flex-col h-full !p-0 transition-all duration-300 hover:shadow-lg border-l-4 ${style.border} ${style.hoverBorder} ${
           isUrgent ? "ring-2 ring-red-400/40" : ""
@@ -210,7 +192,7 @@ export function PedidoCard({
                   <button
                     type="button"
                     onClick={() => {
-                      printComanda(pedido);
+                      handlePrint();
                       setMenuOpen(false);
                     }}
                     className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-[var(--admin-text)] hover:bg-[var(--admin-bg)] transition-colors"
@@ -323,7 +305,7 @@ export function PedidoCard({
               <div className="flex items-center gap-1">
                 <button
                   type="button"
-                  onClick={() => printComanda(pedido)}
+                  onClick={handlePrint}
                   className="p-1.5 rounded-lg text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-bg)] transition-all"
                   title="Imprimir Comanda"
                 >
