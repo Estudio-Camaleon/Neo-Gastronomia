@@ -20,7 +20,7 @@ export default async function ConfiguracionPage(props: {
   const searchParams = await props.searchParams;
   const firstLogin = searchParams?.firstLogin === "true";
   const mpSuccess = searchParams?.collection_status === "approved";
-  const upgradeAction = mpSuccess ? "success" : (searchParams?.upgrade ?? null);
+  const upgradeAction = mpSuccess ? "success" : (searchParams?.upgrade === "true" ? "checkout" : searchParams?.upgrade ?? null);
   const supabase = await createClient();
 
   const {

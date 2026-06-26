@@ -413,6 +413,13 @@ export function ConfigForm({
 
   const [activeTab, setActiveTab] = useState<TabId>("identidad");
 
+  // Cuando viene de ?upgrade=true, cambiar automáticamente a la pestaña Suscripción
+  useEffect(() => {
+    if (upgradeAction === "checkout") {
+      setActiveTab("suscripcion");
+    }
+  }, [upgradeAction]);
+
   const handleTabChange = useCallback((tab: TabId) => {
     blockNavigation(() => setActiveTab(tab));
   }, [blockNavigation]);
