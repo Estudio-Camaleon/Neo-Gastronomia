@@ -670,6 +670,9 @@ export function ConfigForm({
           subscriptionStatus={initialData?.subscription_status}
           currentPeriodEndsAt={initialData?.current_period_ends_at}
           createdAt={initialData?.created_at}
+          negocioId={initialData?.id}
+          negocioNombre={initialData?.nombre}
+          phone={initialData?.phone}
           upgradeAction={upgradeAction}
         />
       )}

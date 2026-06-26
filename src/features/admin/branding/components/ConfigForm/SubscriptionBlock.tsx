@@ -10,14 +10,23 @@ import {
   Calendar,
   Shield,
   AlertTriangle,
+  User,
+  Mail,
+  Phone,
+  FileText,
 } from "lucide-react";
 import { FoodMini } from "@/components/ui/food-loading";
+import { createClient } from "@/core/lib/supabase/client";
+import { jsPDF } from "jspdf";
 
 export interface SubscriptionBlockProps {
   planTier?: string;
   subscriptionStatus?: string | null;
   currentPeriodEndsAt?: string | null;
   createdAt?: string | null;
+  negocioId?: string;
+  negocioNombre?: string;
+  phone?: string;
   upgradeAction: "success" | "cancel" | "checkout" | null;
 }
 
@@ -26,12 +35,36 @@ export function SubscriptionBlock({
   subscriptionStatus,
   currentPeriodEndsAt,
   createdAt,
+  negocioId,
+  negocioNombre,
+  phone,
   upgradeAction,
 }: SubscriptionBlockProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [ownerData, setOwnerData] = useState<{
+    firstName: string;
+    lastName: string;
+    email: string;
+  } | null>(null);
+  const [downloading, setDownloading] = useState(false);
   const isPro = planTier === "pro";
+
+  // Fetch owner info from auth metadata
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        const meta = user.user_metadata ?? {};
+        setOwnerData({
+          firstName: (meta["first_name"] as string) || "",
+          lastName: (meta["last_name"] as string) || "",
+          email: user.email || "",
+        });
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (upgradeAction === "success") {
@@ -42,38 +75,141 @@ export function SubscriptionBlock({
     }
   }, [upgradeAction, router]);
 
-  if (upgradeAction === "success") {
-    return (
-      <div className="admin-card p-8 text-center border-green-500/30 bg-gradient-to-br from-green-500/5 to-transparent rounded-xl">
-        <div className="p-4 rounded-2xl bg-green-500/10 text-green-600 dark:text-green-400 mb-5 inline-flex">
-          <CheckCircle2 size={48} strokeWidth={1.5} />
-        </div>
-        <h2 className="text-[27px] font-black tracking-tight text-[var(--admin-text)] mb-2">
-          Bienvenido a PRO
-        </h2>
-        <p className="text-[17px] font-medium text-[var(--admin-text-muted)] max-w-md mx-auto">
-          Tu plan ya está activo. Disfrutá de productos ilimitados, estadísticas, exportación de datos y más.
-        </p>
-      </div>
-    );
-  }
+  const handleDownloadReceipt = async () => {
+    setDownloading(true);
+    try {
+      const doc = new jsPDF({ unit: "mm", format: "a5" });
+      const pageW = doc.internal.pageSize.getWidth();
+      const margin = 14;
+      const contentW = pageW - margin * 2;
+      let y = margin;
 
-  if (upgradeAction === "cancel") {
-    return (
-      <div className="admin-card p-8 text-center border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-transparent rounded-xl">
-        <div className="p-4 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 mb-5 inline-flex">
-          <XCircle size={48} strokeWidth={1.5} />
-        </div>
-        <h2 className="text-[27px] font-black tracking-tight text-[var(--admin-text)] mb-2">
-          Upgrade cancelado
-        </h2>
-        <p className="text-[17px] font-medium text-[var(--admin-text-muted)] max-w-md mx-auto">
-          No se realizó ningún cambio en tu plan. Seguís en el plan FREE sin costo.
-          Cuando quieras, podés actualizar desde acá mismo.
-        </p>
-      </div>
-    );
-  }
+      // ── Header ──
+      doc.setFontSize(20);
+      doc.setFont("helvetica", "bold");
+      doc.text("NEO", pageW / 2, y, { align: "center" });
+      y += 7;
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "normal");
+      doc.text("Sistema Gastronómico", pageW / 2, y, { align: "center" });
+      y += 5;
+      doc.setFontSize(8);
+      doc.setTextColor(150);
+      doc.text("Comprobante de suscripción", pageW / 2, y, { align: "center" });
+      y += 10;
+
+      // ── Línea separadora ──
+      doc.setDrawColor(200);
+      doc.setLineWidth(0.3);
+      doc.line(margin, y, pageW - margin, y);
+      y += 8;
+
+      // ── Datos del negocio ──
+      doc.setTextColor(0);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("Negocio", margin, y);
+      y += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.text(`Nombre: ${negocioNombre || "—"}`, margin, y);
+      y += 4.5;
+      doc.text(`Plan: ${isPro ? "PRO" : "GRATIS"}`, margin, y);
+      y += 4.5;
+      if (isPro) {
+        doc.text(
+          `Monto: $15/mes`,
+          margin,
+          y,
+        );
+        y += 4.5;
+      }
+      y += 4;
+
+      // ── Titular ──
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text("Titular", margin, y);
+      y += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      if (ownerData?.firstName || ownerData?.lastName) {
+        doc.text(
+          `Nombre: ${ownerData.firstName} ${ownerData.lastName}`,
+          margin,
+          y,
+        );
+        y += 4.5;
+      }
+      if (ownerData?.email) {
+        doc.text(`Email: ${ownerData.email}`, margin, y);
+        y += 4.5;
+      }
+      if (phone) {
+        doc.text(`Teléfono: ${phone}`, margin, y);
+        y += 4.5;
+      }
+      y += 4;
+
+      // ── Suscripción ──
+      if (isPro) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.text("Suscripción", margin, y);
+        y += 5;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.text(
+          `Estado: ${statusLabel[subscriptionStatus ?? ""] || subscriptionStatus || "Activo"}`,
+          margin,
+          y,
+        );
+        y += 4.5;
+        doc.text(
+          `Creación: ${createdAt ? new Date(createdAt).toLocaleDateString("es-AR") : "—"}`,
+          margin,
+          y,
+        );
+        y += 4.5;
+        doc.text(
+          `Próximo ciclo: ${currentPeriodEndsAt ? new Date(currentPeriodEndsAt).toLocaleDateString("es-AR") : "—"}`,
+          margin,
+          y,
+        );
+        y += 4.5;
+        doc.text(
+          `ID suscripción: ${negocioId || "—"}`,
+          margin,
+          y,
+        );
+        y += 4;
+      }
+
+      y = Math.max(y + 8, 120);
+
+      // ── Footer ──
+      doc.setDrawColor(200);
+      doc.setLineWidth(0.3);
+      doc.line(margin, y, pageW - margin, y);
+      y += 5;
+      doc.setFontSize(7);
+      doc.setTextColor(180);
+      doc.text(
+        `Generado el ${new Date().toLocaleString("es-AR")}`,
+        pageW / 2,
+        y,
+        { align: "center" },
+      );
+      y += 3.5;
+      doc.text("NEO — Sistema Gastronómico", pageW / 2, y, { align: "center" });
+
+      doc.save(`comprobante-pro-${negocioId || "neo"}.pdf`);
+    } catch (err) {
+      console.error("[PDF] Error al generar comprobante:", err);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const handleUpgrade = async () => {
     setLoading(true);
@@ -111,8 +247,73 @@ export function SubscriptionBlock({
     authorized: "Autorizado",
   };
 
+  if (upgradeAction === "success") {
+    return (
+      <div className="admin-card p-8 text-center border-green-500/30 bg-gradient-to-br from-green-500/5 to-transparent rounded-xl">
+        <div className="p-4 rounded-2xl bg-green-500/10 text-green-600 dark:text-green-400 mb-5 inline-flex">
+          <CheckCircle2 size={48} strokeWidth={1.5} />
+        </div>
+        <h2 className="text-[27px] font-black tracking-tight text-[var(--admin-text)] mb-2">
+          Bienvenido a PRO
+        </h2>
+        <p className="text-[17px] font-medium text-[var(--admin-text-muted)] max-w-md mx-auto">
+          Tu plan ya está activo. Disfrutá de productos ilimitados, estadísticas, exportación de datos y más.
+        </p>
+      </div>
+    );
+  }
+
+  if (upgradeAction === "cancel") {
+    return (
+      <div className="admin-card p-8 text-center border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-transparent rounded-xl">
+        <div className="p-4 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 mb-5 inline-flex">
+          <XCircle size={48} strokeWidth={1.5} />
+        </div>
+        <h2 className="text-[27px] font-black tracking-tight text-[var(--admin-text)] mb-2">
+          Upgrade cancelado
+        </h2>
+        <p className="text-[17px] font-medium text-[var(--admin-text-muted)] max-w-md mx-auto">
+          No se realizó ningún cambio en tu plan. Seguís en el plan FREE sin costo.
+          Cuando quieras, podés actualizar desde acá mismo.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Datos del titular */}
+      {ownerData && (ownerData.firstName || ownerData.lastName) && (
+        <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <User size={16} className="text-[var(--admin-text-muted)]" />
+            <h3 className="text-[17px] font-semibold text-[var(--admin-text)]">
+              Datos del titular
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+            <div className="flex items-center gap-2">
+              <User size={13} className="text-[var(--admin-text-muted)] shrink-0" />
+              <span className="text-[15px] text-[var(--admin-text)]">
+                {ownerData.firstName} {ownerData.lastName}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 min-w-0">
+              <Mail size={13} className="text-[var(--admin-text-muted)] shrink-0" />
+              <span className="text-[15px] text-[var(--admin-text)] truncate">
+                {ownerData.email}
+              </span>
+            </div>
+            {phone && (
+              <div className="flex items-center gap-2">
+                <Phone size={13} className="text-[var(--admin-text-muted)] shrink-0" />
+                <span className="text-[15px] text-[var(--admin-text)]">{phone}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Estado actual */}
       <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-5 shadow-sm">
         <div className="flex items-center justify-between mb-4">
@@ -176,6 +377,25 @@ export function SubscriptionBlock({
             </>
           )}
         </div>
+
+        {/* Botón descargar comprobante (solo PRO) */}
+        {isPro && (
+          <div className="mt-4 pt-4 border-t border-[var(--admin-border)]">
+            <button
+              type="button"
+              onClick={handleDownloadReceipt}
+              disabled={downloading}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[var(--admin-border)] text-[13px] font-semibold text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:border-[var(--admin-accent)]/30 hover:bg-[var(--admin-accent)]/5 transition-all disabled:opacity-60"
+            >
+              {downloading ? (
+                <FoodMini size={14} />
+              ) : (
+                <FileText size={14} />
+              )}
+              {downloading ? "Generando..." : "Descargar comprobante PDF"}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Acción principal */}

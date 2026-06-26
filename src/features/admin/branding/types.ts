@@ -54,6 +54,7 @@ export interface NegocioInitialData {
   horarios: ScheduleData;
   direcciones?: DireccionFisica[];
   whatsapp_mensajes?: Record<string, string> | null;
+  phone?: string;
   plan_tier?: string;
   subscription_status?: string | null;
   current_period_ends_at?: string | null;
