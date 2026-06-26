@@ -589,33 +589,34 @@ export function ConfigForm({
                 setFormData((p) => ({ ...p, whatsapp_mensajes: mensajes }));
               }}
             />
-
-            {/* BLOQUE CORE: CONTROL HORARIO */}
-            <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-5 shadow-sm space-y-5">
-              <div className="flex items-center gap-3 border-b border-[var(--admin-border)] pb-4">
-                <div className="p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text-muted)]">
-                  <Clock size={16} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-[var(--admin-text)] flex items-center gap-1">
-                    Cronograma Operativo Semanal
-                    <span className="text-[9px] font-medium text-[var(--admin-text-muted)]/60 px-1.5 py-0.5 rounded border border-[var(--admin-border)]">Opcional</span>
-                  </h3>
-                  <p className="text-[11px] text-[var(--admin-text-muted)] mt-0.5">
-                    Horarios de atención. Si no configurás horarios, el negocio aparecerá como &ldquo;Sin horarios&rdquo;.
-                  </p>
-                </div>
-              </div>
-              <ScheduleBlock
-                schedule={formData.horarios}
-                onChange={(newSchedule) => {
-                  setIsDirty(true);
-                  setFormData((p) => ({ ...p, horarios: newSchedule }));
-                }}
-              />
-            </div>
-
           </>
+        )}
+
+        {/* ── TAB: HORARIOS ── */}
+        {activeTab === "horarios" && (
+          <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-5 shadow-sm space-y-5">
+            <div className="flex items-center gap-3 border-b border-[var(--admin-border)] pb-4">
+              <div className="p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text-muted)]">
+                <Clock size={16} />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-[var(--admin-text)] flex items-center gap-1">
+                  Cronograma Operativo Semanal
+                  <span className="text-[9px] font-medium text-[var(--admin-text-muted)]/60 px-1.5 py-0.5 rounded border border-[var(--admin-border)]">Opcional</span>
+                </h3>
+                <p className="text-[11px] text-[var(--admin-text-muted)] mt-0.5">
+                  Horarios de atenci&oacute;n. Si no configur&aacute;s horarios, el negocio aparecer&aacute; como &ldquo;Sin horarios&rdquo;.
+                </p>
+              </div>
+            </div>
+            <ScheduleBlock
+              schedule={formData.horarios}
+              onChange={(newSchedule) => {
+                setIsDirty(true);
+                setFormData((p) => ({ ...p, horarios: newSchedule }));
+              }}
+            />
+          </div>
         )}
 
         {/* ── TAB: NOTIFICACIONES ── */}
