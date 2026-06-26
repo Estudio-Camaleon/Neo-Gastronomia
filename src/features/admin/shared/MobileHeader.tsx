@@ -66,7 +66,7 @@ export function MobileHeader({ slug }: MobileHeaderProps) {
 
   return (
     <>
-      <header className="flex lg:hidden items-center justify-between px-4 pt-3 pb-2.5 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]/95 backdrop-blur-lg sticky top-0 z-[60] safe-top">
+      <header className="flex min-[1440px]:hidden items-center justify-between px-4 pt-3 pb-2.5 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]/95 backdrop-blur-lg sticky top-0 z-[60] safe-top">
         {/* Logo + Sección */}
         <div className="flex items-center gap-2.5 min-w-0">
           <Image

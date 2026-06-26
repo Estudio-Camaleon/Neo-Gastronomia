@@ -86,14 +86,14 @@ export default async function AdminPanelLayout({
         </aside>
 
         {/* Contenedor de Trabajo Principal */}
-        <div className="flex-1 flex flex-col pl-72 max-[1439px]:pl-0 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] lg:pb-0 overflow-x-clip">
+        <div className="flex-1 flex flex-col pl-72 max-[1439px]:pl-0 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] min-[1440px]:pb-0 overflow-x-clip">
           {/* Topbar fijo en desktop */}
           <AdminTopbar slug={negocio.slug} />
 
           {/* Header mobile con logo + acciones */}
           <MobileHeader slug={negocio.slug} />
 
-          <main id="main-content" className="flex-1 p-5 sm:p-6 md:p-8 lg:p-6 xl:p-10 w-full max-w-full animate-in fade-in duration-300 relative lg:pt-6">
+          <main id="main-content" className="flex-1 p-5 sm:p-6 md:p-8 lg:p-6 xl:p-10 w-full max-w-full animate-in fade-in duration-300 relative min-[1440px]:pt-6">
             <Suspense fallback={<LoadingFallback />}>
               {children}
             </Suspense>

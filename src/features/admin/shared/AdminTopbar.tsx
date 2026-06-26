@@ -78,7 +78,7 @@ export function AdminTopbar({ slug }: AdminTopbarProps) {
   const sectionName = getSectionName(pathname);
 
   return (
-    <header className="hidden lg:flex items-center justify-between h-14 px-6 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]/95 backdrop-blur-lg sticky top-0 z-[60]">
+    <header className="max-[1439px]:hidden flex items-center justify-between h-14 px-6 border-b border-[var(--admin-border)] bg-[var(--admin-surface)]/95 backdrop-blur-lg sticky top-0 z-[60]">
       <div className="flex items-center gap-3 min-w-0">
         <h1 className="text-sm font-bold text-[var(--admin-text)] tracking-tight truncate">
           {sectionName || "Panel"}
