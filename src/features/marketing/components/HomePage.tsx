@@ -3,10 +3,10 @@
 import { Navbar } from "./shared/Navbar";
 import { Footer } from "./shared/Footer";
 import { BackgroundShapes } from "./shared/BackgroundShapes"; // <-- Importamos el fondo
-import { Hero } from "./Hero";
-import { Features } from "./Features";
-import { Pricing } from "./Pricing";
-import { SubscriptionPlans } from "./SubscriptionPlans";
+import { Hero } from "./sections/Hero";
+import { Features } from "./sections/Features";
+import { Pricing } from "./sections/Pricing";
+import { SubscriptionPlans } from "./sections/SubscriptionPlans";
 import "../style/home.css";
 import "../style/shapes.css";
 
