@@ -1,8 +1,8 @@
 "use client";
 
 import { Share2, Info, Star, StarOff, ArrowUp, ArrowDown } from "lucide-react";
-import { REDES_SOCIALES } from "../../types";
-import type { RedSocialId } from "../../types";
+import { REDES_SOCIALES } from "../../../types";
+import type { RedSocialId } from "../../../types";
 
 function esRedSocialId(valor: string): valor is RedSocialId {
   return REDES_SOCIALES.some((r) => r.id === valor);

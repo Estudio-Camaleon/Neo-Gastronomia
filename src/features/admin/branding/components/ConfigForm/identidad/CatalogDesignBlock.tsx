@@ -1,7 +1,7 @@
 "use client";
 
 import { Palette, Info, Check } from "lucide-react";
-import { COLOR_PALETTES } from "../../types";
+import { COLOR_PALETTES } from "../../../types";
 
 export interface CatalogDesignBlockProps {
   colorPrimary: string;

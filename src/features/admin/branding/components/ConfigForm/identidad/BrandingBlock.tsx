@@ -6,7 +6,7 @@ import {
   LOGO_SHAPE_OPTIONS,
   LOGO_POSITION_OPTIONS,
   BANNER_VERTICAL_OPTIONS,
-} from "../../types";
+} from "../../../types";
 import type { DireccionFisica } from "@/core/types/domain";
 import { HeaderPreview } from "./HeaderPreview";
 

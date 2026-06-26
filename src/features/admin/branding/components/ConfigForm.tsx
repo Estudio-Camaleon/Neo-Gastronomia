@@ -23,20 +23,20 @@ import type { NegocioInitialData, ConfigFormState } from "../types";
 import { MAX_IMAGE_SIZE_MB, MAX_IMAGE_SIZE_BYTES } from "../types";
 import { parseWhatsApp, DEFAULT_WHATSAPP_MENSAJES } from "../utils";
 export type { NegocioInitialData };
-import { BrandingBlock } from "./ConfigForm/BrandingBlock";
-import { GeneralInfoBlock } from "./ConfigForm/GeneralInfoBlock";
-import { SocialLinksBlock } from "./ConfigForm/SocialLinksBlock";
-import { CatalogDesignBlock } from "./ConfigForm/CatalogDesignBlock";
-import { ScheduleBlock } from "./ConfigForm/ScheduleBlock";
-import { DireccionesBlock } from "./ConfigForm/DireccionesBlock";
-import { DangerZone } from "./ConfigForm/DangerZone";
-import { WhatsAppMessagesBlock } from "./ConfigForm/WhatsAppMessagesBlock";
-import { SubscriptionBlock } from "./ConfigForm/SubscriptionBlock";
-import { SupportBlock } from "./ConfigForm/SupportBlock";
-import { QrCodeBlock } from "./ConfigForm/QrCodeBlock";
+import { BrandingBlock } from "./ConfigForm/identidad/BrandingBlock";
+import { CatalogDesignBlock } from "./ConfigForm/identidad/CatalogDesignBlock";
+import { GeneralInfoBlock } from "./ConfigForm/informacion/GeneralInfoBlock";
+import { DireccionesBlock } from "./ConfigForm/informacion/DireccionesBlock";
+import { SocialLinksBlock } from "./ConfigForm/informacion/SocialLinksBlock";
+import { QrCodeBlock } from "./ConfigForm/informacion/QrCodeBlock";
+import { WhatsAppMessagesBlock } from "./ConfigForm/operacion/WhatsAppMessagesBlock";
+import { ScheduleBlock } from "./ConfigForm/horarios/ScheduleBlock";
+import { NotificationPreferencesBlock } from "./ConfigForm/notificaciones/NotificationPreferencesBlock";
+import { SubscriptionBlock } from "./ConfigForm/suscripcion/SubscriptionBlock";
+import { SupportBlock } from "./ConfigForm/soporte/SupportBlock";
+import { DangerZone } from "./ConfigForm/peligro/DangerZone";
 import { TabBar } from "./ConfigForm/TabBar";
 import type { TabId } from "./ConfigForm/TabBar";
-import { NotificationPreferencesBlock } from "./ConfigForm/NotificationPreferencesBlock";
 
 export function ConfigForm({
   initialData,

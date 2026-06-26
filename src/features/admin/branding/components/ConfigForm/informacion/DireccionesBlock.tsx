@@ -7,7 +7,7 @@ import {
   detectarRegion,
   localidadesParaRegion,
   direccionesParaLocalidad,
-} from "../../types";
+} from "../../../types";
 
 export interface DireccionesBlockProps {
   direcciones: DireccionFisica[];

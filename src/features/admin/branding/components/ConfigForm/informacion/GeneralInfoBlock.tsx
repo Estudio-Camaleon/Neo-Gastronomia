@@ -1,8 +1,8 @@
 "use client";
 
 import { Globe, Hash, Phone, XCircle } from "lucide-react";
-import type { ConfigFormState } from "../../types";
-import { PAISES } from "../../types";
+import type { ConfigFormState } from "../../../types";
+import { PAISES } from "../../../types";
 
 export interface GeneralInfoBlockProps {
   formData: ConfigFormState;

@@ -2,8 +2,8 @@
 
 import { Trash2, Plus, Copy } from "lucide-react";
 import { toast } from "sonner";
-import { DIAS } from "../../types";
-import type { FranjaHoraria, ScheduleData } from "../../types";
+import { DIAS } from "../../../types";
+import type { FranjaHoraria, ScheduleData } from "../../../types";
 
 export interface ScheduleBlockProps {
   schedule: ScheduleData;
