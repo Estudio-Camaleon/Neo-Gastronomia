@@ -340,6 +340,8 @@ export function ConfigForm({
       if (successTimerRef.current) clearTimeout(successTimerRef.current);
       successTimerRef.current = setTimeout(() => setSaveStatus("idle"), 2000);
 
+      setIsDirty(false);
+
       toast.success("Ajustes consolidados con éxito", {
         icon: <CheckCircle2 className="text-[var(--admin-accent)]" />,
       });
