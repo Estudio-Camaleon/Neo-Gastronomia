@@ -557,24 +557,27 @@ export function ConfigForm({
               }}
             />
 
-            {/* FILA: REDES SOCIALES + CÓDIGO QR */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <SocialLinksBlock
-                  formData={formData}
-                  redes_principales={formData.redes_principales}
-                  onChange={handleChange}
-                  onRedesPrincipalesChange={(redes) => {
-                    setIsDirty(true);
-                    setFormData((p) => ({ ...p, redes_principales: redes }));
-                  }}
-                />
-              </div>
-              <div className="lg:col-span-1">
-                <QrCodeBlock slug={formData.slug} />
-              </div>
-            </div>
           </>
+        )}
+
+        {/* ── TAB: REDES ── */}
+        {activeTab === "redes" && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <SocialLinksBlock
+                formData={formData}
+                redes_principales={formData.redes_principales}
+                onChange={handleChange}
+                onRedesPrincipalesChange={(redes) => {
+                  setIsDirty(true);
+                  setFormData((p) => ({ ...p, redes_principales: redes }));
+                }}
+              />
+            </div>
+            <div className="lg:col-span-1">
+              <QrCodeBlock slug={formData.slug} />
+            </div>
+          </div>
         )}
 
         {/* ── TAB: OPERACIÓN ── */}

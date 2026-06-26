@@ -31,11 +31,27 @@ export function GeneralInfoBlock({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[15px]">
-        <div className="space-y-1">
-          <label className="font-medium text-[var(--admin-text-muted)] flex items-center gap-1">
-            Nombre Comercial
-            <span className="text-[12px] font-bold text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded">Obligatorio</span>
-          </label>
+        <div className="sm:col-span-2 space-y-1">
+          <div className="flex items-center justify-between gap-2">
+            <label className="font-medium text-[var(--admin-text-muted)] flex items-center gap-1">
+              Nombre Comercial
+              <span className="text-[12px] font-bold text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded">Obligatorio</span>
+            </label>
+            <label className="flex items-center gap-1.5 cursor-pointer shrink-0">
+              <span className="text-[11px] text-[var(--admin-text-muted)] select-none">
+                {formData.mostrar_nombre ? "Mostrar" : "Ocultar"}
+              </span>
+              <div className="relative inline-flex items-center">
+                <input
+                  type="checkbox"
+                  checked={formData.mostrar_nombre}
+                  onChange={(e) => onToggleMostrarNombre(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-7 h-4 bg-[var(--admin-text-muted)]/20 rounded-full peer peer-checked:bg-[var(--admin-accent)] peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[0.5px] after:left-[0.5px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all border border-[var(--admin-border)]" />
+              </div>
+            </label>
+          </div>
           <input
             name="nombre"
             value={formData.nombre}
@@ -51,6 +67,9 @@ export function GeneralInfoBlock({
               {errors.nombre}
             </p>
           )}
+          <p className="text-[12px] text-[var(--admin-text-muted)] leading-tight">
+            Desactivá "Mostrar" si tu logo ya incluye el nombre.
+          </p>
         </div>
 
         <div className="space-y-1">
@@ -124,26 +143,6 @@ export function GeneralInfoBlock({
               Sin espacios ni símbolos. Ej: <span className="font-mono">9 381 1234567</span> (sin el +54)
             </p>
           )}
-        </div>
-
-        <div className="sm:col-span-2 flex items-start gap-3 pt-1">
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={formData.mostrar_nombre}
-              onChange={(e) => onToggleMostrarNombre(e.target.checked)}
-              className="sr-only peer"
-            />
-            <div className="w-9 h-5 bg-[var(--admin-text-muted)]/20 rounded-full peer peer-checked:bg-[var(--admin-accent)] peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all border border-[var(--admin-border)]" />
-          </label>
-          <div>
-            <span className="text-[15px] font-semibold text-[var(--admin-text)]">
-              Mostrar nombre del negocio
-            </span>
-            <p className="text-[13px] text-[var(--admin-text-muted)]">
-              Desactivá si tu logo ya incluye el nombre.
-            </p>
-          </div>
         </div>
 
         <div className="sm:col-span-2 space-y-1">
