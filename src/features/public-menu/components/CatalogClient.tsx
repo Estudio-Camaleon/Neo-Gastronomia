@@ -8,24 +8,24 @@ import { useCartStore } from "@/features/public-menu/cart/useCartStore";
 import { toast } from "sonner";
 import { CartFloatingButton } from "@/features/public-menu/cart/CartFloatingButton";
 import { PublicCart } from "@/features/public-menu/cart/PublicCart";
-import PublicMenuHeader from "@/features/public-menu/components/PublicMenuHeader";
-import { CategoryTabs } from "@/features/public-menu/components/CategoryTabs";
-import { ProductGrid } from "@/features/public-menu/components/ProductGrid";
-import { MenuFooter } from "@/features/public-menu/components/MenuFooter";
+import PublicMenuHeader from "@/features/public-menu/components/layout/PublicMenuHeader";
+import { CategoryTabs } from "@/features/public-menu/components/menu/CategoryTabs";
+import { ProductGrid } from "@/features/public-menu/components/menu/ProductGrid";
+import { MenuFooter } from "@/features/public-menu/components/layout/MenuFooter";
 
 import { useSlugSubscription } from "@/features/public-menu/hooks/useSlugSubscription";
 import { useMenuCatalog } from "@/features/public-menu/hooks/useMenuCatalog";
 
 const ProductDetailModal = dynamic(
-  () => import("@/features/public-menu/components/ProductDetailModal").then((m) => ({ default: m.ProductDetailModal })),
+  () => import("@/features/public-menu/components/modals/ProductDetailModal").then((m) => ({ default: m.ProductDetailModal })),
   { ssr: false },
 );
 const ComboDetailModal = dynamic(
-  () => import("@/features/public-menu/components/ComboDetailModal").then((m) => ({ default: m.ComboDetailModal })),
+  () => import("@/features/public-menu/components/modals/ComboDetailModal").then((m) => ({ default: m.ComboDetailModal })),
   { ssr: false },
 );
 const CombosSection = dynamic(
-  () => import("@/features/public-menu/components/CombosSection").then((m) => ({ default: m.CombosSection })),
+  () => import("@/features/public-menu/components/menu/CombosSection").then((m) => ({ default: m.CombosSection })),
   { ssr: true },
 );
 import { estaAbierto } from "@/core/lib/utils/horarios";

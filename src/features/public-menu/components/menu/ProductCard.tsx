@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Minus, Plus, ImageIcon, ShoppingBag, Percent, Tag } from "lucide-react";
-import { cardVariants } from "./variants";
+import { cardVariants } from "../variants";
 import { formatMoney } from "@/features/public-menu/utils";
 import type { Producto } from "@/features/public-menu/types";
 

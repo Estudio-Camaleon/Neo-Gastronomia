@@ -5,7 +5,7 @@ import { X, Plus } from "lucide-react";
 import type { CartExtra } from "@/features/public-menu/cart/useCartStore";
 import type { ExtraGroup } from "@/features/public-menu/types";
 import { formatMoney } from "@/features/public-menu/utils";
-import { ExtraGroupRenderer } from "@/features/public-menu/components/ExtraGroupRenderer";
+import { ExtraGroupRenderer } from "@/features/public-menu/components/extras/ExtraGroupRenderer";
 import { useExtrasSelection } from "@/features/public-menu/hooks/useExtrasSelection";
 import { useScrollLock } from "@/core/hooks/useScrollLock";
 

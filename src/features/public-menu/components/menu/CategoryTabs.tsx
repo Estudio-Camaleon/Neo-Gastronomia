@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { categoryVariants } from "./variants";
+import { categoryVariants } from "../variants";
 import type { Categoria } from "@/features/public-menu/types";
 import { useRef, useCallback } from "react";
 

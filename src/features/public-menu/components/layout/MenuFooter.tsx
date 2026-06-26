@@ -12,7 +12,7 @@ import {
   Info,
   Phone,
 } from "lucide-react";
-import { ScheduleGrid } from "@/features/public-menu/components/ScheduleGrid";
+import { ScheduleGrid } from "@/features/public-menu/components/layout/ScheduleGrid";
 import { formatMoney } from "@/features/public-menu/utils";
 import type { NegocioPublico } from "@/features/public-menu/types";
 
