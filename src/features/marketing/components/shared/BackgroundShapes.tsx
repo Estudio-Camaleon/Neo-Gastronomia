@@ -2,7 +2,7 @@
 
 export function BackgroundShapes() {
   return (
-    <div className="absolute inset-0 z-[-1] overflow-hidden pointer-events-none">
+    <div className="max-[1439px]:hidden flex absolute inset-0 z-[-1] overflow-hidden pointer-events-none">
       {/* 2. TOP RIGHT: Mancha suave (Oculto en móvil para no tapar, visible en desktop) */}
       <div className="hidden md:block absolute top-0 right-0 w-[40%] h-[40%] bg-[var(--theme-accent)] opacity-60 rounded-bl-full" />
 
@@ -25,7 +25,7 @@ export function BackgroundShapes() {
 
       {/* Taza de café flotante (Solo Desktop Grande) */}
       <div
-        className="hidden xl:block absolute top-[20%] right-[22%] opacity-60 animate-float-shape"
+        className="hidden lg:flex xl:block absolute top-[20%] right-[22%] opacity-60 animate-float-shape"
         style={{ animationDelay: "1.5s" }}
       >
         <svg
@@ -45,7 +45,7 @@ export function BackgroundShapes() {
       </div>
 
       {/* 3. CENTER TOP: Grilla de puntos (Solo Desktop) */}
-      <div className="hidden md:block absolute top-[15%] left-[35%] opacity-50 animate-float-shape">
+      <div className="hidden lg:flex md:block absolute top-[15%] left-[35%] opacity-50 animate-float-shape">
         <svg
           width="60"
           height="60"
@@ -155,8 +155,16 @@ export function BackgroundShapes() {
       <div className="hidden lg:flex absolute top-[67%] right-[0%] w-[20%] h-[20%] bg-[var(--theme-primary-soft)] opacity-60 rounded-tl-full" />
 
       {/* 5c. MIDDLE LEFT: Grilla de puntos pequeña (como la del center-top) (Solo Desktop) */}
-      <div className="hidden md:block absolute top-[48%] left-[5%] opacity-40 animate-float-shape" style={{ animationDelay: "1.8s" }}>
-        <svg width="36" height="36" viewBox="0 0 36 36" fill="var(--theme-accent)">
+      <div
+        className="hidden lg:flex md:block absolute top-[48%] left-[5%] opacity-40 animate-float-shape"
+        style={{ animationDelay: "1.8s" }}
+      >
+        <svg
+          width="36"
+          height="36"
+          viewBox="0 0 36 36"
+          fill="var(--theme-accent)"
+        >
           <circle cx="6" cy="6" r="3" />
           <circle cx="18" cy="6" r="3" />
           <circle cx="30" cy="6" r="3" />
@@ -174,7 +182,14 @@ export function BackgroundShapes() {
         className="hidden lg:flex absolute top-[58%] right-[15%] w-30 h-30 bg-[var(--theme-primary-soft-2)] rounded-xl items-center justify-center opacity-70 animate-float-shape shadow-sm"
         style={{ animationDelay: "1s" }}
       >
-        <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="var(--theme-primary)" strokeWidth="1.5">
+        <svg
+          width="50"
+          height="50"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="var(--theme-primary)"
+          strokeWidth="1.5"
+        >
           <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
         </svg>
       </div>
@@ -184,7 +199,14 @@ export function BackgroundShapes() {
         className="hidden lg:flex absolute top-[60%] left-[3%] w-14 h-14 bg-[var(--theme-accent)]/80 rounded-full items-center justify-center animate-float-shape shadow-sm"
         style={{ animationDelay: "2.2s" }}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--theme-background)" strokeWidth="2">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="var(--theme-background)"
+          strokeWidth="2"
+        >
           <path d="M18 20V10" />
           <path d="M12 20V4" />
           <path d="M6 20v-6" />
