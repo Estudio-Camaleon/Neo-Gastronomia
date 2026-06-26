@@ -64,7 +64,7 @@ export async function POST(req: Request) {
         auto_recurring: {
           frequency: 1,
           frequency_type: "months",
-          transaction_amount: 1,
+          transaction_amount: 15,
           currency_id: "ARS",
         },
         payer_email: TEST_PAYER_EMAIL ?? user.email ?? undefined,

@@ -207,7 +207,7 @@ export function SubscriptionBlock({
               Desbloqueá productos ilimitados, estadísticas detalladas,
               exportación de datos y más.
               <span className="block mt-1 text-[17px] font-bold text-[var(--admin-text)]">
-                $1/mes
+                $15/mes
               </span>
             </p>
 
@@ -230,7 +230,7 @@ export function SubscriptionBlock({
               )}
               {loading
                 ? "Redirigiendo a Mercado Pago..."
-                : "Ir al pago — $1/mes"}
+                : "Ir al pago — $15/mes"}
             </button>
             <p className="text-[13px] font-medium text-[var(--admin-text-muted)] mt-3">
               Pago mensual único. Cancelá cuando quieras.
