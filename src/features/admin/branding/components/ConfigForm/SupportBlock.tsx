@@ -12,7 +12,7 @@ import { TransitionLink } from "@/components/ui/transition-link";
 
 export function SupportBlock() {
   const supportEmail = "soporteneotuc@gmail.com";
-  const whatsappNumber = "+5491123456789";
+  const whatsappNumber = "+5493813583226";
   const appVersion = "1.1.1";
 
   const links = [
