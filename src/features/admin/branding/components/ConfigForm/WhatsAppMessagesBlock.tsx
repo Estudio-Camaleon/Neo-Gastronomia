@@ -105,7 +105,7 @@ function WhatsAppMessageField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={3}
-        className="w-full max-w-full min-w-0 box-border p-2.5 sm:p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] text-[14px] sm:text-[15px] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)] transition-all resize-y min-h-[60px] placeholder:text-[13px] sm:placeholder:text-[15px]"
+        className=" min-w-0 box-border p-2.5 sm:p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] text-[14px] sm:text-[15px] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)] transition-all resize-y min-h-[60px] placeholder:text-[13px] sm:placeholder:text-[15px]"
         placeholder={placeholder}
       />
     </div>
