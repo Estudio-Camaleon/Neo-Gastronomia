@@ -39,9 +39,9 @@ export function WhatsAppMessagesBlock({
   ];
 
   return (
-    <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-5 shadow-sm space-y-4">
+    <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 sm:p-5 shadow-sm space-y-4">
       <div className="flex items-center gap-2 border-b border-[var(--admin-border)] pb-2.5">
-        <MessageCircle size={14} className="text-[var(--admin-text-muted)]" />
+        <MessageCircle size={14} className="text-[var(--admin-text-muted)] shrink-0" />
         <h2 className="text-[15px] font-semibold text-[var(--admin-text)]">
           Mensajes de WhatsApp
         </h2>
@@ -49,26 +49,26 @@ export function WhatsAppMessagesBlock({
 
       <div className="bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg p-2.5 flex gap-2 items-start">
         <Info size={12} className="shrink-0 text-[var(--admin-text-muted)] mt-0.5" />
-        <p className="text-[13px] text-[var(--admin-text-muted)] leading-normal">
-          Usá <code className="text-[var(--admin-accent)]">{`{cliente}`}</code> para el nombre del cliente,{" "}
-          <code className="text-[var(--admin-accent)]">{`{negocio}`}</code> para el nombre de tu negocio y{" "}
-          <code className="text-[var(--admin-accent)]">{`{entrega}`}</code> para indicar envío o retiro.
+        <p className="text-[12px] sm:text-[13px] text-[var(--admin-text-muted)] leading-normal break-words min-w-0">
+          Usá <code className="text-[var(--admin-accent)] text-[11px] sm:text-[12px] whitespace-nowrap">{`{cliente}`}</code> para el nombre del cliente,{" "}
+          <code className="text-[var(--admin-accent)] text-[11px] sm:text-[12px] whitespace-nowrap">{`{negocio}`}</code> para el nombre de tu negocio y{" "}
+          <code className="text-[var(--admin-accent)] text-[11px] sm:text-[12px] whitespace-nowrap">{`{entrega}`}</code> para indicar envío o retiro.
         </p>
       </div>
 
       <div className="space-y-4">
         {fields.map((field) => (
           <div key={field.key} className="space-y-1.5">
-            <label className="font-medium text-[var(--admin-text-muted)] text-[15px] flex items-center gap-1">
-              {field.label}
-              <span className="text-[12px] font-medium text-[var(--admin-text-muted)]/60 px-1.5 py-0.5 rounded border border-[var(--admin-border)]">Opcional</span>
+            <label className="font-medium text-[var(--admin-text-muted)] text-[14px] sm:text-[15px] flex items-start sm:items-center gap-1.5">
+              <span className="leading-snug">{field.label}</span>
+              <span className="text-[11px] sm:text-[12px] font-medium text-[var(--admin-text-muted)]/60 px-1.5 py-0.5 rounded border border-[var(--admin-border)] shrink-0 mt-0.5 sm:mt-0">Opcional</span>
             </label>
-            <p className="text-[12px] text-[var(--admin-text-muted)] italic">{field.desc}</p>
+            <p className="text-[11px] sm:text-[12px] text-[var(--admin-text-muted)] italic">{field.desc}</p>
             <textarea
               value={mensajes[field.key] || ""}
               onChange={(e) => handleChange(field.key, e.target.value)}
               rows={3}
-              className="w-full p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] text-[15px] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)] transition-all resize-y min-h-[60px]"
+              className="w-full p-2.5 sm:p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] text-[14px] sm:text-[15px] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)] transition-all resize-y min-h-[60px] placeholder:text-[13px] sm:placeholder:text-[15px]"
               placeholder={field.placeholder}
             />
           </div>
