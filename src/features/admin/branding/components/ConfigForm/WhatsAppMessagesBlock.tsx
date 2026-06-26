@@ -58,22 +58,56 @@ export function WhatsAppMessagesBlock({
 
       <div className="space-y-4">
         {fields.map((field) => (
-          <div key={field.key} className="space-y-1.5">
-            <label className="font-medium text-[var(--admin-text-muted)] text-[14px] sm:text-[15px] flex items-start sm:items-center gap-1.5">
-              <span className="leading-snug">{field.label}</span>
-              <span className="text-[11px] sm:text-[12px] font-medium text-[var(--admin-text-muted)]/60 px-1.5 py-0.5 rounded border border-[var(--admin-border)] shrink-0 mt-0.5 sm:mt-0">Opcional</span>
-            </label>
-            <p className="text-[11px] sm:text-[12px] text-[var(--admin-text-muted)] italic">{field.desc}</p>
-            <textarea
-              value={mensajes[field.key] || ""}
-              onChange={(e) => handleChange(field.key, e.target.value)}
-              rows={3}
-              className="w-full p-2.5 sm:p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] text-[14px] sm:text-[15px] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)] transition-all resize-y min-h-[60px] placeholder:text-[13px] sm:placeholder:text-[15px]"
-              placeholder={field.placeholder}
-            />
-          </div>
+          <WhatsAppMessageField
+            key={field.key}
+            fieldKey={field.key}
+            label={field.label}
+            desc={field.desc}
+            placeholder={field.placeholder}
+            value={mensajes[field.key] || ""}
+            onChange={(value) => handleChange(field.key, value)}
+          />
         ))}
       </div>
+    </div>
+  );
+}
+
+function WhatsAppMessageField({
+  fieldKey,
+  label,
+  desc,
+  placeholder,
+  value,
+  onChange,
+}: {
+  fieldKey: string;
+  label: string;
+  desc: string;
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label
+        htmlFor={`whatsapp-msg-${fieldKey}`}
+        className="font-medium text-[var(--admin-text-muted)] text-[14px] sm:text-[15px] flex items-start sm:items-center gap-1.5"
+      >
+        <span className="leading-snug">{label}</span>
+        <span className="text-[11px] sm:text-[12px] font-medium text-[var(--admin-text-muted)]/60 px-1.5 py-0.5 rounded border border-[var(--admin-border)] shrink-0 mt-0.5 sm:mt-0">
+          Opcional
+        </span>
+      </label>
+      <p className="text-[11px] sm:text-[12px] text-[var(--admin-text-muted)] italic">{desc}</p>
+      <textarea
+        id={`whatsapp-msg-${fieldKey}`}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        rows={3}
+        className="w-full p-2.5 sm:p-2 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg text-[var(--admin-text)] text-[14px] sm:text-[15px] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/20 focus:border-[var(--admin-accent)] transition-all resize-y min-h-[60px] placeholder:text-[13px] sm:placeholder:text-[15px]"
+        placeholder={placeholder}
+      />
     </div>
   );
 }
