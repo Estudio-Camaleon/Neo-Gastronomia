@@ -37,19 +37,17 @@ export function GeneralInfoBlock({
               Nombre Comercial
               <span className="text-[12px] font-bold text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded">Obligatorio</span>
             </label>
-            <label className="flex items-center gap-1.5 cursor-pointer shrink-0">
+            <label className="relative inline-flex items-center gap-1.5 cursor-pointer shrink-0">
+              <input
+                type="checkbox"
+                checked={formData.mostrar_nombre}
+                onChange={(e) => onToggleMostrarNombre(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-9 h-5 bg-[var(--admin-text-muted)]/20 rounded-full peer-checked:bg-[var(--admin-accent)] peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all border border-[var(--admin-border)]" />
               <span className="text-[11px] text-[var(--admin-text-muted)] select-none">
                 {formData.mostrar_nombre ? "Mostrar" : "Ocultar"}
               </span>
-              <div className="relative inline-flex items-center">
-                <input
-                  type="checkbox"
-                  checked={formData.mostrar_nombre}
-                  onChange={(e) => onToggleMostrarNombre(e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-7 h-4 bg-[var(--admin-text-muted)]/20 rounded-full peer peer-checked:bg-[var(--admin-accent)] peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[0.5px] after:left-[0.5px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all border border-[var(--admin-border)]" />
-              </div>
             </label>
           </div>
           <input
