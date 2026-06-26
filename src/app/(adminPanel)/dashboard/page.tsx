@@ -167,7 +167,7 @@ export default async function DashboardPage() {
       </div>
 
       {esNuevoNegocio && (
-        <div className="admin-card p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-gradient-to-br from-[var(--admin-accent)]/5 to-transparent">
+        <div className="admin-card p-4 sm:p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6 bg-gradient-to-br from-[var(--admin-accent)]/5 to-transparent">
           <div className="space-y-2">
             <h2 className="text-xl font-bold text-[var(--admin-text)]">
               Bienvenido a NEO
@@ -188,7 +188,7 @@ export default async function DashboardPage() {
       )}
 
       {cercaDelLimite && (
-        <div className="admin-card p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-transparent">
+        <div className="admin-card p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-transparent">
           <div className="flex items-start gap-3">
             <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
               <Zap size={18} />
@@ -546,12 +546,12 @@ function PromoCard() {
 
 function QuickActionsCard() {
   return (
-    <div className="admin-card p-6">
-      <h2 className="text-lg font-bold text-[var(--admin-text)] mb-5 flex items-center gap-2">
-        <Layers size={18} className="text-[var(--admin-accent)]" />
-        Acceso Rápido
+    <div className="admin-card p-4 sm:p-6">
+      <h2 className="text-base sm:text-lg font-bold text-[var(--admin-text)] mb-4 sm:mb-5 flex items-center gap-2">
+        <Layers size={18} className="text-[var(--admin-accent)] shrink-0" />
+        <span>Acceso Rápido</span>
       </h2>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
         <a
           href="/pedidos"
           className="flex items-center gap-3 p-4 rounded-xl bg-[var(--admin-accent)]/10 border border-[var(--admin-accent)]/20 text-[var(--admin-accent)] hover:bg-[var(--admin-accent)]/20 hover:scale-[1.02] transition-all"
