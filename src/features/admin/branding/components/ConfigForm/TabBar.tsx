@@ -1,11 +1,12 @@
 "use client";
 
-import { Palette, FileText, Settings2, Crown, LifeBuoy, AlertTriangle } from "lucide-react";
+import { Palette, FileText, Settings2, Bell, Crown, LifeBuoy, AlertTriangle } from "lucide-react";
 
 export const TABS = [
   { id: "identidad", label: "Identidad Visual", icon: Palette, color: "#8b5cf6" },
   { id: "informacion", label: "Información", icon: FileText, color: "#3b82f6" },
   { id: "operacion", label: "Operación", icon: Settings2, color: "#64748b" },
+  { id: "notificaciones", label: "Notificaciones", icon: Bell, color: "#06b6d4" },
   { id: "suscripcion", label: "Suscripción", icon: Crown, color: "#f59e0b" },
   { id: "soporte", label: "Soporte", icon: LifeBuoy, color: "#14b8a6" },
   { id: "peligro", label: "Peligro", icon: AlertTriangle, color: "#ef4444" },

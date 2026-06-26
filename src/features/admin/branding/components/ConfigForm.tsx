@@ -615,9 +615,12 @@ export function ConfigForm({
               />
             </div>
 
-            {/* BLOQUE NOTIFICACIONES */}
-            <NotificationPreferencesBlock />
           </>
+        )}
+
+        {/* ── TAB: NOTIFICACIONES ── */}
+        {activeTab === "notificaciones" && (
+          <NotificationPreferencesBlock />
         )}
 
         {/* BOTÓN FLOTANTE ACCIONABLE ULTRA-LIMPIO — visible en todos los tabs excepto Peligro */}
