@@ -80,13 +80,13 @@ export default async function AdminPanelLayout({
         <div className="fixed top-[-10%] left-[-5%] w-96 h-96 bg-[var(--admin-accent)] rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-40 pointer-events-none animate-blob" />
         <div className="fixed bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-[var(--admin-accent-secondary)]/60 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[100px] opacity-20 pointer-events-none animate-blob-reverse" />
 
-        {/* Sidebar expandido (lg+ ) */}
-        <aside className="hidden lg:flex lg:w-72 lg:flex-col lg:fixed lg:inset-y-0 z-20">
+        {/* Sidebar expandido (1440px+ ) */}
+        <aside className="max-[1439px]:hidden flex w-72 flex-col fixed inset-y-0 z-20">
           <Sidebar slug={negocio.slug} negocioNombre={negocio.nombre} negocioId={negocio.id} />
         </aside>
 
         {/* Contenedor de Trabajo Principal */}
-        <div className="flex-1 flex flex-col lg:pl-72 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] lg:pb-0 overflow-x-clip">
+        <div className="flex-1 flex flex-col pl-72 max-[1439px]:pl-0 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] lg:pb-0 overflow-x-clip">
           {/* Topbar fijo en desktop */}
           <AdminTopbar slug={negocio.slug} />
 
