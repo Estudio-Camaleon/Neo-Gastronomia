@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Camera, Upload, ArrowUp, ArrowDown, Minus, Smartphone, X, XCircle, Lock, PenLine } from "lucide-react";
+import { Upload, ArrowUp, ArrowDown, Minus, XCircle, Lock, PenLine } from "lucide-react";
 import {
   LOGO_SHAPE_OPTIONS,
   LOGO_POSITION_OPTIONS,
   BANNER_VERTICAL_OPTIONS,
 } from "../../../types";
 import type { DireccionFisica } from "@/core/types/domain";
-import { HeaderPreview } from "./HeaderPreview";
+
 
 export interface BrandingBlockProps {
   logoUrl: string;
@@ -69,7 +69,6 @@ export function BrandingBlock({
   onBannerPosicionChange,
   onBannerScaleChange,
 }: BrandingBlockProps) {
-  const [previewOpen, setPreviewOpen] = useState(false);
   const [lockedScales, setLockedScales] = useState({ logo: true, banner: true });
 
   const socials = [
@@ -81,84 +80,8 @@ export function BrandingBlock({
     { id: "youtube" as const, url: youtube_url },
   ].filter((s) => s.url);
 
-  const previewProps = {
-    bannerUrl,
-    bannerPosicion,
-    bannerScale,
-    logoUrl,
-    logoScale,
-    logoPosicion,
-    logoShape,
-    nombre,
-    descripcion,
-    mostrarNombre,
-    colorPrimary,
-    socials,
-    direcciones,
-    localidad,
-    uploading,
-  };
-
   return (
     <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl overflow-hidden shadow-sm">
-      <div className="px-5 py-3.5 border-b border-[var(--admin-border)] bg-[var(--admin-bg)]/50 flex items-center gap-2.5">
-        <Camera size={16} className="text-[var(--admin-text-muted)]" />
-        <div>
-          <h2 className="font-semibold text-[15px] text-[var(--admin-text)]">
-            Previsualizaci&oacute;n del encabezado
-          </h2>
-          <p className="text-[13px] text-[var(--admin-text-muted)]">
-            Vista ilustrativa. Los valores reales en el men&uacute; p&uacute;blico pueden variar seg&uacute;n el dispositivo.
-          </p>
-        </div>
-      </div>
-
-      {/* Vista previa inline */}
-      <div className="px-5 py-4">
-        <div className="hidden lg:block">
-          <HeaderPreview variant="desktop" {...previewProps} />
-        </div>
-        <div className="lg:hidden">
-          <HeaderPreview variant="desktop" compact {...previewProps} />
-        </div>
-      </div>
-
-      {/* Botón para abrir mockup de teléfono */}
-      <div className="px-5 pb-5 -mt-2">
-        <button
-          type="button"
-          onClick={() => setPreviewOpen(true)}
-          className="w-full flex items-center justify-center gap-2 py-2.5 text-[13px] font-medium text-[var(--admin-text-muted)] bg-[var(--admin-bg)] border border-dashed border-[var(--admin-border)] rounded-lg transition-all hover:bg-[var(--admin-accent)]/5 hover:border-[var(--admin-accent)]/30 active:scale-[0.99]"
-        >
-          <Smartphone size={14} />
-          Ver en simulaci&oacute;n de tel&eacute;fono
-        </button>
-      </div>
-
-      {/* Modal: mockup de teléfono */}
-      {previewOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-          onClick={() => setPreviewOpen(false)}
-        >
-          <div className="relative" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              onClick={() => setPreviewOpen(false)}
-              className="absolute -top-2.5 -right-2.5 z-10 w-7 h-7 flex items-center justify-center rounded-full bg-[var(--admin-surface)] border border-[var(--admin-border)] shadow-md text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-all"
-            >
-              <X size={14} />
-            </button>
-
-            <div className="bg-black rounded-[38px] p-2.5 shadow-2xl">
-              <div className="bg-[var(--admin-bg)] rounded-[30px] overflow-hidden w-full max-w-[280px]">
-                <HeaderPreview variant="mobile" {...previewProps} />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Controls */}
       <div className="p-5 grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
         {/* LOGO CONTROLS */}
