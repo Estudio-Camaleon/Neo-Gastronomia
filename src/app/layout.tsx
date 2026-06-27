@@ -47,10 +47,11 @@ export default function RootLayout({
           <Toaster
             richColors
             closeButton
-            position="top-right"
+            position="bottom-right"
             duration={4000}
             visibleToasts={5}
-            gap={10}
+            gap={8}
+            offset="80px"
             toastOptions={{
               classNames: {
                 title: "text-sm font-semibold",
