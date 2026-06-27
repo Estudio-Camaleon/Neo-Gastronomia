@@ -227,7 +227,7 @@ export function CatalogClient({
         {/* CATALOGO */}
         <main className="flex-1 min-h-0 flex flex-col">
           <section
-            className="min-w-0 flex-1 bg-[var(--color-custom-surface)] p-4 lg:p-6 pt-16 sm:pt-20"
+            className="min-w-0 flex-1 bg-[var(--color-custom-surface)] p-4 lg:p-6 pt-30 lg:pt-30 xl:pt-3"
           >
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
