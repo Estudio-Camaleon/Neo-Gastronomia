@@ -1,8 +1,8 @@
 "use client";
 
+import { FaWhatsapp } from "react-icons/fa";
 import {
   QrCode,
-  MessageCircle,
   LayoutDashboard,
   Palette,
   Clock,
@@ -22,7 +22,7 @@ export function Features() {
     {
       title: "Directo a WhatsApp",
       desc: "Los pedidos llegan formateados y listos a tu WhatsApp, sin aplicaciones intermediarias.",
-      icon: <MessageCircle className="h-5 w-5" />,
+      icon: <FaWhatsapp className="h-5 w-5" />,
     },
     {
       title: "Panel de Control",

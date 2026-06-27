@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { FaWhatsapp } from "react-icons/fa";
 import {
   LifeBuoy,
   Mail,
-  MessageCircle,
   ChevronDown,
   BookOpen,
   Smartphone,
@@ -281,7 +281,7 @@ export function HelpPage() {
                   className="glass-card p-4 flex items-center gap-3 group"
                 >
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-700 group-hover:bg-green-200 transition-colors">
-                    <MessageCircle size={20} />
+                    <FaWhatsapp size={20} />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-[var(--theme-text)]">WhatsApp</p>

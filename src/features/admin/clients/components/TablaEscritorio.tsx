@@ -1,6 +1,7 @@
 "use client";
 
-import { User, Trophy, MessageCircle, StickyNote, Calendar, Trash2 } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
+import { User, Trophy, StickyNote, Calendar, Trash2 } from "lucide-react";
 import type { ClienteResumen } from "@/core/types/domain";
 import { formatPesos, esClienteVirtual } from "@/features/admin/clients/client-utils";
 import { toast } from "sonner";
@@ -164,7 +165,7 @@ export function TablaEscritorio({ clientes, onEditNotes, onDeleteClient }: Tabla
                         title="Canal WhatsApp"
                         aria-label={`Enviar WhatsApp a ${cliente.nombre}`}
                       >
-                        <MessageCircle size={16} />
+                        <FaWhatsapp size={16} />
                       </a>
                     )}
                   </div>

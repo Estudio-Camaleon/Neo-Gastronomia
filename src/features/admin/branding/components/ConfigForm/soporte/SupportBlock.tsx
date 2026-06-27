@@ -1,9 +1,9 @@
 "use client";
 
+import { FaWhatsapp } from "react-icons/fa";
 import {
   LifeBuoy,
   Mail,
-  MessageCircle,
   FileText,
   Smartphone,
   ChevronRight,
@@ -23,7 +23,7 @@ export function SupportBlock() {
       href: "/ayuda",
     },
     {
-      icon: MessageCircle,
+      icon: FaWhatsapp,
       label: "WhatsApp",
       desc: "Chateá con soporte en vivo",
       href: `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}`,

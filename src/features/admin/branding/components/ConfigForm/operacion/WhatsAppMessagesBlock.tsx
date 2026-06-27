@@ -1,6 +1,7 @@
 "use client";
 
-import { MessageCircle, Info, Eye } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
+import { Info, Eye } from "lucide-react";
 
 const MAX_LENGTH = 500;
 const CLIENTE_EJEMPLO = "Juan";
@@ -57,7 +58,7 @@ export function WhatsAppMessagesBlock({
   return (
     <div className="bg-[var(--admin-surface)] border border-[var(--admin-border)] rounded-xl p-4 sm:p-5 shadow-sm space-y-4 min-w-0">
       <div className="flex items-center gap-2 border-b border-[var(--admin-border)] pb-2.5">
-        <MessageCircle size={14} className="text-[var(--admin-text-muted)] shrink-0" />
+        <FaWhatsapp size={14} className="text-[var(--admin-text-muted)] shrink-0" />
         <h2 className="text-[15px] font-semibold text-[var(--admin-text)]">
           Mensajes de WhatsApp
         </h2>

@@ -1,11 +1,11 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
+import { FaWhatsapp } from "react-icons/fa";
 import {
   Clock,
   MapPin,
   ChevronDown,
-  MessageCircle,
   ExternalLink,
   ShoppingBag,
   Truck,
@@ -94,7 +94,7 @@ export function MenuFooter({
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-green-400 hover:text-green-300 transition-colors"
             >
-              <MessageCircle size={12} />
+              <FaWhatsapp size={12} />
               <Phone size={11} />
               <span>{negocio.whatsapp}</span>
             </a>
@@ -247,7 +247,7 @@ export function MenuFooter({
                   rel="noopener noreferrer"
                   className="flex items-center gap-1.5 text-green-400 hover:text-green-300 transition-colors text-xs"
                 >
-                  <MessageCircle size={14} />
+                  <FaWhatsapp size={14} />
                   <Phone size={12} />
                   <span>{negocio.whatsapp}</span>
                 </a>

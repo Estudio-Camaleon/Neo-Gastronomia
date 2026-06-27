@@ -1,6 +1,7 @@
 "use client";
 
-import { User, Trophy, MessageCircle, StickyNote, Calendar, Trash2 } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
+import { User, Trophy, StickyNote, Calendar, Trash2 } from "lucide-react";
 import type { ClienteResumen } from "@/core/types/domain";
 import { formatPesos, esClienteVirtual } from "@/features/admin/clients/client-utils";
 import { toast } from "sonner";
@@ -144,7 +145,7 @@ export function TarjetasMovil({ clientes, onEditNotes, onDeleteClient }: Tarjeta
                   className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-3 bg-[#25D366] hover:opacity-90 text-white rounded-xl text-[11px] font-bold transition-all active:scale-95 shadow-sm"
                   aria-label={`Enviar WhatsApp a ${cliente.nombre}`}
                 >
-                  <MessageCircle size={14} /> WhatsApp
+                  <FaWhatsapp size={14} /> WhatsApp
                 </a>
               ) : (
                 <button
