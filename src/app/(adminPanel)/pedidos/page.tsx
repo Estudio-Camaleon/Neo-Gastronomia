@@ -63,20 +63,7 @@ export default async function PedidosPage() {
   const listaPedidos = pedidosIniciales || [];
 
   return (
-    <div className="space-y-8 relative z-10">
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-[var(--admin-border)]/50 ">
-        <div className="space-y-2 ">
-          <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-[var(--admin-text)]">
-            Recepción de pedidos
-          </h1>
-          <p className="text-xs sm:text-sm text-[var(--admin-text-muted)] font-medium">
-            Control de órdenes y despacho inmediato en tiempo real
-          </p>
-        </div>
-
-        
-      </header>
-
+    <div className="relative z-10">
       <PedidosRadar
         initialPedidos={listaPedidos}
         negocioIds={negocioIds}

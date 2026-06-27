@@ -27,7 +27,10 @@ import {
 } from "../actions";
 import { enviarNotificacionWhatsApp } from "@/core/lib/utils/whatsappActions";
 import { useOrderNotifications } from "./OrderNotificationProvider";
+import { FoodMini } from "@/components/ui/food-loading";
 import { useDebounce } from "@/core/hooks/useDebounce";
+import { useUrgentStore } from "../urgent-store";
+import { useNotifications } from "@/features/admin/notifications/NotificationProvider";
 import type { PedidoData } from "@/core/types/domain";
 
 interface PedidosRadarProps {
@@ -51,7 +54,7 @@ export function PedidosRadar({
   const debouncedFilter = useDebounce(filter);
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [modalidadFilter, setModalidadFilter] = useState<string>("todas");
-  const [dateFilter, setDateFilter] = useState<"today" | "all">("today");
+  const [dateFilter, setDateFilter] = useState<"today" | "7d" | "30d" | "all">("all");
   const [showAll, setShowAll] = useState(false);
   const [pedidos, setPedidos] = useState<PedidoData[]>(initialPedidos);
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -87,10 +90,17 @@ export function PedidosRadar({
       ? pedidos
       : pedidosActivos;
 
+    const now = new Date();
     if (dateFilter === "today") {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      source = source.filter((p) => new Date(p.created_at) >= today);
+      const todayStart = new Date(now);
+      todayStart.setHours(0, 0, 0, 0);
+      source = source.filter((p) => new Date(p.created_at) >= todayStart);
+    } else if (dateFilter === "7d") {
+      const weekAgo = new Date(now.getTime() - 7 * 86400000);
+      source = source.filter((p) => new Date(p.created_at) >= weekAgo);
+    } else if (dateFilter === "30d") {
+      const monthAgo = new Date(now.getTime() - 30 * 86400000);
+      source = source.filter((p) => new Date(p.created_at) >= monthAgo);
     }
 
     // Modalidad filter
@@ -165,6 +175,37 @@ export function PedidosRadar({
     [pedidos],
   );
 
+  // ── Sincronizar urgentCount con store global (campana + sonido + bandeja) ──
+  const prevUrgentRef = useRef(urgentCount);
+  const setUrgentCount = useUrgentStore((s) => s.setUrgentCount);
+  const { addLocalNotification: addUrgentNotif, removeLocalNotification: removeUrgentNotif } = useNotifications();
+  useEffect(() => {
+    setUrgentCount(urgentCount);
+
+    if (urgentCount > 0 && prevUrgentRef.current === 0) {
+      import("../urgent-store").then(({ playUrgentAlert }) => playUrgentAlert());
+      addUrgentNotif({
+        id: "urgent-orders",
+        title: `${urgentCount} pedido${urgentCount !== 1 ? "s" : ""} esperando más de 15 min`,
+        body: "Revisá los pedidos pendientes con demora.",
+        created_at: new Date().toISOString(),
+        icon: "alert-triangle",
+        color: "text-red-500",
+        actions: [
+          {
+            label: "Ver pendientes",
+            primary: true,
+            onClick: () => setStatusFilter("pendiente"),
+          },
+        ],
+      });
+    } else if (urgentCount === 0 && prevUrgentRef.current > 0) {
+      removeUrgentNotif("urgent-orders");
+    }
+
+    prevUrgentRef.current = urgentCount;
+  }, [urgentCount, setUrgentCount, addUrgentNotif, removeUrgentNotif]);
+
   // ── Keyboard shortcuts ──
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -213,7 +254,11 @@ export function PedidosRadar({
         case "t":
         case "T":
           e.preventDefault();
-          setDateFilter((prev) => (prev === "today" ? "all" : "today"));
+          setDateFilter((prev) => {
+            const cycle: Array<"today" | "7d" | "30d" | "all"> = ["today", "7d", "30d", "all"];
+            const idx = cycle.indexOf(prev);
+            return cycle[(idx + 1) % cycle.length];
+          });
           break;
       }
     };
@@ -279,6 +324,50 @@ export function PedidosRadar({
     }
   };
 
+  // ── Recordatorio de pedidos estancados en cocina → a la bandeja ──
+  const STUCK_THRESHOLD_MS = 20 * 60_000; // 20 min
+  const stuckRemindedRef = useRef<Set<string>>(new Set());
+  const { addLocalNotification, removeLocalNotification } = useNotifications();
+
+  useEffect(() => {
+    const stuck = pedidos.filter((p) => {
+      if (p.estado !== "en_preparacion") return false;
+      const elapsed = Date.now() - new Date(p.created_at).getTime();
+      return elapsed > STUCK_THRESHOLD_MS && !stuckRemindedRef.current.has(p.id);
+    });
+
+    if (stuck.length === 0) return;
+
+    stuck.forEach((p) => {
+      const notifId = `stuck-${p.id}`;
+      stuckRemindedRef.current.add(p.id);
+
+      addLocalNotification({
+        id: notifId,
+        title: `¿${p.cliente_nombre.split(" ")[0]} ya está listo?`,
+        body: `Pedido en preparación hace ${Math.floor((Date.now() - new Date(p.created_at).getTime()) / 60_000)} min · #${p.id.slice(0, 6)}${p.es_delivery ? " · 🚚 Delivery" : " · 🏪 Retiro"}`,
+        created_at: new Date().toISOString(),
+        icon: "chef-hat",
+        color: "text-amber-500",
+        actions: [
+          {
+            label: "Marcar listo",
+            primary: true,
+            onClick: () => {
+              handleUpdateStatus(p.id, "entregado");
+              removeLocalNotification(notifId);
+            },
+          },
+          {
+            label: "Ahora no",
+            primary: false,
+            onClick: () => removeLocalNotification(notifId),
+          },
+        ],
+      });
+    });
+  }, [pedidos, handleUpdateStatus, addLocalNotification, removeLocalNotification]);
+
   const statusCounts = useMemo(
     () => ({
       pendiente: pedidos.filter((p) => p.estado === "pendiente").length,
@@ -286,6 +375,8 @@ export function PedidosRadar({
       entregado: pedidos.filter((p) => p.estado === "entregado").length,
       cancelado: pedidos.filter((p) => p.estado === "cancelado").length,
       total: pedidos.length,
+      delivery: pedidos.filter((p) => p.es_delivery).length,
+      retiro: pedidos.filter((p) => !p.es_delivery).length,
     }),
     [pedidos],
   );
@@ -317,8 +408,16 @@ export function PedidosRadar({
         </div>
       )}
 
-      {/* ── Panic mode toggle ── */}
-      <div className="flex items-center justify-end">
+      {/* ── Header row: title + panic button ── */}
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--admin-text)]">
+            Recepción de pedidos
+          </h2>
+          <p className="text-xs text-[var(--admin-text-muted)] font-medium mt-0.5">
+            Control de órdenes y despacho en tiempo real
+          </p>
+        </div>
         <button
           onClick={async () => {
             setPanicLoading(true);
@@ -326,21 +425,23 @@ export function PedidosRadar({
               const { recepcion_pausada } =
                 await toggleRecepcionPausadaAction();
               setPanicMode(recepcion_pausada);
-            } catch (e) {
+            } catch {
               toast.error("Error al cambiar estado de recepción");
             } finally {
               setPanicLoading(false);
             }
           }}
           disabled={panicLoading}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold border transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold border transition-all shrink-0 ${
             panicMode
               ? "bg-red-500/10 text-red-600 border-red-500/30 animate-pulse"
               : "bg-[var(--admin-surface)] text-[var(--admin-text-muted)] border-[var(--admin-border)] hover:text-[var(--admin-text)]"
           }`}
           aria-pressed={panicMode}
         >
-          {panicMode ? (
+          {panicLoading ? (
+            <FoodMini size={14} />
+          ) : panicMode ? (
             <>
               <PlayCircle size={16} />
               Reanudar Recepción
@@ -354,121 +455,168 @@ export function PedidosRadar({
         </button>
       </div>
 
-
-
-      {/* ── Filters ── */}
+      {/* ── Combined filter bar ── */}
       <div className="flex flex-wrap items-center gap-2">
-        {/* Status pills with counts */}
         <div className="flex flex-wrap gap-1 bg-[var(--admin-bg)] p-1 rounded-xl border border-[var(--admin-border)]">
-          {statusPills.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => {
-                setStatusFilter(opt.value);
-                setPage(0);
-              }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                statusFilter === opt.value
-                  ? "bg-[var(--admin-surface)] text-[var(--admin-text)] shadow-xs border border-[var(--admin-border)]"
-                  : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"
-              }`}
-            >
-              <opt.icon size={14} />
-              <span>{opt.label}</span>
-              <span
-                className={`ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full leading-none ${
-                  statusFilter === opt.value
-                    ? "bg-[var(--admin-accent)]/10 text-[var(--admin-accent)]"
-                    : opt.value === "pendiente"
-                      ? "bg-amber-500/10 text-amber-600"
-                      : opt.value === "en_preparacion"
-                        ? "bg-[var(--admin-accent)]/10 text-[var(--admin-accent)]"
-                        : opt.value === "entregado"
-                          ? "bg-green-500/10 text-green-600"
-                          : opt.value === "cancelado"
-                            ? "bg-red-500/10 text-red-600"
-                            : "bg-[var(--admin-bg)] text-[var(--admin-text-muted)]"
+          {/* Status pills */}
+          {statusPills.map((opt) => {
+            const isActive = statusFilter === opt.value;
+            const pillColor = (() => {
+              if (opt.value === "todos") return null;
+              const c: Record<string, { active: string; inactive: string; badge: string }> = {
+                pendiente: {
+                  active: "bg-blue-500/15 dark:bg-blue-500/25 text-blue-700 dark:text-blue-300 shadow-xs border border-blue-500/30",
+                  inactive: "text-blue-600 dark:text-blue-400 hover:bg-blue-500/5",
+                  badge: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+                },
+                en_preparacion: {
+                  active: "bg-amber-500/15 dark:bg-amber-500/25 text-amber-700 dark:text-amber-300 shadow-xs border border-amber-500/30",
+                  inactive: "text-amber-600 dark:text-amber-400 hover:bg-amber-500/5",
+                  badge: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+                },
+                entregado: {
+                  active: "bg-green-500/15 dark:bg-green-500/25 text-green-700 dark:text-green-300 shadow-xs border border-green-500/30",
+                  inactive: "text-green-600 dark:text-green-400 hover:bg-green-500/5",
+                  badge: "bg-green-500/10 text-green-600 dark:text-green-400",
+                },
+                cancelado: {
+                  active: "bg-red-500/15 dark:bg-red-500/25 text-red-700 dark:text-red-300 shadow-xs border border-red-500/30",
+                  inactive: "text-red-600 dark:text-red-400 hover:bg-red-500/5",
+                  badge: "bg-red-500/10 text-red-600 dark:text-red-400",
+                },
+              };
+              return c[opt.value];
+            })();
+
+            const pillBase = isActive
+              ? pillColor?.active ?? "bg-[var(--admin-surface)] text-[var(--admin-text)] shadow-xs border border-[var(--admin-border)]"
+              : pillColor?.inactive ?? "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]";
+
+            const badgeBase = isActive
+              ? pillColor?.badge ?? "bg-[var(--admin-accent)]/10 text-[var(--admin-accent)]"
+              : pillColor?.badge ?? "bg-[var(--admin-bg)] text-[var(--admin-text-muted)]";
+
+            return (
+              <button
+                key={opt.value}
+                onClick={() => {
+                  setStatusFilter(opt.value);
+                  setPage(0);
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${pillBase}`}
+              >
+                <opt.icon size={14} />
+                <span>{opt.label}</span>
+                <span className={`ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full leading-none ${badgeBase}`}>
+                  {opt.count}
+                </span>
+              </button>
+            );
+          })}
+
+          {/* Separator */}
+          <div className="w-px bg-[var(--admin-border)] mx-1 self-stretch" />
+
+          {/* Modalidad pills */}
+          {[
+            { value: "delivery", label: "Envíos", icon: Truck, count: statusCounts.delivery },
+            { value: "retiro", label: "Retiro", icon: Smartphone, count: statusCounts.retiro },
+          ].map((opt) => {
+            const isActive = modalidadFilter === opt.value;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => {
+                  setModalidadFilter((prev) => (prev === opt.value ? "todas" : opt.value));
+                  setPage(0);
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                  isActive
+                    ? opt.value === "delivery"
+                      ? "bg-violet-500/15 dark:bg-violet-500/25 text-violet-700 dark:text-violet-300 shadow-xs border border-violet-500/30"
+                      : "bg-teal-500/15 dark:bg-teal-500/25 text-teal-700 dark:text-teal-300 shadow-xs border border-teal-500/30"
+                    : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"
                 }`}
               >
-                {opt.count}
-              </span>
-            </button>
-          ))}
+                <opt.icon size={14} />
+                <span>{opt.label}</span>
+                <span className={`ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full leading-none ${
+                  isActive
+                    ? opt.value === "delivery"
+                      ? "bg-violet-500/10 text-violet-600 dark:text-violet-400"
+                      : "bg-teal-500/10 text-teal-600 dark:text-teal-400"
+                    : "bg-[var(--admin-bg)] text-[var(--admin-text-muted)]"
+                }`}>
+                  {opt.count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Modalidad pills */}
+        {/* Date pills */}
         <div className="flex gap-1 bg-[var(--admin-bg)] p-1 rounded-xl border border-[var(--admin-border)]">
           {[
-            { value: "todas", label: "Todas", icon: List },
-            { value: "delivery", label: "Envíos", icon: Truck },
-            { value: "retiro", label: "Retiro", icon: Smartphone },
+            { value: "today", label: "Hoy", icon: Calendar },
+            { value: "7d", label: "7 días", icon: Calendar },
+            { value: "30d", label: "30 días", icon: Calendar },
+            { value: "all", label: "Todos", icon: Calendar },
           ].map((opt) => (
             <button
               key={opt.value}
               onClick={() => {
-                setModalidadFilter(opt.value);
+                setDateFilter(opt.value as typeof dateFilter);
                 setPage(0);
               }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                modalidadFilter === opt.value
+              className={`flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                dateFilter === opt.value
                   ? "bg-[var(--admin-surface)] text-[var(--admin-text)] shadow-xs border border-[var(--admin-border)]"
                   : "text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"
               }`}
             >
-              <opt.icon size={14} />
               {opt.label}
             </button>
           ))}
         </div>
 
-        <div className="flex gap-2 ml-auto">
-          <button
-            onClick={() => {
-              setDateFilter((prev) => (prev === "today" ? "all" : "today"));
-              setPage(0);
-            }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl border transition-all ${
-              dateFilter === "today"
-                ? "bg-[var(--admin-accent)]/10 text-[var(--admin-accent)] border-[var(--admin-accent)]/30"
-                : "border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"
-            }`}
-          >
-            <Calendar size={14} />
-            {dateFilter === "today" ? "Hoy" : "Todos"}
-          </button>
-          <button
-            onClick={() => {
-              setShowAll(!showAll);
-              setPage(0);
-            }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl border transition-all ${
-              showAll
-                ? "bg-[var(--admin-accent)]/10 text-[var(--admin-accent)] border-[var(--admin-accent)]/30"
-                : "border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"
-            }`}
-          >
-            <List size={14} />
-            {showAll ? "Ver paginado" : "Ver todos"}
-          </button>
+        {/* Search — compacto */}
+        <div className="flex items-center gap-1 bg-[var(--admin-bg)] p-1 rounded-xl border border-[var(--admin-border)] ml-auto">
+          <Search size={14} className="text-[var(--admin-text-muted)] ml-2 shrink-0" />
+          <input
+            ref={searchInputRef}
+            type="text"
+            placeholder="Buscar…"
+            className="w-[100px] sm:w-[140px] bg-transparent text-xs font-medium text-[var(--admin-text)] placeholder:text-[var(--admin-text-muted)]/50 outline-none border-none py-1"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+          {filter && (
+            <button
+              type="button"
+              onClick={() => setFilter("")}
+              className="p-1 mr-1 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors"
+              aria-label="Limpiar búsqueda"
+            >
+              <XCircle size={14} />
+            </button>
+          )}
         </div>
-      </div>
 
-      {/* ── Search bar ── */}
-      <div className="admin-card flex items-center p-2 gap-3">
-        <div className="px-3 text-[var(--admin-text-muted)]">
-          <Search size={18} />
-        </div>
-        <input
-          ref={searchInputRef}
-          type="text"
-          placeholder="Buscar por cliente, código, teléfono, producto…"
-          className="flex-1 min-w-0 admin-input !border-none !shadow-none !bg-transparent"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-        />
-        <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-1 text-[10px] font-mono text-[var(--admin-text-muted)] bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-md">
-          S
-        </kbd>
+        {/* Show all toggle */}
+        <button
+          onClick={() => {
+            setShowAll(!showAll);
+            setPage(0);
+          }}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl border transition-all ${
+            showAll
+              ? "bg-[var(--admin-accent)]/10 text-[var(--admin-accent)] border-[var(--admin-accent)]/30"
+              : "border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"
+          }`}
+        >
+          <List size={14} />
+          {showAll ? "Ver paginado" : "Ver todos"}
+        </button>
       </div>
 
       {/* ── Cards grid ── */}

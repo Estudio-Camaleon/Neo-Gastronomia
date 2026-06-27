@@ -89,12 +89,12 @@ export function injectPrintStyles() {
   style.id = PRINT_STYLE_ID;
   style.textContent = `
     @page {
-      size: 80mm auto;
+      size: 72mm auto;
       margin: 0;
     }
     @media print {
       html, body {
-        width: 80mm;
+        width: 72mm;
         margin: 0;
         padding: 0;
         background: #fff;
@@ -116,7 +116,7 @@ export const ComandaPrintView = forwardRef<HTMLDivElement, { pedido: PedidoData 
 
     useEffect(() => {
       QRCode.toDataURL(orderRef, {
-        width: 120,
+        width: 100,
         margin: 1,
         color: { dark: "#1a1a1a", light: "#ffffff" },
       })
@@ -128,11 +128,11 @@ export const ComandaPrintView = forwardRef<HTMLDivElement, { pedido: PedidoData 
       <div
         ref={ref}
         style={{
-          width: "80mm",
+          width: "72mm",
           fontFamily: "'Courier New', 'Lucida Console', monospace",
-          fontSize: "12px",
-          lineHeight: 1.35,
-          padding: "4mm 3.5mm",
+          fontSize: "10px",
+          lineHeight: 1.3,
+          padding: "2.5mm 2.5mm",
           color: "#000",
           background: "#fff",
         }}
@@ -141,43 +141,43 @@ export const ComandaPrintView = forwardRef<HTMLDivElement, { pedido: PedidoData 
         <div style={{ textAlign: "center", marginBottom: "3mm" }}>
           <div
             style={{
-              fontSize: "22px",
+              fontSize: "16px",
               fontWeight: 900,
-              letterSpacing: "4px",
+              letterSpacing: "3px",
               textTransform: "uppercase",
-              marginBottom: "1mm",
+              marginBottom: "0.8mm",
             }}
           >
             🍔 Comanda
           </div>
           <div
             style={{
-              fontSize: "11px",
+              fontSize: "9px",
               fontWeight: 700,
               color: "#333",
               fontFamily: "'Courier New', monospace",
               background: "#f5f5f5",
               display: "inline-block",
-              padding: "0.5mm 3mm",
+              padding: "0.3mm 2.5mm",
               borderRadius: "1mm",
-              marginBottom: "0.5mm",
+              marginBottom: "0.3mm",
             }}
           >
             {orderRef}
           </div>
-          <div style={{ fontSize: "10px", color: "#888", marginTop: "0.5mm" }}>
+          <div style={{ fontSize: "8px", color: "#888", marginTop: "0.3mm" }}>
             {formatDateTime(pedido.created_at)}
           </div>
 
           {/* QR Code */}
           {qrDataUrl && (
-            <div style={{ marginTop: "2mm", textAlign: "center" }}>
+            <div style={{ marginTop: "1.5mm", textAlign: "center" }}>
               <img
                 src={qrDataUrl}
                 alt={`QR ${orderRef}`}
-                style={{ width: "28mm", height: "28mm", imageRendering: "pixelated" }}
+                style={{ width: "22mm", height: "22mm", imageRendering: "pixelated" }}
               />
-              <div style={{ fontSize: "8px", color: "#aaa", marginTop: "0.3mm" }}>
+              <div style={{ fontSize: "7px", color: "#aaa", marginTop: "0.2mm" }}>
                 {orderRef}
               </div>
             </div>
@@ -187,28 +187,28 @@ export const ComandaPrintView = forwardRef<HTMLDivElement, { pedido: PedidoData 
         <Divider dashed />
 
         {/* ══════════════ CLIENTE ══════════════ */}
-        <div style={{ margin: "2.5mm 0" }}>
-          <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "0.5mm" }}>
+        <div style={{ margin: "2mm 0" }}>
+          <div style={{ fontSize: "12px", fontWeight: 700, marginBottom: "0.3mm" }}>
             {pedido.cliente_nombre}
           </div>
           {pedido.cliente_whatsapp && (
-            <div style={{ fontSize: "11px", color: "#444", marginBottom: "0.5mm" }}>
+            <div style={{ fontSize: "9px", color: "#444", marginBottom: "0.3mm" }}>
               📱 {pedido.cliente_whatsapp}
             </div>
           )}
           <div
             style={{
               display: "flex",
-              gap: "1.5mm",
+              gap: "1mm",
               flexWrap: "wrap",
-              marginBottom: pedido.es_delivery && pedido.direccion_entrega ? "0.5mm" : 0,
+              marginBottom: pedido.es_delivery && pedido.direccion_entrega ? "0.3mm" : 0,
             }}
           >
             <Tag>{pedido.es_delivery ? "🚚 Delivery" : "🏪 Retiro"}</Tag>
             <Tag>{pedido.metodo_pago}</Tag>
           </div>
           {pedido.es_delivery && pedido.direccion_entrega && (
-            <div style={{ fontSize: "11px", color: "#444", marginTop: "0.5mm" }}>
+            <div style={{ fontSize: "9px", color: "#444", marginTop: "0.3mm" }}>
               📍 {pedido.direccion_entrega}
             </div>
           )}
@@ -217,23 +217,23 @@ export const ComandaPrintView = forwardRef<HTMLDivElement, { pedido: PedidoData 
         <Divider dashed />
 
         {/* ══════════════ ITEMS ══════════════ */}
-        <table style={{ width: "100%", borderCollapse: "collapse", margin: "1.5mm 0" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", margin: "1mm 0" }}>
           <thead>
             <tr
               style={{
-                fontSize: "9px",
+                fontSize: "8px",
                 color: "#999",
                 textTransform: "uppercase",
-                letterSpacing: "1px",
+                letterSpacing: "0.8px",
               }}
             >
-              <th style={{ textAlign: "center", padding: "0.5mm 0", width: "11mm" }}>
+              <th style={{ textAlign: "center", padding: "0.3mm 0", width: "9mm" }}>
                 Cant
               </th>
-              <th style={{ textAlign: "left", padding: "0.5mm 0" }}>
+              <th style={{ textAlign: "left", padding: "0.3mm 0" }}>
                 Producto
               </th>
-              <th style={{ textAlign: "right", padding: "0.5mm 0", width: "17mm" }}>
+              <th style={{ textAlign: "right", padding: "0.3mm 0", width: "15mm" }}>
                 Importe
               </th>
             </tr>
@@ -242,7 +242,7 @@ export const ComandaPrintView = forwardRef<HTMLDivElement, { pedido: PedidoData 
             {items.map((item, idx) => {
               const { extrasByGroup, variante, notaCliente } = parseDetalles(item);
               const totalItem = item.precio_unitario * item.cantidad;
-              const hasDetalles = extrasByGroup.length > 0 || variante || notaCliente;
+              const isLast = idx === items.length - 1;
 
               return (
                 <tr key={item.id}>
@@ -250,8 +250,8 @@ export const ComandaPrintView = forwardRef<HTMLDivElement, { pedido: PedidoData 
                     style={{
                       textAlign: "center",
                       verticalAlign: "top",
-                      padding: `${idx === 0 ? "1.5mm" : "1.2mm"} 0 ${idx === items.length - 1 ? "1.5mm" : "1.2mm"} 0`,
-                      fontSize: "13px",
+                      padding: `${idx === 0 ? "1mm" : "0.8mm"} 0 ${isLast ? "1mm" : "0.8mm"} 0`,
+                      fontSize: "11px",
                       fontWeight: 700,
                     }}
                   >
@@ -260,13 +260,13 @@ export const ComandaPrintView = forwardRef<HTMLDivElement, { pedido: PedidoData 
                   <td
                     style={{
                       verticalAlign: "top",
-                      padding: `${idx === 0 ? "1.5mm" : "1.2mm"} 0 ${idx === items.length - 1 ? "1.5mm" : "1.2mm"} 0`,
+                      padding: `${idx === 0 ? "1mm" : "0.8mm"} 0 ${isLast ? "1mm" : "0.8mm"} 0`,
                     }}
                   >
-                    <div style={{ fontWeight: 600, fontSize: "12px" }}>
+                    <div style={{ fontWeight: 600, fontSize: "10px" }}>
                       {item.nombre_producto}
                       {variante && (
-                        <span style={{ fontWeight: 400, color: "#666", fontSize: "11px" }}>
+                        <span style={{ fontWeight: 400, color: "#666", fontSize: "9px" }}>
                           {" "}({variante})
                         </span>
                       )}
@@ -277,10 +277,10 @@ export const ComandaPrintView = forwardRef<HTMLDivElement, { pedido: PedidoData 
                       <div
                         key={group.titulo}
                         style={{
-                          fontSize: "10px",
+                          fontSize: "8px",
                           color: "#555",
-                          marginTop: "0.4mm",
-                          marginLeft: "2mm",
+                          marginTop: "0.2mm",
+                          marginLeft: "1.5mm",
                         }}
                       >
                         <span style={{ fontWeight: 600 }}>{group.titulo}:</span>{" "}
@@ -297,10 +297,10 @@ export const ComandaPrintView = forwardRef<HTMLDivElement, { pedido: PedidoData 
                     {notaCliente && (
                       <div
                         style={{
-                          fontSize: "10px",
+                          fontSize: "8px",
                           color: "#b8860b",
-                          marginTop: "0.4mm",
-                          marginLeft: "2mm",
+                          marginTop: "0.2mm",
+                          marginLeft: "1.5mm",
                           fontStyle: "italic",
                         }}
                       >
@@ -312,12 +312,12 @@ export const ComandaPrintView = forwardRef<HTMLDivElement, { pedido: PedidoData 
                     style={{
                       textAlign: "right",
                       verticalAlign: "top",
-                      padding: `${idx === 0 ? "1.5mm" : "1.2mm"} 0 ${idx === items.length - 1 ? "1.5mm" : "1.2mm"} 0`,
-                      fontSize: "11px",
+                      padding: `${idx === 0 ? "1mm" : "0.8mm"} 0 ${isLast ? "1mm" : "0.8mm"} 0`,
+                      fontSize: "10px",
                       fontWeight: 500,
                     }}
                   >
-                    {hasDetalles ? formatPeso(totalItem) : formatPeso(totalItem)}
+                    {formatPeso(totalItem)}
                   </td>
                 </tr>
               );
@@ -333,10 +333,10 @@ export const ComandaPrintView = forwardRef<HTMLDivElement, { pedido: PedidoData 
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            fontSize: "16px",
+            fontSize: "13px",
             fontWeight: 800,
-            margin: "2mm 0",
-            padding: "1mm 1mm",
+            margin: "1.5mm 0",
+            padding: "0.8mm 1mm",
             background: "#fafafa",
             borderRadius: "1mm",
           }}
@@ -349,33 +349,33 @@ export const ComandaPrintView = forwardRef<HTMLDivElement, { pedido: PedidoData 
         {pedido.notas && (
           <div
             style={{
-              margin: "2mm 0",
-              padding: "2mm",
+              margin: "1.5mm 0",
+              padding: "1.5mm",
               background: "#fff8e1",
-              borderRadius: "1.5mm",
-              fontSize: "11px",
+              borderRadius: "1mm",
+              fontSize: "9px",
               border: "1px solid #ffe082",
             }}
           >
-            <strong>📝 Nota del pedido:</strong> {pedido.notas}
+            <strong>📝 Nota:</strong> {pedido.notas}
           </div>
         )}
 
         <Divider />
 
         {/* ══════════════ FOOTER ══════════════ */}
-        <div style={{ textAlign: "center", fontSize: "10px", color: "#999", marginTop: "2mm" }}>
-          <div style={{ letterSpacing: "2px", fontSize: "9px", marginBottom: "1mm" }}>
+        <div style={{ textAlign: "center", fontSize: "8px", color: "#999", marginTop: "1.5mm" }}>
+          <div style={{ letterSpacing: "1.5px", fontSize: "8px", marginBottom: "0.5mm" }}>
             * * * Gracias por tu pedido * * *
           </div>
-          <div style={{ fontSize: "8px", color: "#bbb" }}>
+          <div style={{ fontSize: "7px", color: "#bbb" }}>
             {formatDateTime(pedido.created_at)}
           </div>
           <div
             style={{
-              fontSize: "8px",
+              fontSize: "7px",
               color: "#bbb",
-              marginTop: "0.3mm",
+              marginTop: "0.2mm",
               fontFamily: "'Courier New', monospace",
             }}
           >
@@ -384,7 +384,7 @@ export const ComandaPrintView = forwardRef<HTMLDivElement, { pedido: PedidoData 
         </div>
 
         {/* Espacio extra para que no se corte el footer */}
-        <div style={{ height: "3mm" }} />
+        <div style={{ height: "2mm" }} />
       </div>
     );
   },
@@ -397,8 +397,8 @@ function Divider({ dashed }: { dashed?: boolean }) {
     <hr
       style={{
         border: "none",
-        borderTop: dashed ? "1px dashed #bbb" : "2px solid #333",
-        margin: "2mm 0",
+        borderTop: dashed ? "1px dashed #bbb" : "1.5px solid #333",
+        margin: "1.5mm 0",
       }}
     />
   );
@@ -410,9 +410,9 @@ function Tag({ children }: { children: string }) {
       style={{
         display: "inline-block",
         background: "#f0f0f0",
-        padding: "0.5mm 2.5mm",
-        borderRadius: "1mm",
-        fontSize: "10px",
+        padding: "0.3mm 2mm",
+        borderRadius: "0.8mm",
+        fontSize: "8px",
         fontWeight: 600,
         color: "#444",
       }}
