@@ -399,23 +399,36 @@ export function ConfigForm({
       <TabBar activeTab={activeTab} onChange={handleTabChange} />
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* INDICADOR DE CAMBIOS SIN GUARDAR */}
-        {isDirty && (
-          <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 animate-in fade-in slide-in-from-top-2 duration-200">
-            <div className="flex items-center gap-2.5">
+        {/* INDICADOR DE CAMBIOS SIN GUARDAR — badge fijo */}
+        <div
+          className={`flex items-center justify-between px-4 py-2.5 rounded-xl border transition-colors duration-300 ${
+            isDirty
+              ? "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/50"
+              : "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/50"
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            {isDirty ? (
               <span className="relative flex h-2.5 w-2.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-60" />
                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-500" />
               </span>
-              <span className="text-xs font-medium text-amber-800 dark:text-amber-300">
-                Cambios sin guardar
+            ) : (
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
               </span>
-            </div>
-            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-mono">
-              Recordá guardar antes de salir
+            )}
+            <span
+              className={`text-xs font-medium ${
+                isDirty
+                  ? "text-amber-800 dark:text-amber-300"
+                  : "text-emerald-800 dark:text-emerald-300"
+              }`}
+            >
+              No existe ning&uacute;n cambio sin guardar
             </span>
           </div>
-        )}
+        </div>
 
         {/* ALERTA CRÍTICA: MUTACIÓN DE URL — visible en todos los tabs */}
         {hasSlugChanged && (
