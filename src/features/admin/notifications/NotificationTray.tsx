@@ -1,6 +1,7 @@
 "use client";
 
 import { useNotifications } from "./NotificationProvider";
+import type { LocalNotification } from "./NotificationProvider";
 import {
   Bell,
   CheckCheck,
@@ -10,22 +11,24 @@ import {
   AlertTriangle,
   Package,
   Megaphone,
-  ExternalLink,
+  ChefHat,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import type { NotificationType, NotificationData } from "@/core/types/domain";
+import type { NotificationType } from "@/core/types/domain";
 import { FoodMini } from "@/components/ui/food-loading";
 
-const ICON_MAP: Record<NotificationType, React.ReactNode> = {
+const ICON_MAP: Record<string, React.ReactNode> = {
   new_order: <ShoppingBag size={14} />,
   order_update: <RefreshCw size={14} />,
   system: <AlertTriangle size={14} />,
   promo_ending: <Megaphone size={14} />,
   stock_alert: <Package size={14} />,
+  "chef-hat": <ChefHat size={14} />,
+  "alert-triangle": <AlertTriangle size={14} />,
 };
 
-const COLOR_MAP: Record<NotificationType, string> = {
+const COLOR_MAP: Record<string, string> = {
   new_order: "text-blue-400",
   order_update: "text-amber-400",
   system: "text-red-400",
@@ -50,7 +53,13 @@ interface NotificationTrayProps {
 }
 
 export function NotificationTray({ onClose, variant }: NotificationTrayProps) {
-  const { notifications, markRead, markAllRead, loading } = useNotifications();
+  const {
+    notifications,
+    markRead,
+    markAllRead,
+    loading,
+    localNotifications,
+  } = useNotifications();
   const unread = notifications.filter((n) => !n.read);
 
   const positionClasses =
@@ -62,6 +71,8 @@ export function NotificationTray({ onClose, variant }: NotificationTrayProps) {
     variant === "sidebar"
       ? "w-80"
       : "w-[calc(100vw-1.5rem)] sm:w-80 md:w-96";
+
+  const hasItems = notifications.length > 0 || localNotifications.length > 0;
 
   return (
     <div
@@ -96,11 +107,11 @@ export function NotificationTray({ onClose, variant }: NotificationTrayProps) {
 
         {/* List */}
         <div className="max-h-80 overflow-y-auto custom-scrollbar">
-          {loading ? (
+          {loading && notifications.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <FoodMini size={16} />
             </div>
-          ) : notifications.length === 0 ? (
+          ) : !hasItems ? (
             <div className="flex flex-col items-center py-8 text-[var(--admin-text-muted)]">
               <Bell size={24} className="opacity-30 mb-2" />
               <p className="text-xs font-medium">Sin notificaciones</p>
@@ -110,6 +121,12 @@ export function NotificationTray({ onClose, variant }: NotificationTrayProps) {
             </div>
           ) : (
             <div className="divide-y divide-[var(--admin-border)]">
+              {/* ── Notificaciones locales (ordenes, urgentes) ── */}
+              {localNotifications.map((n) => (
+                <LocalNotificationItem key={n.id} notification={n} />
+              ))}
+
+              {/* ── Notificaciones de DB (sistema) ── */}
               {notifications.map((n) => (
                 <button
                   key={n.id}
@@ -157,6 +174,68 @@ export function NotificationTray({ onClose, variant }: NotificationTrayProps) {
                       </span>
                     </div>
                   </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Item de notificación local (con acciones) ──
+
+function LocalNotificationItem({
+  notification,
+}: {
+  notification: LocalNotification;
+}) {
+  return (
+    <div className="w-full text-left px-4 py-3 bg-[var(--admin-accent)]/5">
+      <div className="flex gap-3">
+        <div
+          className={`shrink-0 mt-0.5 ${
+            notification.color ?? "text-[var(--admin-text-muted)]"
+          }`}
+        >
+          {ICON_MAP[notification.icon ?? ""] ?? <Bell size={14} />}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <span className="text-xs font-bold text-[var(--admin-text)]">
+              {notification.title}
+            </span>
+            <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-[var(--admin-accent)] mt-1 animate-pulse" />
+          </div>
+          {notification.body && (
+            <p className="text-[10px] text-[var(--admin-text-muted)] mt-0.5 leading-relaxed">
+              {notification.body}
+            </p>
+          )}
+          <span className="text-[9px] text-[var(--admin-text-muted)]/50 mt-1 flex items-center gap-1">
+            <Clock size={9} />
+            {timeAgo(notification.created_at)}
+          </span>
+
+          {/* Acciones */}
+          {notification.actions && notification.actions.length > 0 && (
+            <div className="flex items-center gap-2 mt-2">
+              {notification.actions.map((action) => (
+                <button
+                  key={action.label}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    action.onClick();
+                  }}
+                  className={`text-[10px] font-bold px-2.5 py-1 rounded-lg transition-all ${
+                    action.primary
+                      ? "bg-[var(--admin-accent)] text-white hover:opacity-90"
+                      : "border border-[var(--admin-border)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]"
+                  }`}
+                >
+                  {action.label}
                 </button>
               ))}
             </div>

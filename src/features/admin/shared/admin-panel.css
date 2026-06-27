@@ -137,3 +137,12 @@
   .hover-admin-warning:hover { color: var(--admin-warning); background: var(--admin-warning-bg); }
   .hover-admin-info:hover { color: #2563eb; background: var(--admin-info-bg); }
 }
+
+/* Floating toast animation */
+@keyframes float-up {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-80px); }
+}
+.animate-float-up {
+  animation: float-up 1.8s ease-out forwards;
+}
