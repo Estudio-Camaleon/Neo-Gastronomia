@@ -190,17 +190,27 @@ export function OrderForm({
         metodo_pago: formData.metodoPago,
         notas: formData.notas ? sanitize(formData.notas) : null,
         items: cart.flatMap((i) => {
-          // Combo: expandir items internos
+          // Combo: expandir items internos preservando el nombre del combo
           if (i.producto_id.startsWith(COMBO_PREFIX)) {
             try {
               const comboItems = JSON.parse(i.detalles || "[]") as Array<{
                 producto_id: string;
                 cantidad: number;
+                nombre_producto?: string;
               }>;
               return comboItems.map((ci) => ({
                 producto_id: ci.producto_id,
                 cantidad: ci.cantidad * i.cantidad,
-                detalles: null,
+                detalles: JSON.stringify([
+                  {
+                    grupo_id: "__combo__",
+                    grupo_titulo: "🧩 Parte de",
+                    item_id: "__combo__",
+                    item_nombre: i.nombre,
+                    item_precio: 0,
+                    cantidad: 1,
+                  },
+                ]),
               }));
             } catch {
               return [];

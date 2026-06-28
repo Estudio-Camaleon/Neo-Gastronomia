@@ -78,6 +78,8 @@ describe("upsertProductAction", () => {
     nombre: "Burger",
     precio: 1500,
     disponible: true,
+    stock: 0,
+    stock_minimo: 5,
     configuracion: { variantes: [], grupos_opciones: [], imagenes_extra: [] },
   };
 

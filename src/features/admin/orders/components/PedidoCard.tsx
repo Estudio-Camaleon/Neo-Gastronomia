@@ -104,7 +104,7 @@ export function PedidoCard({
     `,
   });
   const style = STATUS_CONFIG[pedido.estado];
-  const MAX_VISIBLE_ITEMS = 3;
+  const MAX_VISIBLE_ITEMS = 6;
   const comandaItems = pedido.pedido_items ?? [];
   const hasMoreItems = comandaItems.length > MAX_VISIBLE_ITEMS;
   const visibleItems = hasMoreItems
@@ -388,6 +388,7 @@ export function PedidoCard({
                   let extrasByGroup: Array<{ titulo: string; items: { nombre: string; precio: number; cantidad: number }[] }> = [];
                   let notaCliente: string | null = null;
                   let variante: string | null = null;
+                  let comboName: string | null = null;
 
                   if (item.detalles) {
                     try {
@@ -403,6 +404,7 @@ export function PedidoCard({
 
                           if (id === '__nota__') { notaCliente = nombre; continue; }
                           if (id === '__variante__') { variante = nombre; continue; }
+                          if (id === '__combo__') { comboName = nombre; continue; }
 
                           if (!map.has(titulo)) map.set(titulo, []);
                           map.get(titulo)!.push({ nombre, precio, cantidad });
@@ -424,18 +426,24 @@ export function PedidoCard({
                         <span className="bg-[var(--admin-accent)]/15 text-[var(--admin-accent)] px-2.5 py-1 rounded-xl text-lg font-black leading-none shrink-0 min-w-[40px] text-center">
                           {item.cantidad}x
                         </span>
-                        <div className="flex-1 min-w-0">
-                          {/* Nombre del producto + variante + precio total */}
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <p className="text-base sm:text-lg font-bold text-[var(--admin-text)] leading-tight">
-                                {item.nombre_producto}
-                                {variante && (
-                                  <span className="ml-1 text-sm font-semibold text-[var(--admin-accent)]">
-                                    ({variante})
-                                  </span>
-                                )}
-                              </p>
+                          <div className="flex-1 min-w-0">
+                            {/* Combo badge */}
+                            {/* Nombre del producto + variante + precio total */}
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <p className="text-base sm:text-lg font-bold text-[var(--admin-text)] leading-tight">
+                                  {item.nombre_producto}
+                                  {variante && (
+                                    <span className="ml-1 text-sm font-semibold text-[var(--admin-accent)]">
+                                      ({variante})
+                                    </span>
+                                  )}
+                                  {comboName && (
+                                    <span className="ml-1.5 text-sm font-semibold text-[var(--admin-accent)]">
+                                      ({comboName})
+                                    </span>
+                                  )}
+                                </p>
                               {item.precio_unitario != null && (
                                 <p className="text-[10px] text-[var(--admin-text-muted)] mt-0.5">
                                   ${Number(item.precio_unitario).toFixed(2)} c/u
@@ -572,6 +580,7 @@ export function PedidoCard({
                       let extrasByGroup: Array<{ titulo: string; items: { nombre: string; precio: number; cantidad: number }[] }> = [];
                       let notaCliente: string | null = null;
                       let variante: string | null = null;
+                      let comboName: string | null = null;
                       if (item.detalles) {
                         try {
                           const parsed = JSON.parse(item.detalles);
@@ -585,6 +594,7 @@ export function PedidoCard({
                               const cantidad = Number(e.cantidad ?? 1);
                               if (id === '__nota__') { notaCliente = nombre; continue; }
                               if (id === '__variante__') { variante = nombre; continue; }
+                              if (id === '__combo__') { comboName = nombre; continue; }
                               if (!map.has(titulo)) map.set(titulo, []);
                               map.get(titulo)!.push({ nombre, precio, cantidad });
                             }
@@ -609,6 +619,11 @@ export function PedidoCard({
                               {variante && (
                                 <span className="ml-1 text-sm font-semibold text-[var(--admin-accent)]">
                                   ({variante})
+                                </span>
+                              )}
+                              {comboName && (
+                                <span className="ml-1.5 text-sm font-semibold text-[var(--admin-accent)]">
+                                  ({comboName})
                                 </span>
                               )}
                             </p>

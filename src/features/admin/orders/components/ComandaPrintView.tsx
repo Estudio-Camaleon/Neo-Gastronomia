@@ -22,10 +22,11 @@ interface ExtraGroup {
 
 function parseDetalles(
   item: PedidoItem,
-): { extrasByGroup: ExtraGroup[]; variante: string | null; notaCliente: string | null } {
+): { extrasByGroup: ExtraGroup[]; variante: string | null; notaCliente: string | null; comboName: string | null } {
   let extrasByGroup: ExtraGroup[] = [];
   let notaCliente: string | null = null;
   let variante: string | null = null;
+  let comboName: string | null = null;
 
   if (item.detalles) {
     try {
@@ -47,6 +48,10 @@ function parseDetalles(
             variante = nombre;
             continue;
           }
+          if (id === "__combo__") {
+            comboName = nombre;
+            continue;
+          }
 
           if (!map.has(titulo)) map.set(titulo, []);
           map.get(titulo)!.push({ nombre, precio, cantidad });
@@ -60,7 +65,7 @@ function parseDetalles(
     }
   }
 
-  return { extrasByGroup, variante, notaCliente };
+  return { extrasByGroup, variante, notaCliente, comboName };
 }
 
 function formatDateTime(iso: string): string {
@@ -148,7 +153,7 @@ export const ComandaPrintView = forwardRef<HTMLDivElement, { pedido: PedidoData 
               marginBottom: "0.8mm",
             }}
           >
-            🍔 Comanda
+            COMANDA
           </div>
           <div
             style={{
@@ -193,7 +198,7 @@ export const ComandaPrintView = forwardRef<HTMLDivElement, { pedido: PedidoData 
           </div>
           {pedido.cliente_whatsapp && (
             <div style={{ fontSize: "9px", color: "#444", marginBottom: "0.3mm" }}>
-              📱 {pedido.cliente_whatsapp}
+              {pedido.cliente_whatsapp}
             </div>
           )}
           <div
@@ -204,12 +209,12 @@ export const ComandaPrintView = forwardRef<HTMLDivElement, { pedido: PedidoData 
               marginBottom: pedido.es_delivery && pedido.direccion_entrega ? "0.3mm" : 0,
             }}
           >
-            <Tag>{pedido.es_delivery ? "🚚 Delivery" : "🏪 Retiro"}</Tag>
+            <Tag>{pedido.es_delivery ? "Delivery" : "Retiro"}</Tag>
             <Tag>{pedido.metodo_pago}</Tag>
           </div>
           {pedido.es_delivery && pedido.direccion_entrega && (
             <div style={{ fontSize: "9px", color: "#444", marginTop: "0.3mm" }}>
-              📍 {pedido.direccion_entrega}
+              {pedido.direccion_entrega}
             </div>
           )}
         </div>
@@ -240,7 +245,7 @@ export const ComandaPrintView = forwardRef<HTMLDivElement, { pedido: PedidoData 
           </thead>
           <tbody>
             {items.map((item, idx) => {
-              const { extrasByGroup, variante, notaCliente } = parseDetalles(item);
+              const { extrasByGroup, variante, notaCliente, comboName } = parseDetalles(item);
               const totalItem = item.precio_unitario * item.cantidad;
               const isLast = idx === items.length - 1;
 
@@ -268,6 +273,11 @@ export const ComandaPrintView = forwardRef<HTMLDivElement, { pedido: PedidoData 
                       {variante && (
                         <span style={{ fontWeight: 400, color: "#666", fontSize: "9px" }}>
                           {" "}({variante})
+                        </span>
+                      )}
+                      {comboName && (
+                        <span style={{ fontWeight: 400, color: "#888", fontSize: "8px" }}>
+                          {" "}[{comboName}]
                         </span>
                       )}
                     </div>
@@ -304,7 +314,7 @@ export const ComandaPrintView = forwardRef<HTMLDivElement, { pedido: PedidoData 
                           fontStyle: "italic",
                         }}
                       >
-                        📝 {notaCliente}
+                        Nota: {notaCliente}
                       </div>
                     )}
                   </td>
@@ -357,7 +367,7 @@ export const ComandaPrintView = forwardRef<HTMLDivElement, { pedido: PedidoData 
               border: "1px solid #ffe082",
             }}
           >
-            <strong>📝 Nota:</strong> {pedido.notas}
+            <strong>Nota:</strong> {pedido.notas}
           </div>
         )}
 

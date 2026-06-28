@@ -39,6 +39,8 @@ const EMPTY_FORM: PromoFormData = {
   valor_descuento: 10,
   codigo: null,
   activo: true,
+  fecha_inicio: null,
+  fecha_fin: null,
   items_combo: [],
   aplicar_a: null,
 };
@@ -108,6 +110,8 @@ export function PromosSection({ negocioId }: PromosSectionProps) {
       valor_descuento: promo.valor_descuento,
       codigo: promo.codigo,
       activo: promo.activo ?? true,
+      fecha_inicio: promo.fecha_inicio ?? null,
+      fecha_fin: promo.fecha_fin ?? null,
       items_combo: itemsCombo,
       aplicar_a: aplicarA,
     });

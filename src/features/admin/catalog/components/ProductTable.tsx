@@ -22,6 +22,8 @@ export interface UnifiedProduct {
   imagen_url: string | null;
   categoria_id: string | null;
   disponible: boolean;
+  stock: number;
+  stock_minimo: number;
   created_at: string | null;
   configuracion: {
     grupos_opciones?: Array<Record<string, unknown>>;
@@ -39,6 +41,25 @@ interface ProductTableProps {
 const PAGE_SIZE = 20;
 const formatPrecio = (n: number) =>
   new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", minimumFractionDigits: 2 }).format(n);
+
+const StockBadge = ({ stock, stock_minimo }: { stock: number; stock_minimo: number }) => {
+  if (stock === 0) return null; // Sin control de stock
+  const isLow = stock <= stock_minimo;
+  const isOut = stock <= 0;
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold border leading-tight ${
+        isOut
+          ? "bg-red-500/10 text-red-500 border-red-500/20"
+          : isLow
+            ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
+            : "bg-green-500/10 text-green-600 border-green-500/20"
+      }`}
+    >
+      {isOut ? "Sin stock" : `${stock} uds.`}
+    </span>
+  );
+};
 const formatDate = (d: string | null) =>
   d ? new Intl.DateTimeFormat("es-AR", { dateStyle: "short" }).format(new Date(d)) : "—";
 
@@ -72,7 +93,7 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
         let request = supabase
           .from("productos")
           .select(
-            `id, nombre, descripcion, precio, imagen_url, disponible, created_at, categoria_id, configuracion, categorias(nombre)`,
+            `id, nombre, descripcion, precio, imagen_url, disponible, stock, stock_minimo, created_at, categoria_id, configuracion, categorias(nombre)`,
             { count: "exact" },
           )
           .eq("negocio_id", negocioId)
@@ -221,6 +242,9 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
               Precio
             </th>
             <th className="p-3 border-b border-[var(--admin-border)] hidden lg:table-cell">
+              Stock
+            </th>
+            <th className="p-3 border-b border-[var(--admin-border)] hidden lg:table-cell">
               Cargado
             </th>
             <th className="p-3 border-b border-[var(--admin-border)] hidden sm:table-cell">
@@ -268,11 +292,12 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
                     <p className="text-[11px] text-[var(--admin-text-muted)] line-clamp-1 max-w-[140px] sm:max-w-[200px] lg:max-w-[300px]">
                       {prod.descripcion || "Sin descripción"}
                     </p>
-                    {/* Mobile-only price + status row */}
+                    {/* Mobile-only price + status + stock row */}
                     <div className="flex sm:hidden items-center gap-2 mt-1.5 flex-wrap">
                       <span className="text-xs font-bold text-[var(--admin-text)]">
                         {formatPrecio(prod.precio)}
                       </span>
+                      <StockBadge stock={prod.stock} stock_minimo={prod.stock_minimo} />
                       {prod.disponible ? (
                         <span className="text-[10px] font-semibold admin-success-text admin-success-bg px-1.5 py-0.5 rounded-full border admin-success-border leading-tight">
                           Activo
@@ -293,6 +318,9 @@ export function ProductTable({ negocioId, onEdit }: ProductTableProps) {
               </td>
               <td className="p-3 font-semibold text-[var(--admin-text)] hidden sm:table-cell text-sm whitespace-nowrap">
                 {formatPrecio(prod.precio)}
+              </td>
+              <td className="p-3 hidden lg:table-cell whitespace-nowrap">
+                <StockBadge stock={prod.stock} stock_minimo={prod.stock_minimo} />
               </td>
               <td className="p-3 hidden lg:table-cell text-xs text-[var(--admin-text-muted)] whitespace-nowrap">
                 {formatDate(prod.created_at)}

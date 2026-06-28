@@ -63,6 +63,8 @@ export async function upsertProductAction(
         imagen_url: parsed.data.imagen_url ?? null,
         categoria_id: parsed.data.categoria_id ?? null,
         disponible: parsed.data.disponible,
+        stock: parsed.data.stock,
+        stock_minimo: parsed.data.stock_minimo,
         configuracion: parsed.data.configuracion,
       })
       .eq("id", productId)
@@ -98,6 +100,8 @@ export async function upsertProductAction(
       imagen_url: parsed.data.imagen_url ?? null,
       categoria_id: parsed.data.categoria_id ?? null,
       disponible: parsed.data.disponible,
+      stock: parsed.data.stock,
+      stock_minimo: parsed.data.stock_minimo,
       configuracion: parsed.data.configuracion,
       negocio_id: tenantId,
     });
@@ -304,4 +308,72 @@ export async function deleteCategoryAction(categoriaId: string, negocioSlug?: st
   revalidatePath("/productos");
   revalidateMenus(slug);
   return { success: true };
+}
+
+/** Revisa productos con stock bajo y emite notificación stock_alert si no se envió antes */
+export async function checkStockAlertAction() {
+  const { supabaseAdmin } = await import("@/core/lib/supabase/admin");
+  const supabase = await createClient();
+  const negocioId = await getAuthenticatedTenant(supabase);
+
+  // 1. Verificar preferencia
+  const { data: pref } = await supabase
+    .from("notification_preferences")
+    .select("enabled")
+    .eq("negocio_id", negocioId)
+    .eq("notification_type", "stock_alert")
+    .maybeSingle();
+
+  if (pref && !pref.enabled) return { sent: 0 };
+
+  // 2. Buscar productos con stock bajo (stock > 0 y stock <= stock_minimo)
+  const { data: productosBajoStock } = await supabase
+    .from("productos")
+    .select("id, nombre, stock, stock_minimo")
+    .eq("negocio_id", negocioId)
+    .gt("stock", 0)
+    .lte("stock", 999999);
+
+  if (!productosBajoStock || productosBajoStock.length === 0) return { sent: 0 };
+
+  // 3. Filtrar por stock <= stock_minimo (en cliente porque stock_minimo varía por producto)
+  const bajos = productosBajoStock.filter((p) => p.stock <= p.stock_minimo);
+  if (bajos.length === 0) return { sent: 0 };
+
+  // 4. Verificar duplicados
+  const { data: notifsExistentes } = await supabase
+    .from("notifications")
+    .select("data")
+    .eq("negocio_id", negocioId)
+    .eq("type", "stock_alert")
+    .not("data", "is", null);
+
+  const yaNotificadas = new Set<string>();
+  if (notifsExistentes) {
+    for (const n of notifsExistentes) {
+      const prodId = (n.data as Record<string, unknown> | null)?.["producto_id"];
+      if (typeof prodId === "string") yaNotificadas.add(prodId);
+    }
+  }
+
+  let sent = 0;
+
+  for (const prod of bajos) {
+    if (yaNotificadas.has(prod.id)) continue;
+
+    const title = `Stock bajo: ${prod.nombre}`;
+    const body = `Quedan ${prod.stock} unidades (mínimo: ${prod.stock_minimo})`;
+
+    const { error } = await supabaseAdmin.from("notifications").insert({
+      negocio_id: negocioId,
+      type: "stock_alert",
+      title,
+      body,
+      data: { producto_id: prod.id, stock: prod.stock, stock_minimo: prod.stock_minimo },
+    });
+
+    if (!error) sent++;
+  }
+
+  return { sent };
 }

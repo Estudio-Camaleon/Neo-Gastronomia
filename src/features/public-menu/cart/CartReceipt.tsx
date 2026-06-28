@@ -197,8 +197,8 @@ export function CartReceipt({
                     </div>
                   )}
 
-                  {/* Nota del cliente */}
-                  {item.detalles && (
+                  {/* Nota del cliente (solo texto plano, no JSON de combo) */}
+                  {item.detalles && !item.detalles.startsWith("[") && (
                     <p className="mt-0.5 text-[11px] italic text-[var(--color-custom-text-muted)] leading-tight">
                       “{item.detalles}”
                     </p>

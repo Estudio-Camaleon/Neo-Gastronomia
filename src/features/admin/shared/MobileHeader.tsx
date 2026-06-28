@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
-import { Sun, Moon, LogOut, Check, Copy } from "lucide-react";
+import { Sun, Moon, LogOut, Check, Copy, ExternalLink } from "lucide-react";
 import { useTheme } from "@/core/providers/ThemeProvider";
 import { NotificationBell } from "@/features/admin/notifications/NotificationBell";
 import { createClient } from "@/core/lib/supabase/client";
@@ -88,6 +88,17 @@ export function MobileHeader({ slug }: MobileHeaderProps) {
         <div className="flex items-center gap-1">
           {/* Notificaciones */}
           <NotificationBell variant="header" />
+
+          {/* Link tienda */}
+          <a
+            href={`/${slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Ver tienda"
+            className="touch-target flex items-center justify-center w-10 h-10 rounded-lg transition-all active:scale-90 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-bg)]"
+          >
+            <ExternalLink size={16} />
+          </a>
 
           {/* Copiar link tienda */}
           <button

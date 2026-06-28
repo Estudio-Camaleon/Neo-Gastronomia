@@ -104,6 +104,8 @@ export const upsertProductSchema = z.object({
   imagen_url: z.string().nullable().optional(),
   categoria_id: z.string().nullable().optional(),
   disponible: z.boolean(),
+  stock: z.number().int().min(0, "El stock no puede ser negativo").default(0),
+  stock_minimo: z.number().int().min(1, "El mínimo debe ser al menos 1").default(5),
   configuracion: productConfigSchema,
 });
 
@@ -136,6 +138,8 @@ export const upsertPromoSchema = z
       .nullable()
       .optional(),
     activo: z.boolean().default(true),
+    fecha_inicio: z.string().nullable().optional(),
+    fecha_fin: z.string().nullable().optional(),
     items_combo: z.array(comboItemSchema).default([]),
     aplicar_a: z
       .object({
@@ -172,6 +176,18 @@ export const upsertPromoSchema = z
         path: ["valor_descuento"],
         message: "El valor debe ser mayor a 0",
       });
+    }
+    // Validar fechas
+    if (data.fecha_inicio && data.fecha_fin) {
+      const inicio = new Date(data.fecha_inicio);
+      const fin = new Date(data.fecha_fin);
+      if (fin <= inicio) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["fecha_fin"],
+          message: "La fecha de fin debe ser posterior a la de inicio",
+        });
+      }
     }
   });
 

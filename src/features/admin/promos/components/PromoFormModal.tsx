@@ -422,6 +422,71 @@ export function PromoFormModal({
             )}
           </div>
 
+          {/* ── FECHA DE VIGENCIA ── */}
+          <div className="space-y-3 border border-[var(--admin-border)] rounded-xl p-4 bg-[var(--admin-bg)]/50">
+            <label className="text-xs font-semibold text-[var(--admin-text)]">
+              Vigencia <span className="text-[var(--admin-text-muted)] font-normal">(opcional)</span>
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
+                  Desde
+                </label>
+                <input
+                  type="datetime-local"
+                  value={
+                    formData.fecha_inicio
+                      ? formData.fecha_inicio.slice(0, 16)
+                      : ""
+                  }
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    onChange({
+                      ...formData,
+                      fecha_inicio: val ? new Date(val).toISOString() : null,
+                    });
+                    clearErrors("fecha_inicio");
+                  }}
+                  className="w-full p-2 bg-[var(--admin-surface)] border rounded-lg text-xs text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] transition-all border-[var(--admin-border)] focus:border-[var(--admin-accent)]"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
+                  Hasta
+                </label>
+                <input
+                  type="datetime-local"
+                  value={
+                    formData.fecha_fin
+                      ? formData.fecha_fin.slice(0, 16)
+                      : ""
+                  }
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    onChange({
+                      ...formData,
+                      fecha_fin: val ? new Date(val).toISOString() : null,
+                    });
+                    clearErrors("fecha_fin");
+                  }}
+                  className={`w-full p-2 bg-[var(--admin-surface)] border rounded-lg text-xs text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] transition-all ${
+                    errors["fecha_fin"]
+                      ? "border-red-400 focus:border-red-500"
+                      : "border-[var(--admin-border)] focus:border-[var(--admin-accent)]"
+                  }`}
+                />
+                {errors["fecha_fin"] && (
+                  <p className="text-[10px] text-red-500 font-medium">{errors["fecha_fin"]}</p>
+                )}
+              </div>
+            </div>
+            {formData.fecha_fin && new Date(formData.fecha_fin) <= new Date() && (
+              <p className="text-[10px] text-amber-500 font-medium flex items-center gap-1">
+                ⚠️ Esta promoción ya venció
+              </p>
+            )}
+          </div>
+
           {/* IMAGEN */}
           <div className="space-y-2">
             <label className="text-xs font-semibold text-[var(--admin-text)]">

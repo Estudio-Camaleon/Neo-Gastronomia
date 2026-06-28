@@ -57,7 +57,7 @@ export default async function PedidosPage() {
     )
     .in("negocio_id", negocioIds)
     .order("created_at", { ascending: false })
-    .limit(50)
+    .limit(200)
     .returns<PedidoData[]>();
 
   const listaPedidos = pedidosIniciales || [];

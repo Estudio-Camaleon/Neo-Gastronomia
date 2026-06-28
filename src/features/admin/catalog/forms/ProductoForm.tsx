@@ -60,6 +60,8 @@ export function ProductoForm({
     })(),
     categoria_id: initialData?.categoria_id || "",
     disponible: initialData?.disponible ?? true,
+    stock: initialData?.stock ?? 0,
+    stock_minimo: initialData?.stock_minimo ?? 5,
   });
 
   const [variantes, setVariantes] = useState<Variant[]>(() => {
@@ -230,6 +232,8 @@ export function ProductoForm({
       JSON.stringify(formData.imagenes) !== JSON.stringify(getInitialImages()) ||
       formData.categoria_id !== (initialData?.categoria_id || "") ||
       formData.disponible !== (initialData?.disponible ?? true) ||
+      formData.stock !== (initialData?.stock ?? 0) ||
+      formData.stock_minimo !== (initialData?.stock_minimo ?? 5) ||
       JSON.stringify(variantes) !==
         JSON.stringify(initialData?.configuracion?.variantes || []) ||
       JSON.stringify(gruposOpciones) !==
@@ -348,6 +352,8 @@ export function ProductoForm({
         imagen_url: formData.imagenes[0] || null,
         categoria_id: formData.categoria_id || null,
         disponible: formData.disponible,
+        stock: formData.stock,
+        stock_minimo: formData.stock_minimo,
         configuracion: {
           variantes: variantes.map((v) => ({
             nombre: v.nombre.trim(),
@@ -703,7 +709,48 @@ export function ProductoForm({
                   </p>
                 )}
               </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-[var(--admin-text)] block">
+                  Stock <span className="text-[var(--admin-text-muted)] font-normal">(0 = sin control)</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={formData.stock}
+                  onChange={(e) => {
+                    const val = e.target.valueAsNumber;
+                    setFormData((prev) => ({ ...prev, stock: isNaN(val) ? 0 : Math.max(0, val) }));
+                  }}
+                  className="w-full p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] font-medium text-sm text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] transition-all rounded-lg"
+                  placeholder="0"
+                />
+              </div>
+            </div>
 
+            {/* Fila: Stock mínimo (segunda fila) */}
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-[var(--admin-text)] block">
+                  Alerta de stock mínimo
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={formData.stock_minimo}
+                  onChange={(e) => {
+                    const val = e.target.valueAsNumber;
+                    setFormData((prev) => ({ ...prev, stock_minimo: isNaN(val) ? 1 : Math.max(1, val) }));
+                  }}
+                  className="w-full p-2.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] font-medium text-sm text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] transition-all rounded-lg"
+                  placeholder="5"
+                />
+                <p className="text-[10px] text-[var(--admin-text-muted)]">
+                  Recibirás alerta cuando el stock baje de este valor
+                </p>
+              </div>
+              <div />
             </div>
 
             {/* SECCIÓN VARIANTES */}

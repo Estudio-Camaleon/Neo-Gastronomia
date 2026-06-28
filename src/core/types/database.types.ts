@@ -508,6 +508,8 @@ export type Database = {
           negocio_id: string
           nombre: string
           precio: number
+          stock: number
+          stock_minimo: number
         }
         Insert: {
           categoria_id?: string | null
@@ -520,6 +522,8 @@ export type Database = {
           negocio_id: string
           nombre: string
           precio?: number
+          stock?: number
+          stock_minimo?: number
         }
         Update: {
           categoria_id?: string | null
@@ -532,6 +536,8 @@ export type Database = {
           negocio_id?: string
           nombre?: string
           precio?: number
+          stock?: number
+          stock_minimo?: number
         }
         Relationships: [
           {
@@ -557,6 +563,8 @@ export type Database = {
           codigo: string | null
           created_at: string | null
           descripcion: string | null
+          fecha_fin: string | null
+          fecha_inicio: string | null
           id: string
           imagen_url: string | null
           items_combo: Json | null
@@ -572,6 +580,8 @@ export type Database = {
           codigo?: string | null
           created_at?: string | null
           descripcion?: string | null
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
           id?: string
           imagen_url?: string | null
           items_combo?: Json | null
@@ -587,6 +597,8 @@ export type Database = {
           codigo?: string | null
           created_at?: string | null
           descripcion?: string | null
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
           id?: string
           imagen_url?: string | null
           items_combo?: Json | null

@@ -70,6 +70,8 @@ export async function upsertPromoAction(
     valor_descuento: parsed.data.valor_descuento,
     codigo: parsed.data.codigo ?? null,
     activo: parsed.data.activo,
+    fecha_inicio: parsed.data.fecha_inicio ?? null,
+    fecha_fin: parsed.data.fecha_fin ?? null,
     items_combo: parsed.data.tipo_descuento === "combo" ? parsed.data.items_combo : [],
     aplicar_a: aplicarA as unknown as Json,
   };
@@ -184,4 +186,77 @@ export async function togglePromoAction(promoId: string, activo: boolean) {
   if (slug) revalidatePath(`/${slug}`);
 
   return { success: true };
+}
+
+/** Revisa promos activas próximas a vencer y emite notificación promo_ending si no se envió antes */
+export async function checkPromosExpiringAction() {
+  const supabase = await createClient();
+  const negocioId = await getAuthenticatedTenant(supabase);
+
+  // 1. Verificar preferencia: si está deshabilitada, salir
+  const { data: pref } = await supabase
+    .from("notification_preferences")
+    .select("enabled")
+    .eq("negocio_id", negocioId)
+    .eq("notification_type", "promo_ending")
+    .maybeSingle();
+
+  if (pref && !pref.enabled) return { sent: 0 };
+
+  // 2. Buscar promos activas que vencen en los próximos 3 días
+  const ahora = new Date().toISOString();
+  const en3Dias = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data: promosPorVencer } = await supabase
+    .from("promos")
+    .select("id, nombre, fecha_fin")
+    .eq("negocio_id", negocioId)
+    .eq("activo", true)
+    .gte("fecha_fin", ahora)
+    .lte("fecha_fin", en3Dias);
+
+  if (!promosPorVencer || promosPorVencer.length === 0) return { sent: 0 };
+
+  // 3. Para cada promo, verificar si ya se notificó (data->>promo_id)
+  const yaNotificadas = new Set<string>();
+
+  const { data: notifsExistentes } = await supabase
+    .from("notifications")
+    .select("data")
+    .eq("negocio_id", negocioId)
+    .eq("type", "promo_ending")
+    .not("data", "is", null);
+
+  if (notifsExistentes) {
+    for (const n of notifsExistentes) {
+      const promoId = (n.data as Record<string, unknown> | null)?.["promo_id"];
+      if (typeof promoId === "string") yaNotificadas.add(promoId);
+    }
+  }
+
+  let sent = 0;
+
+  for (const promo of promosPorVencer) {
+    if (yaNotificadas.has(promo.id)) continue;
+
+    const faltanMs = new Date(promo.fecha_fin!).getTime() - Date.now();
+    const faltanHoras = Math.round(faltanMs / (1000 * 60 * 60));
+    const title = `Promoción por vencer`;
+    const body =
+      faltanHoras < 24
+        ? `"${promo.nombre}" vence en menos de ${faltanHoras}h`
+        : `"${promo.nombre}" vence en ${Math.round(faltanHoras / 24)} días`;
+
+    const { error } = await supabaseAdmin.from("notifications").insert({
+      negocio_id: negocioId,
+      type: "promo_ending",
+      title,
+      body,
+      data: { promo_id: promo.id },
+    });
+
+    if (!error) sent++;
+  }
+
+  return { sent };
 }

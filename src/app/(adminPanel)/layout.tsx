@@ -7,6 +7,8 @@ import { BottomTabBar } from "@/features/admin/shared/BottomTabBar";
 import { ThemeProvider } from "@/core/providers/ThemeProvider";
 import { OrderNotificationProvider } from "@/features/admin/orders/components/OrderNotificationProvider";
 import { NotificationProvider } from "@/features/admin/notifications/NotificationProvider";
+import { PromoEndingWatcher } from "@/features/admin/notifications/PromoEndingWatcher";
+import { StockAlertWatcher } from "@/features/admin/notifications/StockAlertWatcher";
 import { createClient } from "@/core/lib/supabase/server";
 import { redirect } from "next/navigation";
 import "@/features/admin/shared/admin-panel.css";
@@ -75,6 +77,8 @@ export default async function AdminPanelLayout({
     <ThemeProvider>
       <OrderNotificationProvider negocioIds={negocioIds}>
       <NotificationProvider negocioId={negocio.id}>
+      <PromoEndingWatcher />
+      <StockAlertWatcher />
       <div className="flex min-h-screen bg-[var(--admin-bg)] text-[var(--admin-text)] font-sans antialiased w-full transition-colors duration-200">
         {/* Blobs orgánicos animados */}
         <div className="fixed top-[-10%] left-[-5%] w-96 h-96 bg-[var(--admin-accent)] rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-40 pointer-events-none animate-blob" />
