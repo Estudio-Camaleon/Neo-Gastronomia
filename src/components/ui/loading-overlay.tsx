@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FoodLoading, FoodPulseRow } from "./food-loading";
+import { FoodMini } from "./food-loading";
 import { useScrollLock } from "@/core/hooks/useScrollLock";
-import { motion } from "framer-motion";
 
 interface LoadingOverlayProps {
   isActive: boolean;
@@ -43,33 +42,11 @@ export function LoadingOverlay({
             : "opacity-0 scale-95 pointer-events-none"
         }`}
       >
-        <div className="relative bg-white dark:bg-zinc-900 shadow-xl shadow-zinc-200/20 dark:shadow-black/40 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-7 flex flex-col items-center gap-5 min-w-[220px] overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent dark:from-emerald-400/5" />
-
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ duration: 0.28 }}
-            className="relative flex h-14 w-14 items-center justify-center rounded-xl bg-[var(--neo-brand)] shadow-lg shadow-[var(--neo-brand)]/25"
-          >
-            <FoodLoading size={28} />
-            <div className="absolute inset-0 animate-pulse rounded-xl bg-white/10" />
-          </motion.div>
-
-          <div className="relative flex flex-col items-center gap-2">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-50" />
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
-              </span>
-              <h2 className="text-sm font-bold tracking-tight text-zinc-800 dark:text-zinc-100">
-                {message}
-              </h2>
-            </div>
-
-            <FoodPulseRow count={3} />
-          </div>
+        <div className="bg-white dark:bg-zinc-900 shadow-xl border border-zinc-100 dark:border-zinc-800 rounded-2xl px-8 py-6 flex items-center gap-3 min-w-[180px]">
+          <FoodMini size={16} />
+          <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+            {message}
+          </p>
         </div>
       </div>
     </div>

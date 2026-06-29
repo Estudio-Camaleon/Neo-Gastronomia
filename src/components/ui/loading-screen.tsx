@@ -48,31 +48,13 @@ function SkeletonCard({ compact = false }: { compact?: boolean }) {
 
 export function NeoLogo() {
   return (
-    <div className="relative flex items-center gap-3">
-      <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--neo-brand)] shadow-lg shadow-[var(--neo-brand)]/30">
-        <svg
-          viewBox="0 0 24 24"
-          className="h-6 w-6 text-white"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M12 2L2 7l10 5 10-5-10-5z" />
-          <path d="M2 17l10 5 10-5" />
-          <path d="M2 12l10 5 10-5" />
-        </svg>
-        <div className="absolute inset-0 animate-pulse rounded-xl bg-white/20" />
-      </div>
-      <div>
-        <p className="text-xs font-black tracking-[0.2em] text-[var(--neo-brand)] uppercase">
-          NEO
-        </p>
-        <p className="text-[11px] font-medium text-[var(--neo-muted)] tracking-wide">
-          Sistema de Pedidos
-        </p>
-      </div>
+    <div className="flex items-center gap-2.5">
+      <p className="text-xs font-black tracking-[0.2em] text-[var(--neo-brand)] uppercase">
+        NEO
+      </p>
+      <span className="text-[10px] font-medium text-[var(--neo-muted)]">
+        Sistema de Pedidos
+      </span>
     </div>
   );
 }
