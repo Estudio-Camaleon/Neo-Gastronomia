@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Trash2,
@@ -9,6 +10,9 @@ import {
   Sparkles,
   Plus,
   Minus,
+  Percent,
+  Tag,
+  X,
 } from "lucide-react";
 import type { CartItem } from "@/features/public-menu/cart/useCartStore";
 import {
@@ -54,6 +58,11 @@ interface CartReceiptProps {
   onConfirmar: () => void;
   onUpdateQuantity?: (id: string, delta: number) => void;
   onRemoveEntry?: (id: string) => void;
+  appliedPromo?: PromoRow | null;
+  codePromos?: PromoRow[];
+  codeError?: string;
+  onApplyCode?: (code: string) => void;
+  onRemoveCode?: () => void;
 }
 
 /* ── Main Component ──────────────────────────────── */
@@ -68,7 +77,13 @@ export function CartReceipt({
   onConfirmar,
   onUpdateQuantity,
   onRemoveEntry,
+  appliedPromo,
+  codePromos = [],
+  codeError = "",
+  onApplyCode,
+  onRemoveCode,
 }: CartReceiptProps) {
+  const [promoCodeInput, setPromoCodeInput] = useState("");
   const simbolo = config.moneda_simbolo || "$";
   const totalItems = cart.reduce((acc, item) => acc + item.cantidad, 0);
 
@@ -84,6 +99,15 @@ export function CartReceipt({
   const itemPromoMap = new Map<string, { label: string }[]>();
   const { total: autoDiscountAmount, details: promoDetails } =
     calculateDiscounts(discountPromos, cart, productCategoryMap);
+
+  // Code-based promo discount (applied from parent state)
+  const codeDiscountAmount = appliedPromo
+    ? calculateDiscounts([appliedPromo], cart, productCategoryMap).total
+    : 0;
+
+  const totalConDescuento = subtotal - autoDiscountAmount - codeDiscountAmount;
+  const minimoConDescuento = (config.pedido_minimo || 0) - totalConDescuento;
+  const esValidoConDescuento = totalConDescuento >= (config.pedido_minimo || 0);
 
   // Build per‑item badge map from promo details
   for (const promo of discountPromos) {
@@ -115,10 +139,6 @@ export function CartReceipt({
       }
     }
   }
-
-  const totalConDescuento = subtotal - autoDiscountAmount;
-  const minimoConDescuento = (config.pedido_minimo || 0) - totalConDescuento;
-  const esValidoConDescuento = totalConDescuento >= (config.pedido_minimo || 0);
 
   return (
     <motion.div
@@ -282,6 +302,71 @@ export function CartReceipt({
             </div>
           )}
 
+          {/* ─── Promo code input ─── */}
+          {codePromos.length > 0 && !appliedPromo && (
+            <div className="space-y-1.5 pt-2">
+              <label className="text-[11px] font-semibold text-[var(--color-custom-text-muted)] uppercase tracking-wider">
+                ¿Tenés un código?
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={promoCodeInput}
+                  onChange={(e) => {
+                    setPromoCodeInput(e.target.value);
+                    if (codeError) onRemoveCode?.();
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      onApplyCode?.(promoCodeInput);
+                    }
+                  }}
+                  placeholder="Ej: BIENVENIDO10"
+                  className="flex-1 rounded-lg border border-[var(--color-custom-border)] bg-[var(--color-custom-surface-strong)] px-3 py-2 text-xs text-[var(--color-custom-900)] outline-none placeholder:text-[var(--color-custom-text-muted)] focus:border-[var(--color-custom-500)] focus:ring-2 focus:ring-[var(--color-custom-500)]/20"
+                  aria-label="Código de descuento"
+                />
+                <button
+                  type="button"
+                  onClick={() => onApplyCode?.(promoCodeInput)}
+                  className="shrink-0 rounded-lg bg-[var(--color-custom-900)] px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-[var(--color-custom-800)]"
+                >
+                  Canjear
+                </button>
+              </div>
+              {codeError && (
+                <p className="text-xs text-red-500">{codeError}</p>
+              )}
+            </div>
+          )}
+
+          {/* Applied code promo badge */}
+          {appliedPromo && (
+            <div className="flex items-center gap-2 rounded-lg border border-green-200/60 bg-green-50/80 px-3 py-2 text-xs">
+              {appliedPromo.tipo_descuento === "porcentaje" ? (
+                <Percent size={13} className="shrink-0 text-green-600" />
+              ) : (
+                <Tag size={13} className="shrink-0 text-green-600" />
+              )}
+              <span className="font-semibold text-green-800 truncate">
+                {appliedPromo.nombre}
+              </span>
+              <span className="shrink-0 ml-auto rounded-full bg-green-500 px-2 py-[1px] text-[9px] font-bold text-white">
+                {getDiscountLabel(appliedPromo)}
+              </span>
+              {onRemoveCode && (
+                <button
+                  type="button"
+                  onClick={onRemoveCode}
+                  className="shrink-0 p-0.5 rounded-full text-green-600 hover:text-green-800 hover:bg-green-100 transition-colors"
+                  aria-label="Remover código"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Minimum order warning (checking actual total after discounts) */}
           {!esValidoConDescuento && (
             <motion.div
@@ -308,6 +393,16 @@ export function CartReceipt({
               {formatMoney(subtotal, simbolo)}
             </span>
           </div>
+
+          {/* Code discount line */}
+          {codeDiscountAmount > 0 && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-green-600 font-semibold">Descuento con código</span>
+              <span className="font-semibold text-green-600 tabular-nums">
+                -{formatMoney(codeDiscountAmount, simbolo)}
+              </span>
+            </div>
+          )}
 
           {/* Total after discounts */}
           <div className="flex items-center justify-between pt-1 border-t border-dashed border-[var(--color-custom-200)]">

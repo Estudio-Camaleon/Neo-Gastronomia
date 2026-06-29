@@ -5,9 +5,10 @@ import dynamic from "next/dynamic";
 import { useCartStore } from "./useCartStore";
 import { X, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { EmptyCart } from "@/features/public-menu/cart/EmptyCart";
 import { CartReceipt } from "@/features/public-menu/cart/CartReceipt";
+import { calculateDiscounts } from "@/features/public-menu/utils";
 import type { PromoRow } from "@/features/public-menu/types";
 
 const OrderForm = dynamic(() => import("./OrderForm").then((m) => ({ default: m.OrderForm })), {
@@ -44,6 +45,8 @@ export function PublicCart({
 
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [lastOrderId, setLastOrderId] = useState<string | null>(null);
+  const [appliedPromo, setAppliedPromo] = useState<PromoRow | null>(null);
+  const [codeError, setCodeError] = useState("");
 
   const subtotal = cart.reduce(
     (acc, item) => acc + item.precio * item.cantidad,
@@ -53,8 +56,41 @@ export function PublicCart({
   const panelRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
+  const codePromos = useMemo(
+    () => promos.filter((p) => p.tipo_descuento !== "combo" && p.codigo),
+    [promos],
+  );
+
+  const codeDiscountAmount = useMemo(
+    () => (appliedPromo ? calculateDiscounts([appliedPromo], cart, productCategoryMap ?? {}).total : 0),
+    [appliedPromo, cart, productCategoryMap],
+  );
+
+  const handleApplyCode = (code: string) => {
+    const trimmed = code.trim().toLowerCase();
+    if (!trimmed) {
+      setCodeError("Ingresá un código");
+      return;
+    }
+    const match = codePromos.find((p) => p.codigo?.toLowerCase() === trimmed);
+    if (match) {
+      setAppliedPromo(match);
+      setCodeError("");
+      toast.success(`¡Cupón aplicado!`);
+    } else {
+      setCodeError("Código inválido");
+      setAppliedPromo(null);
+    }
+  };
+
+  const handleRemoveCode = () => {
+    setAppliedPromo(null);
+    setCodeError("");
+  };
+
   const handleVaciar = () => {
     clearCart();
+    setAppliedPromo(null);
     toast.success("Carrito vaciado");
     if (isDrawer && onCloseDrawer) onCloseDrawer();
   };
@@ -106,6 +142,11 @@ export function PublicCart({
           onConfirmar={() => setShowOrderForm(true)}
           onUpdateQuantity={updateItemQuantity}
           onRemoveEntry={removeItemEntry}
+          appliedPromo={appliedPromo}
+          codePromos={codePromos}
+          codeError={codeError}
+          onApplyCode={handleApplyCode}
+          onRemoveCode={handleRemoveCode}
         />
       ) : (
         <motion.div
@@ -129,6 +170,11 @@ export function PublicCart({
               clearCart();
               if (isDrawer && onCloseDrawer) onCloseDrawer();
             }}
+            appliedPromo={appliedPromo}
+            codePromos={codePromos}
+            codeError={codeError}
+            onApplyCode={handleApplyCode}
+            onRemoveCode={handleRemoveCode}
           />
         </motion.div>
       )}

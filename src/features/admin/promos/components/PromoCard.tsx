@@ -1,9 +1,9 @@
 "use client";
 
-import { Percent, Tag, ShoppingBag, CheckCircle2, XCircle, Pencil, Trash2, Clock } from "lucide-react";
+import { Percent, Tag, ShoppingBag, CheckCircle2, XCircle, Pencil, Trash2, CalendarDays } from "lucide-react";
 import { FoodMini } from "@/components/ui/food-loading";
 import type { PromoRow } from "@/core/types/domain";
-import { formatDistanceToNow, isPast, isFuture } from "date-fns";
+import { format, formatDistanceToNow, isPast, isFuture, isToday } from "date-fns";
 import { es } from "date-fns/locale";
 
 interface ComboItem {
@@ -57,22 +57,51 @@ export function PromoCard({ promo, onToggle, onEdit, onDelete, isDeleting }: Pro
                 Inactiva
               </span>
             )}
-            {promo.fecha_fin && isPast(new Date(promo.fecha_fin)) && (
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-500 border border-red-500/20">
-                Vencida
-              </span>
-            )}
-            {promo.fecha_fin && isFuture(new Date(promo.fecha_fin)) && promo.activo && (
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20 flex items-center gap-1 whitespace-nowrap">
-                <Clock size={9} />
-                {formatDistanceToNow(new Date(promo.fecha_fin), { locale: es, addSuffix: true })}
-              </span>
-            )}
           </div>
           {promo.descripcion && (
             <p className="text-[11px] text-[var(--admin-text-muted)] mt-0.5 line-clamp-2">
               {promo.descripcion}
             </p>
+          )}
+
+          {/* ── CALENDARIO DE VIGENCIA ── */}
+          {(promo.fecha_inicio || promo.fecha_fin) && (
+            <div className="mt-2 flex items-start gap-2 bg-[var(--admin-bg)] rounded-lg border border-[var(--admin-border)] p-2">
+              <CalendarDays size={14} className="mt-0.5 text-[var(--admin-text-muted)] shrink-0" />
+              <div className="flex flex-col gap-0.5 min-w-0">
+                <div className="flex items-center gap-1.5 text-[11px] font-medium text-[var(--admin-text)] flex-wrap">
+                  {promo.fecha_inicio && (
+                    <span>{format(new Date(promo.fecha_inicio), "dd/MM/yy", { locale: es })}</span>
+                  )}
+                  {promo.fecha_inicio && promo.fecha_fin && (
+                    <span className="text-[var(--admin-text-muted)]">→</span>
+                  )}
+                  {promo.fecha_fin && (
+                    <span>{format(new Date(promo.fecha_fin), "dd/MM/yy", { locale: es })}</span>
+                  )}
+                  {promo.fecha_fin && (
+                    <span
+                      className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${
+                        isPast(new Date(promo.fecha_fin))
+                          ? "bg-red-500/10 text-red-500"
+                          : isToday(new Date(promo.fecha_fin))
+                            ? "bg-amber-500/10 text-amber-600"
+                            : "bg-green-500/10 text-green-600"
+                      }`}
+                    >
+                      {isPast(new Date(promo.fecha_fin))
+                        ? "Vencida"
+                        : isToday(new Date(promo.fecha_fin))
+                          ? "Vence hoy"
+                          : formatDistanceToNow(new Date(promo.fecha_fin), {
+                              locale: es,
+                              addSuffix: true,
+                            })}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
           )}
         </div>
         {promo.imagen_url && (

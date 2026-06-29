@@ -115,6 +115,62 @@ export interface PromoDetail {
   monto: number;
 }
 
+/**
+ * Verifica si una promo está activa según sus fechas de vigencia.
+ */
+export function isPromoActive(promo: PromoRow): boolean {
+  if (!promo.activo) return false;
+  const now = new Date();
+  if (promo.fecha_inicio && new Date(promo.fecha_inicio) > now) return false;
+  if (promo.fecha_fin && new Date(promo.fecha_fin) < now) return false;
+  return true;
+}
+
+/**
+ * Retorna el estado de expiración de una promo.
+ * - `null` si no tiene fecha_fin o falta más de 3 días
+ * - `{ label, urgent }` con el texto y si es urgente (≤3 días o vencida)
+ */
+export function getPromoExpirationStatus(
+  promo: PromoRow,
+): { label: string; urgent: boolean } | null {
+  if (!promo.fecha_fin) return null;
+  const now = new Date();
+  const fin = new Date(promo.fecha_fin);
+  const diffDays = Math.ceil(
+    (fin.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+  );
+  if (diffDays < 0) return { label: "Vencida", urgent: false };
+  if (diffDays === 0) return { label: "Vence hoy", urgent: true };
+  if (diffDays <= 3)
+    return {
+      label: `Vence en ${diffDays} día${diffDays > 1 ? "s" : ""}`,
+      urgent: true,
+    };
+  return null;
+}
+
+/**
+ * Formatea el rango de fechas de una promo para mostrar en el menú.
+ * Retorna `null` si no hay fechas definidas.
+ */
+export function formatDateRange(promo: PromoRow): string | null {
+  if (!promo.fecha_inicio && !promo.fecha_fin) return null;
+  const opts: Intl.DateTimeFormatOptions = {
+    day: "2-digit",
+    month: "short",
+  };
+  const inicio = promo.fecha_inicio
+    ? new Date(promo.fecha_inicio).toLocaleDateString("es-AR", opts)
+    : "";
+  const fin = promo.fecha_fin
+    ? new Date(promo.fecha_fin).toLocaleDateString("es-AR", opts)
+    : "";
+  if (inicio && fin) return `${inicio} → ${fin}`;
+  if (inicio) return `Desde ${inicio}`;
+  return `Hasta ${fin}`;
+}
+
 export function calculateDiscounts(
   promos: PromoRow[],
   cart: CartItem[],

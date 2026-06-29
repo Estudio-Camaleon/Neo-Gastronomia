@@ -7,6 +7,7 @@ import { upsertPromoSchema } from "@/core/lib/schemas";
 import { FoodMini } from "@/components/ui/food-loading";
 import { useScrollLock } from "@/core/hooks/useScrollLock";
 import { ImageUpload } from "./ImageUpload";
+import { CalendarPicker } from "@/components/ui/calendar-picker";
 import { z } from "zod";
 
 interface ProductOption {
@@ -205,7 +206,7 @@ export function PromoFormModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="promo-modal-title"
-        className="bg-[var(--admin-surface)] rounded-2xl p-6 md:p-8 max-w-xl w-full shadow-2xl border border-[var(--admin-border)] animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto"
+        className="bg-[var(--admin-surface)] rounded-2xl p-6 md:p-8 max-w-xl w-full shadow-2xl border border-[var(--admin-border)] animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto overflow-x-hidden"
       >
         {/* HEADER */}
         <div className="flex items-center justify-between mb-6">
@@ -432,48 +433,28 @@ export function PromoFormModal({
                 <label className="text-[10px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
                   Desde
                 </label>
-                <input
-                  type="datetime-local"
-                  value={
-                    formData.fecha_inicio
-                      ? formData.fecha_inicio.slice(0, 16)
-                      : ""
-                  }
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    onChange({
-                      ...formData,
-                      fecha_inicio: val ? new Date(val).toISOString() : null,
-                    });
+                <CalendarPicker
+                  value={formData.fecha_inicio}
+                  onChange={(iso) => {
+                    onChange({ ...formData, fecha_inicio: iso });
                     clearErrors("fecha_inicio");
                   }}
-                  className="w-full p-2 bg-[var(--admin-surface)] border rounded-lg text-xs text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] transition-all border-[var(--admin-border)] focus:border-[var(--admin-accent)]"
+                  placeholder="Seleccionar inicio"
                 />
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
                   Hasta
                 </label>
-                <input
-                  type="datetime-local"
-                  value={
-                    formData.fecha_fin
-                      ? formData.fecha_fin.slice(0, 16)
-                      : ""
-                  }
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    onChange({
-                      ...formData,
-                      fecha_fin: val ? new Date(val).toISOString() : null,
-                    });
+                <CalendarPicker
+                  value={formData.fecha_fin}
+                  onChange={(iso) => {
+                    onChange({ ...formData, fecha_fin: iso });
                     clearErrors("fecha_fin");
                   }}
-                  className={`w-full p-2 bg-[var(--admin-surface)] border rounded-lg text-xs text-[var(--admin-text)] focus:outline-none focus:ring-1 focus:ring-[var(--admin-accent)] transition-all ${
-                    errors["fecha_fin"]
-                      ? "border-red-400 focus:border-red-500"
-                      : "border-[var(--admin-border)] focus:border-[var(--admin-accent)]"
-                  }`}
+                  placeholder="Seleccionar fin"
+                  minDate={formData.fecha_inicio ? new Date(formData.fecha_inicio) : undefined}
+                  error={errors["fecha_fin"]}
                 />
                 {errors["fecha_fin"] && (
                   <p className="text-[10px] text-red-500 font-medium">{errors["fecha_fin"]}</p>
@@ -481,8 +462,8 @@ export function PromoFormModal({
               </div>
             </div>
             {formData.fecha_fin && new Date(formData.fecha_fin) <= new Date() && (
-              <p className="text-[10px] text-amber-500 font-medium flex items-center gap-1">
-                ⚠️ Esta promoción ya venció
+              <p className="text-[10px] text-amber-500 font-medium">
+                Esta promoción ya venció
               </p>
             )}
           </div>

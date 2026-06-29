@@ -1,9 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ShoppingBag, Flame, Star, PiggyBank } from "lucide-react";
+import { ShoppingBag, Flame, Star, PiggyBank, Clock, CalendarDays } from "lucide-react";
 import type { PromoRow } from "@/features/public-menu/types";
-import { formatMoney } from "@/features/public-menu/utils";
+import { formatMoney, getPromoExpirationStatus, formatDateRange } from "@/features/public-menu/utils";
 
 function ComboCard({
   promo,
@@ -84,6 +84,34 @@ function ComboCard({
               Ahorrás {formatMoney(ahorro, "$")}
             </div>
           )}
+
+          {/* Vigencia + expiración */}
+          {(() => {
+            const dateRange = formatDateRange(promo);
+            const expStatus = getPromoExpirationStatus(promo);
+            return (
+              <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                {dateRange && (
+                  <span className="inline-flex items-center gap-0.5 rounded-full bg-[var(--color-custom-500)]/5 px-2 py-[2px] text-[8px] sm:text-[9px] font-medium text-[var(--color-custom-text-muted)]">
+                    <CalendarDays size={9} />
+                    {dateRange}
+                  </span>
+                )}
+                {expStatus && (
+                  <span
+                    className={`inline-flex items-center gap-0.5 rounded-full px-2 py-[2px] text-[8px] sm:text-[9px] font-bold ${
+                      expStatus.urgent
+                        ? "bg-amber-500/10 text-amber-700"
+                        : "bg-red-500/10 text-red-600"
+                    }`}
+                  >
+                    <Clock size={9} />
+                    {expStatus.label}
+                  </span>
+                )}
+              </div>
+            );
+          })()}
         </div>
         <div className="shrink-0 text-right ml-1 sm:ml-0">
           <p className="text-base sm:text-lg font-black text-[var(--color-custom-500)] leading-none whitespace-nowrap">

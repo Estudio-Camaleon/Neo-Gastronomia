@@ -1,79 +1,258 @@
-# NEO — AGENTS.md
-
-## Regla fundamental
-
-**No ejecutes acciones que consuman muchos tokens sin antes avisarme y pedir confirmación.** Esto incluye, pero no se limita a:
-- Escanear archivos grandes o muchos archivos a la vez
-- Buscar texto en todo el proyecto (`grep`/`ripgrep` sin filtro)
-- Refactors masivos que toquen muchos archivos
-- Renombrados que afecten imports en cascada
-- Leer archivos extensos (>300 líneas) sin necesidad
-
-Preguntame primero: "Voy a hacer X, consume aprox Y tokens. ¿Procedo?"
+# NEO — AGENTS.md (PRO)
 
 ---
 
-## Quick start
+## 🎯 Contexto del producto
+
+- SaaS gastronómico multi-tenant
+- Usuarios: dueños de locales gastronómicos
+- Objetivo: aumentar ventas, simplificar operaciones y digitalizar procesos
+- Prioridad de negocio: simplicidad > complejidad técnica
+
+---
+
+## ⚖️ Prioridades del sistema
+
+Orden de importancia:
+
+1. Evitar bugs en producción
+2. Mantener consistencia visual y UX
+3. Código simple y mantenible
+4. Velocidad de desarrollo
+5. Performance (solo si impacta UX real)
+
+---
+
+## ⚙️ Forma de trabajo del agente
+
+Antes de ejecutar cambios:
+
+1. Entender el objetivo
+2. Evaluar impacto en el sistema
+3. Proponer solución breve si hay ambigüedad
+
+Evitar:
+
+- Sobreingeniería
+- Refactors innecesarios
+- Reescribir código que ya funciona
+
+---
+
+## 💸 Uso eficiente de tokens
+
+Requiere confirmación SOLO si:
+
+- Se analizan +20 archivos
+- Se leen archivos completos >500 líneas
+- Refactors afectan +10 archivos
+- Búsquedas globales sin scope (`grep` sin filtro)
+
+Permitido sin preguntar:
+
+- Leer archivos individuales
+- Buscar dentro de una carpeta específica
+- Cambios pequeños/localizados
+
+---
+
+## 🧱 Stack
+
+- Next.js 16 (App Router, Server Actions, Turbopack)
+- Supabase SSR (`@supabase/ssr`)
+- Tailwind CSS v4
+- shadcn/ui + Radix
+- Zustand
+- Zod v4
+
+---
+
+## 🧩 Arquitectura
+
+- `src/proxy.ts` reemplaza `middleware.ts`
+
+- 3 clientes Supabase:
+  - `client.ts` → browser
+  - `server.ts` → server + cookies
+  - `admin.ts` → service role (server-only)
+
+- Server Actions en `features/*/actions.ts`
+
+- Multi-tenant obligatorio (`negocio_id`)
+
+---
+
+## 🗄️ Reglas de base de datos
+
+- TODAS las queries deben incluir `negocio_id`
+- Nunca confiar en datos del cliente
+- Validar inputs con Zod SIEMPRE
+- No exponer service role en cliente
+- Preferir lógica en backend antes que frontend
+
+---
+
+## 🔁 Server Actions
+
+- Toda mutación va en Server Actions
+- No hacer inserts/updates desde el cliente
+- Manejar errores explícitamente
+- Retornar datos tipados
+- Evitar lógica innecesaria en el frontend
+
+---
+
+## 🎨 UX
+
+- Siempre mostrar feedback:
+  - loading
+  - éxito
+  - error
+
+- Acciones destructivas requieren confirmación
+- Interfaces deben ser intuitivas sin explicación
+
+---
+
+## 🚨 Manejo de errores
+
+- Nunca dejar errores silenciosos
+- Log interno + mensaje claro al usuario
+- No usar `console.log` como solución final
+
+---
+
+## 🪵 Logging
+
+- Logs claros y accionables
+- No loggear datos sensibles
+- Prefijos obligatorios:
+  - [AUTH]
+  - [DB]
+  - [UI]
+  - [ACTION]
+
+---
+
+## 🧠 Convenciones
+
+- Variables: camelCase
+- Componentes: PascalCase
+- Archivos: kebab-case
+- Acciones: verbo + entidad (`createOrder`, `updateMenu`)
+
+---
+
+## 🧩 Frontend
+
+- Preferir CSS sobre lógica JS para responsive
+- Evitar hydration mismatch
+- Componentes pequeños por responsabilidad (no por tamaño arbitrario)
+
+---
+
+## ⚡ Performance
+
+- Evitar renders innecesarios
+- No usar estado global sin necesidad
+- Lazy load donde tenga sentido
+
+---
+
+## 🔐 Seguridad
+
+- Validar todo input del usuario
+- Nunca confiar en el cliente
+- Respetar RLS excepto en `admin.ts`
+- Secrets solo en `.env.local`
+
+---
+
+## 🎯 Multi-tenant
+
+- Cada operación debe estar scoped por `negocio_id`
+- Nunca mezclar datos entre tenants
+
+---
+
+## 🎛️ UI/UX reglas específicas
+
+- Acciones destructivas en menú overflow (⋮)
+- Botones visibles en dark mode:
+  `bg-black/85 dark:bg-white/85`
+- Atajos de teclado deben ignorarse si hay modals abiertos
+
+---
+
+## 🧭 Decisiones técnicas
+
+En caso de duda:
+
+- Elegir la opción más simple
+- Priorizar legibilidad sobre “elegancia”
+- Evitar dependencias innecesarias
+
+---
+
+## 🚫 Anti-patrones
+
+Evitar:
+
+- Lógica de negocio en el frontend
+- Refactors grandes sin necesidad
+- Código duplicado sin motivo
+- Optimización prematura
+
+---
+
+## ✅ Definición de tarea completa
+
+Una tarea está completa cuando:
+
+- Funciona correctamente
+- No rompe funcionalidades existentes
+- Tiene validación y manejo de errores
+- Respeta multi-tenant
+- Mantiene consistencia visual
+
+---
+
+## 🧪 Testing
+
+- Testear lógica crítica
+- No testear cosas triviales
+- Priorizar estabilidad sobre cobertura artificial
+
+---
+
+## 📦 Comandos clave
 
 ```bash
-npm install           # instalar dependencias
-npm run dev           # desarrollo (tsx scripts/dev.ts → next dev --turbo)
-npm run build         # build producción
-npm run test          # tests (vitest)
-npm run impecable     # lint + typecheck + format (antes de commitear)
+npm run dev
+npm run build
+npm run test
+npm run impecable
 ```
 
-## Comandos clave
+---
 
-| Comando | Qué hace |
-|---------|----------|
-| `npm run lint` | ESLint |
-| `npm run typecheck` | `tsc --noEmit` |
-| `npm run format` | Prettier `src/**/*.{ts,tsx,css}` |
-| `npm run db:link` | `supabase link --project-ref hokibyfaompjhdhnhtru` |
-| `npm run db:push` | `supabase db push --linked` |
-| `npm run db:types` | Regenera `src/core/types/database.types.ts` |
-| `npm run free-port` | `npx kill-port 3000` |
+## ⚠️ Gotchas
 
-## Stack
+- No existe `tailwind.config.ts`
+- `middleware.ts` está obsoleto → usar `proxy.ts`
+- Supabase local usa `supabase/`
+- CSS separado por contexto
+- `.env*` está gitignored
 
-- **Next.js 16** (App Router, Server Actions, Turbopack)
-- **Supabase SSR** (`@supabase/ssr`) — auth + realtime + RLS
-- **Tailwind CSS v4** (postcss, `@theme` en globals.css, sin tailwind.config.\*)
-- **shadcn/ui** (Radix, lucide-react)
-- **Zustand** (cart), **Zod v4** (validación)
-- **framer-motion**, **date-fns**, **Sonner** (toasts)
+---
 
-## Arquitectura clave
+## 🧠 Regla final
 
-- `src/proxy.ts` reemplaza `middleware.ts` — exporta `proxy(request)`
-- 3 clientes Supabase: `client.ts` (browser anon), `server.ts` (server + cookies), `admin.ts` (service role, `"server-only"`)
-- Server Actions en `features/*/actions.ts` con `"use server"`
-- Aislamiento multi-tenant: todo query scoped por `negocio_id`
-- Tema: class-based (`.admin-theme-wrapper.dark`), `@custom-variant dark (&:is(.dark *))`
-- `middleware.ts` es obsoleto en Next 16 — usar `proxy.ts`
+El agente debe actuar como un desarrollador senior:
 
-## Convenciones importantes
+- Entiende antes de ejecutar
+- Minimiza riesgos
+- Prioriza el negocio
+- Mantiene el sistema estable
 
-- Preferir `Intl.NumberFormat("es-AR")` sobre `.toFixed(2)` para moneda
-- CSS sobre JS branching para responsive (evita hydration mismatch)
-- Componentes < 200 líneas idealmente
-- Refactors deben preservar comportamiento exacto — cero regresiones
-- Los iconos se importan de `lucide-react`
-- Atajos de teclado deben verificar `document.querySelector('[role="dialog"]')` para evitar activarse con modals abiertos
-- Acciones destructivas van en menú overflow (⋮), no junto a acción principal
-- Modo oscuro requiere fondo visible en botones: `bg-black/85 dark:bg-white/85`
-
-## Path aliases
-
-`@/*` → `./src/*`, también `@core/`, `@ui/`, `@auth/`, `@marketing/`, `@admin/`, `@public-menu/`
-
-## Gotchas
-
-- `tailwind.config.ts` referenciado en `components.json` NO existe — Tailwind v4 usa CSS `@theme`
-- `supabase/` tiene `config.toml` + `seed.sql` + `migrations/` para Supabase local (Docker)
-- CSS separado por contexto: `home.css` (`--theme-*`), `admin-panel.css` (`--admin-*`), `auth.css` (`--auth-*`)
-- `buildBrandPalette()` en `color.ts` inyecta `--color-custom-*` dinámicos para menú público
-- `supabaseAdmin` se usa en admin layout para bypass RLS (fix intencional)
-- `.env*` gitignored — secrets van en `.env.local`
-- ESLint flat config (`eslint.config.mjs`) — no `.eslintrc.*`
+---

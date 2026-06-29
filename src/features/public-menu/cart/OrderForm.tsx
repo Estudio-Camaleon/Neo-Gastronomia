@@ -14,6 +14,7 @@ import {
   Tag,
   Sparkles,
   AlertTriangle,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { FoodMini } from "@/components/ui/food-loading";
@@ -50,6 +51,11 @@ interface OrderFormProps {
   };
   promos?: PromoRow[];
   productCategoryMap?: Record<string, string>;
+  appliedPromo?: PromoRow | null;
+  codePromos?: PromoRow[];
+  codeError?: string;
+  onApplyCode?: (code: string) => void;
+  onRemoveCode?: () => void;
 }
 
 export function OrderForm({
@@ -61,12 +67,20 @@ export function OrderForm({
   config,
   promos = [],
   productCategoryMap = {},
+  appliedPromo,
+  codePromos: externalCodePromos,
+  codeError,
+  onApplyCode,
+  onRemoveCode,
 }: OrderFormProps) {
   const [isPending, setIsPending] = useState(false);
   const [recepcionPausada, setRecepcionPausada] = useState(false);
   const [promoCode, setPromoCode] = useState("");
-  const [appliedPromo, setAppliedPromo] = useState<PromoRow | null>(null);
-  const [codeError, setCodeError] = useState("");
+
+  // Code-based promos
+  const codePromos = externalCodePromos ?? promos.filter(
+    (p) => p.tipo_descuento !== "combo" && p.codigo,
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -100,27 +114,25 @@ export function OrderForm({
       !p.codigo &&
       getPromoSubtotal(p, cart, productCategoryMap) > 0,
   );
-  // Code-based promos
-  const codePromos = promos.filter(
-    (p) => p.tipo_descuento !== "combo" && p.codigo,
-  );
 
   const handleApplyCode = () => {
-    const trimmed = promoCode.trim().toLowerCase();
-    if (!trimmed) {
-      setCodeError("Ingresá un código");
-      return;
-    }
-    const match = codePromos.find(
-      (p) => p.codigo?.toLowerCase() === trimmed,
-    );
-    if (match) {
-      setAppliedPromo(match);
-      setCodeError("");
-      toast.success(`¡Cupón aplicado! ${getDiscountLabel(match)}`);
+    if (onApplyCode) {
+      onApplyCode(promoCode);
     } else {
-      setCodeError("Código inválido");
-      setAppliedPromo(null);
+      // Fallback: internal validation (legacy)
+      const trimmed = promoCode.trim().toLowerCase();
+      if (!trimmed) {
+        toast.error("Ingresá un código");
+        return;
+      }
+      const match = codePromos.find(
+        (p) => p.codigo?.toLowerCase() === trimmed,
+      );
+      if (match) {
+        toast.success(`¡Cupón aplicado! ${getDiscountLabel(match)}`);
+      } else {
+        toast.error("Código inválido");
+      }
     }
   };
 
@@ -532,7 +544,7 @@ export function OrderForm({
                 value={promoCode}
                 onChange={(e) => {
                   setPromoCode(e.target.value);
-                  setCodeError("");
+                  onRemoveCode?.();
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
@@ -562,14 +574,29 @@ export function OrderForm({
               </motion.p>
             )}
             {appliedPromo && (
-              <motion.p
+              <motion.div
                 initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-1 text-xs font-semibold text-green-600"
+                className="flex items-center gap-2 rounded-lg border border-green-200/60 bg-green-50/80 px-3 py-2 text-xs"
               >
-                <Sparkles size={12} />
-                {getDiscountLabel(appliedPromo)} aplicado
-              </motion.p>
+                <Sparkles size={13} className="shrink-0 text-green-600" />
+                <span className="font-semibold text-green-800 truncate">
+                  {appliedPromo.nombre}
+                </span>
+                <span className="shrink-0 ml-auto rounded-full bg-green-500 px-2 py-[1px] text-[9px] font-bold text-white">
+                  {getDiscountLabel(appliedPromo)}
+                </span>
+                {onRemoveCode && (
+                  <button
+                    type="button"
+                    onClick={onRemoveCode}
+                    className="shrink-0 p-0.5 rounded-full text-green-600 hover:text-green-800 hover:bg-green-100 transition-colors"
+                    aria-label="Remover código"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </motion.div>
             )}
           </div>
         )}

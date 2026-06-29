@@ -35,7 +35,7 @@ import type {
   Producto,
   PromoRow,
 } from "@/features/public-menu/types";
-import { getTodayKey, formatTurnos } from "@/features/public-menu/utils";
+import { getTodayKey, formatTurnos, isPromoActive } from "@/features/public-menu/utils";
 
 export function CatalogClient({
   negocio,
@@ -105,6 +105,9 @@ export function CatalogClient({
     tipo_envio: negocio.tipo_envio ?? "fijo",
   };
 
+  // ── Filtrar promos por vigencia ──
+  const activePromos = useMemo(() => promos.filter(isPromoActive), [promos]);
+
   // ── Computar datos de promos para badges en productos ──
   const promoInfo = useMemo(() => {
     const comboProductIds: string[] = [];
@@ -169,7 +172,7 @@ export function CatalogClient({
     }
 
     return { comboProductIds, productDiscounts, hasCodePromo };
-  }, [promos, categorias]);
+  }, [activePromos, categorias]);
 
   // ── Mapa rápido: producto_id → categoria_id ──
   const productCategoryMap = useMemo(() => {
@@ -328,7 +331,7 @@ export function CatalogClient({
               </div>
 
               <CombosSection
-                promos={promos}
+                promos={activePromos}
                 onComboClick={(promo) => setSelectedCombo(promo)}
               />
 
@@ -419,7 +422,7 @@ export function CatalogClient({
           negocioNombre={negocio.nombre}
           isDrawer
           config={menuConfig}
-          promos={promos}
+          promos={activePromos}
           productCategoryMap={productCategoryMap}
           onCloseDrawer={() => setCartOpen(false)}
         />
