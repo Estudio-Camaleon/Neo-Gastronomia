@@ -17,9 +17,9 @@ const TAB_ITEMS = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Pedidos", href: "/pedidos", icon: ClipboardList },
   { name: "Productos", href: "/productos", icon: Package },
-  { name: "Promos", href: "/promos", icon: Percent },
   { name: "Clientes", href: "/clientes", icon: Users },
   { name: "Stats", href: "/estadisticas", icon: BarChart3 },
+  { name: "Promos", href: "/promos", icon: Percent },
   { name: "Ajustes", href: "/configuracion", icon: Settings },
 ];
 

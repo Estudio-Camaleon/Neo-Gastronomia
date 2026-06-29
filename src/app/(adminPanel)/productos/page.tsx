@@ -4,6 +4,7 @@
  */
 import { createClient } from "@/core/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getAdminNegocioContext } from "@/core/lib/tenant";
 import { Package} from "lucide-react";
 import { AddProductSection } from "@/features/admin/catalog/components/AddProductSection";
 
@@ -12,14 +13,13 @@ export default async function ProductosAdminPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
-  const { data: negocios } = await supabase
-    .from("negocios")
-    .select("id, nombre")
-    .eq("user_id", user?.id ?? "")
-    .limit(1);
-
-  const negocio = negocios?.[0] ?? null;
+  const { negocio } = await getAdminNegocioContext(
+    supabase,
+    user.id,
+    "id, nombre",
+  );
   if (!negocio) redirect("/configuracion");
 
   return (

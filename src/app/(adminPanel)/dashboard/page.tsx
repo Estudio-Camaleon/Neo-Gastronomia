@@ -2,6 +2,7 @@ import { createClient } from "@/core/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getPlanLimits } from "@/core/lib/billing";
 import type { PlanTier } from "@/core/lib/billing";
+import { getAdminNegocioContext } from "@/core/lib/tenant";
 import {
   ShoppingBag,
   Users,
@@ -25,38 +26,11 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  let negocio: {
-    id: string;
-    nombre: string;
-    horarios: unknown;
-    plan_tier: string;
-  } | null = null;
-
-  const { data: negocios } = await supabase
-    .from("negocios")
-    .select("id, nombre, horarios, plan_tier")
-    .eq("user_id", user.id)
-    .limit(1);
-
-  negocio = negocios?.[0] ?? null;
-
-  if (!negocio) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: memberships } = await (supabase.from("team_members" as any) as any)
-      .select("negocio_id")
-      .eq("user_id", user.id)
-      .limit(1);
-
-    if (memberships?.[0]?.negocio_id) {
-      const { data: teamNegocio } = await supabase
-        .from("negocios")
-        .select("id, nombre, horarios, plan_tier")
-        .eq("id", memberships[0].negocio_id)
-        .limit(1)
-        .single();
-      negocio = teamNegocio ?? null;
-    }
-  }
+  const { negocio } = await getAdminNegocioContext(
+    supabase,
+    user.id,
+    "id, nombre, horarios, plan_tier",
+  );
 
   if (!negocio) redirect("/configuracion");
 
@@ -113,7 +87,8 @@ export default async function DashboardPage() {
   const limits = getPlanLimits(planTier);
   const cercaDelLimite =
     planTier === "free" &&
-    (totalProductos >= 40 || totalCategorias >= 12);
+    (totalProductos >= Math.floor(limits.maxProducts * 0.9) ||
+      totalCategorias >= Math.floor(limits.maxCategories * 0.9));
 
   const abierto =
     negocio.horarios !== null && negocio.horarios !== undefined
@@ -121,6 +96,8 @@ export default async function DashboardPage() {
       : null;
   const pedidosRecientes = listaPedidos.slice(0, 5);
   const esNuevoNegocio = (totalProductos ?? 0) === 0;
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", minimumFractionDigits: 2 }).format(value);
   const ticketPromedio =
     listaPedidos.length > 0 ? ventasHoy / listaPedidos.length : 0;
 
@@ -151,7 +128,7 @@ export default async function DashboardPage() {
         />
         <KPIWidget
           title="Ventas"
-          value={`$${ventasHoy.toLocaleString("es-AR")}`}
+          value={formatCurrency(ventasHoy)}
           icon={<TrendingUp />}
         />
         <KPIWidget
@@ -266,7 +243,7 @@ export default async function DashboardPage() {
             />
             <ResumenRow
               label="Ticket promedio"
-              value={`$${ticketPromedio.toFixed(2)}`}
+              value={formatCurrency(ticketPromedio)}
             />
             <ResumenRow
               label="Delivery"
@@ -316,7 +293,7 @@ export default async function DashboardPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-bold text-[var(--admin-text)]">
-                    ${Number(pedido.total).toFixed(2)}
+                    {formatCurrency(Number(pedido.total))}
                   </p>
                   <EstadoLabel estado={pedido.estado} />
                 </div>

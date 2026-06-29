@@ -1,64 +1,31 @@
 import { createClient } from "@/core/lib/supabase/server";
-import { Users, AlertTriangle } from "lucide-react";
+import { redirect } from "next/navigation";
+import { getAdminNegocioContext } from "@/core/lib/tenant";
+import { Users } from "lucide-react";
 import { ClientRadar } from "@/features/admin/clients/ClientRadar";
 import type { ClienteResumen } from "@/core/types/domain";
 
 export default async function ClientesPage() {
   const supabase = await createClient();
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
-  let negocio: { id: string } | null = null;
-
-  const { data: negocios } = await supabase
-    .from("negocios")
-    .select("id")
-    .eq("user_id", user?.id ?? "")
-    .limit(1);
-
-  negocio = negocios?.[0] ?? null;
-
-  if (!negocio) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: memberships } = await (supabase.from("team_members" as any) as any)
-      .select("negocio_id")
-      .eq("user_id", user?.id ?? "")
-      .limit(1);
-
-    if (memberships?.[0]?.negocio_id) {
-      const { data: teamNegocio } = await supabase
-        .from("negocios")
-        .select("id")
-        .eq("id", memberships[0].negocio_id)
-        .limit(1)
-        .single();
-      negocio = teamNegocio ?? null;
-    }
-  }
-
-  if (!negocio) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh] relative z-10 p-4">
-        <div className="bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 p-6 rounded-2xl border border-red-100 dark:border-red-900/30 flex items-center gap-4 shadow-sm max-w-xl">
-          <AlertTriangle size={24} className="shrink-0" />
-          <h2 className="text-sm font-semibold tracking-wide">
-            Infraestructura Tenant Incompleta. Por favor, configura tu local
-            desde la sección de ajustes.
-          </h2>
-        </div>
-      </div>
-    );
-  }
+  const { negocioId } = await getAdminNegocioContext(
+    supabase,
+    user.id,
+    "id",
+  );
+  if (!negocioId) redirect("/configuracion");
 
   // 2. Intentar traer clientes registrados + pedidos para métricas
   const [{ data: clientesBD }, { data: pedidos }] = await Promise.all([
-    supabase.from("clientes").select("*").eq("negocio_id", negocio.id),
+    supabase.from("clientes").select("*").eq("negocio_id", negocioId),
     supabase
       .from("pedidos")
       .select("cliente_nombre, total, cliente_whatsapp, created_at")
-      .eq("negocio_id", negocio.id),
+      .eq("negocio_id", negocioId),
   ]);
 
   // 3. Mapa: clientes registrados por nombre normalizado
@@ -90,8 +57,11 @@ export default async function ClientesPage() {
         existente.ultimoPedido = fechaPedido;
       }
     } else {
+      // ID virtual estable: hash simple basado en nombre+telefono
+      const stableKey = `${nombreLimpio}_${pedido.cliente_whatsapp || "sin-tel"}`;
+      const virtualId = Array.from(stableKey).reduce((acc, ch) => ((acc << 5) - acc + ch.charCodeAt(0)) | 0, 0);
       clientesMap.set(nombreLimpio, {
-        id: `virtual_${crypto.randomUUID()}`,
+        id: `virtual_${Math.abs(virtualId).toString(36)}`,
         nombre: nombreLimpio,
         telefono: pedido.cliente_whatsapp || null,
         email: null,

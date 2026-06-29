@@ -1,6 +1,50 @@
 import { createClient } from "@/core/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+/**
+ * Obtiene el contexto multi-tenant para el admin panel.
+ * Retorna el negocio con los campos solicitados, manejando owner y team_member.
+ * Tipado pragmático: cada página castea el resultado según su select.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function getAdminNegocioContext(supabase: SupabaseClient & any, userId: string, select: string) {
+  // Check if user is owner
+  const { data: negocios } = await supabase
+    .from("negocios")
+    .select(select)
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true })
+    .limit(1);
+
+  if (negocios?.[0]) {
+    return { negocio: negocios[0], negocioId: negocios[0].id as string };
+  }
+
+  // Check if user is team member
+  const { data: memberships } = await supabase
+    .from("team_members")
+    .select("negocio_id")
+    .eq("user_id", userId)
+    .limit(1);
+
+  if (memberships?.[0]?.negocio_id) {
+    const memberNegocioId = memberships[0].negocio_id as string;
+    const { data: teamNegocio } = await supabase
+      .from("negocios")
+      .select(select)
+      .eq("id", memberNegocioId)
+      .limit(1)
+      .single();
+
+    return { negocio: teamNegocio ?? null, negocioId: memberNegocioId };
+  }
+
+  return { negocio: null, negocioId: null };
+}
+
+/**
+ * Helper simplificado: solo obtiene negocioId para owner o team_member.
+ */
 export async function getAuthenticatedTenant(supabase?: SupabaseClient) {
   const client = supabase ?? (await createClient());
 

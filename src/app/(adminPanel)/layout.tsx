@@ -10,6 +10,7 @@ import { NotificationProvider } from "@/features/admin/notifications/Notificatio
 import { PromoEndingWatcher } from "@/features/admin/notifications/PromoEndingWatcher";
 import { StockAlertWatcher } from "@/features/admin/notifications/StockAlertWatcher";
 import { createClient } from "@/core/lib/supabase/server";
+import { getAdminNegocioContext } from "@/core/lib/tenant";
 import { redirect } from "next/navigation";
 import "@/features/admin/shared/admin-panel.css";
 import type { Metadata } from "next";
@@ -36,35 +37,11 @@ export default async function AdminPanelLayout({
   }
 
   // 2. Obtención de Contexto Multi-tenant: owner o team member
-  let negocio: { id: string; slug: string; nombre: string } | null = null;
-
-  const { data: negocios } = await supabase
-    .from("negocios")
-    .select("id, slug, nombre")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: true })
-    .limit(1);
-
-  negocio = negocios?.[0] ?? null;
-
-  // Si no es owner, check team_members
-  if (!negocio) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: memberships } = await (supabase.from("team_members" as any) as any)
-      .select("negocio_id")
-      .eq("user_id", user.id)
-      .limit(1);
-
-    if (memberships?.[0]?.negocio_id) {
-      const { data: teamNegocio } = await supabase
-        .from("negocios")
-        .select("id, slug, nombre")
-        .eq("id", memberships[0].negocio_id)
-        .limit(1)
-        .single();
-      negocio = teamNegocio ?? null;
-    }
-  }
+  const { negocio } = await getAdminNegocioContext(
+    supabase,
+    user.id,
+    "id, slug, nombre",
+  );
 
   if (!negocio) {
     redirect("/login");
