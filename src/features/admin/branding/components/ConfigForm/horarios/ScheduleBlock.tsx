@@ -6,6 +6,21 @@ import { toast } from "sonner";
 import { DIAS } from "../../../types";
 import type { FranjaHoraria, ScheduleData } from "../../../types";
 
+/** Genera array de horarios en formato "HH:MM" con intervalos de 30 min */
+function generarHorarios(): string[] {
+  const horas: string[] = [];
+  for (let h = 0; h < 24; h++) {
+    for (let m = 0; m < 60; m += 30) {
+      horas.push(
+        `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`,
+      );
+    }
+  }
+  return horas;
+}
+
+const HORARIOS = generarHorarios();
+
 export interface ScheduleBlockProps {
   schedule: ScheduleData;
   onChange: (s: ScheduleData) => void;
@@ -88,7 +103,7 @@ export function ScheduleBlock({
               }`}
             >
               {/* ── DAY HEADER ── */}
-              <div className="flex items-center justify-between gap-3 px-4 py-3 md:w-40 md:flex-col md:items-start md:justify-center md:gap-1.5 md:border-r md:border-[var(--admin-border)] shrink-0">
+              <div className="flex items-center justify-between gap-3 px-4 py-2.5 md:py-3 md:w-40 md:flex-col md:items-start md:justify-center md:gap-1.5 md:border-r md:border-[var(--admin-border)] shrink-0">
                 <span
                   className={`font-semibold text-[15px] leading-tight ${
                     isOpen
@@ -119,33 +134,43 @@ export function ScheduleBlock({
               </div>
 
               {/* ── TIME SLOTS ── */}
-              <div className="flex-1 px-4 py-2.5 flex flex-col gap-2 min-h-[52px]">
+              <div className="flex-1 px-4 py-2 md:py-2.5 flex flex-col gap-1.5 md:gap-2 min-h-[44px] md:min-h-[52px]">
                 {isOpen ? (
                   <div className="flex flex-col gap-2">
                     {turnos.map((t, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center gap-1.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg p-2 animate-in zoom-in-95 duration-100"
+                        className="flex items-center gap-1 md:gap-1.5 bg-[var(--admin-bg)] border border-[var(--admin-border)] rounded-lg p-2 animate-in zoom-in-95 duration-100"
                       >
-                        <input
-                          type="time"
+                        <select
                           value={t.inicio}
                           onChange={(e) =>
                             updateTime(dia.id, idx, "inicio", e.target.value)
                           }
-                          className="flex-1 min-w-0 bg-transparent text-[14px] sm:text-[15px] font-medium text-[var(--admin-text)] p-1.5 cursor-pointer rounded-md border border-transparent focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/30 focus:border-[var(--admin-accent)] transition-all"
-                        />
+                          className="min-w-0 flex-1 sm:flex-none sm:w-24 bg-[var(--admin-surface)] text-[13px] sm:text-[14px] font-medium text-[var(--admin-text)] p-1.5 rounded-md border border-[var(--admin-border)] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/30 focus:border-[var(--admin-accent)] transition-all cursor-pointer"
+                        >
+                          {HORARIOS.map((h) => (
+                            <option key={h} value={h}>
+                              {h}
+                            </option>
+                          ))}
+                        </select>
                         <span className="text-[11px] font-semibold text-[var(--admin-text-muted)]/50 shrink-0 px-0.5 select-none">
                           A
                         </span>
-                        <input
-                          type="time"
+                        <select
                           value={t.fin}
                           onChange={(e) =>
                             updateTime(dia.id, idx, "fin", e.target.value)
                           }
-                          className="flex-1 min-w-0 bg-transparent text-[14px] sm:text-[15px] font-medium text-[var(--admin-text)] p-1.5 cursor-pointer rounded-md border border-transparent focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/30 focus:border-[var(--admin-accent)] transition-all"
-                        />
+                          className="min-w-0 flex-1 sm:flex-none sm:w-24 bg-[var(--admin-surface)] text-[13px] sm:text-[14px] font-medium text-[var(--admin-text)] p-1.5 rounded-md border border-[var(--admin-border)] focus:outline-none focus:ring-2 focus:ring-[var(--admin-accent)]/30 focus:border-[var(--admin-accent)] transition-all cursor-pointer"
+                        >
+                          {HORARIOS.map((h) => (
+                            <option key={h} value={h}>
+                              {h}
+                            </option>
+                          ))}
+                        </select>
                         <button
                           type="button"
                           onClick={() => removeFranja(dia.id, idx)}
@@ -200,7 +225,7 @@ function ScheduleActions({
   };
 
   return (
-    <div className="flex items-center gap-1 px-4 py-2.5 md:px-3 md:w-auto border-t md:border-t-0 md:border-l border-[var(--admin-border)]">
+    <div className="flex items-center gap-1 px-4 py-2 md:py-2.5 md:px-3 md:w-auto border-t md:border-t-0 md:border-l border-[var(--admin-border)]">
       {isOpen && (
         <>
           {turnosCount < 2 && (
