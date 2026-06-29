@@ -61,7 +61,7 @@ export default async function PublicMenuPage({ params }: PublicPageProps) {
   const { data: negocios } = await supabase
     .from("negocios")
     .select(
-      "id, nombre, descripcion, slug, color_primary, banner_url, banner_posicion, banner_height, banner_scale, logo_url, logo_scale, logo_posicion, logo_fit, logo_shape, mostrar_nombre, direccion, localidad, direccion_notas, direcciones, whatsapp, instagram_url, facebook_url, tiktok_url, twitter_url, youtube_url, redes_principales, horarios, recepcion_pausada, tipo_envio, costo_envio, pedido_minimo, moneda_simbolo",
+      "id, nombre, descripcion, slug, color_primary, banner_url, banner_posicion, banner_height, banner_scale, logo_url, logo_scale, logo_posicion, logo_fit, logo_shape, mostrar_nombre, direccion, localidad, direccion_notas, direcciones, whatsapp, instagram_url, facebook_url, tiktok_url, twitter_url, youtube_url, horarios, recepcion_pausada, tipo_envio, costo_envio, pedido_minimo, moneda_simbolo",
     )
     .eq("slug", slug.toLowerCase())
     .limit(1)

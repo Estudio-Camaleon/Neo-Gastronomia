@@ -33,7 +33,7 @@ export default async function ConfiguracionPage(props: {
   const { negocio } = await getAdminNegocioContext(
     supabase,
     user.id,
-    `id, nombre, slug, whatsapp, descripcion, direccion, localidad, direccion_notas, color_primary, logo_url, logo_scale, logo_posicion, logo_fit, logo_shape, banner_url, banner_posicion, banner_height, banner_scale, mostrar_nombre, horarios, instagram_url, facebook_url, tiktok_url, twitter_url, youtube_url, redes_principales, direcciones, whatsapp_mensajes, phone, plan_tier, subscription_status, current_period_ends_at, created_at`,
+    `id, nombre, slug, whatsapp, descripcion, direccion, localidad, direccion_notas, color_primary, logo_url, logo_scale, logo_posicion, logo_fit, logo_shape, banner_url, banner_posicion, banner_height, banner_scale, mostrar_nombre, horarios, instagram_url, facebook_url, tiktok_url, twitter_url, youtube_url, direcciones, whatsapp_mensajes, phone, plan_tier, subscription_status, current_period_ends_at, created_at`,
   );
 
   return (

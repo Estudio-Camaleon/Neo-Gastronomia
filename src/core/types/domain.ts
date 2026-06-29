@@ -39,7 +39,6 @@ export interface NegocioPublico {
   twitter_url: string | null;
   youtube_url: string | null;
   tripadvisor_url: string | null;
-  redes_principales?: string[];
   horarios: Record<string, HorarioDia> | null;
   whatsapp_mensajes?: Record<string, string> | null;
   recepcion_pausada?: boolean;
@@ -172,7 +171,6 @@ export interface UpdateTenantBrandingPayload {
   tiktok_url: string;
   twitter_url: string;
   youtube_url: string;
-  redes_principales: string[];
   horarios: Record<string, unknown>;
   direcciones: DireccionFisica[];
   whatsapp_mensajes?: Record<string, string> | null;

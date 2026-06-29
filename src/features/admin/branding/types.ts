@@ -59,7 +59,6 @@ export interface NegocioInitialData {
   tiktok_url?: string;
   twitter_url?: string;
   youtube_url?: string;
-  redes_principales?: string[];
   horarios: ScheduleData;
   direcciones?: DireccionFisica[];
   whatsapp_mensajes?: Record<string, string> | null;
@@ -98,7 +97,6 @@ export interface ConfigFormState {
   tiktok_url: string;
   twitter_url: string;
   youtube_url: string;
-  redes_principales: string[];
   horarios: ScheduleData;
   direcciones: DireccionFisica[];
   whatsapp_mensajes: Record<string, string>;

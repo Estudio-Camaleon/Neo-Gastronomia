@@ -65,7 +65,6 @@ function buildInitialState(data: NegocioInitialData | null): ConfigFormState {
     tiktok_url: data?.tiktok_url || "",
     twitter_url: data?.twitter_url || "",
     youtube_url: data?.youtube_url || "",
-    redes_principales: data?.redes_principales || [],
     horarios: data?.horarios || {},
     direcciones: data?.direcciones || [],
     whatsapp_mensajes: data?.whatsapp_mensajes || DEFAULT_WHATSAPP_MENSAJES,
@@ -290,7 +289,6 @@ export function ConfigForm({
         tiktok_url: formData.tiktok_url,
         twitter_url: formData.twitter_url,
         youtube_url: formData.youtube_url,
-        redes_principales: formData.redes_principales,
         horarios: formData.horarios as Record<string, unknown>,
         direcciones: formData.direcciones,
         whatsapp_mensajes: formData.whatsapp_mensajes,
@@ -550,12 +548,7 @@ export function ConfigForm({
             <div className="lg:col-span-2">
               <SocialLinksBlock
                 formData={formData}
-                redes_principales={formData.redes_principales}
                 onChange={handleChange}
-                onRedesPrincipalesChange={(redes) => {
-  
-                  setFormData((p) => ({ ...p, redes_principales: redes }));
-                }}
               />
             </div>
             <div className="lg:col-span-1">
