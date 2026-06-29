@@ -5,6 +5,7 @@ import { Geist } from "next/font/google";
 import { cn } from "@core/lib/utils";
 import { Analytics } from "@vercel/analytics/react";
 import { ResponsiveToaster } from "@/core/providers/ResponsiveToaster";
+import { CookieConsent } from "@/components/ui/cookie-consent";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -46,6 +47,7 @@ export default function RootLayout({
           {children}
           <ResponsiveToaster />
         </LoadingProvider>
+        <CookieConsent />
         {process.env.NODE_ENV === "production" && <Analytics />}
       </body>
     </html>
