@@ -35,6 +35,7 @@ import { NotificationPreferencesBlock } from "./ConfigForm/notificaciones/Notifi
 import { SubscriptionBlock } from "./ConfigForm/suscripcion/SubscriptionBlock";
 import { SupportBlock } from "./ConfigForm/soporte/SupportBlock";
 import { DangerZone } from "./ConfigForm/peligro/DangerZone";
+import { PrivacyBlock } from "./ConfigForm/privacidad/PrivacyBlock";
 import { TabBar } from "./ConfigForm/TabBar";
 import type { TabId } from "./ConfigForm/TabBar";
 
@@ -611,7 +612,7 @@ export function ConfigForm({
         )}
 
         {/* BOTÓN FLOTANTE ACCIONABLE ULTRA-LIMPIO — visible en todos los tabs excepto Peligro */}
-        {activeTab !== "peligro" && activeTab !== "suscripcion" && activeTab !== "soporte" && (
+        {activeTab !== "peligro" && activeTab !== "suscripcion" && activeTab !== "soporte" && activeTab !== "privacidad" && (
           <div className="sticky bottom-24 md:bottom-5 z-40 flex justify-end" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
             <button
               type="submit"
@@ -669,6 +670,9 @@ export function ConfigForm({
 
       {/* ── TAB: SOPORTE — fuera del <form> para evitar submit accidental */}
       {activeTab === "soporte" && <SupportBlock />}
+
+      {/* ── TAB: PRIVACIDAD — fuera del <form> (acciones client-side) */}
+      {activeTab === "privacidad" && <PrivacyBlock />}
 
       {/* ── TAB: PELIGRO — fuera del <form> para evitar submit accidental */}
       {activeTab === "peligro" && (

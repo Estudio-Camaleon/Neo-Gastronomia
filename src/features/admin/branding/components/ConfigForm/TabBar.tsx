@@ -1,6 +1,6 @@
 "use client";
 
-import { Palette, FileText, Share2, Settings2, Clock, Bell, Crown, LifeBuoy, AlertTriangle } from "lucide-react";
+import { Palette, FileText, Share2, Settings2, Clock, Bell, Crown, LifeBuoy, AlertTriangle, ShieldCheck } from "lucide-react";
 
 export const TABS = [
   { id: "identidad", label: "Identidad Visual", icon: Palette, color: "#8b5cf6" },
@@ -9,6 +9,7 @@ export const TABS = [
   { id: "operacion", label: "WhatsApp", icon: Settings2, color: "#22c55e" },
   { id: "horarios", label: "Horarios", icon: Clock, color: "#f97316" },
   { id: "notificaciones", label: "Notificaciones", icon: Bell, color: "#06b6d4" },
+  { id: "privacidad", label: "Privacidad", icon: ShieldCheck, color: "#6366f1" },
   { id: "suscripcion", label: "Suscripción", icon: Crown, color: "#f59e0b" },
   { id: "soporte", label: "Soporte", icon: LifeBuoy, color: "#14b8a6" },
   { id: "peligro", label: "Peligro", icon: AlertTriangle, color: "#ef4444" },
