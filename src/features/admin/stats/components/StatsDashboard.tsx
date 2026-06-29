@@ -306,8 +306,8 @@ export function StatsDashboard({ negocioId }: StatsDashboardProps) {
         ))}
       </div>
 
-      {/* LOADING */}
-      {loading && (
+      {/* LOADING OVERLAY (solo initial load, sin datos previos) */}
+      {loading && !data && (
         <div className="flex items-center justify-center py-20">
           <div className="flex flex-col items-center gap-3">
             <div className="w-8 h-8 flex items-center justify-center">
@@ -320,7 +320,14 @@ export function StatsDashboard({ negocioId }: StatsDashboardProps) {
         </div>
       )}
 
-      {data && !loading && (
+      {/* BARRA INDICADORA (recarga con datos previos) */}
+      {loading && data && (
+        <div className="relative h-1 w-full rounded-full bg-[var(--admin-border)] overflow-hidden -mt-2">
+          <div className="absolute inset-y-0 left-0 w-1/3 bg-[var(--admin-accent)] rounded-full neo-shimmer" />
+        </div>
+      )}
+
+      {data && (
         <>
           {/* COMPARISON BANNER */}
           {data.comparison && <ComparisonBanner comparison={data.comparison} />}
@@ -361,22 +368,22 @@ export function StatsDashboard({ negocioId }: StatsDashboardProps) {
             breakdown={data.dailyBreakdown}
             totalCount={data.totalCount}
           />
-        </>
-      )}
 
-      {/* EMPTY STATE */}
-      {data && data.totalCount === 0 && !loading && (
-        <div className="flex flex-col items-center justify-center py-20 admin-card border-dashed">
-          <div className="p-4 rounded-2xl bg-[var(--admin-accent)]/5 text-[var(--admin-text-muted)] mb-4">
-            <AlertCircle size={48} strokeWidth={1.5} />
-          </div>
-          <p className="text-lg font-black tracking-tight text-[var(--admin-text)] mb-1">
-            Sin datos en este período
-          </p>
-          <p className="text-sm font-medium text-[var(--admin-text-muted)]">
-            No hay pedidos registrados en el rango seleccionado.
-          </p>
-        </div>
+          {/* EMPTY STATE */}
+          {data.totalCount === 0 && !loading && (
+            <div className="flex flex-col items-center justify-center py-20 admin-card border-dashed">
+              <div className="p-4 rounded-2xl bg-[var(--admin-accent)]/5 text-[var(--admin-text-muted)] mb-4">
+                <AlertCircle size={48} strokeWidth={1.5} />
+              </div>
+              <p className="text-lg font-black tracking-tight text-[var(--admin-text)] mb-1">
+                Sin datos en este período
+              </p>
+              <p className="text-sm font-medium text-[var(--admin-text-muted)]">
+                No hay pedidos registrados en el rango seleccionado.
+              </p>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

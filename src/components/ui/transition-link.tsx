@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useLoading } from "@/core/providers/LoadingProvider";
 
+const MAX_LOADING_MS = 8_000; // safety net: nunca dejar overlay trabado
+
 type TransitionLinkProps = LinkProps &
   Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof LinkProps> & {
     delayMs?: number;
@@ -23,6 +25,7 @@ export function TransitionLink({
   const router = useRouter();
   const pathname = usePathname();
   const prevPathRef = useRef(pathname);
+  const maxTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { show: showLoading, hide: hideLoading } = useLoading();
 
   const isHashLink = useMemo(() => {
@@ -34,6 +37,13 @@ export function TransitionLink({
     const targetPath = href.split("#")[0];
     return targetPath === pathname;
   }, [href, pathname]);
+
+  const clearMaxTimer = useCallback(() => {
+    if (maxTimerRef.current) {
+      clearTimeout(maxTimerRef.current);
+      maxTimerRef.current = null;
+    }
+  }, []);
 
   const handleTransition = useCallback(
     (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
@@ -56,12 +66,17 @@ export function TransitionLink({
       e.preventDefault();
       prevPathRef.current = pathname;
       showLoading(loadingMessage);
+      clearMaxTimer();
+      maxTimerRef.current = setTimeout(() => {
+        hideLoading();
+      }, MAX_LOADING_MS);
 
       const targetUrl = typeof href === "string" ? href : href.pathname || "/";
 
       setTimeout(() => {
         router.push(targetUrl);
-        hideLoading();
+        // NO ocultar overlay aquí — el useEffect por pathname lo hace
+        // cuando la nueva ruta realmente comienza a renderizar
       }, delayMs);
     },
     [
@@ -72,6 +87,7 @@ export function TransitionLink({
       pathname,
       showLoading,
       hideLoading,
+      clearMaxTimer,
       loadingMessage,
       delayMs,
       props.target,
@@ -81,10 +97,11 @@ export function TransitionLink({
 
   useEffect(() => {
     if (prevPathRef.current !== pathname) {
+      clearMaxTimer();
       hideLoading();
       prevPathRef.current = pathname;
     }
-  }, [pathname, hideLoading]);
+  }, [pathname, hideLoading, clearMaxTimer]);
 
   return (
     <Link
