@@ -3,6 +3,7 @@ import { createClient } from "@/core/lib/supabase/server";
 import { MercadoPagoConfig, PreApproval } from "mercadopago";
 
 const MP_ACCESS_TOKEN = process.env["MERCADO_PAGO_ACCESS_TOKEN"];
+const MP_BACK_URL = process.env["MERCADO_PAGO_BACK_URL"];
 
 function getMPClient() {
   if (!MP_ACCESS_TOKEN) return null;
@@ -44,16 +45,16 @@ export async function POST(req: Request) {
     }
 
     const originUrl = req.headers.get("origin");
-    const siteUrl = process.env["NEXT_PUBLIC_SITE_URL"] ?? originUrl ?? "";
+    const siteUrl = MP_BACK_URL ?? process.env["NEXT_PUBLIC_SITE_URL"] ?? originUrl ?? "";
 
-    const backUrl = siteUrl ? `${siteUrl}/configuracion` : undefined;
+    if (!siteUrl) {
+      return NextResponse.json(
+        { error: "No se pudo resolver la URL de retorno" },
+        { status: 500 },
+      );
+    }
 
-    console.log("[MP PREAPPROVAL] Debug:", {
-      NEXT_PUBLIC_SITE_URL: process.env["NEXT_PUBLIC_SITE_URL"],
-      origin: originUrl,
-      siteUrl,
-      backUrl,
-    });
+    const backUrl = new URL("/configuracion", siteUrl).toString();
 
     const preApproval = new PreApproval(client);
 
@@ -87,7 +88,6 @@ export async function POST(req: Request) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const initPoint = (result as any).init_point;
-    console.log("[MP PREAPPROVAL] created id=%s back_url=%s", result.id, backUrl);
     return NextResponse.json({ url: initPoint });
   } catch (error: unknown) {
     console.error("[MP CREATE PREAPPROVAL]", error);

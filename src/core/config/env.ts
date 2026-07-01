@@ -11,6 +11,7 @@ const serverEnvSchema = z.object({
   RESEND_API_KEY: z.string().optional(),
   MERCADO_PAGO_ACCESS_TOKEN: z.string().optional(),
   MERCADO_PAGO_WEBHOOK_SECRET: z.string().optional(),
+  MERCADO_PAGO_BACK_URL: z.string().url().optional(),
   NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY: z.string().optional(),
   SENTRY_DSN: z.string().optional(),
 });
